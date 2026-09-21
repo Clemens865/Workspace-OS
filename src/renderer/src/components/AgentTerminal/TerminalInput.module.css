@@ -1,0 +1,87 @@
+.wrap {
+  position: relative;
+  border-top: 1px solid var(--term-border);
+  flex-shrink: 0;
+}
+
+.inputRow {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  padding: 10px 13px;
+  margin: 8px 12px 12px;
+  background: var(--term-surface);
+  border: 1px solid #30333a;
+  border-radius: 10px;
+}
+
+.prompt {
+  color: #6aa6ff;
+  font-family: var(--mono);
+  font-size: 13px;
+  line-height: 20px;
+  flex-shrink: 0;
+}
+
+.input {
+  flex: 1;
+  background: none;
+  border: none;
+  outline: none;
+  resize: none;
+  color: #e4e5e9;
+  font-family: var(--mono);
+  font-size: 13px;
+  line-height: 20px;
+  max-height: 120px;
+  overflow-y: auto;
+}
+
+.input::placeholder { color: #6e7079; }
+
+.autocomplete {
+  position: absolute;
+  bottom: 100%;
+  left: 24px;
+  right: 24px;
+  margin-bottom: 0;
+  background: var(--term-surface);
+  border: 1px solid var(--term-border);
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.5);
+  max-height: 240px;
+  overflow-y: auto;
+}
+
+.suggestion {
+  display: flex;
+  align-items: baseline;
+  gap: 12px;
+  width: 100%;
+  padding: 7px 12px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  text-align: left;
+}
+
+.suggestion:hover, .activeSuggestion {
+  background: var(--accent);
+}
+
+.suggestionName {
+  color: var(--term-fg);
+  font-family: var(--mono);
+  font-size: 12px;
+  flex-shrink: 0;
+  min-width: 110px;
+}
+
+.suggestionDesc {
+  color: #9da0a8;
+  font-size: 12px;
+}
+
+.activeSuggestion .suggestionName,
+.activeSuggestion .suggestionDesc { color: #fff; }

@@ -1,0 +1,113 @@
+import { useSyncExternalStore } from 'react'
+
+/** Small app preferences, persisted to localStorage (workspace-os:* convention). */
+export interface Settings {
+  /** Default mode for new agent sessions. */
+  agentMode: 'full' | 'safe'
+  /** Default format for the New-file menu / ⌘N. */
+  newFileFormat: 'md' | 'csv' | 'docx' | 'xlsx' | 'pptx'
+  /**
+   * Fleet: auto-approve REVERSIBLE-tier requests (read-only / checkpointed).
+   * Default OFF — safety first, opt-in. Irreversible/outbound requests always
+   * require explicit approval regardless. Auto-approvals are logged as resolved
+   * cards in the Review feed, never silent.
+   */
+  autoApproveReversible: boolean
+  /**
+   * Redesign toggle (feat/shell-redesign). Default OFF — when off the app
+   * renders the existing WorkspaceLayout UNCHANGED; when on it renders the new
+   * WorkspaceShell (rail + Stage tabs + Home). Reversible: flip it back any time.
+   */
+  newShell: boolean
+  /**
+   * Integrated Terminal Dock (new shell only). Where the dock sits when open —
+   * a bottom strip under the stage, or a right-hand column. Default 'bottom'.
+   */
+  terminalPlacement: 'bottom' | 'right'
+  /** Whether the Terminal Dock is currently open (toggled with ⌘J). Default off. */
+  terminalOpen: boolean
+  /**
+   * Model ALIAS for cheap, high-volume classification (the mail sift).
+   * An alias like 'haiku' floats to the current light model — never a dated
+   * model id, so it doesn't rot. Empty string = use the CLI's default model
+   * (your full-strength one) for everything. If the alias is ever rejected as
+   * obsolete, runs silently fall back to the default model.
+   */
+  lightModel: string
+  /**
+   * Model ALIAS for agent runs (dock, Home assistant, cases, routines, the
+   * interactive session). '' = the CLI's default. Per-agent `wos_model` and a
+   * per-run pick in the dock override it. Pushed to the main process so every
+   * run path (including routines, which start in main) sees the same default.
+   */
+  agentModel: string
+  codexEffort: string
+  /**
+   * Minimised: present but collapsed to its title bar (⌥⌘J), as distinct from
+   * hidden. The dock stays MOUNTED while minimised, which is the whole point —
+   * the shell session and its scrollback survive, so restoring puts you back in
+   * the same terminal rather than a new one. Only meaningful when terminalOpen.
+   *
+   * Modelled as a second flag rather than replacing `terminalOpen` with a
+   * three-state field, so an existing user's persisted `terminalOpen: true`
+   * keeps working and ⌘J keeps meaning show/hide.
+   */
+  terminalMinimized: boolean
+}
+
+const KEY = 'workspace-os:settings'
+const DEFAULTS: Settings = {
+  agentMode: 'full',
+  newFileFormat: 'md',
+  autoApproveReversible: false,
+  newShell: true,
+  terminalPlacement: 'bottom',
+  terminalOpen: false,
+  terminalMinimized: false,
+  lightModel: 'haiku',
+  agentModel: '',
+  codexEffort: '',
+}
+
+function read(): Settings {
+  try {
+    const raw = localStorage.getItem(KEY)
+    if (raw) return { ...DEFAULTS, ...JSON.parse(raw) } // merge so new keys get defaults
+  } catch {
+    /* corrupt — use defaults */
+  }
+  return DEFAULTS
+}
+
+// Single shared store so every consumer (Settings panel, FilePanel ⌘N, agent
+// sessions) sees the same value and updates live.
+let current: Settings = read()
+const listeners = new Set<() => void>()
+
+export function loadSettings(): Settings {
+  return current
+}
+
+export function setSetting<K extends keyof Settings>(key: K, value: Settings[K]): void {
+  current = { ...current, [key]: value }
+  try { localStorage.setItem(KEY, JSON.stringify(current)) } catch { /* best-effort */ }
+  listeners.forEach((l) => l())
+  if (key === 'codexEffort') void window.workspace?.codex?.setEffort?.(String(value ?? ''))
+  if (key === 'agentModel') void window.workspace?.agent?.setDefaultModel?.(String(value ?? ''))
+}
+
+export interface SettingsStore extends Settings {
+  set: typeof setSetting
+}
+
+export function useSettings(): SettingsStore {
+  const s = useSyncExternalStore(
+    (cb) => { listeners.add(cb); return () => listeners.delete(cb) },
+    () => current,
+  )
+  return { ...s, set: setSetting }
+}
+
+// The main process starts runs of its own (routines) and the interactive
+// session; hand it the default model once per app start.
+if (typeof window !== 'undefined') queueMicrotask(() => { try { void window.workspace?.agent?.setDefaultModel?.(read().agentModel) } catch { /* no bridge (tests, previews) */ } })

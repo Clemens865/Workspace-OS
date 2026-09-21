@@ -1,0 +1,53 @@
+.overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 400;
+  background: #000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: default;
+}
+
+.slide {
+  max-width: 100vw;
+  max-height: 100vh;
+  box-shadow: 0 0 40px rgba(0, 0, 0, 0.6);
+}
+
+.bar {
+  position: fixed;
+  bottom: 18px;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 6px 12px;
+  background: rgba(30, 30, 34, 0.82);
+  border-radius: 999px;
+  opacity: 0;
+  transition: opacity 160ms ease;
+}
+.overlay:hover .bar { opacity: 1; }
+
+.bar button {
+  background: transparent;
+  border: none;
+  color: #fff;
+  cursor: pointer;
+  font-size: 20px;
+  line-height: 1;
+  padding: 2px 8px;
+  border-radius: 6px;
+}
+.bar button:disabled { opacity: 0.35; cursor: default; }
+.bar button:not(:disabled):hover { background: rgba(255, 255, 255, 0.12); }
+
+.count { color: #fff; font-size: 12px; min-width: 56px; text-align: center; }
+
+.exit {
+  font-size: 12px !important;
+  border: 1px solid rgba(255, 255, 255, 0.25) !important;
+  padding: 4px 12px !important;
+}

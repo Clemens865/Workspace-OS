@@ -1,0 +1,380 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Workspace OS — Home mockups</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#f5f5f7; --card:#fff; --sunk:#f0f0f2;
+    --ink:#1d1d1f; --ink2:#6e6e73; --ink3:#8a8a8e;
+    --hair:rgba(0,0,0,.09);
+    --blue:#0071e3; --ok:#30b44a;
+    --warm-ink:#8a5a00; --warm-bg:#fff4e0;
+    --sh:0 1px 2px rgba(0,0,0,.04), 0 10px 30px rgba(0,0,0,.06);
+    --r:16px; --r-sm:10px;
+    --font:'Hanken Grotesk',-apple-system,system-ui,sans-serif;
+    --mono:ui-monospace,'SF Mono',Menlo,monospace;
+  }
+  *{box-sizing:border-box;margin:0}
+  body{background:#e9e9ec;color:var(--ink);font-family:var(--font);
+       -webkit-font-smoothing:antialiased;padding:48px 20px 120px}
+  .intro{max-width:1120px;margin:0 auto 42px}
+  .intro h1{font-size:22px;font-weight:800;letter-spacing:-.02em}
+  .intro p{color:var(--ink2);font-size:14px;margin-top:6px;max-width:70ch;line-height:1.55}
+  .board{max-width:1120px;margin:56px auto 0}
+  .board-tag{display:flex;align-items:baseline;gap:12px;margin:0 6px 14px}
+  .board-tag b{font-family:var(--mono);font-size:12px;letter-spacing:.14em;color:var(--ink3)}
+  .board-tag span{font-size:15px;font-weight:700;letter-spacing:-.01em}
+  .board-tag em{font-style:normal;font-size:12.5px;color:var(--ink3)}
+  .frame{background:var(--bg);border:.5px solid var(--hair);border-radius:22px;
+         box-shadow:0 20px 60px rgba(0,0,0,.10);overflow:hidden}
+
+  /* shared atoms */
+  .pill{display:inline-flex;align-items:center;gap:5px;font-size:11px;font-weight:600;
+        letter-spacing:.02em;padding:2.5px 9px;border-radius:99px;white-space:nowrap}
+  .pill.warm{background:var(--warm-bg);color:var(--warm-ink)}
+  .pill.quiet{background:var(--sunk);color:var(--ink2)}
+  .mono{font-family:var(--mono);font-variant-numeric:tabular-nums}
+  .breathe{animation:breathe 2.6s ease-in-out infinite}
+  @keyframes breathe{0%,100%{opacity:.45}50%{opacity:1}}
+  .dotlive{width:6px;height:6px;border-radius:50%;background:var(--ok);flex:none}
+  @media (prefers-reduced-motion:reduce){.breathe{animation:none;opacity:.8}}
+
+  /* ═══ VARIANT A — the morning briefing ═══ */
+  .a-wrap{max-width:780px;margin:0 auto;padding:64px 40px 72px}
+  .a-date{font-family:var(--mono);font-size:11.5px;letter-spacing:.16em;color:var(--ink3);
+          text-transform:uppercase}
+  .a-lede{font-size:27px;font-weight:700;letter-spacing:-.022em;line-height:1.32;
+          margin-top:14px;max-width:24ch}
+  .a-lede .soft{color:var(--ink3);font-weight:600}
+  .a-zone{margin-top:44px}
+  .a-zh{display:flex;align-items:center;gap:10px;font-size:11.5px;font-weight:700;
+        letter-spacing:.14em;color:var(--ink3);text-transform:uppercase}
+  .a-zh .ln{flex:1;height:.5px;background:var(--hair)}
+  .a-need{margin-top:14px;display:flex;flex-direction:column;gap:10px}
+  .a-card{background:var(--card);border-radius:var(--r);box-shadow:var(--sh);
+          padding:18px 20px;display:flex;align-items:center;gap:16px}
+  .a-card .txt{min-width:0;flex:1}
+  .a-card .what{font-size:15px;font-weight:650;letter-spacing:-.01em}
+  .a-card .why{font-size:13px;color:var(--ink2);margin-top:3px;line-height:1.45}
+  .a-act{display:flex;gap:8px;flex:none}
+  .btn{font:inherit;font-size:13px;font-weight:600;border-radius:99px;padding:8px 16px;
+       cursor:pointer;border:.5px solid var(--hair);background:transparent;color:var(--ink2)}
+  .btn.primary{background:var(--blue);border-color:transparent;color:#fff}
+  .a-live{margin-top:14px;background:var(--sunk);border-radius:var(--r);padding:6px 8px}
+  .a-cell{display:flex;align-items:center;gap:12px;padding:10px 12px;border-radius:var(--r-sm)}
+  .a-cell + .a-cell{border-top:.5px solid var(--hair)}
+  .a-cell .who{font-size:13.5px;font-weight:650;flex:none;width:64px}
+  .a-cell .doing{font-size:13px;color:var(--ink2);min-width:0;overflow:hidden;
+                 text-overflow:ellipsis;white-space:nowrap;flex:1}
+  .a-cell .m{font-family:var(--mono);font-size:11.5px;color:var(--ink3);flex:none}
+  .a-next{margin-top:14px;display:flex;flex-direction:column}
+  .a-ev{display:flex;align-items:baseline;gap:18px;padding:11px 4px;border-bottom:.5px solid var(--hair)}
+  .a-ev:last-child{border-bottom:0}
+  .a-ev .t{font-family:var(--mono);font-size:12.5px;color:var(--ink2);width:86px;flex:none}
+  .a-ev .s{font-size:14px;font-weight:600;letter-spacing:-.005em}
+  .a-trails{margin-top:14px;display:grid;grid-template-columns:1fr 1fr 1fr;gap:0}
+  .a-tr{padding:2px 18px 2px 4px}
+  .a-tr + .a-tr{border-left:.5px solid var(--hair);padding-left:18px}
+  .a-tr h4{font-size:11px;font-weight:700;letter-spacing:.1em;color:var(--ink3);
+           text-transform:uppercase;margin-bottom:8px}
+  .a-tr a{display:block;font-size:12.5px;color:var(--ink2);text-decoration:none;
+          padding:3.5px 0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .a-tr a:hover{color:var(--ink)}
+</style></head><body>
+
+<div class="intro">
+  <h1>Home — three directions</h1>
+  <p>Same data, same tokens, three compositions. A is a briefing you read, B is a
+     desk with one loud thing, C is one calm surface with regions. Scroll, compare,
+     pick one — we iterate from there.</p>
+</div>
+
+<!-- ═══════════════════ A ═══════════════════ -->
+<section class="board">
+  <div class="board-tag"><b>A</b><span>The morning briefing</span>
+    <em>a document you read top to bottom — zones by need, never by app</em></div>
+  <div class="frame"><div class="a-wrap">
+
+    <div class="a-date">Friday · 22 August</div>
+    <h2 class="a-lede">Two things need you.<br>
+      <span class="soft">Jonas is out scouting. Next meeting at 14:00.</span></h2>
+
+    <div class="a-zone">
+      <div class="a-zh">● Needs you <span class="ln"></span></div>
+      <div class="a-need">
+        <div class="a-card" style="background:linear-gradient(180deg,#fffdf8,#fff)">
+          <div class="txt">
+            <div class="what">ALPLA moved you to interview</div>
+            <div class="why">Thursday 14:00 was proposed — prep material can be ready today.</div>
+          </div>
+          <div class="a-act"><button class="btn">Later</button>
+            <button class="btn primary">Prepare me</button></div>
+        </div>
+        <div class="a-card" style="background:linear-gradient(180deg,#fffdf8,#fff)">
+          <div class="txt">
+            <div class="what">Elena drafted the fonio cover letter</div>
+            <div class="why">Cover_Letter.docx · she emphasised the deployment work.</div>
+          </div>
+          <div class="a-act"><button class="btn">Open draft</button>
+            <button class="btn primary">Approve</button></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="a-zone">
+      <div class="a-zh">◦ Working <span class="ln"></span></div>
+      <div class="a-live">
+        <div class="a-cell"><span class="dotlive breathe"></span>
+          <span class="who">Jonas</span>
+          <span class="doing">deep-reading karriere.at — 12 postings scored so far</span>
+          <span class="m">4m · $0.31</span></div>
+        <div class="a-cell"><span class="dotlive breathe" style="animation-delay:.8s"></span>
+          <span class="who">Mira</span>
+          <span class="doing">hunting IT recruiters — 3 named contacts verified</span>
+          <span class="m">2m · $0.12</span></div>
+      </div>
+    </div>
+
+    <div class="a-zone">
+      <div class="a-zh">Next <span class="ln"></span></div>
+      <div class="a-next">
+        <div class="a-ev"><span class="t">today 14:00</span><span class="s">Interview prep — ALPLA</span></div>
+        <div class="a-ev"><span class="t">Mon 09:30</span><span class="s">Weekly review</span></div>
+      </div>
+    </div>
+
+    <div class="a-zone">
+      <div class="a-zh">Where you were <span class="ln"></span></div>
+      <div class="a-trails">
+        <div class="a-tr"><h4>Files</h4>
+          <a href="#">Founder_Operator_Roles.xlsx</a>
+          <a href="#">Clemens_CV_fonio.pdf</a>
+          <a href="#">Pitch — Workspace OS.md</a></div>
+        <div class="a-tr"><h4>Pages</h4>
+          <a href="#">ALPLA — Senior AI Engineer</a>
+          <a href="#">LinkedIn — saved roles</a>
+          <a href="#">supabase.com/pricing</a></div>
+        <div class="a-tr"><h4>Notes</h4>
+          <a href="#">Interview notes — ALPLA</a>
+          <a href="#">Job scan — Austria</a>
+          <a href="#">Beta onboarding ideas</a></div>
+      </div>
+    </div>
+
+  </div></div>
+</section>
+
+<style>
+  /* ═══ VARIANT B — the desk ═══ */
+  .b-wrap{padding:56px 48px 64px;max-width:1040px;margin:0 auto}
+  .b-top{display:flex;align-items:baseline;justify-content:space-between;margin-bottom:26px}
+  .b-hi{font-size:16px;font-weight:600;color:var(--ink2)}
+  .b-hi b{color:var(--ink);font-weight:800;letter-spacing:-.015em}
+  .b-clock{font-family:var(--mono);font-size:12px;color:var(--ink3)}
+  .b-grid{display:grid;grid-template-columns:1.7fr 1fr;grid-auto-rows:min-content;gap:16px}
+  .b-hero{grid-row:span 2;background:var(--card);border-radius:20px;box-shadow:var(--sh);
+          padding:30px 32px;display:flex;flex-direction:column;
+          background:linear-gradient(165deg,#fffdf7 0%,#fff 55%)}
+  .b-hero .k{font-size:11px;font-weight:700;letter-spacing:.14em;color:var(--warm-ink);
+             text-transform:uppercase}
+  .b-hero h3{font-size:34px;font-weight:800;letter-spacing:-.03em;line-height:1.12;
+             margin-top:12px;max-width:14ch}
+  .b-hero .sub{font-size:14.5px;color:var(--ink2);line-height:1.5;margin-top:12px;max-width:38ch}
+  .b-hero .foot{margin-top:auto;padding-top:26px;display:flex;gap:8px;align-items:center}
+  .b-side{background:var(--card);border-radius:20px;box-shadow:var(--sh);padding:20px 22px}
+  .b-side .k{font-size:11px;font-weight:700;letter-spacing:.12em;color:var(--ink3);
+             text-transform:uppercase}
+  .b-live-line{display:flex;align-items:center;gap:10px;margin-top:13px}
+  .b-live-line .who{font-size:14px;font-weight:700}
+  .b-live-line .what{font-size:12.5px;color:var(--ink2);min-width:0;overflow:hidden;
+                     text-overflow:ellipsis;white-space:nowrap}
+  .b-ev{display:flex;align-items:baseline;gap:12px;margin-top:12px}
+  .b-ev .t{font-family:var(--mono);font-size:12px;color:var(--ink2);flex:none}
+  .b-ev .s{font-size:14px;font-weight:650}
+  .b-band{grid-column:1 / -1;display:flex;align-items:center;gap:26px;
+          padding:16px 22px;background:var(--sunk);border-radius:16px}
+  .b-band .g{min-width:0;display:flex;align-items:baseline;gap:10px}
+  .b-band .g h4{font-size:11px;font-weight:700;letter-spacing:.1em;color:var(--ink3);
+                text-transform:uppercase;flex:none}
+  .b-band .g span{font-size:12.5px;color:var(--ink2);overflow:hidden;text-overflow:ellipsis;
+                  white-space:nowrap}
+  .b-band .sep{width:.5px;height:22px;background:var(--hair);flex:none}
+  .b-cases{display:flex;flex-direction:column;gap:0;margin-top:6px}
+  .b-case{display:flex;align-items:center;gap:10px;padding:9px 0;border-bottom:.5px solid var(--hair)}
+  .b-case:last-child{border-bottom:0}
+  .b-case .n{font-size:13.5px;font-weight:600;min-width:0;flex:1;overflow:hidden;
+             text-overflow:ellipsis;white-space:nowrap}
+</style>
+
+<!-- ═══════════════════ B ═══════════════════ -->
+<section class="board">
+  <div class="board-tag"><b>B</b><span>The desk</span>
+    <em>one loud thing, chosen automatically — everything else supports</em></div>
+  <div class="frame"><div class="b-wrap">
+
+    <div class="b-top">
+      <div class="b-hi"><b>Good morning.</b> Two decisions, one agent out.</div>
+      <div class="b-clock">Fri 22 Aug · 09:41</div>
+    </div>
+
+    <div class="b-grid">
+      <div class="b-hero">
+        <div class="k">Waiting on you</div>
+        <h3>ALPLA moved you to interview.</h3>
+        <p class="sub">They proposed Thursday 14:00. Elena can have the prep dossier —
+          interviewer research, likely questions, your matching evidence — ready this
+          afternoon.</p>
+        <div class="foot">
+          <button class="btn primary">Prepare me</button>
+          <button class="btn">Open the case</button>
+          <span class="pill quiet" style="margin-left:auto">1 of 2</span>
+        </div>
+      </div>
+
+      <div class="b-side">
+        <div class="k">Working now</div>
+        <div class="b-live-line"><span class="dotlive breathe"></span>
+          <span class="who">Jonas</span>
+          <span class="what">scoring karriere.at postings</span></div>
+        <div class="b-live-line"><span class="dotlive breathe" style="animation-delay:.9s"></span>
+          <span class="who">Mira</span>
+          <span class="what">verifying recruiter contacts</span></div>
+      </div>
+
+      <div class="b-side">
+        <div class="k">Next</div>
+        <div class="b-ev"><span class="t">14:00</span><span class="s">Interview prep — ALPLA</span></div>
+        <div class="b-ev"><span class="t">Mon 09:30</span><span class="s">Weekly review</span></div>
+      </div>
+
+      <div class="b-side" style="grid-column:1 / 2">
+        <div class="k">Open cases · 5</div>
+        <div class="b-cases">
+          <div class="b-case"><span class="n">fonio — Forward Deployed Engineer</span><span class="pill warm">drafted</span></div>
+          <div class="b-case"><span class="n">Philips — Staff AI Engineer</span><span class="pill quiet">applied</span></div>
+          <div class="b-case"><span class="n">Job scan — Austria</span><span class="pill quiet">running weekly</span></div>
+        </div>
+      </div>
+
+      <div class="b-side">
+        <div class="k">Mail</div>
+        <p style="font-size:13px;color:var(--ink2);margin-top:11px;line-height:1.5">
+          Two personal messages since yesterday. The sweep found 41 newsletters ready to file.</p>
+      </div>
+
+      <div class="b-band">
+        <div class="g"><h4>Files</h4><span>Founder_Operator_Roles.xlsx · Clemens_CV_fonio.pdf</span></div>
+        <div class="sep"></div>
+        <div class="g"><h4>Pages</h4><span>ALPLA careers · supabase.com</span></div>
+        <div class="sep"></div>
+        <div class="g"><h4>Notes</h4><span>Interview notes — ALPLA</span></div>
+      </div>
+    </div>
+
+  </div></div>
+</section>
+
+<style>
+  /* ═══ VARIANT C — the field ═══ */
+  .c-wrap{padding:70px 64px 78px;max-width:1000px;margin:0 auto}
+  .c-state{display:flex;align-items:center;gap:10px;font-size:13px;color:var(--ink2)}
+  .c-state .dotlive{width:7px;height:7px}
+  .c-h{font-size:40px;font-weight:800;letter-spacing:-.035em;line-height:1.08;margin-top:18px}
+  .c-h .dim{color:#c9c9ce}
+  .c-decide{margin-top:38px;display:flex;flex-wrap:wrap;gap:10px}
+  .c-pillrow{display:inline-flex;align-items:center;gap:12px;background:var(--warm-bg);
+             border-radius:99px;padding:10px 12px 10px 20px}
+  .c-pillrow .q{font-size:14px;font-weight:650;color:var(--ink)}
+  .c-pillrow .go{font:inherit;font-size:12.5px;font-weight:700;color:#fff;background:var(--blue);
+                 border:0;border-radius:99px;padding:6px 14px;cursor:pointer}
+  .c-pillrow .skip{font:inherit;font-size:12.5px;font-weight:600;color:var(--warm-ink);
+                   background:transparent;border:0;cursor:pointer;padding:6px 6px}
+  .c-field{margin-top:46px;background:var(--sunk);border-radius:24px;padding:8px}
+  .c-row{display:grid;grid-template-columns:110px 1fr auto;align-items:center;gap:16px;
+         padding:13px 18px;border-radius:16px}
+  .c-row:hover{background:rgba(255,255,255,.75)}
+  .c-row + .c-row{border-top:.5px solid var(--hair)}
+  .c-row .lab{font-size:11px;font-weight:700;letter-spacing:.13em;color:var(--ink3);
+              text-transform:uppercase}
+  .c-row .body{min-width:0;font-size:13.5px;color:var(--ink);display:flex;
+               align-items:center;gap:10px;flex-wrap:wrap}
+  .c-row .body .sep{color:#d3d3d7}
+  .c-row .body .soft{color:var(--ink2)}
+  .c-row .edge{font-family:var(--mono);font-size:11.5px;color:var(--ink3);white-space:nowrap}
+  .c-foot{margin-top:34px;display:flex;justify-content:space-between;align-items:center}
+  .c-foot .hint{font-size:12px;color:var(--ink3)}
+</style>
+
+<!-- ═══════════════════ C ═══════════════════ -->
+<section class="board">
+  <div class="board-tag"><b>C</b><span>The field</span>
+    <em>no cards at all — one calm surface, regions in a sunk well, warmth only on decisions</em></div>
+  <div class="frame"><div class="c-wrap">
+
+    <div class="c-state"><span class="dotlive breathe"></span>
+      Calm — five cases moving, two agents out, nothing broken.</div>
+
+    <h2 class="c-h">Two decisions,<br><span class="dim">then a clear morning.</span></h2>
+
+    <div class="c-decide">
+      <span class="c-pillrow">
+        <span class="q">ALPLA proposed Thursday 14:00 — prepare?</span>
+        <button class="skip">later</button><button class="go">Prepare me</button>
+      </span>
+      <span class="c-pillrow">
+        <span class="q">Elena's fonio letter is ready</span>
+        <button class="skip">open</button><button class="go">Approve</button>
+      </span>
+    </div>
+
+    <div class="c-field">
+      <div class="c-row">
+        <span class="lab">Agents</span>
+        <span class="body"><span class="dotlive breathe"></span> Jonas — scoring karriere.at
+          <span class="sep">·</span><span class="dotlive breathe" style="animation-delay:.7s"></span>
+          Mira — verifying recruiters</span>
+        <span class="edge">2 live</span>
+      </div>
+      <div class="c-row">
+        <span class="lab">Cases</span>
+        <span class="body">fonio <span class="soft">drafted</span><span class="sep">·</span>
+          Philips <span class="soft">applied</span><span class="sep">·</span>
+          ALPLA <span class="soft">interview</span></span>
+        <span class="edge">5 open</span>
+      </div>
+      <div class="c-row">
+        <span class="lab">Calendar</span>
+        <span class="body">14:00 Interview prep — ALPLA<span class="sep">·</span>
+          <span class="soft">Mon 09:30 Weekly review</span></span>
+        <span class="edge">2 in 48h</span>
+      </div>
+      <div class="c-row">
+        <span class="lab">Files</span>
+        <span class="body">Founder_Operator_Roles.xlsx<span class="sep">·</span>
+          <span class="soft">Clemens_CV_fonio.pdf</span></span>
+        <span class="edge">→</span>
+      </div>
+      <div class="c-row">
+        <span class="lab">Pages</span>
+        <span class="body">ALPLA — Senior AI Engineer<span class="sep">·</span>
+          <span class="soft">supabase.com/pricing</span></span>
+        <span class="edge">→</span>
+      </div>
+      <div class="c-row">
+        <span class="lab">Mail</span>
+        <span class="body">2 personal since yesterday<span class="sep">·</span>
+          <span class="soft">41 newsletters ready to file</span></span>
+        <span class="edge">→</span>
+      </div>
+    </div>
+
+    <div class="c-foot">
+      <span class="hint">Customize rearranges these regions — nothing here is a tile.</span>
+      <span class="mono" style="font-size:11.5px;color:var(--ink3)">workspace loaded in 0.8s</span>
+    </div>
+
+  </div></div>
+</section>
+
+</body></html>

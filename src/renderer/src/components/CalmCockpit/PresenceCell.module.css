@@ -1,0 +1,165 @@
+/* Presence cell — HIDE-THE-HEALTHY made literal.
+ * Near-white, hairline, small, RECESSED. No shadow, no elevation. The band of
+ * ~13 of these reads as calm ambient life, not a to-do list. */
+.cell {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 12px;
+  border-radius: var(--wos-r-sm);
+  background: transparent;
+  /* barely-there hairline; healthy work recedes into the page */
+  box-shadow: inset 0 0 0 0.5px var(--wos-hair);
+  min-width: 0;
+  transition: background 0.15s ease, box-shadow 0.15s ease;
+}
+
+.cell:hover {
+  background: var(--wos-card);
+  box-shadow: 0 0 0 0.5px var(--wos-hair);
+}
+
+/* ── Breathing glyph — the presence "pulse". Reuses the TerminalDock
+   three-dot activity keyframes so it feels native to the house. Pale, not blue,
+   so a healthy cell stays quiet. ── */
+.glyph {
+  display: inline-flex;
+  gap: 2.5px;
+  align-items: center;
+  flex-shrink: 0;
+}
+
+.glyph i {
+  width: 4px;
+  height: 4px;
+  border-radius: 50%;
+  background: var(--wos-ink-3);
+  opacity: 0.3;
+  animation: wosCockpitPulse 1.5s ease-in-out infinite;
+}
+
+.glyph i:nth-child(2) {
+  animation-delay: 0.2s;
+}
+
+.glyph i:nth-child(3) {
+  animation-delay: 0.4s;
+}
+
+@keyframes wosCockpitPulse {
+  0%,
+  80%,
+  100% {
+    opacity: 0.28;
+    transform: scale(0.8);
+  }
+  40% {
+    opacity: 0.7;
+    transform: scale(1);
+  }
+}
+
+.body {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  min-width: 0;
+  flex: 1;
+}
+
+/* Small + pale — the name is present but recedes. */
+.who {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--wos-ink-2);
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.live {
+  font-size: 12px;
+  color: var(--wos-ink-3);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.meta {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  flex-shrink: 0;
+}
+
+.dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+/* Confidence/health as colour-temperature — quiet, never a badge. */
+.dotOk {
+  background: var(--wos-ok);
+  opacity: 0.55;
+}
+
+.dotWatch {
+  background: #d9a441; /* warm amber — "watch", still calm */
+  opacity: 0.75;
+}
+
+.dotBlocked {
+  background: #d0777a;
+  opacity: 0.8;
+}
+
+.cost {
+  font-size: 10.5px;
+  font-family: var(--wos-font-mono);
+  color: var(--wos-ink-3);
+  opacity: 0.7;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .glyph i {
+    animation: none;
+    opacity: 0.5;
+  }
+}
+
+/* ── Pixel-grid orbit for LIVE cells (Beautiful UI loading-state grammar):
+   nine 3px cells, a comet lapping the perimeter clockwise. Quiet by way of
+   ink-3 at low opacity — motion is the signal, not colour. ── */
+.pixels {
+  display: grid;
+  grid-template-columns: repeat(3, 3px);
+  gap: 1.5px;
+  flex-shrink: 0;
+}
+.pixels i {
+  width: 3px;
+  height: 3px;
+  border-radius: 1px;
+  background: var(--wos-ink-3);
+  opacity: 0.15;
+  animation: wosPixelOn 950ms ease-in-out infinite;
+}
+/* Perimeter order (grid positions): 1 2 3 → 6 → 9 8 7 → 4; center (5) stays dark. */
+.pixels i:nth-child(1) { animation-delay: 0ms; }
+.pixels i:nth-child(2) { animation-delay: 119ms; }
+.pixels i:nth-child(3) { animation-delay: 238ms; }
+.pixels i:nth-child(6) { animation-delay: 357ms; }
+.pixels i:nth-child(9) { animation-delay: 476ms; }
+.pixels i:nth-child(8) { animation-delay: 595ms; }
+.pixels i:nth-child(7) { animation-delay: 714ms; }
+.pixels i:nth-child(4) { animation-delay: 833ms; }
+.pixels i:nth-child(5) { animation: none; }
+
+@keyframes wosPixelOn {
+  0%, 45%, 100% { opacity: 0.15; }
+  12% { opacity: 0.85; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .pixels i { animation: none; opacity: 0.35; }
+}

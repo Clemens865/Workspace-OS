@@ -1,0 +1,22 @@
+.ruler {
+  /* A flex item of the scrolling page column: keep its height, hug the left
+     edge (so marker positions are page-relative), stick to the top. */
+  position: sticky; top: -16px; z-index: 5;
+  flex: 0 0 22px; min-height: 22px; align-self: flex-start; margin: -16px 0 0 -16px;
+  height: 22px; box-sizing: border-box;
+  background: var(--color-surface, #f7f7f8);
+  border-bottom: 1px solid var(--color-border, #e6e6e6);
+  font-size: 9px; color: var(--color-text-subtle, #777);
+  user-select: none; cursor: default; overflow: hidden;
+}
+.marginL, .marginR { position: absolute; top: 4px; height: 14px; background: var(--color-sunk, #e2e2e6); cursor: ew-resize; }
+.ticks { position: absolute; inset: 0; pointer-events: none; }
+.major, .minor { position: absolute; top: 4px; height: 14px; width: 0; border-left: 1px solid var(--color-border, #cfcfd4); }
+.major { border-left-color: var(--color-text-subtle, #999); text-indent: 3px; line-height: 14px; white-space: nowrap; }
+.minor { top: 9px; height: 4px; }
+.tab { position: absolute; top: 14px; width: 0; height: 0; border-left: 1px solid var(--color-text, #333); border-bottom: 1px solid var(--color-text, #333); margin-left: -1px; width: 6px; height: 5px; cursor: pointer; }
+.first, .left, .right { position: absolute; width: 0; height: 0; margin-left: -5px; cursor: ew-resize; }
+.first { top: 2px; border-left: 5px solid transparent; border-right: 5px solid transparent; border-top: 6px solid var(--color-accent, #1a73e8); }
+.left { top: 14px; border-left: 5px solid transparent; border-right: 5px solid transparent; border-bottom: 6px solid var(--color-accent, #1a73e8); }
+.right { top: 14px; border-left: 5px solid transparent; border-right: 5px solid transparent; border-bottom: 6px solid var(--color-accent, #1a73e8); }
+.dragLine { position: absolute; top: 0; bottom: 0; width: 0; border-left: 1px dashed var(--color-accent, #1a73e8); pointer-events: none; }

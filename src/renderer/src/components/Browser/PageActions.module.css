@@ -1,0 +1,102 @@
+/* "Here you can…" — the always-visible answer to "what can this thing do?".
+ * Sits at the top of the Assistant panel, above the deep-read button. */
+
+.wrap {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding-bottom: 12px;
+  margin-bottom: 12px;
+  border-bottom: 0.5px solid var(--wos-hair);
+}
+
+.head {
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--wos-ink-3);
+}
+
+.list {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.row,
+.rowDim {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  width: 100%;
+  padding: 7px 8px;
+  border: none;
+  border-radius: 8px;
+  background: transparent;
+  color: var(--wos-ink);
+  font-family: var(--wos-font);
+  font-size: 12.5px;
+  text-align: left;
+  cursor: pointer;
+}
+
+/* Irrelevant-for-this-page actions stay listed but recede, so someone hunting
+ * a known feature can still find it by looking. */
+.rowDim {
+  color: var(--wos-ink-3);
+}
+
+.row:hover,
+.rowDim:hover {
+  background: var(--wos-sunk);
+  color: var(--wos-ink);
+}
+
+.row:disabled,
+.rowDim:disabled {
+  opacity: 0.5;
+  cursor: default;
+}
+
+/* Marks the actions that hand work to an agent. */
+.spark {
+  color: var(--wos-accent, #e0a33e);
+  flex: none;
+}
+
+.label {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.kbd {
+  flex: none;
+  font-family: var(--wos-font);
+  font-size: 10.5px;
+  color: var(--wos-ink-3);
+  background: var(--wos-sunk);
+  border-radius: 4px;
+  padding: 1px 5px;
+}
+
+.more {
+  align-self: flex-start;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  border: none;
+  background: transparent;
+  color: var(--wos-ink-3);
+  font-family: var(--wos-font);
+  font-size: 11.5px;
+  cursor: pointer;
+  padding: 2px 0;
+}
+
+.more:hover {
+  color: var(--wos-ink);
+}

@@ -1,0 +1,22 @@
+diff --git a/desktop/source/lib/lokinteractionhandler.cxx b/desktop/source/lib/lokinteractionhandler.cxx
+index 858793b85..cf673fb3c 100644
+--- a/desktop/source/lib/lokinteractionhandler.cxx
++++ b/desktop/source/lib/lokinteractionhandler.cxx
+@@ -151,8 +151,15 @@ bool ShouldFallbackToStandard(const uno::Reference<task::XInteractionRequest>& x
+     if (document::BrokenPackageRequest aStruct; request >>= aStruct)
+         return true;
+ 
+-    if (document::FilterOptionsRequest aStruct; request >>= aStruct)
+-        return true;
++    // WOS: never fall back to the standard (UUI) handler for filter-options
++    // requests. Under LOK tiled rendering, HandleFilter raises this for any
++    // import filter with a UI component (the CSV import dialog) EVEN when
++    // FilterOptions were supplied; the UUI helper then blocks forever waiting
++    // to show a dialog a headless embed cannot host (osl_waitCondition — the
++    // csv-load deadlock). Not selecting any continuation makes HandleFilter
++    // proceed with the FilterOptions already in the media descriptor, which is
++    // exactly what a headless client wants.
++    // (was: if (document::FilterOptionsRequest ...) return true;)
+ 
+     if (document::FontsDisallowEditingRequest aStruct; request >>= aStruct)
+         return true;

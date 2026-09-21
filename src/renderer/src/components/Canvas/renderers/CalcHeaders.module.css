@@ -1,0 +1,43 @@
+/* Frozen spreadsheet header strips. Colors are read off these elements'
+   computed style by the canvas painter, so they stay theme-aware. */
+
+.corner {
+  position: sticky;
+  top: 0;
+  left: 0;
+  z-index: 4;
+  background: var(--elevated, #ececec);
+  border-right: 1px solid var(--border);
+  border-bottom: 1px solid var(--border);
+  box-sizing: border-box;
+}
+
+.colHeader {
+  position: sticky;
+  top: 0;
+  z-index: 3;
+  background: var(--elevated, #f3f3f3);
+  color: var(--fg-muted);
+  display: block;
+}
+
+.rowHeader {
+  position: sticky;
+  left: 0;
+  z-index: 3;
+  background: var(--elevated, #f3f3f3);
+  color: var(--fg-muted);
+  display: block;
+}
+
+/* Outline (Data ▸ Group) strips: sticky like the headers they sit beside. */
+.outlineCol { position: sticky; top: 0; z-index: 3; background: var(--elevated, #f3f3f3); border-bottom: 1px solid var(--border); box-sizing: border-box; overflow: hidden; }
+.outlineRow { position: sticky; left: 0; z-index: 3; background: var(--elevated, #f3f3f3); border-right: 1px solid var(--border); box-sizing: border-box; overflow: hidden; }
+.outlineCol > span, .outlineRow > span { position: absolute; inset: 0; pointer-events: none; }
+.outlineLine { position: absolute; width: 0; height: 0; border-left: 1px solid var(--fg-muted, #888); border-top: 1px solid var(--fg-muted, #888); }
+.outlineBtn {
+  position: absolute; width: 12px; height: 12px; padding: 0; line-height: 10px; font-size: 10px;
+  border: 1px solid var(--fg-muted, #888); border-radius: 2px; background: var(--elevated, #fff); color: var(--fg-muted, #666);
+  cursor: pointer; pointer-events: auto; box-sizing: border-box;
+}
+.outlineBtn:hover { color: var(--fg, #111); border-color: var(--fg, #111); }

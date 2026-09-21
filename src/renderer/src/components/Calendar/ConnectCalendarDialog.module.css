@@ -1,0 +1,61 @@
+/* Connect-calendar modal — verify first, then save (see the component note). */
+.backdrop {
+  position: absolute; inset: 0; z-index: 30; display: flex; align-items: center; justify-content: center;
+  background: rgba(0, 0, 0, 0.28); padding: 24px;
+}
+.modal {
+  background: var(--wos-surface, var(--color-surface, #fff));
+  border: 1px solid var(--wos-hair, var(--color-border)); border-radius: 12px;
+  box-shadow: 0 16px 48px rgba(0, 0, 0, 0.22);
+  padding: 20px 22px; width: min(460px, 100%); max-height: 100%; overflow: auto;
+  color: var(--wos-ink-1, var(--color-text));
+}
+.title { font-size: 16px; font-weight: 600; margin: 0 0 14px; }
+
+.kinds { display: flex; gap: 6px; margin-bottom: 14px; }
+.kindOn, .kindOff {
+  flex: 1; border-radius: 8px; cursor: pointer; font-size: 12.5px; padding: 7px 10px;
+  border: 1px solid var(--wos-hair, var(--color-border));
+}
+.kindOn { background: var(--wos-accent-soft, var(--color-accent-soft, #e8f0fe)); border-color: var(--wos-accent, var(--color-accent, #1a73e8)); color: var(--wos-accent, var(--color-accent, #1a73e8)); font-weight: 600; }
+.kindOff { background: transparent; color: var(--wos-ink-2, var(--color-text-muted)); }
+
+.field { display: block; margin-bottom: 12px; }
+.field > span { display: block; font-size: 12px; margin-bottom: 5px; color: var(--wos-ink-2, var(--color-text-muted)); }
+.input {
+  width: 100%; box-sizing: border-box; font-size: 13px; padding: 7px 9px;
+  border: 1px solid var(--wos-hair, var(--color-border)); border-radius: 7px;
+  background: var(--wos-bg, var(--color-bg)); color: var(--wos-ink-1, var(--color-text));
+}
+.input:focus { outline: 2px solid var(--wos-accent, var(--color-accent, #1a73e8)); outline-offset: -1px; }
+.hint { display: block; margin-top: 5px; font-size: 11.5px; line-height: 1.45; color: var(--wos-ink-3, var(--color-text-subtle)); }
+
+.error { margin: 4px 0 12px; font-size: 12.5px; color: var(--color-danger, #b4483f); }
+
+.found { margin: 4px 0 14px; padding: 10px; border-radius: 8px; background: var(--wos-sunk, rgba(0, 0, 0, 0.03)); }
+.foundHead { margin: 0 0 8px; font-size: 12.5px; }
+.check { display: flex; align-items: center; gap: 7px; font-size: 13px; padding: 3px 0; }
+
+.actions { display: flex; justify-content: flex-end; gap: 8px; margin-top: 4px; }
+.primary, .secondary {
+  border-radius: 8px; cursor: pointer; font-size: 13px; padding: 7px 14px;
+  border: 1px solid var(--wos-hair, var(--color-border));
+}
+.primary { background: var(--wos-accent, var(--color-accent, #1a73e8)); border-color: transparent; color: #fff; font-weight: 500; }
+.primary:disabled, .secondary:disabled { opacity: 0.55; cursor: default; }
+.secondary { background: transparent; color: var(--wos-ink-2, var(--color-text)); }
+
+/* Provider sign-in — the path where no password is typed into our UI at all. */
+.oauth { display: flex; gap: 8px; margin-bottom: 12px; }
+.oauthBtn {
+  flex: 1; border-radius: 8px; cursor: pointer; font-size: 12.5px; padding: 9px 10px;
+  border: 1px solid var(--wos-hair, var(--color-border));
+  background: var(--wos-surface, var(--color-surface-raised));
+  color: var(--wos-ink-1, var(--color-text));
+}
+.oauthBtn:hover:not(:disabled) { background: var(--wos-hover, var(--color-hover)); }
+.oauthBtn:disabled { opacity: 0.55; cursor: default; }
+.orLine {
+  margin: 0 0 14px; text-align: center; font-size: 11.5px;
+  color: var(--wos-ink-3, var(--color-text-subtle));
+}

@@ -1,0 +1,178 @@
+/* Follows FilePanel's visual language — this view swaps into the same sidebar. */
+
+.root {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  width: 100%;
+  overflow: hidden;
+  background: var(--color-surface);
+}
+
+.searchBar {
+  position: relative;
+  display: flex;
+  align-items: center;
+  padding: var(--space-2) var(--space-3);
+  border-bottom: 1px solid var(--color-border);
+  flex-shrink: 0;
+}
+
+.searchIcon {
+  position: absolute;
+  left: calc(var(--space-3) + var(--space-2));
+  color: var(--color-text-subtle);
+  pointer-events: none;
+}
+
+.searchInput {
+  width: 100%;
+  background: var(--color-bg);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  color: var(--color-text);
+  font-size: var(--text-sm);
+  padding: var(--space-2) var(--space-5) var(--space-2) 30px;
+  outline: none;
+  transition: border-color 90ms ease, box-shadow 90ms ease;
+}
+
+.searchInput::placeholder { color: var(--color-text-subtle); }
+
+.searchInput:focus {
+  border-color: var(--color-accent);
+  box-shadow: 0 0 0 3px var(--color-accent-soft);
+}
+
+.clearSearch {
+  position: absolute;
+  right: calc(var(--space-3) + var(--space-1));
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: none;
+  border: none;
+  color: var(--color-text-subtle);
+  cursor: pointer;
+  padding: 2px;
+  border-radius: var(--radius-sm);
+}
+
+.body {
+  flex: 1;
+  overflow-y: auto;
+  padding: var(--space-2);
+}
+
+.empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  padding: var(--space-8) var(--space-4);
+  gap: var(--space-2);
+}
+
+.emptyIcon { color: var(--color-text-subtle); }
+
+.emptyTitle {
+  color: var(--color-text-muted);
+  font-size: var(--text-sm);
+  font-weight: 550;
+  margin: 0;
+}
+
+.emptyHint {
+  color: var(--color-text-subtle);
+  font-size: var(--text-xs);
+  margin: 0;
+}
+
+.status {
+  padding: var(--space-4);
+  text-align: center;
+  color: var(--color-text-muted);
+  font-size: var(--text-sm);
+}
+
+.sectionLabel {
+  padding: var(--space-2) var(--space-3) var(--space-1);
+  font-size: 10px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--color-text-subtle);
+}
+
+.symIcon {
+  flex-shrink: 0;
+  color: var(--color-text-subtle);
+}
+
+.hit {
+  display: block;
+  width: 100%;
+  text-align: left;
+  background: none;
+  border: none;
+  border-radius: var(--radius-md);
+  padding: var(--space-2) var(--space-3);
+  cursor: pointer;
+  overflow: hidden;
+}
+
+.hit:hover { background: var(--color-hover); }
+
+.hitHead {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  overflow: hidden;
+}
+
+.hitName {
+  color: var(--color-text);
+  font-size: var(--text-sm);
+  font-weight: 550;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.badge {
+  flex-shrink: 0;
+  font-size: 9.5px;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--color-text-muted);
+  border: 1px solid var(--color-border);
+  border-radius: 4px;
+  padding: 0 4px;
+  margin-left: auto;
+}
+
+.contentBadge {
+  color: var(--color-accent);
+  border-color: var(--color-accent);
+}
+
+.snippet {
+  color: var(--color-text-muted);
+  font-size: 11.5px;
+  margin-top: 3px;
+  overflow: hidden;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+}
+
+.hitPath {
+  color: var(--color-text-muted);
+  opacity: 0.55;
+  font-size: 10.5px;
+  font-family: 'SF Mono', monospace;
+  margin-top: 2px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}

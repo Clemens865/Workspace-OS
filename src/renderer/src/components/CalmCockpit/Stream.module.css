@@ -1,0 +1,184 @@
+/* STREAM — the workspace's history as a river. Same calm-light grammar as
+ * Home: one sentence per thing, days as quiet separators, cost small. */
+.root {
+  max-width: 860px;
+  margin: 0 auto;
+}
+
+.status {
+  margin: 0 0 18px;
+  font-size: 17px;
+  line-height: 1.4;
+  color: var(--wos-ink-2);
+  letter-spacing: -0.01em;
+}
+
+.lensRow {
+  display: flex;
+  gap: 4px;
+  margin: 0 0 26px;
+}
+
+.lensChip {
+  padding: 4px 11px;
+  border: 0;
+  border-radius: var(--wos-r-pill);
+  background: transparent;
+  box-shadow: inset 0 0 0 0.5px var(--wos-hair);
+  font: inherit;
+  font-size: 12px;
+  color: var(--wos-ink-3);
+  cursor: pointer;
+}
+
+.lensChip:hover {
+  color: var(--wos-ink-2);
+}
+
+.lensChipOn {
+  background: var(--wos-card);
+  color: var(--wos-ink);
+  font-weight: 600;
+}
+
+.empty {
+  margin: 0;
+  max-width: 46ch;
+  font-size: 13.5px;
+  line-height: 1.6;
+  color: var(--wos-ink-3);
+}
+
+.group {
+  margin: 0 0 28px;
+}
+
+.groupTitle {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 8px;
+  margin: 0 0 8px;
+  padding-bottom: 6px;
+  box-shadow: 0 0.5px 0 var(--wos-hair);
+  font-size: 12px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--wos-ink-3);
+}
+
+.groupMeta {
+  font-weight: 500;
+  letter-spacing: 0;
+  text-transform: none;
+  font-variant-numeric: tabular-nums;
+}
+
+.cost {
+  color: var(--wos-ink-3);
+  opacity: 0.8;
+}
+
+.list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.rowWrap {
+  margin: 0;
+  padding: 0;
+}
+
+.row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 12px;
+  border-radius: var(--wos-r-sm);
+  transition: background 0.12s ease;
+}
+
+.row:hover {
+  background: var(--wos-card);
+}
+
+.row .open {
+  opacity: 0;
+}
+
+.row:hover .open,
+.row:focus-within .open {
+  opacity: 1;
+}
+
+.glyph {
+  width: 14px;
+  text-align: center;
+  color: var(--wos-ink-3);
+  font-size: 13px;
+  flex-shrink: 0;
+}
+
+/* Fresh = a live dot in place of the glyph's quiet; nothing louder. */
+.rowFresh .glyph {
+  color: var(--wos-blue);
+}
+
+.text {
+  flex: 1;
+  min-width: 0;
+  font-size: 13.5px;
+  color: var(--wos-ink-2);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.rowFresh .text {
+  color: var(--wos-ink);
+}
+
+.when {
+  flex-shrink: 0;
+  font-size: 11.5px;
+  color: var(--wos-ink-3);
+  font-variant-numeric: tabular-nums;
+}
+
+.open {
+  flex-shrink: 0;
+  border: 0;
+  background: transparent;
+  font: inherit;
+  font-size: 12.5px;
+  color: var(--wos-ink-3);
+  cursor: pointer;
+  transition: opacity 0.12s ease;
+}
+
+.open:hover {
+  color: var(--wos-ink);
+}
+
+/* "You last looked here" — a hairline with a whisper, not a banner. */
+.seenMark {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: 6px 0 6px;
+  font-size: 10.5px;
+  font-weight: 600;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: var(--wos-ink-3);
+}
+
+.seenMark::before,
+.seenMark::after {
+  content: '';
+  flex: 1;
+  height: 0.5px;
+  background: var(--wos-hair);
+}

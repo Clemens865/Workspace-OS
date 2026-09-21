@@ -1,0 +1,221 @@
+{
+  "name": "workspace-os",
+  "version": "0.2.0-beta.1",
+  "description": "The only workspace you will ever need",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Clemens865/Workspace-OS.git"
+  },
+  "homepage": "https://github.com/Clemens865/Workspace-OS",
+  "type": "module",
+  "main": "out/main/index.js",
+  "scripts": {
+    "dev": "electron-vite dev",
+    "build": "electron-vite build && node scripts/build-metric-cli.mjs && node scripts/build-collection-cli.mjs && node scripts/build-case-cli.mjs && node scripts/build-mcp-token-cli.mjs",
+    "preview": "electron-vite preview",
+    "typecheck": "node scripts/typecheck.mjs",
+    "lint": "eslint src --ext .ts,.tsx",
+    "check:macros": "node scripts/validate-macros.mjs",
+    "pretest": "npm run check:macros",
+    "test": "vitest run",
+    "rebuild:electron": "electron-rebuild -f -w better-sqlite3,node-pty && node scripts/sign-native.mjs",
+    "rebuild:node": "npm rebuild better-sqlite3 node-pty && node scripts/sign-native.mjs",
+    "e2e": "npm run rebuild:electron && npm run build && node e2e/smoke.mjs; npm run rebuild:node",
+    "e2e:cases": "npm run rebuild:electron && npm run build && node e2e/cases.mjs; npm run rebuild:node",
+    "e2e:office": "npm run rebuild:electron && npm run build && for t in A-ribbon B-writer C-export C-tail D-calc; do node e2e/office/$t.mjs || exit 1; done; npm run rebuild:node",
+    "e2e:transclusion": "npm run rebuild:electron && npm run build && for t in G-transclusion H-word-transclusion I-ppt-transclusion J-range-transclusion K-docx-table L-pptx-table; do node e2e/office/$t.mjs || { npm run rebuild:node; exit 1; }; done; npm run rebuild:node",
+    "e2e:charts": "npm run rebuild:electron && npm run build && node e2e/office/E-charts.mjs; npm run rebuild:node",
+    "e2e:impresschart": "npm run rebuild:electron && npm run build && node e2e/office/P-impress-chart.mjs; npm run rebuild:node",
+    "e2e:ranges": "npm run rebuild:electron && npm run build && node e2e/office/J-range-transclusion.mjs; npm run rebuild:node",
+    "e2e:contextmenu": "node e2e/office/AJ-context-menu.mjs && npm run rebuild:electron && npm run build && node e2e/office/AK-context-menu-ui.mjs; npm run rebuild:node",
+    "e2e:parity": "node e2e/office/AJ-context-menu.mjs && npm run rebuild:electron && npm run build && for t in AK-context-menu-ui AL-canvas-affordances AM-jsdialog AN-menubar AO-review AP-affordances-2 AQ-context-modes AR-animations AS-affordances-3 AT-placements AU-sort-expand; do node e2e/office/$t.mjs || { npm run rebuild:node; exit 1; }; done; npm run rebuild:node",
+    "e2e:tables": "npm run rebuild:electron && npm run build && for t in K-docx-table L-pptx-table; do node e2e/office/$t.mjs || { npm run rebuild:node; exit 1; }; done; npm run rebuild:node",
+    "e2e:lok": "npm run rebuild:electron && npm run build && node e2e/lok.mjs; npm run rebuild:node",
+    "e2e:nav": "npm run rebuild:electron && npm run build && node e2e/office/nav.mjs; npm run rebuild:node",
+    "e2e:find": "npm run rebuild:electron && npm run build && node e2e/office/M-find-replace.mjs; npm run rebuild:node",
+    "e2e:layout": "npm run rebuild:electron && npm run build && node e2e/office/N-word-layout.mjs; npm run rebuild:node",
+    "e2e:condformat": "npm run rebuild:electron && npm run build && node e2e/office/O-cond-format.mjs; npm run rebuild:node",
+    "e2e:datavalidation": "npm run rebuild:electron && npm run build && node e2e/office/R-data-validation.mjs; npm run rebuild:node",
+    "e2e:macro-audit": "npm run rebuild:electron && npm run build && node e2e/office/Z-macro-audit.mjs; npm run rebuild:node",
+    "e2e:stability": "npm run rebuild:electron && npm run build && node e2e/office/S-stability.mjs; npm run rebuild:node",
+    "e2e:canvas-pptx": "npm run rebuild:electron && npm run build && node e2e/office/U-canvas-pptx.mjs; npm run rebuild:node",
+    "e2e:frame-slide": "npm run rebuild:electron && npm run build && node e2e/office/V-frame-slide.mjs; npm run rebuild:node",
+    "e2e:pptnotes": "npm run rebuild:electron && npm run build && node e2e/office/Q-ppt-notes.mjs; npm run rebuild:node",
+    "e2e:agent-pty": "npm run rebuild:electron && npm run build && node e2e/agent-pty.mjs; npm run rebuild:node",
+    "e2e:assets": "npm run rebuild:electron && npm run build && node e2e/created-assets.mjs || { npm run rebuild:node; exit 1; }; npm run rebuild:node",
+    "e2e:clipboard": "npm run rebuild:electron && npm run build && node e2e/clipboard.mjs || { npm run rebuild:node; exit 1; }; npm run rebuild:node",
+    "e2e:office-clipboard": "npm run rebuild:electron && npm run build && node e2e/office/AF-clipboard-bridge.mjs || { npm run rebuild:node; exit 1; }; npm run rebuild:node",
+    "e2e:idea": "npm run rebuild:electron && npm run build && node e2e/idea-analysis.mjs || { npm run rebuild:node; exit 1; }; npm run rebuild:node",
+    "e2e:files-browser": "npm run rebuild:electron && npm run build && node e2e/files-browser.mjs || { npm run rebuild:node; exit 1; }; npm run rebuild:node",
+    "e2e:views-dock": "npm run rebuild:electron && npm run build && node e2e/browser/views-and-dock.mjs || { npm run rebuild:node; exit 1; }; npm run rebuild:node",
+    "e2e:shell-layout": "npm run rebuild:electron && npm run build && node e2e/browser/layout.mjs || { npm run rebuild:node; exit 1; }; npm run rebuild:node",
+    "e2e:browser": "npm run rebuild:electron && npm run build && for t in browser-tabs browser/double-load browser/history browser/phase2 browser/phase3 browser/tab-groups browser/share-with-claude browser/address-sync; do node e2e/$t.mjs || { npm run rebuild:node; exit 1; }; done; npm run rebuild:node",
+    "e2e:workspace-switch": "npm run rebuild:electron && npm run build && node e2e/workspace-switch.mjs; npm run rebuild:node",
+    "e2e:fd-pressure": "npm run rebuild:electron && npm run build && node e2e/fd-pressure.mjs; npm run rebuild:node",
+    "e2e:review": "npm run rebuild:electron && npm run build && node e2e/review.mjs; npm run rebuild:node",
+    "e2e:metric-cli": "node scripts/build-metric-cli.mjs && node e2e/cli/metric-cli.mjs",
+    "e2e:collection-cli": "node scripts/build-collection-cli.mjs && node e2e/cli/collection-cli.mjs",
+    "e2e:collections": "node e2e/collections/collections.mjs",
+    "e2e:dogfood": "node e2e/dogfood/run.mjs",
+    "e2e:mcp": "node e2e/mcp/filesystem-smoke.mjs",
+    "e2e:mail": "node e2e/mail/send-smtp.mjs",
+    "package": "electron-builder",
+    "dist:mac": "npm run rebuild:electron && npm run build && electron-builder --mac && npm run rebuild:node || (npm run rebuild:node; exit 1)",
+    "e2e:lok-edit": "npm run rebuild:electron && npm run build && node e2e/lok-edit.mjs; npm run rebuild:node",
+    "e2e:lok-parts": "npm run rebuild:electron && npm run build && node e2e/lok-parts.mjs; npm run rebuild:node",
+    "e2e:lok-packaged": "npm run build && node e2e/lok-packaged.mjs",
+    "e2e:workflows": "npm run rebuild:electron && npm run build && node e2e/lok-workflows.mjs; npm run rebuild:node",
+    "sign:native": "node scripts/sign-native.mjs",
+    "ship": "node scripts/ship.mjs",
+    "e2e:mail-real": "node e2e/mail/real-mailbox.mjs",
+    "e2e:mail-mutation": "node e2e/mail/real-mailbox-mutation.mjs",
+    "e2e:commitments-eval": "node e2e/mail/commitments-eval.mjs"
+  },
+  "devDependencies": {
+    "@electron/rebuild": "^4.0.4",
+    "@types/better-sqlite3": "^7.6.13",
+    "@types/mailparser": "^3.4.6",
+    "@types/node": "^22.0.0",
+    "@types/nodemailer": "^8.0.1",
+    "@types/papaparse": "^5.5.2",
+    "@types/path-browserify": "^1.0.3",
+    "@types/react": "^18.3.0",
+    "@types/react-dom": "^18.3.0",
+    "@vitejs/plugin-react": "^4.3.0",
+    "electron": "^42.4.1",
+    "electron-builder": "^25.0.0",
+    "electron-vite": "^5.0.0",
+    "path-browserify": "^1.0.1",
+    "playwright": "^1.61.0",
+    "react": "^18.3.0",
+    "react-dom": "^18.3.0",
+    "smtp-server": "^3.19.2",
+    "typescript": "^5.6.0",
+    "vite": "^8.0.16",
+    "vitest": "^4.1.9"
+  },
+  "dependencies": {
+    "@dicebear/collection": "^9.2.2",
+    "@dicebear/core": "^9.2.2",
+    "@fontsource/archivo": "^5.2.8",
+    "@fontsource/bricolage-grotesque": "^5.2.10",
+    "@fontsource/fraunces": "^5.2.9",
+    "@fontsource/hanken-grotesk": "^5.2.8",
+    "@fontsource/jetbrains-mono": "^5.2.8",
+    "@monaco-editor/react": "^4.6.0",
+    "@tldraw/assets": "^5.2.5",
+    "better-sqlite3": "^12.11.1",
+    "chokidar": "^4.0.3",
+    "electron-updater": "^6.8.9",
+    "exceljs": "^4.4.0",
+    "imagetracerjs": "^1.2.6",
+    "imapflow": "^1.4.7",
+    "lucide-react": "^1.21.0",
+    "mailparser": "^3.9.14",
+    "mammoth": "^1.12.0",
+    "marked": "^15.0.12",
+    "mjml": "^5.4.0",
+    "monaco-editor": "^0.52.0",
+    "node-pty": "^1.0.0",
+    "nodemailer": "^9.0.3",
+    "papaparse": "^5.5.3",
+    "pdf-lib": "^1.17.1",
+    "pdfjs-dist": "^6.0.227",
+    "react-arborist": "^3.10.5",
+    "tldraw": "^5.2.5",
+    "xterm": "^5.3.0",
+    "xterm-addon-fit": "^0.8.0",
+    "xterm-addon-search": "^0.13.0",
+    "xterm-addon-web-links": "^0.9.0"
+  },
+  "build": {
+    "appId": "com.workspace-os.app",
+    "productName": "Workspace OS",
+    "npmRebuild": false,
+    "directories": {
+      "output": "release"
+    },
+    "publish": {
+      "provider": "github",
+      "owner": "Clemens865",
+      "repo": "Workspace-OS"
+    },
+    "files": [
+      "out/**/*",
+      "package.json"
+    ],
+    "asarUnpack": [
+      "**/node_modules/better-sqlite3/**",
+      "**/node_modules/node-pty/**",
+      "**/node_modules/fsevents/**"
+    ],
+    "mac": {
+      "target": [
+        "dmg",
+        "zip"
+      ],
+      "category": "public.app-category.productivity",
+      "identity": null,
+      "hardenedRuntime": true,
+      "gatekeeperAssess": false,
+      "entitlements": "build/entitlements.mac.plist",
+      "entitlementsInherit": "build/entitlements.mac.plist",
+      "notarize": false,
+      "extraResources": [
+        {
+          "from": "/Volumes/LOBuild/core/instdir/LibreOffice.app",
+          "to": "libreoffice/LibreOffice.app",
+          "filter": [
+            "!**/gallery/**",
+            "!**/share/gallery/**"
+          ]
+        },
+        {
+          "from": "scripts/lok/wos-lok-host",
+          "to": "lok/wos-lok-host"
+        },
+        {
+          "from": "resources/office-docgen",
+          "to": "office-docgen"
+        },
+        {
+          "from": "resources/office-component",
+          "to": "office-component"
+        },
+        {
+          "from": "resources/wos-metric",
+          "to": "wos-metric"
+        },
+        {
+          "from": "resources/wos-collection",
+          "to": "wos-collection"
+        },
+        {
+          "from": "resources/wos-case",
+          "to": "wos-case"
+        },
+        {
+          "from": "resources/wos-mcp-token",
+          "to": "wos-mcp-token"
+        },
+        {
+          "from": "resources/wos-action",
+          "to": "wos-action"
+        },
+        {
+          "from": "resources/templates",
+          "to": "templates"
+        }
+      ],
+      "icon": "build/icon.icns"
+    },
+    "win": {
+      "target": "nsis"
+    },
+    "linux": {
+      "target": "AppImage"
+    },
+    "afterPack": "scripts/after-pack.cjs"
+  }
+}

@@ -1,0 +1,464 @@
+/* HOME — the Calm Cockpit. Light, document-like, generous whitespace.
+ * Vertical zones stacked by WEIGHT, never columns. */
+.root {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  min-height: 0;
+  background: var(--wos-bg);
+  color: var(--wos-ink);
+  font-family: var(--wos-font);
+  -webkit-font-smoothing: antialiased;
+}
+
+/* ── Quiet header ── */
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 14px 28px;
+  flex-shrink: 0;
+}
+
+.views {
+  display: flex;
+  gap: 2px;
+}
+
+.view {
+  padding: 5px 12px;
+  border: 0;
+  background: transparent;
+  border-radius: var(--wos-r-pill);
+  font: inherit;
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--wos-ink-3);
+  cursor: pointer;
+  letter-spacing: -0.01em;
+}
+
+.view:hover {
+  color: var(--wos-ink-2);
+}
+
+.viewOn {
+  color: var(--wos-ink);
+  font-weight: 600;
+}
+
+.controls {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.selectWrap {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 4px 10px 4px 9px;
+  border-radius: var(--wos-r-pill);
+  background: var(--wos-card);
+  box-shadow: 0 0 0 0.5px var(--wos-hair);
+  cursor: pointer;
+}
+
+.selectIcon {
+  font-size: 11px;
+  color: var(--wos-ink-3);
+}
+
+.select {
+  border: 0;
+  background: transparent;
+  font: inherit;
+  font-size: 12.5px;
+  color: var(--wos-ink-2);
+  cursor: pointer;
+  outline: none;
+  -webkit-appearance: none;
+  appearance: none;
+  padding-right: 2px;
+}
+
+/* Altitude segmented control */
+.altitude {
+  display: inline-flex;
+  gap: 1px;
+  padding: 2px;
+  border-radius: var(--wos-r-pill);
+  background: var(--wos-sunk);
+  box-shadow: inset 0 0 0 0.5px var(--wos-hair);
+}
+
+.alt {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 11px;
+  border: 0;
+  background: transparent;
+  border-radius: var(--wos-r-pill);
+  font: inherit;
+  font-size: 12px;
+  color: var(--wos-ink-3);
+  cursor: pointer;
+}
+
+/* Quiet "Preview" pill on the vision-only altitudes in LIVE mode — hairline,
+ * --wos-ink-3, no blue. Signals "mock, not live" without shouting. */
+.previewPill {
+  display: inline-flex;
+  align-items: center;
+  padding: 1px 6px;
+  border-radius: var(--wos-r-pill);
+  box-shadow: inset 0 0 0 0.5px var(--wos-hair);
+  color: var(--wos-ink-3);
+  font-size: 9.5px;
+  font-weight: 600;
+  letter-spacing: 0.03em;
+  line-height: 1.35;
+  text-transform: uppercase;
+}
+
+.alt:disabled {
+  cursor: default;
+  opacity: 0.5;
+}
+
+.altOn {
+  background: var(--wos-card);
+  color: var(--wos-ink);
+  font-weight: 600;
+  opacity: 1;
+  box-shadow: 0 0 0 0.5px var(--wos-hair);
+}
+
+.search {
+  width: 30px;
+  height: 30px;
+  border: 0;
+  border-radius: 50%;
+  background: var(--wos-card);
+  box-shadow: 0 0 0 0.5px var(--wos-hair);
+  color: var(--wos-ink-2);
+  font-size: 15px;
+  cursor: pointer;
+}
+
+.search:hover {
+  color: var(--wos-ink);
+}
+
+/* ── Status line — plain language, the whole board in a breath ── */
+.status {
+  margin: 0;
+  padding: 2px 28px 20px;
+  font-size: 17px;
+  line-height: 1.4;
+  color: var(--wos-ink-2);
+  letter-spacing: -0.01em;
+  flex-shrink: 0;
+}
+
+/* ── The FLYING surface — one altitude view at a time. On each altitude
+   change the wrapper is re-keyed so this enter animation replays: flying UP
+   (toward CEO) settles in from a zoomed-OUT frame, flying DOWN (toward Agent)
+   from a zoomed-IN one — so the swap reads as moving through a stack of
+   altitudes, not tab-switching. ── */
+.fly {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  transform-origin: center 30%;
+  will-change: transform, opacity;
+}
+
+.fly[data-dir='down'] {
+  animation: wosFlyDown 280ms cubic-bezier(0.22, 0.61, 0.36, 1) both;
+}
+
+.fly[data-dir='up'] {
+  animation: wosFlyUp 280ms cubic-bezier(0.22, 0.61, 0.36, 1) both;
+}
+
+/* Flying DOWN = diving INTO detail: land from slightly zoomed-OUT into place. */
+@keyframes wosFlyDown {
+  from {
+    opacity: 0;
+    transform: scale(0.96);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+/* Flying UP = pulling BACK to aggregate: ease down from slightly zoomed-IN. */
+@keyframes wosFlyUp {
+  from {
+    opacity: 0;
+    transform: scale(1.04);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .fly[data-dir='down'],
+  .fly[data-dir='up'] {
+    animation: wosFlyFade 160ms ease both;
+  }
+  @keyframes wosFlyFade {
+    from {
+      opacity: 0;
+    }
+    to {
+      opacity: 1;
+    }
+  }
+}
+
+.scroll {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  padding: 0 28px 40px;
+}
+
+/* CEO/Head-of/Agent views own their status line, so pad the scroll top. */
+.fly[data-dir] .scroll {
+  padding-top: 4px;
+}
+
+/* ── Zones ── */
+.zone {
+  max-width: 860px;
+  margin: 0 auto 32px;
+}
+
+.zoneTitle {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0 0 12px;
+  font-size: 12px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--wos-ink-3);
+}
+
+.count {
+  margin-left: auto;
+  text-transform: none;
+  letter-spacing: 0;
+  font-weight: 500;
+  font-size: 11.5px;
+  color: var(--wos-ink-3);
+}
+
+/* Needs-you title carries the only warm ink in a heading. */
+.needsTitle {
+  color: var(--wos-warn-ink);
+}
+
+.needsDot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--wos-warn-ink);
+  box-shadow: 0 0 0 3px var(--wos-warn-bg);
+}
+
+.workingMark {
+  color: var(--wos-ink-3);
+  font-size: 13px;
+}
+
+.landedMark {
+  color: var(--wos-ok);
+  font-size: 12px;
+}
+
+/* Needs-you band — a little breathing room between the loud items. */
+.decisions {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+/* Live needs-you: a category cluster (label-grouped). Small gap within a
+ * category; the categories themselves are separated by a touch more air. */
+.needsGroup {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-bottom: 14px;
+}
+
+.needsGroup:last-child {
+  margin-bottom: 0;
+}
+
+/* Inline lens picker inside the Working heading — quiet, text-like. */
+.lensInline {
+  appearance: none;
+  border: 0;
+  background: transparent;
+  color: var(--wos-ink-2);
+  font: inherit;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  padding: 0 2px;
+}
+
+/* A presence cell wrapped in a zoom button — resets button chrome. */
+.cellButton {
+  display: block;
+  width: 100%;
+  border: 0;
+  background: transparent;
+  padding: 0;
+  text-align: left;
+  cursor: pointer;
+  font: inherit;
+}
+
+/* "+N more" artifacts on a landed row — quiet trailer. */
+.resultMore {
+  font-size: 11px;
+  color: var(--wos-ink-3);
+  flex-shrink: 0;
+}
+
+.moreDecisions {
+  align-self: flex-start;
+  border: 0;
+  background: transparent;
+  color: var(--wos-warn-ink);
+  font: inherit;
+  font-size: 12.5px;
+  font-weight: 500;
+  cursor: pointer;
+  padding: 4px 2px;
+}
+
+.cleared {
+  margin: 0;
+  font-size: 13px;
+  color: var(--wos-ink-3);
+  padding: 6px 2px;
+}
+
+/* ── Preview banner — a quiet one-liner atop the vision-only altitudes in LIVE
+   mode. Hairline underline, --wos-ink-3, no blue. Never mock-as-real. ── */
+.previewBanner {
+  margin: 0 auto 22px;
+  max-width: 860px;
+  padding-bottom: 12px;
+  border-bottom: 0.5px solid var(--wos-hair);
+  font-size: 12.5px;
+  letter-spacing: 0.01em;
+  color: var(--wos-ink-3);
+}
+
+/* ── Working band — recessed columns of pale presence cells ── */
+.working {
+  display: flex;
+  gap: 22px;
+  flex-wrap: wrap;
+  align-items: flex-start;
+}
+
+.groupCol {
+  flex: 1 1 260px;
+  min-width: 240px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.groupLabel {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--wos-ink-3);
+  padding: 0 4px 2px;
+  letter-spacing: 0.01em;
+}
+
+.cells {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+/* ── Landed band — settled, quiet ── */
+.landed {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.result {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 9px 12px;
+  border-radius: var(--wos-r-sm);
+  transition: background 0.12s ease;
+}
+
+.result:hover {
+  background: var(--wos-card);
+}
+
+.kind {
+  color: var(--wos-ink-3);
+  font-size: 13px;
+  flex-shrink: 0;
+}
+
+.resultLine {
+  flex: 1;
+  font-size: 13px;
+  color: var(--wos-ink-2);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.open {
+  border: 0;
+  background: transparent;
+  color: var(--wos-ink-3);
+  font: inherit;
+  font-size: 12.5px;
+  cursor: pointer;
+  flex-shrink: 0;
+}
+
+.open:hover {
+  color: var(--wos-blue);
+}
+
+.settled {
+  align-self: flex-start;
+  border: 0;
+  background: transparent;
+  color: var(--wos-ink-3);
+  font: inherit;
+  font-size: 12px;
+  cursor: pointer;
+  padding: 6px 12px;
+}
+
+.settled:hover {
+  color: var(--wos-ink-2);
+}

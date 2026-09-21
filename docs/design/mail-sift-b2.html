@@ -1,0 +1,209 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Workspace OS — Sift B2, the workable morning</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#f5f5f7; --card:#fff; --sunk:#f0f0f2;
+    --ink:#1d1d1f; --ink2:#6e6e73; --ink3:#8a8a8e;
+    --hair:rgba(0,0,0,.09);
+    --blue:#0071e3; --ok:#30b44a;
+    --warm-ink:#8a5a00; --warm-bg:#fff4e0;
+    --case-ink:#4f46e5; --case-bg:rgba(99,102,241,.10);
+    --sh:0 1px 2px rgba(0,0,0,.04), 0 10px 30px rgba(0,0,0,.06);
+    --r:16px; --r-sm:10px;
+    --font:'Hanken Grotesk',-apple-system,system-ui,sans-serif;
+    --mono:ui-monospace,'SF Mono',Menlo,monospace;
+  }
+  *{box-sizing:border-box;margin:0}
+  body{background:#e9e9ec;color:var(--ink);font-family:var(--font);
+       -webkit-font-smoothing:antialiased;padding:48px 20px 120px}
+  .intro{max-width:1120px;margin:0 auto 42px}
+  .intro h1{font-size:22px;font-weight:800;letter-spacing:-.02em}
+  .intro p{color:var(--ink2);font-size:14px;margin-top:6px;max-width:76ch;line-height:1.55}
+  .board{max-width:1120px;margin:56px auto 0}
+  .board-tag{display:flex;align-items:baseline;gap:12px;margin:0 6px 14px}
+  .board-tag b{font-family:var(--mono);font-size:12px;letter-spacing:.14em;color:var(--ink3)}
+  .board-tag span{font-size:15px;font-weight:700;letter-spacing:-.01em}
+  .board-tag em{font-style:normal;font-size:12.5px;color:var(--ink3)}
+  .frame{background:var(--bg);border:.5px solid var(--hair);border-radius:22px;
+         box-shadow:0 20px 60px rgba(0,0,0,.10);overflow:hidden}
+  .pill{display:inline-flex;align-items:center;gap:5px;font-size:11px;font-weight:600;
+        padding:2.5px 9px;border-radius:99px;white-space:nowrap}
+  .pill.warm{background:var(--warm-bg);color:var(--warm-ink)}
+  .pill.case{background:var(--case-bg);color:var(--case-ink)}
+  .pill.quiet{background:var(--sunk);color:var(--ink2)}
+  .mono{font-family:var(--mono);font-variant-numeric:tabular-nums}
+  .btn{display:inline-flex;align-items:center;gap:6px;border:.5px solid var(--hair);
+       background:var(--card);border-radius:8px;padding:4.5px 11px;font:inherit;
+       font-size:12px;font-weight:600;color:var(--ink);cursor:pointer}
+  .btn.primary{background:var(--blue);border-color:transparent;color:#fff}
+  .btn.ghost{background:transparent;border-color:transparent;color:var(--ink2)}
+  .btn.tiny{padding:3px 9px;font-size:11.5px;border-radius:7px}
+
+  .wrap{max-width:860px;margin:0 auto;padding:40px 36px 64px}
+  .voice{display:flex;gap:12px;align-items:flex-start;background:var(--card);
+         border-radius:var(--r);box-shadow:var(--sh);padding:15px 18px}
+  .spark{width:26px;height:26px;border-radius:8px;background:var(--warm-bg);color:var(--warm-ink);
+         display:grid;place-items:center;font-size:14px;flex:none}
+  .voice p{font-size:13.5px;line-height:1.6}
+  .voice .done{color:var(--ink3);text-decoration:line-through}
+  .voice .cnt{margin-left:auto;flex:none;font-family:var(--mono);font-size:11px;color:var(--ink3);align-self:flex-start;padding-top:2px}
+  .strip{display:flex;height:5px;gap:3px;margin:18px 2px 0}
+  .strip i{border-radius:99px}
+  .zone{margin-top:22px}
+  .zh{display:flex;align-items:baseline;gap:8px;font-size:11px;font-weight:700;
+      letter-spacing:.13em;text-transform:uppercase;color:var(--ink3);padding:0 4px 6px}
+  .zh.warm{color:var(--warm-ink)} .zh.case{color:var(--case-ink)}
+  .zh .n{font-family:var(--mono);font-weight:500}
+  .zh .zact{margin-left:auto;text-transform:none;letter-spacing:0;font-size:12px;font-weight:600;color:var(--blue);cursor:pointer}
+  .rows{background:var(--card);border-radius:var(--r-sm);box-shadow:var(--sh);overflow:hidden}
+  .row{display:grid;grid-template-columns:170px 1fr auto;gap:6px 14px;
+       padding:11px 16px;border-top:.5px solid var(--hair);align-items:baseline;position:relative}
+  .row:first-child{border-top:0}
+  .who{font-size:13px;font-weight:650;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .sum{font-size:13px;color:var(--ink2);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .right{display:flex;gap:8px;align-items:baseline}
+  .t{font-family:var(--mono);font-size:11px;color:var(--ink3)}
+  .todoline{grid-column:2/4;display:flex;align-items:center;gap:10px;min-width:0}
+  .todo{font-size:12.5px;font-weight:600;color:var(--warm-ink);flex:none}
+  .acts{display:flex;gap:6px;margin-left:auto}
+  .row.hovered{background:var(--sunk)}
+  .row.donerow{opacity:.45}
+  .row.donerow .who,.row.donerow .sum{text-decoration:line-through}
+  .row.donerow .stamp{font-size:11.5px;color:var(--ok);font-weight:650}
+  .fix{position:absolute;right:14px;top:-54px;background:var(--ink);color:#fff;border-radius:11px;
+       padding:10px 13px;font-size:12px;box-shadow:0 12px 32px rgba(0,0,0,.25);z-index:2;width:290px}
+  .fix .q{font-weight:700;margin-bottom:7px}
+  .fix .opt{display:flex;gap:6px;flex-wrap:wrap}
+  .fix .o{border:.5px solid rgba(255,255,255,.25);border-radius:99px;padding:2.5px 10px;font-size:11.5px;cursor:pointer}
+  .fix .o.on{background:#fff;color:var(--ink);font-weight:650}
+  .fix .note{margin-top:7px;font-size:11px;color:rgba(255,255,255,.65)}
+  .whyfix{font-size:11px;color:var(--ink3);cursor:pointer;flex:none}
+  .noise-r{display:flex;gap:10px;align-items:baseline;padding:9px 16px;border-top:.5px solid var(--hair);font-size:12.5px}
+  .noise-r .who{font-weight:620}
+  .noise-r .n{color:var(--ink3);font-family:var(--mono);font-size:11px}
+  .noise-r .what{color:var(--ink3);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;min-width:0;flex:1}
+
+  /* frame 2 — cleared */
+  .clear-wrap{max-width:640px;margin:0 auto;padding:88px 40px 96px;text-align:center}
+  .clear-mark{width:52px;height:52px;border-radius:50%;background:var(--warm-bg);
+              display:grid;place-items:center;margin:0 auto;font-size:22px}
+  .clear-h{font-size:24px;font-weight:750;letter-spacing:-.02em;margin-top:20px}
+  .clear-p{font-size:14px;color:var(--ink2);line-height:1.6;margin-top:10px;max-width:44ch;margin-inline:auto}
+  .clear-stats{display:flex;justify-content:center;gap:26px;margin-top:26px}
+  .clear-stats div{text-align:center}
+  .clear-stats b{display:block;font-size:20px;font-weight:750;font-variant-numeric:tabular-nums}
+  .clear-stats span{font-size:11.5px;color:var(--ink3)}
+  .clear-link{margin-top:30px;font-size:12.5px;color:var(--blue);font-weight:600;cursor:pointer}
+</style></head><body>
+
+<div class="intro">
+  <h1>B2 — the workable morning</h1>
+  <p>What was missing from B, named: it was a report, not a workspace. B2 closes the loop —
+     every row carries its <b>verbs</b>, acting makes the row leave, the briefing counts down,
+     a wrong zone is <b>corrected in place</b> (and writes a rule, so tomorrow's sift is smarter),
+     and an emptied morning has an actual end state instead of just… less list.</p>
+</div>
+
+<div class="board">
+  <div class="board-tag"><b>B2 · 1</b><span>Mid-work</span><em>one answered and struck through · hovered row shows its verbs · a correction teaching the harness</em></div>
+  <div class="frame"><div class="wrap">
+
+    <div class="voice"><div class="spark">☕</div>
+      <p><span class="done">Aastha is waiting on a reply about the PM role</span> — answered.
+         Jan Heimes is still waiting, and the BJAK Product-Lead posting fits your Bjak case.
+         Nine notifications are routine; 48 newsletters can go.</p>
+      <span class="cnt">1 of 3 done</span>
+    </div>
+    <div class="strip">
+      <i style="flex:1;background:#d97706"></i><i style="flex:1;background:#6366f1"></i>
+      <i style="flex:9;background:#94a3b8"></i><i style="flex:48;background:var(--hair)"></i>
+      <i style="flex:1;background:var(--ok)"></i>
+    </div>
+
+    <div class="zone">
+      <div class="zh warm">Answer <span class="n">1 left</span></div>
+      <div class="rows">
+        <div class="row donerow">
+          <span class="who">Aastha Pandita</span><span class="sum">Hiring a PM — asked if you’re open to a call.</span>
+          <span class="right"><span class="stamp">✓ replied 9:12</span></span>
+        </div>
+        <div class="row hovered">
+          <span class="who">Jan Heimes</span><span class="sum">Direct message on LinkedIn, waiting three days.</span>
+          <span class="right"><span class="t">20 Aug</span></span>
+          <span class="todoline"><span class="todo">→ Answer Jan’s message</span>
+            <span class="acts">
+              <button class="btn tiny primary">Draft reply</button>
+              <button class="btn tiny">Open</button>
+              <button class="btn tiny ghost">Done</button>
+              <button class="btn tiny ghost">Later</button>
+            </span>
+          </span>
+        </div>
+      </div>
+    </div>
+
+    <div class="zone">
+      <div class="zh case">Your cases <span class="n">1</span></div>
+      <div class="rows">
+        <div class="row">
+          <span class="who">LinkedIn Jobs</span><span class="sum">Product Manager bei BJAK — matches your open case.</span>
+          <span class="right"><span class="pill case">Bjak — Product Lead, AI</span><span class="t">21 Aug</span></span>
+          <span class="todoline"><span class="todo">→ Attach to the case, review the posting</span>
+            <span class="acts"><button class="btn tiny primary">Add to case</button><button class="btn tiny">Open</button></span>
+          </span>
+        </div>
+      </div>
+    </div>
+
+    <div class="zone">
+      <div class="zh">Glance <span class="n">9</span><span class="zact">Mark all read ✓</span></div>
+      <div class="rows">
+        <div class="row" style="overflow:visible">
+          <span class="who">Google One</span><span class="sum">AI Pro trial expired — plan reverted to free.</span>
+          <span class="right"><span class="whyfix">not right?</span><span class="t">13:17</span></span>
+          <div class="fix">
+            <div class="q">Where should this have gone?</div>
+            <div class="opt"><span class="o">Answer</span><span class="o">Case</span><span class="o on">Glance</span><span class="o">Noise</span></div>
+            <div class="note">Applies now · “always for Google One” writes a rule</div>
+          </div>
+        </div>
+        <div class="row"><span class="who">Stripe</span><span class="sum">Payment by countX GmbH — three receipts.</span><span class="right"><span class="pill quiet">×3</span><span class="t">21 Aug</span></span></div>
+        <div class="row"><span class="who">eMOKON</span><span class="sum">E-Mobility conference reminder.</span><span class="right"><span class="pill warm">15 Sep</span><span class="t">21 Aug</span></span></div>
+        <div class="row"><span class="who">GitHub</span><span class="sum">Claude requests updated permissions.</span><span class="right"><span class="t">22 Aug</span></span></div>
+      </div>
+    </div>
+
+    <div class="zone">
+      <div class="zh">Noise <span class="n">48 · 13 senders</span><span class="zact">File all 48 →</span></div>
+      <div class="rows">
+        <div class="noise-r"><span class="who">LinkedIn Jobbenachrichtigungen</span><span class="n">×14</span><span class="what">job digests</span></div>
+        <div class="noise-r"><span class="who">Medium Daily Digest</span><span class="n">×9</span><span class="what">editorial roundups</span></div>
+        <div class="noise-r"><span class="who">+ 11 senders</span><span class="what">— filing keeps them recoverable for an hour via Undo</span></div>
+      </div>
+    </div>
+
+  </div></div>
+</div>
+
+<div class="board">
+  <div class="board-tag"><b>B2 · 2</b><span>The end state</span><em>what finishing feels like — the reward the pile never gives you</em></div>
+  <div class="frame"><div class="clear-wrap">
+    <div class="clear-mark">☕</div>
+    <div class="clear-h">Morning handled.</div>
+    <p class="clear-p">60 mails came in overnight. You answered Aastha and Jan, added the BJAK
+       posting to your case, and everything else is read or filed. Nothing in this inbox is
+       waiting on you.</p>
+    <div class="clear-stats">
+      <div><b>2</b><span>answered</span></div>
+      <div><b>1</b><span>to case</span></div>
+      <div><b>9</b><span>glanced</span></div>
+      <div><b>48</b><span>filed</span></div>
+    </div>
+    <div class="clear-link">See the full list →</div>
+  </div></div>
+</div>
+
+</body></html>

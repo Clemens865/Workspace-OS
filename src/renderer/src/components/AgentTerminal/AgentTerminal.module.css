@@ -1,0 +1,161 @@
+.root {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  overflow: hidden;
+  outline: none;
+  background: var(--term-bg);
+  border-top: 1px solid var(--border);
+}
+
+.header {
+  height: 38px;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: var(--panel);
+  border-bottom: 1px solid var(--hairline);
+  padding-right: 8px;
+}
+
+.tabs {
+  display: flex;
+  align-items: stretch;
+  overflow-x: auto;
+  scrollbar-width: none;
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+.tabs::-webkit-scrollbar { display: none; }
+
+.tab {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  height: 38px;
+  padding: 0 12px;
+  font-size: 12.5px;
+  font-weight: 540;
+  color: var(--fg-muted);
+  cursor: pointer;
+  white-space: nowrap;
+  user-select: none;
+  border-bottom: 2px solid transparent;
+  transition: color 90ms ease;
+}
+
+.tab:hover { color: var(--fg); }
+
+.activeTab {
+  color: var(--fg);
+  border-bottom: 2px solid var(--accent);
+}
+
+.tabIcon {
+  display: flex;
+  align-items: center;
+  font-family: var(--mono);
+  font-size: 11px;
+  color: var(--fg-subtle);
+}
+
+.activeTab .tabIcon { color: var(--accent); }
+
+.statusDot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.dotRunning {
+  background: var(--accent);
+  animation: pulse 1.2s ease-in-out infinite;
+}
+
+.dotError { background: #e08a6e; }
+
+@keyframes pulse { 50% { opacity: 0.35; } }
+
+.renameInput {
+  background: var(--term-surface, #232329);
+  border: 1px solid var(--accent);
+  border-radius: 4px;
+  color: var(--fg);
+  font-size: 12px;
+  font-family: inherit;
+  padding: 1px 6px;
+  width: 110px;
+  outline: none;
+}
+
+.tabClose {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: none;
+  border: none;
+  color: var(--fg-subtle);
+  cursor: pointer;
+  font-size: 13px;
+  line-height: 1;
+  width: 16px;
+  height: 16px;
+  border-radius: var(--radius-sm);
+}
+
+.tabClose:hover { background: var(--hover); color: var(--fg); }
+
+.actions {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 0 6px;
+  flex-shrink: 0;
+}
+
+.quickBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: transparent;
+  border: none;
+  border-radius: var(--radius-md);
+  color: var(--fg-muted);
+  cursor: pointer;
+  font-size: 12.5px;
+  font-weight: 540;
+  padding: 5px 10px;
+  transition: background 90ms ease, color 90ms ease;
+}
+
+.quickBtn:hover { color: var(--fg); background: var(--hover); }
+
+.menuIcon {
+  display: flex;
+  align-items: center;
+  font-family: var(--mono);
+  font-size: 11px;
+}
+
+.hint {
+  font-size: var(--text-xs);
+  color: var(--fg-subtle);
+  font-family: var(--mono);
+  white-space: nowrap;
+  margin-right: 4px;
+}
+
+.body {
+  flex: 1;
+  overflow: hidden;
+  position: relative;
+  background: var(--term-bg);
+}
+
+.sessionWrap {
+  flex-direction: column;
+  height: 100%;
+}

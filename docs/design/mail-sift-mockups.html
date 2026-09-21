@@ -1,0 +1,275 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Workspace OS — Mail sift mockups</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#f5f5f7; --card:#fff; --sunk:#f0f0f2;
+    --ink:#1d1d1f; --ink2:#6e6e73; --ink3:#8a8a8e;
+    --hair:rgba(0,0,0,.09);
+    --blue:#0071e3; --ok:#30b44a;
+    --warm-ink:#8a5a00; --warm-bg:#fff4e0;
+    --case-ink:#4f46e5; --case-bg:rgba(99,102,241,.10);
+    --sh:0 1px 2px rgba(0,0,0,.04), 0 10px 30px rgba(0,0,0,.06);
+    --r:16px; --r-sm:10px;
+    --font:'Hanken Grotesk',-apple-system,system-ui,sans-serif;
+    --mono:ui-monospace,'SF Mono',Menlo,monospace;
+  }
+  *{box-sizing:border-box;margin:0}
+  body{background:#e9e9ec;color:var(--ink);font-family:var(--font);
+       -webkit-font-smoothing:antialiased;padding:48px 20px 120px}
+  .intro{max-width:1120px;margin:0 auto 42px}
+  .intro h1{font-size:22px;font-weight:800;letter-spacing:-.02em}
+  .intro p{color:var(--ink2);font-size:14px;margin-top:6px;max-width:74ch;line-height:1.55}
+  .board{max-width:1120px;margin:56px auto 0}
+  .board-tag{display:flex;align-items:baseline;gap:12px;margin:0 6px 14px}
+  .board-tag b{font-family:var(--mono);font-size:12px;letter-spacing:.14em;color:var(--ink3)}
+  .board-tag span{font-size:15px;font-weight:700;letter-spacing:-.01em}
+  .board-tag em{font-style:normal;font-size:12.5px;color:var(--ink3)}
+  .frame{background:var(--bg);border:.5px solid var(--hair);border-radius:22px;
+         box-shadow:0 20px 60px rgba(0,0,0,.10);overflow:hidden}
+  .pill{display:inline-flex;align-items:center;gap:5px;font-size:11px;font-weight:600;
+        letter-spacing:.02em;padding:2.5px 9px;border-radius:99px;white-space:nowrap}
+  .pill.warm{background:var(--warm-bg);color:var(--warm-ink)}
+  .pill.case{background:var(--case-bg);color:var(--case-ink)}
+  .pill.quiet{background:var(--sunk);color:var(--ink2)}
+  .mono{font-family:var(--mono);font-variant-numeric:tabular-nums}
+  .btn{display:inline-flex;align-items:center;gap:6px;border:.5px solid var(--hair);
+       background:var(--card);border-radius:9px;padding:6px 13px;font:inherit;
+       font-size:12.5px;font-weight:600;color:var(--ink);cursor:pointer}
+  .btn.primary{background:var(--blue);border-color:transparent;color:#fff}
+  .btn.ghost{background:transparent;border-color:transparent;color:var(--ink2)}
+
+  /* ═══ A — the spoken morning ═══ */
+  .a-wrap{max-width:800px;margin:0 auto;padding:56px 44px 72px}
+  .a-date{font-family:var(--mono);font-size:11.5px;letter-spacing:.16em;color:var(--ink3);text-transform:uppercase}
+  .a-lede{font-size:23px;font-weight:650;letter-spacing:-.02em;line-height:1.42;margin-top:16px;max-width:36ch}
+  .a-lede b{font-weight:750}
+  .a-lede .soft{color:var(--ink3)}
+  .a-zone{margin-top:40px}
+  .a-zh{display:flex;align-items:center;gap:10px;font-size:11.5px;font-weight:700;
+        letter-spacing:.14em;color:var(--ink3);text-transform:uppercase}
+  .a-zh.warm{color:var(--warm-ink)} .a-zh.case{color:var(--case-ink)}
+  .a-zh .ln{flex:1;height:.5px;background:var(--hair)}
+  .a-cards{margin-top:14px;display:flex;flex-direction:column;gap:10px}
+  .a-card{background:var(--card);border-radius:var(--r);box-shadow:var(--sh);padding:16px 18px}
+  .a-todo{font-size:15.5px;font-weight:700;letter-spacing:-.012em}
+  .a-meta{display:flex;align-items:baseline;gap:8px;margin-top:5px;font-size:12.5px;color:var(--ink2)}
+  .a-meta .who{font-weight:650;color:var(--ink)}
+  .a-meta .t{margin-left:auto;font-family:var(--mono);font-size:11px;color:var(--ink3)}
+  .a-sum{font-size:13px;color:var(--ink2);line-height:1.5;margin-top:6px}
+  .a-act{display:flex;gap:8px;margin-top:12px}
+  .a-glance{margin-top:14px;background:var(--card);border-radius:var(--r);box-shadow:var(--sh);padding:6px 8px}
+  .a-gr{display:flex;align-items:baseline;gap:9px;padding:7px 10px;border-radius:9px;font-size:13px}
+  .a-gr:hover{background:var(--sunk)}
+  .a-gr .who{font-weight:620;flex:none}
+  .a-gr .what{color:var(--ink2);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;min-width:0;flex:1}
+  .a-gr .t{font-family:var(--mono);font-size:11px;color:var(--ink3);flex:none}
+  .a-noise{margin-top:14px;display:flex;align-items:baseline;gap:10px;padding:10px 14px;
+           font-size:12.5px;color:var(--ink3)}
+  .a-noise b{color:var(--ink2)}
+  .a-noise .file{margin-left:auto;color:var(--blue);font-weight:600;cursor:pointer}
+
+  /* ═══ B — the ledger ═══ */
+  .b-wrap{max-width:860px;margin:0 auto;padding:40px 36px 64px}
+  .b-voice{display:flex;gap:12px;align-items:flex-start;background:var(--card);
+           border-radius:var(--r);box-shadow:var(--sh);padding:15px 18px}
+  .b-spark{width:26px;height:26px;border-radius:8px;background:var(--warm-bg);color:var(--warm-ink);
+           display:grid;place-items:center;font-size:14px;flex:none}
+  .b-voice p{font-size:13.5px;line-height:1.6;color:var(--ink)}
+  .b-strip{display:flex;height:5px;gap:3px;margin:18px 2px 0}
+  .b-strip i{border-radius:99px}
+  .b-zone{margin-top:22px}
+  .b-zh{display:flex;align-items:baseline;gap:8px;font-size:11px;font-weight:700;
+        letter-spacing:.13em;text-transform:uppercase;color:var(--ink3);padding:0 4px 6px}
+  .b-zh.warm{color:var(--warm-ink)} .b-zh.case{color:var(--case-ink)}
+  .b-zh .n{font-family:var(--mono);font-weight:500}
+  .b-rows{background:var(--card);border-radius:var(--r-sm);box-shadow:var(--sh);overflow:hidden}
+  .b-row{display:grid;grid-template-columns:170px 1fr auto;gap:6px 14px;
+         padding:10px 16px;border-top:.5px solid var(--hair);align-items:baseline}
+  .b-row:first-child{border-top:0}
+  .b-row:hover{background:var(--sunk)}
+  .b-who{font-size:13px;font-weight:650;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .b-sum{font-size:13px;color:var(--ink2);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .b-right{display:flex;gap:8px;align-items:baseline}
+  .b-t{font-family:var(--mono);font-size:11px;color:var(--ink3)}
+  .b-todo{grid-column:2/4;font-size:12.5px;font-weight:600;color:var(--warm-ink)}
+  .b-noise-r{display:flex;gap:10px;align-items:baseline;padding:9px 16px;border-top:.5px solid var(--hair);font-size:12.5px}
+  .b-noise-r .who{font-weight:620}
+  .b-noise-r .n{color:var(--ink3);font-family:var(--mono);font-size:11px}
+  .b-noise-r .what{color:var(--ink3);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;min-width:0;flex:1}
+
+  /* ═══ C — one thing at a time ═══ */
+  .c-wrap{max-width:640px;margin:0 auto;padding:52px 40px 68px;text-align:center}
+  .c-brief{font-size:14px;color:var(--ink2);line-height:1.6;max-width:52ch;margin:0 auto}
+  .c-brief b{color:var(--ink)}
+  .c-deal{margin-top:30px;background:var(--card);border-radius:20px;box-shadow:var(--sh);
+          padding:30px 32px;text-align:left}
+  .c-topline{display:flex;align-items:center;gap:12px}
+  .c-ava{width:38px;height:38px;border-radius:50%;background:var(--warm-bg);color:var(--warm-ink);
+         display:grid;place-items:center;font-weight:750;font-size:14px;flex:none}
+  .c-who{font-size:14px;font-weight:700}
+  .c-sub{font-size:12px;color:var(--ink3);margin-top:1px}
+  .c-topline .t{margin-left:auto;font-family:var(--mono);font-size:11px;color:var(--ink3)}
+  .c-sumline{font-size:15px;line-height:1.5;margin-top:18px}
+  .c-todo{display:flex;align-items:center;gap:9px;margin-top:16px;padding:11px 14px;
+          background:var(--warm-bg);border-radius:11px;font-size:13.5px;font-weight:650;color:var(--warm-ink)}
+  .c-act{display:flex;gap:10px;margin-top:20px}
+  .c-progress{display:flex;align-items:center;justify-content:center;gap:8px;margin-top:22px}
+  .c-progress .pd{width:6px;height:6px;border-radius:50%;background:var(--hair)}
+  .c-progress .pd.on{background:var(--ink2)}
+  .c-progress .lbl{font-family:var(--mono);font-size:11px;color:var(--ink3);margin-left:6px}
+  .c-rest{margin-top:34px;display:flex;justify-content:center;gap:10px;flex-wrap:wrap}
+</style></head><body>
+
+<div class="intro">
+  <h1>The sift as an assistant — three directions</h1>
+  <p>Same morning in all three (your real one, 23 Aug): 60 unread — Aastha and Jan are waiting,
+     one mail belongs to the Bjak case, nine are worth a glance, 48 are noise. The engine already
+     produces everything shown: the spoken briefing, a per-mail summary, the concrete <i>to-do</i>,
+     and a due date when the mail names one. The variants differ in how much the assistant
+     <i>leads</i> versus <i>annotates</i>.</p>
+</div>
+
+<!-- ═══════════ VARIANT A ═══════════ -->
+<div class="board">
+  <div class="board-tag"><b>A</b><span>The spoken morning</span><em>assistant leads — actions are the headlines, mail is the footnote</em></div>
+  <div class="frame"><div class="a-wrap">
+    <div class="a-date">Sunday · 23 August · Inbox</div>
+    <p class="a-lede"><b>Two people are waiting on you</b> — Aastha about a Product-Manager role,
+       and Jan Heimes on LinkedIn. BJAK posted a Product-Lead job that fits your Bjak case.
+       <span class="soft">The rest is receipts and 48 newsletters — nothing that needs you.</span></p>
+
+    <div class="a-zone">
+      <div class="a-zh warm">To do<i class="ln"></i></div>
+      <div class="a-cards">
+        <div class="a-card">
+          <div class="a-todo">Reply to Aastha’s InMail</div>
+          <div class="a-meta"><span class="who">Aastha Pandita</span> · LinkedIn <span class="t">22 Aug</span></div>
+          <p class="a-sum">She’s hiring a Product Manager and asks whether you’re open to a call this week.</p>
+          <div class="a-act"><button class="btn primary">Draft reply</button><button class="btn">Open</button><button class="btn ghost">Later</button></div>
+        </div>
+        <div class="a-card">
+          <div class="a-todo">Answer Jan Heimes’ message</div>
+          <div class="a-meta"><span class="who">Jan Heimes</span> · LinkedIn <span class="t">20 Aug</span></div>
+          <p class="a-sum">Jan sent you a direct message — it’s been sitting for three days.</p>
+          <div class="a-act"><button class="btn primary">Draft reply</button><button class="btn">Open</button><button class="btn ghost">Later</button></div>
+        </div>
+        <div class="a-card">
+          <div class="a-todo">Look at the Product-Lead role at BJAK <span class="pill case" style="margin-left:8px">Bjak — Product Lead, AI</span></div>
+          <div class="a-meta"><span class="who">LinkedIn Jobs</span> <span class="t">21 Aug</span></div>
+          <p class="a-sum">A new posting that matches the case you’re already pursuing — worth attaching to the case thread.</p>
+          <div class="a-act"><button class="btn primary">Add to case</button><button class="btn">Open</button></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="a-zone">
+      <div class="a-zh">Worth a glance · 9<i class="ln"></i></div>
+      <div class="a-glance">
+        <div class="a-gr"><span class="who">Google One</span><span class="what">Your AI Pro trial expired — the plan reverted to free.</span><span class="t">13:17</span></div>
+        <div class="a-gr"><span class="who">Stripe ×3</span><span class="what">Three payments from countX GmbH went through.</span><span class="t">21 Aug</span></div>
+        <div class="a-gr"><span class="who">eMOKON</span><span class="what">E-Mobility conference reminder.</span><span class="pill warm">15 Sep</span><span class="t">21 Aug</span></div>
+        <div class="a-gr"><span class="who">GitHub</span><span class="what">Claude requests updated repo permissions.</span><span class="t">22 Aug</span></div>
+        <div class="a-gr" style="color:var(--ink3)"><span class="what">+ 4 more — Minor Hotels, British Airways, Google …</span></div>
+      </div>
+    </div>
+
+    <div class="a-noise"><b>48 newsletters</b> from 13 senders, already sorted out.<span class="file">File them all →</span></div>
+  </div></div>
+</div>
+
+<!-- ═══════════ VARIANT B ═══════════ -->
+<div class="board">
+  <div class="board-tag"><b>B</b><span>The ledger</span><em>assistant annotates — dense, scannable, everything on one screen</em></div>
+  <div class="frame"><div class="b-wrap">
+    <div class="b-voice"><div class="b-spark">☕</div>
+      <p>Aastha Pandita and Jan Heimes are waiting on replies — both LinkedIn, both about roles.
+         BJAK posted a Product-Lead job matching your Bjak case. Nine notifications are routine
+         (three Stripe receipts, your Google One trial ended), and 48 newsletters can go unread.</p>
+    </div>
+    <div class="b-strip">
+      <i style="flex:2;background:#d97706"></i><i style="flex:1;background:#6366f1"></i>
+      <i style="flex:9;background:#94a3b8"></i><i style="flex:48;background:var(--hair)"></i>
+    </div>
+
+    <div class="b-zone">
+      <div class="b-zh warm">Needs an answer <span class="n">2</span></div>
+      <div class="b-rows">
+        <div class="b-row"><span class="b-who">Aastha Pandita</span><span class="b-sum">Hiring a PM — asks if you’re open to a call this week.</span>
+          <span class="b-right"><span class="b-t">22 Aug</span></span>
+          <span class="b-todo">→ Reply with your availability</span></div>
+        <div class="b-row"><span class="b-who">Jan Heimes</span><span class="b-sum">Direct message on LinkedIn, waiting three days.</span>
+          <span class="b-right"><span class="b-t">20 Aug</span></span>
+          <span class="b-todo">→ Answer Jan’s message</span></div>
+      </div>
+    </div>
+
+    <div class="b-zone">
+      <div class="b-zh case">Your cases <span class="n">1</span></div>
+      <div class="b-rows">
+        <div class="b-row"><span class="b-who">LinkedIn Jobs</span><span class="b-sum">Product Manager bei BJAK — matches your open case.</span>
+          <span class="b-right"><span class="pill case">Bjak — Product Lead, AI</span><span class="b-t">21 Aug</span></span>
+          <span class="b-todo">→ Attach to the case, review the posting</span></div>
+      </div>
+    </div>
+
+    <div class="b-zone">
+      <div class="b-zh">Worth a glance <span class="n">9</span></div>
+      <div class="b-rows">
+        <div class="b-row"><span class="b-who">Google One</span><span class="b-sum">AI Pro trial expired — plan reverted to free.</span><span class="b-right"><span class="b-t">13:17</span></span></div>
+        <div class="b-row"><span class="b-who">Stripe</span><span class="b-sum">Payment by countX GmbH — three receipts.</span><span class="b-right"><span class="pill quiet">×3</span><span class="b-t">21 Aug</span></span></div>
+        <div class="b-row"><span class="b-who">eMOKON</span><span class="b-sum">E-Mobility conference reminder.</span><span class="b-right"><span class="pill warm">15 Sep</span><span class="b-t">21 Aug</span></span></div>
+        <div class="b-row"><span class="b-who">GitHub</span><span class="b-sum">Claude requests updated permissions.</span><span class="b-right"><span class="b-t">22 Aug</span></span></div>
+      </div>
+    </div>
+
+    <div class="b-zone">
+      <div class="b-zh">Noise <span class="n">48 · 13 senders</span></div>
+      <div class="b-rows">
+        <div class="b-noise-r"><span class="who">LinkedIn Jobbenachrichtigungen</span><span class="n">×14</span><span class="what">job digests</span></div>
+        <div class="b-noise-r"><span class="who">Medium Daily Digest</span><span class="n">×9</span><span class="what">editorial roundups</span></div>
+        <div class="b-noise-r"><span class="who">+ 11 senders</span><span class="what">— use “Newsletters” to file everything</span><span class="file" style="color:var(--blue);font-weight:600">File →</span></div>
+      </div>
+    </div>
+  </div></div>
+</div>
+
+<!-- ═══════════ VARIANT C ═══════════ -->
+<div class="board">
+  <div class="board-tag"><b>C</b><span>One thing at a time</span><em>assistant deals — a focus queue, like the cases pager</em></div>
+  <div class="frame"><div class="c-wrap">
+    <p class="c-brief">Good morning. <b>Three things actually need you</b> out of 60 —
+       I’ll deal them one at a time. Everything else is glanceable or noise, listed below.</p>
+
+    <div class="c-deal">
+      <div class="c-topline">
+        <div class="c-ava">AP</div>
+        <div><div class="c-who">Aastha Pandita</div><div class="c-sub">via LinkedIn InMail</div></div>
+        <span class="t">22 Aug</span>
+      </div>
+      <p class="c-sumline">She’s hiring a <b>Product Manager</b> and asks whether you’re open
+         to a short call this week about the role.</p>
+      <div class="c-todo">→ Reply with your availability</div>
+      <div class="c-act">
+        <button class="btn primary">Draft the reply</button>
+        <button class="btn">Open mail</button>
+        <button class="btn ghost" style="margin-left:auto">Skip →</button>
+      </div>
+    </div>
+
+    <div class="c-progress">
+      <span class="pd on"></span><span class="pd"></span><span class="pd"></span>
+      <span class="lbl">1 of 3</span>
+    </div>
+
+    <div class="c-rest">
+      <span class="pill quiet">9 worth a glance</span>
+      <span class="pill case">1 case mail — Bjak</span>
+      <span class="pill quiet">48 noise · File them</span>
+    </div>
+  </div></div>
+</div>
+
+</body></html>

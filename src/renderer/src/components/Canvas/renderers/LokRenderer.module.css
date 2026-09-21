@@ -1,0 +1,574 @@
+.root {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  overflow: hidden;
+  background: var(--color-canvas);
+}
+
+.toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 6px 12px;
+  background: var(--color-surface);
+  border-bottom: 1px solid var(--color-border);
+  flex-shrink: 0;
+}
+
+.info {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 12px;
+  color: var(--color-text-muted);
+}
+
+.live {
+  color: #3fae6a;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.03em;
+}
+
+.styleSelect {
+  background: var(--color-surface-raised);
+  border: 1px solid var(--color-border);
+  border-radius: 4px;
+  color: var(--color-text);
+  font-size: 12px;
+  padding: 3px 6px;
+  height: 26px;
+}
+
+.fmtGroup {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  padding-left: 6px;
+  border-left: 1px solid var(--color-border);
+}
+
+.fmtGroup button {
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: 4px;
+  color: var(--color-text);
+  cursor: pointer;
+  width: 26px;
+  height: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.fmtGroup button:hover {
+  background: var(--color-surface-raised);
+  border-color: var(--color-border);
+}
+
+.saveBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  background: var(--color-surface-raised);
+  border: 1px solid var(--color-border);
+  border-radius: 4px;
+  color: var(--color-text);
+  cursor: pointer;
+  font-size: 12px;
+  padding: 3px 9px;
+}
+
+.saveBtn:disabled {
+  opacity: 0.55;
+  cursor: default;
+}
+
+.zoomControls {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 12px;
+  color: var(--color-text);
+}
+
+.zoomControls button {
+  background: var(--color-surface-raised);
+  border: 1px solid var(--color-border);
+  border-radius: 4px;
+  color: var(--color-text);
+  cursor: pointer;
+  width: 24px;
+  height: 24px;
+  font-size: 14px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.viewport {
+  flex: 1;
+  position: relative;
+  overflow: hidden;
+  min-height: 0;
+}
+
+.overlay {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 2;
+  color: var(--color-danger);
+  font-size: 13px;
+}
+
+.pages {
+  position: absolute;
+  inset: 0;
+  overflow: auto;
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  /* `safe` centers narrow docs but left-aligns docs wider than the viewport,
+   * so their left edge (e.g. Calc column A) stays reachable instead of
+   * overflowing under the sidebar where it can't be clicked or scrolled to. */
+  align-items: safe center;
+  scroll-behavior: smooth;
+  overscroll-behavior: contain;
+}
+
+/* Thin, unobtrusive scrollbars for the document surface. */
+.pages::-webkit-scrollbar { width: 13px; height: 13px; }
+.pages::-webkit-scrollbar-track { background: transparent; }
+.pages::-webkit-scrollbar-thumb {
+  background: var(--color-border-strong);
+  border-radius: 8px;
+  border: 4px solid transparent;
+  background-clip: content-box;
+}
+.pages::-webkit-scrollbar-thumb:hover {
+  background: var(--color-text-subtle);
+  background-clip: content-box;
+}
+.pages::-webkit-scrollbar-corner { background: transparent; }
+
+/* Calc: a scrollable grid whose first row/column are frozen header strips
+ * (sticky), with the document surface in the bottom-right cell. */
+.calcGrid {
+  position: absolute;
+  inset: 0;
+  overflow: auto;
+  display: grid;
+  align-content: start;
+  justify-content: start;
+  padding: 0 16px 16px 0;
+  overscroll-behavior: contain;
+  /* NOT scroll-behavior:smooth — it animates programmatic scrollTop, so the
+     edge auto-scroll's per-tick assignment read back stale and never stuck.
+     And overflow-anchor:none stops the browser from re-adjusting scrollTop to
+     "anchor" the windowed canvas each time a repaint repositions it, which was
+     dragging the programmatic scroll back toward the top. */
+  scroll-behavior: auto;
+  overflow-anchor: none;
+  background: var(--surface, var(--color-bg));
+}
+.calcGrid::-webkit-scrollbar { width: 13px; height: 13px; }
+.calcGrid::-webkit-scrollbar-track { background: transparent; }
+.calcGrid::-webkit-scrollbar-thumb {
+  background: var(--color-border-strong);
+  border-radius: 8px;
+  border: 4px solid transparent;
+  background-clip: content-box;
+}
+.calcGrid::-webkit-scrollbar-thumb:hover { background: var(--color-text-subtle); background-clip: content-box; }
+.calcGrid::-webkit-scrollbar-corner { background: transparent; }
+
+.docWrap {
+  position: relative;
+  /* NEVER let a flex parent shrink the doc spacer. .pages is a column flex
+     container; its default flex-shrink:1 collapsed a 50-page Writer docWrap
+     (inline height 54,841px) to the viewport's ~549px — the doc only ever
+     displayed via overflow quirks, and the windowed canvas exposed it. */
+  flex-shrink: 0;
+  outline: none;
+}
+
+.docWrap:focus-within,
+.docWrap:focus {
+  outline: none;
+}
+
+.page {
+  display: block;
+  background: #fff;
+  border: 1px solid var(--color-border);
+  box-shadow: var(--shadow-2);
+  border-radius: 2px;
+}
+
+/* Calc/Writer paint only the visible window: the canvas is a viewport-sized
+   tile floating at its scroll-window origin inside the doc-sized docWrap
+   (paint() sets left/top). No border/shadow — those would draw a frame
+   mid-document. */
+.pageWindowed {
+  position: absolute;
+  border: none;
+  box-shadow: none;
+  border-radius: 0;
+}
+
+/* Writer's page frame, moved from the (now windowed) canvas onto the doc-sized
+   docWrap — visually the same wrap around the page stack, and the white
+   background keeps not-yet-fetched regions paper-colored instead of dark. */
+.docWrapFramed {
+  background: #fff;
+  border: 1px solid var(--color-border);
+  box-shadow: var(--shadow-2);
+  border-radius: 2px;
+}
+
+.partBar {
+  display: flex;
+  align-items: stretch;
+  gap: 2px;
+  padding: 4px 8px;
+  background: var(--color-surface);
+  border-top: 1px solid var(--color-border);
+  flex-shrink: 0;
+  overflow-x: auto;
+}
+
+.partTab,
+.partActive {
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: 6px;
+  color: var(--color-text-muted);
+  cursor: pointer;
+  font-size: 12px;
+  padding: 4px 12px;
+  white-space: nowrap;
+  max-width: 180px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  transition: background 100ms ease, color 100ms ease;
+}
+
+.partTab:hover {
+  background: var(--color-hover);
+  color: var(--color-text);
+}
+
+.partActive {
+  background: var(--color-accent-soft);
+  color: var(--color-accent);
+  font-weight: 600;
+}
+
+.caret {
+  position: absolute;
+  width: 1.5px;
+  background: #1a1a1a;
+  pointer-events: none;
+  animation: caretBlink 1s step-end infinite;
+}
+
+@keyframes caretBlink {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0; }
+}
+
+.toast {
+  position: absolute;
+  bottom: 18px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 5;
+  background: rgba(20, 20, 20, 0.92);
+  color: #fff;
+  font-size: 12px;
+  padding: 8px 16px;
+  border-radius: 6px;
+  pointer-events: none;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.3);
+}
+
+.propsBackdrop {
+  position: absolute;
+  inset: 0;
+  z-index: 20;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(0, 0, 0, 0.3);
+}
+
+.propsModal {
+  background: var(--color-surface, #fff);
+  border: 1px solid var(--color-border, #e2e2e2);
+  border-radius: 10px;
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.25);
+  padding: 18px 20px;
+  min-width: 320px;
+  color: var(--color-text, #1a1a1a);
+}
+
+.propsTitle {
+  font-size: 14px;
+  font-weight: 600;
+  margin-bottom: 12px;
+}
+
+.propsList {
+  display: grid;
+  grid-template-columns: 110px 1fr;
+  gap: 6px 12px;
+  margin: 0 0 14px;
+  font-size: 13px;
+}
+
+.propsList dt { color: var(--color-text-muted); }
+.propsList dd { margin: 0; }
+
+.propsClose {
+  background: var(--color-surface-raised);
+  border: 1px solid var(--color-border);
+  border-radius: 5px;
+  color: var(--color-text);
+  cursor: pointer;
+  font-size: 13px;
+  padding: 5px 14px;
+  float: right;
+}
+
+.selRect {
+  position: absolute;
+  background: rgba(60, 130, 246, 0.32);
+  pointer-events: none;
+  border-radius: 1px;
+}
+
+/* Calc active-cell outline (the box you see when you click a cell). */
+.cellCursor {
+  position: absolute;
+  border: 2px solid var(--accent, #1a73e8);
+  box-shadow: 0 0 0 1px rgba(26, 115, 232, 0.25);
+  pointer-events: none;
+  box-sizing: border-box;
+}
+
+/* Live-link marker: a calm accent underline + corner dot on a transcluding
+   cell. Read-only, pass-through — never fights the cell cursor or selection. */
+.liveLink {
+  position: absolute;
+  pointer-events: none;
+  box-sizing: border-box;
+  border-bottom: 1.5px solid var(--accent, #1a73e8);
+  z-index: 4;
+}
+.liveLinkDot {
+  position: absolute;
+  top: 1px;
+  right: 1px;
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: var(--accent, #1a73e8);
+  box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.7);
+}
+
+/* In-doc "N live values in this file" indicator chip. */
+.liveChip {
+  position: absolute;
+  top: 46px;
+  right: 12px;
+  z-index: 6;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  height: 24px;
+  padding: 0 10px;
+  background: var(--color-surface, #fff);
+  border: 1px solid var(--color-border);
+  border-radius: 999px;
+  color: var(--color-text);
+  font-size: 11px;
+  cursor: pointer;
+  box-shadow: var(--shadow-1, 0 1px 3px rgba(0,0,0,0.12));
+}
+.liveChip:hover { background: var(--color-hover); }
+.liveChipDot {
+  color: #1a7f37;
+  font-size: 9px;
+  line-height: 1;
+}
+
+/* Drawing-object selection box + resize handles (shape is selected). The box
+   is pass-through so the drag reaches the canvas and the engine moves/resizes. */
+.graphicSel {
+  position: absolute;
+  border: 1px solid var(--accent, #1a73e8);
+  pointer-events: none;
+  box-sizing: border-box;
+  z-index: 5;
+}
+
+/* Drag ghost — the shape's own pixels, copied off the canvas at drag start and
+   flown with the pointer (see dragGhost.ts). Sits just under the selection box
+   so the handles stay visible on top. Slightly translucent while the pointer is
+   down (it is a preview), fully opaque once dropped, because it then stands in
+   for the finished result until the engine repaint lands underneath it. */
+.dragGhost {
+  position: absolute;
+  pointer-events: none;
+  z-index: 4;
+  opacity: 0.85;
+}
+
+.dragGhostCommitted {
+  opacity: 1;
+}
+
+/* Pen-tool in-progress polygon overlay. */
+.penOverlay {
+  position: absolute;
+  left: 0;
+  top: 0;
+  pointer-events: none;
+  z-index: 6;
+  overflow: visible;
+}
+.penHint {
+  position: absolute;
+  top: 12px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 7;
+  padding: 5px 12px;
+  background: var(--accent, #1a73e8);
+  color: #fff;
+  font-size: 12px;
+  border-radius: 7px;
+  box-shadow: var(--shadow-1, 0 1px 3px rgba(0,0,0,0.2));
+}
+.handle {
+  position: absolute;
+  width: 8px;
+  height: 8px;
+  background: #fff;
+  border: 1.5px solid var(--accent, #1a73e8);
+  border-radius: 2px;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.25);
+}
+.handle_nw { top: -5px; left: -5px; }
+.handle_n  { top: -5px; left: calc(50% - 4px); }
+.handle_ne { top: -5px; right: -5px; }
+.handle_e  { top: calc(50% - 4px); right: -5px; }
+.handle_se { bottom: -5px; right: -5px; }
+.handle_s  { bottom: -5px; left: calc(50% - 4px); }
+.handle_sw { bottom: -5px; left: -5px; }
+.handle_w  { top: calc(50% - 4px); left: -5px; }
+
+/* Impress: slide thumbnail rail + slide area. */
+.impressLayout {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  min-height: 0;
+}
+.pagesImpress {
+  position: relative;
+  flex: 1;
+  min-width: 0;
+  overflow: auto;
+  padding: 24px 16px;
+  display: flex;
+  flex-direction: column;
+  align-items: safe center;
+  scroll-behavior: smooth;
+}
+.presentBtn {
+  position: absolute;
+  top: 12px;
+  right: 16px;
+  z-index: 6;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  height: 28px;
+  padding: 0 14px;
+  background: var(--accent, #6e8ae0);
+  border: none;
+  border-radius: 7px;
+  color: #fff;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  box-shadow: var(--shadow-1, 0 1px 3px rgba(0,0,0,0.15));
+}
+.presentBtn:hover { opacity: 0.92; }
+
+.componentsBtn {
+  position: absolute;
+  top: 12px;
+  right: 116px;
+  z-index: 6;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  height: 28px;
+  padding: 0 12px;
+  background: var(--color-surface, #fff);
+  border: 1px solid var(--color-border);
+  border-radius: 7px;
+  color: var(--color-text);
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  box-shadow: var(--shadow-1, 0 1px 3px rgba(0,0,0,0.12));
+}
+.componentsBtn:hover { background: var(--color-hover); }
+
+/* Metrics (live-transclusion) toggle — sits just left of Components (Calc). */
+.metricsBtn {
+  position: absolute;
+  top: 12px;
+  right: 232px;
+  z-index: 6;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  height: 28px;
+  padding: 0 12px;
+  background: var(--color-surface, #fff);
+  border: 1px solid var(--color-border);
+  border-radius: 7px;
+  color: var(--color-text);
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  box-shadow: var(--shadow-1, 0 1px 3px rgba(0,0,0,0.12));
+}
+.metricsBtn:hover { background: var(--color-hover); }
+
+/* Comment anchors in the document margin. */
+.commentAnchor {
+  position: absolute; z-index: 26;
+  width: 18px; height: 18px; border-radius: 50%;
+  border: 1px solid var(--color-border, #d8d8d8); background: #fff7cc; color: #6b5300;
+  font-size: 11px; line-height: 16px; text-align: center; cursor: pointer; padding: 0;
+  box-shadow: 0 1px 3px rgba(0,0,0,.15);
+}
+.commentAnchor:hover, .commentAnchorOn { background: #ffe680; border-color: #c9a400; }
+.commentAnchorDone { opacity: .5; }
+
+/* Name box + formula bar on one row. */
+.formulaRow { display: flex; align-items: center; gap: 6px; padding-left: 6px; }
+.formulaRow > :last-child { flex: 1; min-width: 0; }
+
+/* Smart guides during a shape drag. */
+.guideV { position: absolute; width: 0; border-left: 1px dashed #e0457b; pointer-events: none; z-index: 7; }
+.guideH { position: absolute; height: 0; border-top: 1px dashed #e0457b; pointer-events: none; z-index: 7; }

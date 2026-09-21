@@ -1,0 +1,125 @@
+.root {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  overflow: hidden;
+  background: var(--term-bg);
+}
+
+.root.dragOver {
+  outline: 2px dashed var(--accent);
+  outline-offset: -4px;
+}
+
+.contextBar {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+  padding: 8px 12px;
+  border-top: 1px solid var(--term-border);
+  flex-shrink: 0;
+}
+
+.agentSelect {
+  background: var(--term-surface);
+  border: 1px solid var(--term-border);
+  border-radius: 12px;
+  padding: 3px 8px;
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--term-fg);
+  cursor: pointer;
+  outline: none;
+  max-width: 180px;
+}
+
+.modeToggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  background: var(--term-surface);
+  border: 1px solid var(--term-border);
+  border-radius: 12px;
+  padding: 3px 10px;
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--term-fg);
+  cursor: pointer;
+}
+
+.modeToggle:hover { border-color: var(--color-accent, #6e8ae0); }
+
+/* Pushes the run affordances + chips to the right of the bar. */
+.statusArea {
+  display: inline-flex;
+  align-items: center;
+  margin-right: auto;
+  padding-left: 4px;
+  font-size: 11px;
+  font-family: var(--mono);
+}
+
+.statusRunning { color: var(--color-accent, #6e8ae0); }
+.statusError { color: #e08a6e; }
+
+.budget {
+  color: #9da0a8;
+  font-family: var(--mono);
+  font-size: 11px;
+  padding-left: 8px;
+}
+
+.actionBtn {
+  background: none;
+  border: 1px solid var(--term-border);
+  border-radius: 12px;
+  color: var(--term-fg);
+  cursor: pointer;
+  font-size: 11px;
+  padding: 3px 10px;
+}
+
+.actionBtn:hover {
+  border-color: var(--color-accent, #6e8ae0);
+  color: var(--color-accent, #6e8ae0);
+}
+
+.revertedTag {
+  color: var(--color-success, #6ec87e);
+  font-size: 11px;
+}
+
+.chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  background: var(--term-surface);
+  border: 1px solid var(--term-border);
+  border-radius: 12px;
+  padding: 2px 4px 2px 10px;
+  font-size: 11px;
+  color: var(--term-fg);
+}
+
+.chipRemove {
+  background: none;
+  border: none;
+  color: #9da0a8;
+  cursor: pointer;
+  font-size: 13px;
+  line-height: 1;
+  padding: 0 2px;
+}
+
+.chipRemove:hover { color: #e08a6e; }
+
+.cancel {
+  background: var(--color-danger);
+  border: none;
+  border-radius: 12px;
+  color: #fff;
+  cursor: pointer;
+  font-size: 11px;
+  padding: 3px 10px;
+}

@@ -1,0 +1,128 @@
+.bar {
+  display: flex;
+  align-items: stretch;
+  height: 40px;
+  flex-shrink: 0;
+  background: var(--app);
+  border-bottom: 1px solid var(--border);
+  padding-left: 6px;
+  overflow-x: auto;
+  overflow-y: hidden;
+  scrollbar-width: none;
+}
+
+.bar::-webkit-scrollbar { display: none; }
+
+/* Compact pill variant — sits inline in the title strip (no folder styling). */
+.compact {
+  height: auto;
+  flex: 1;
+  min-width: 0;
+  background: transparent;
+  border-bottom: none;
+  padding-left: 0;
+  gap: 4px;
+  align-items: center;
+  -webkit-app-region: no-drag;
+}
+.compact .tab {
+  margin-top: 0;
+  border-radius: 7px;
+  height: 30px;
+}
+.compact .active {
+  background: var(--surface);
+  border: 1px solid var(--border);
+}
+.compact .active::before { display: none; }
+
+.tab {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: 0 11px 0 13px;
+  margin-top: 5px;
+  max-width: 200px;
+  min-width: 0;
+  cursor: pointer;
+  color: var(--fg-muted);
+  font-size: 12.5px;
+  white-space: nowrap;
+  user-select: none;
+  border-radius: 8px 8px 0 0;
+  position: relative;
+  flex-shrink: 0;
+  transition: background 90ms ease, color 90ms ease;
+}
+
+.tab:hover { background: var(--hover); }
+
+.active {
+  background: var(--surface);
+  color: var(--fg);
+  border: 1px solid var(--border);
+  border-bottom: 1px solid var(--surface);
+}
+
+.active:hover { background: var(--surface); }
+
+/* Accent bar across the top of the active tab */
+.active::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 8px;
+  right: 8px;
+  height: 2px;
+  background: var(--accent);
+  border-radius: 0 0 2px 2px;
+}
+
+.pinned { max-width: 150px; }
+
+.tabIcon {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+}
+
+.label {
+  flex: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.active .label { font-weight: 560; }
+
+.pinIcon {
+  color: var(--fg-subtle);
+  flex-shrink: 0;
+}
+
+.dirty {
+  color: var(--accent);
+  font-size: 10px;
+  line-height: 1;
+}
+
+.close {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 18px;
+  height: 18px;
+  border: none;
+  background: transparent;
+  color: var(--fg-subtle);
+  cursor: pointer;
+  border-radius: var(--radius-sm);
+  opacity: 0.7;
+  transition: opacity 90ms ease, background 90ms ease, color 90ms ease;
+}
+
+.tab:hover .close,
+.active .close,
+.close:has(.dirty) { opacity: 1; }
+
+.close:hover { background: var(--active); color: var(--fg); }

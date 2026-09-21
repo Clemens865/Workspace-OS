@@ -1,0 +1,409 @@
+/* WOS-013 · the Files surface's browsable folder view.
+   Token language matches the rest of the new shell. */
+
+.browser {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  min-height: 0;
+  background: var(--wos-bg);
+  color: var(--wos-ink);
+  font-family: var(--wos-font);
+}
+
+/* ── breadcrumb + back/forward ── */
+.toolbar {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 9px 12px;
+  border-bottom: 0.5px solid var(--wos-hair);
+  flex-shrink: 0;
+}
+
+.navBtn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 26px;
+  height: 26px;
+  padding: 0;
+  border: 0.5px solid transparent;
+  border-radius: 7px;
+  background: transparent;
+  color: var(--wos-ink);
+  cursor: pointer;
+  opacity: 0.8;
+}
+
+.navBtn:hover:not(:disabled) {
+  border-color: var(--wos-hair);
+  background: var(--wos-bg-soft, rgba(0, 0, 0, 0.03));
+  opacity: 1;
+}
+
+/* Disabled rather than hidden: the control keeping its place is what tells you
+   the history has an edge, instead of the toolbar reflowing as you navigate. */
+.navBtn:disabled {
+  opacity: 0.25;
+  cursor: default;
+}
+
+.crumbs {
+  display: flex;
+  align-items: center;
+  min-width: 0;
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+
+.crumbs::-webkit-scrollbar {
+  display: none;
+}
+
+.crumbWrap {
+  display: inline-flex;
+  align-items: center;
+  flex-shrink: 0;
+}
+
+.crumbSep {
+  opacity: 0.35;
+  flex-shrink: 0;
+}
+
+.crumb,
+.crumbOn {
+  padding: 3px 6px;
+  border: none;
+  border-radius: 6px;
+  background: transparent;
+  color: var(--wos-ink);
+  font-family: var(--wos-font);
+  font-size: 12.5px;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.crumb {
+  opacity: 0.62;
+}
+
+.crumb:hover {
+  opacity: 1;
+  background: var(--wos-bg-soft, rgba(0, 0, 0, 0.04));
+}
+
+.crumbOn {
+  font-weight: 600;
+  cursor: default;
+}
+
+/* ── filters ── */
+.filterbar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 12px;
+  border-bottom: 0.5px solid var(--wos-hair);
+  flex-wrap: wrap;
+  flex-shrink: 0;
+}
+
+.search {
+  flex: 1;
+  min-width: 140px;
+  padding: 5px 9px;
+  border: 0.5px solid var(--wos-hair);
+  border-radius: 7px;
+  background: var(--wos-bg);
+  color: var(--wos-ink);
+  font-family: var(--wos-font);
+  font-size: 12.5px;
+  outline: none;
+}
+
+.search:focus {
+  border-color: var(--wos-accent, #0071e3);
+}
+
+.chips {
+  display: flex;
+  gap: 4px;
+  flex-wrap: wrap;
+}
+
+.chip,
+.chipOn {
+  padding: 3px 9px;
+  border: 0.5px solid var(--wos-hair);
+  border-radius: 999px;
+  background: transparent;
+  color: var(--wos-ink);
+  font-family: var(--wos-font);
+  font-size: 11.5px;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.chip {
+  opacity: 0.66;
+}
+
+.chip:hover {
+  opacity: 1;
+}
+
+.chipOn {
+  background: var(--wos-accent, #0071e3);
+  border-color: transparent;
+  color: #fff;
+}
+
+.age {
+  padding: 4px 7px;
+  border: 0.5px solid var(--wos-hair);
+  border-radius: 7px;
+  background: var(--wos-bg);
+  color: var(--wos-ink);
+  font-family: var(--wos-font);
+  font-size: 11.5px;
+  cursor: pointer;
+}
+
+.clear {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 3px 8px;
+  border: none;
+  border-radius: 6px;
+  background: transparent;
+  color: var(--wos-ink);
+  font-family: var(--wos-font);
+  font-size: 11.5px;
+  cursor: pointer;
+  opacity: 0.7;
+}
+
+.clear:hover {
+  opacity: 1;
+  background: var(--wos-bg-soft, rgba(0, 0, 0, 0.04));
+}
+
+/* ── column headers + rows ──
+   One grid template shared by the header and every row, so the columns line up
+   without either side knowing the other's widths. */
+.head,
+.row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 108px 148px 84px;
+  align-items: center;
+  gap: 10px;
+}
+
+.head {
+  padding: 6px 12px;
+  border-bottom: 0.5px solid var(--wos-hair);
+  flex-shrink: 0;
+}
+
+.hName,
+.hCol,
+.hColR {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  padding: 0;
+  border: none;
+  background: transparent;
+  color: var(--wos-ink);
+  font-family: var(--wos-font);
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+  opacity: 0.55;
+  cursor: pointer;
+}
+
+.hName:hover,
+.hCol:hover,
+.hColR:hover {
+  opacity: 0.95;
+}
+
+.hColR {
+  justify-content: flex-end;
+}
+
+.rows {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  padding: 4px 0;
+}
+
+.row {
+  padding: 5px 12px;
+  border-radius: 0;
+  cursor: pointer;
+  font-size: 12.5px;
+}
+
+.row:hover {
+  background: var(--wos-bg-soft, rgba(0, 0, 0, 0.035));
+}
+
+.row:focus-visible {
+  outline: 2px solid var(--wos-accent, #0071e3);
+  outline-offset: -2px;
+}
+
+.rowOn,
+.rowOn:hover {
+  background: var(--wos-accent, #0071e3);
+  color: #fff;
+}
+
+.cName {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+}
+
+.icon {
+  flex-shrink: 0;
+  opacity: 0.75;
+}
+
+.nameText {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.cCol,
+.cColR {
+  font-size: 11.5px;
+  opacity: 0.62;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.cColR {
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+
+.rowOn .cCol,
+.rowOn .cColR,
+.rowOn .icon {
+  opacity: 0.85;
+}
+
+.note {
+  padding: 22px 14px;
+  font-size: 12.5px;
+  opacity: 0.55;
+  text-align: center;
+}
+
+.status {
+  padding: 6px 12px;
+  border-top: 0.5px solid var(--wos-hair);
+  font-size: 11px;
+  opacity: 0.5;
+  flex-shrink: 0;
+}
+
+/* ── view switcher ── */
+.views {
+  display: flex;
+  gap: 2px;
+  margin-left: auto;
+  padding: 2px;
+  border: 0.5px solid var(--wos-hair);
+  border-radius: 8px;
+  flex-shrink: 0;
+}
+
+.view,
+.viewOn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 26px;
+  height: 22px;
+  padding: 0;
+  border: none;
+  border-radius: 6px;
+  background: transparent;
+  color: var(--wos-ink);
+  cursor: pointer;
+}
+
+.view {
+  opacity: 0.5;
+}
+
+.view:hover {
+  opacity: 0.9;
+  background: var(--wos-bg-soft, rgba(0, 0, 0, 0.04));
+}
+
+.viewOn {
+  background: var(--wos-blue, #0071e3);
+  color: #fff;
+}
+
+/* ── sort control for the non-list views ──
+   Icon, gallery and column keep the same ordering as the list, but a row of
+   column titles over a grid of tiles means nothing — so the same sort is
+   offered as buttons instead. */
+.sortRow {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 6px 12px;
+  border-bottom: 0.5px solid var(--wos-hair);
+  flex-shrink: 0;
+}
+
+.sortLabel {
+  font-size: 10.5px;
+  font-weight: 600;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+  opacity: 0.45;
+  margin-right: 2px;
+}
+
+.sort,
+.sortOn {
+  padding: 2px 8px;
+  border: 0.5px solid var(--wos-hair);
+  border-radius: 999px;
+  background: transparent;
+  color: var(--wos-ink);
+  font-family: var(--wos-font);
+  font-size: 11px;
+  cursor: pointer;
+  font-variant-numeric: tabular-nums;
+}
+
+.sort {
+  opacity: 0.62;
+}
+
+.sort:hover {
+  opacity: 1;
+}
+
+.sortOn {
+  background: var(--wos-bg-soft, rgba(0, 0, 0, 0.07));
+  border-color: transparent;
+  font-weight: 600;
+}

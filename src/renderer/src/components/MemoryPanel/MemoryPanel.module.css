@@ -1,0 +1,163 @@
+/* Follows SearchPanel's visual language — swaps into the same sidebar slot. */
+
+.root {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  width: 100%;
+  overflow: hidden;
+  background: var(--color-surface);
+}
+
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--space-2) var(--space-3);
+  border-bottom: 1px solid var(--color-border);
+  flex-shrink: 0;
+}
+
+.headerTitle {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  color: var(--color-text);
+  font-size: var(--text-sm);
+  font-weight: 600;
+}
+
+.headerIcon { color: var(--color-accent); }
+
+.count {
+  font-size: 10px;
+  color: var(--color-text-subtle);
+  border: 1px solid var(--color-border);
+  border-radius: 4px;
+  padding: 0 4px;
+}
+
+.refresh {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: none;
+  border: none;
+  color: var(--color-text-subtle);
+  cursor: pointer;
+  padding: 3px;
+  border-radius: var(--radius-sm);
+}
+.refresh:hover { background: var(--color-hover); color: var(--color-text); }
+.refresh:disabled { opacity: 0.5; cursor: default; }
+
+.spin { animation: spin 0.8s linear infinite; }
+@keyframes spin { to { transform: rotate(360deg); } }
+
+.body {
+  flex: 1;
+  overflow-y: auto;
+  padding: var(--space-2);
+}
+
+.status {
+  padding: var(--space-4);
+  text-align: center;
+  color: var(--color-text-muted);
+  font-size: var(--text-sm);
+}
+
+.empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  padding: var(--space-8) var(--space-4);
+  gap: var(--space-2);
+}
+
+.emptyIcon { color: var(--color-text-subtle); }
+
+.emptyTitle {
+  color: var(--color-text-muted);
+  font-size: var(--text-sm);
+  font-weight: 550;
+  margin: 0;
+}
+
+.emptyHint {
+  color: var(--color-text-subtle);
+  font-size: var(--text-xs);
+  margin: 0;
+}
+
+.sectionLabel {
+  display: flex;
+  align-items: center;
+  gap: var(--space-1);
+  padding: var(--space-3) var(--space-3) var(--space-1);
+  font-size: 10px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--color-text-subtle);
+}
+
+.sectionCount {
+  margin-left: auto;
+  font-weight: 500;
+  opacity: 0.7;
+}
+
+.card {
+  display: block;
+  width: 100%;
+  text-align: left;
+  border-radius: var(--radius-md);
+  padding: var(--space-2) var(--space-3);
+  margin-bottom: 2px;
+  border-left: 2px solid var(--color-border);
+  background: var(--color-bg);
+}
+
+/* Category accents — a quiet color spine per insight kind. */
+.decision { border-left-color: var(--color-accent); }
+.blocked { border-left-color: #e0674a; }
+.progress { border-left-color: #4a9e6a; }
+.pattern { border-left-color: #9a7ad0; }
+.fix { border-left-color: #d0a24a; }
+.context { border-left-color: var(--color-text-subtle); }
+
+.cardText {
+  color: var(--color-text);
+  font-size: 12px;
+  line-height: 1.45;
+  overflow: hidden;
+  display: -webkit-box;
+  -webkit-line-clamp: 4;
+  -webkit-box-orient: vertical;
+}
+
+.cardMeta {
+  display: flex;
+  align-items: baseline;
+  gap: var(--space-2);
+  margin-top: 4px;
+}
+
+.reasoning {
+  color: var(--color-text-muted);
+  font-size: 10.5px;
+  font-style: italic;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.time {
+  margin-left: auto;
+  flex-shrink: 0;
+  color: var(--color-text-subtle);
+  font-size: 10px;
+  font-family: 'SF Mono', monospace;
+}

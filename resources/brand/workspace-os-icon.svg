@@ -1,0 +1,94 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512" role="img" aria-label="Workspace OS">
+  <title>Workspace OS</title>
+  <!--
+    Workspace OS app mark, as true vector.
+
+    The composition is the product's own thesis: a documents bar across the top
+    and two side pillars — the applications — with one continuous ribbon running
+    through all of them. The applications sit inside the workspace, and a single
+    thing ties them together.
+
+    Pure geometry and gradients: no filters, no embedded raster, no text. It
+    stays crisp from a 16px menu-bar glyph to a 1024px icon, and survives being
+    flattened, recoloured, or printed one colour.
+
+    The raster master (workspace-os-icon-1024.png) is the source the .icns was
+    built from; this file is the editable original. Keep them in step.
+  -->
+  <defs>
+    <linearGradient id="wosBody" x1="0.1" y1="0" x2="0.9" y2="1">
+      <stop offset="0" stop-color="#101A3E"/>
+      <stop offset="0.5" stop-color="#1B1B5E"/>
+      <stop offset="1" stop-color="#2E1B72"/>
+    </linearGradient>
+    <linearGradient id="wosTop" x1="0" y1="0" x2="1" y2="0.4">
+      <stop offset="0" stop-color="#FFD166"/>
+      <stop offset="0.5" stop-color="#FF9A3C"/>
+      <stop offset="1" stop-color="#FF4E2B"/>
+    </linearGradient>
+    <linearGradient id="wosLeft" x1="0.1" y1="0" x2="0.6" y2="1">
+      <stop offset="0" stop-color="#9BEBFF"/>
+      <stop offset="0.5" stop-color="#57C7FF"/>
+      <stop offset="1" stop-color="#2C7BFF"/>
+    </linearGradient>
+    <linearGradient id="wosRight" x1="0.9" y1="0" x2="0.4" y2="1">
+      <stop offset="0" stop-color="#E5B3FF"/>
+      <stop offset="0.5" stop-color="#C77DFF"/>
+      <stop offset="1" stop-color="#8B4DE8"/>
+    </linearGradient>
+    <linearGradient id="wosRibbon" x1="0.05" y1="0.4" x2="0.95" y2="0.7">
+      <stop offset="0" stop-color="#66D9FF"/>
+      <stop offset="0.4" stop-color="#8FC4FF"/>
+      <stop offset="0.7" stop-color="#B49BFF"/>
+      <stop offset="1" stop-color="#C9A5FF"/>
+    </linearGradient>
+    <linearGradient id="wosRim" x1="0" y1="0" x2="0.7" y2="1">
+      <stop offset="0" stop-color="#C9D4FF"/>
+      <stop offset="0.5" stop-color="#8FA3E8"/>
+      <stop offset="1" stop-color="#6E7FD0"/>
+    </linearGradient>
+
+    <!-- A true superellipse, not a rounded rect. At this corner radius the
+         difference is the whole character of the mark. Defined once and reused
+         as body, clip and rim so the silhouette can never drift apart. -->
+    <path id="wosSquircle" d="
+      M256 16
+      C 378 16, 442 31, 469 58
+      C 496 85, 511 149, 511 256
+      C 511 363, 496 427, 469 454
+      C 442 481, 378 496, 256 496
+      C 134 496, 70 481, 43 454
+      C 16 427, 1 363, 1 256
+      C 1 149, 16 85, 43 58
+      C 70 31, 134 16, 256 16 Z"/>
+    <clipPath id="wosClip"><use href="#wosSquircle"/></clipPath>
+  </defs>
+
+  <use href="#wosSquircle" fill="url(#wosBody)"/>
+
+  <g clip-path="url(#wosClip)">
+    <!-- Documents bar: wider at the top, so it reads as a panel seen slightly
+         from below rather than a flat stripe. -->
+    <path d="M116 44 H396 Q410 44 407 58 L389 140 Q386 154 372 154 H140 Q126 154 123 140 L105 58 Q102 44 116 44 Z"
+          fill="url(#wosTop)"/>
+
+    <!-- Side pillars: broad panels hugging the edges. The ribbon crosses in
+         FRONT of their lower half, which is what makes it read as one
+         continuous thing threading the workspace rather than three marks. -->
+    <rect x="48" y="116" width="100" height="352" rx="50" fill="url(#wosLeft)"/>
+    <rect x="364" y="116" width="100" height="352" rx="50" fill="url(#wosRight)"/>
+
+    <!-- The ribbon. One stroke, round caps and joins, crossing in front of both
+         pillars — the single continuous thing. -->
+    <path d="M92 300
+             Q 106 472, 168 476
+             Q 214 478, 256 300
+             Q 298 478, 344 476
+             Q 406 472, 420 300"
+          fill="none" stroke="url(#wosRibbon)" stroke-width="72"
+          stroke-linecap="round" stroke-linejoin="round"/>
+  </g>
+
+  <!-- Rim last, so it owns the silhouette and hides any clip seam. -->
+  <use href="#wosSquircle" fill="none" stroke="url(#wosRim)" stroke-width="9"/>
+</svg>

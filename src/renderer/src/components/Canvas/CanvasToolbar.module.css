@@ -1,0 +1,134 @@
+.bar {
+  height: 42px;
+  flex: none;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 0 14px;
+  background: var(--color-surface);
+  border-bottom: 1px solid var(--color-border);
+}
+
+.crumbs {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  min-width: 0;
+  flex: 1;
+  overflow: hidden;
+}
+
+.crumbGroup {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  flex-shrink: 0;
+}
+
+.crumb {
+  font-size: 12.5px;
+  color: var(--fg-muted);
+  cursor: pointer;
+  white-space: nowrap;
+  /* the crumb is a <button> now (click to reveal in Files) — reset button chrome */
+  background: none;
+  border: 0;
+  padding: 2px 5px;
+  border-radius: 6px;
+  font-family: inherit;
+}
+
+.crumb:hover { color: var(--fg); background: var(--color-hover, rgba(0,0,0,0.05)); }
+
+.sep { color: var(--fg-subtle); flex: none; }
+
+.current {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12.5px;
+  font-weight: 600;
+  color: var(--fg);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  min-width: 0;
+}
+
+.status {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  margin-left: 8px;
+  font-size: var(--text-xs);
+  color: var(--fg-subtle);
+  flex: none;
+}
+
+.check { color: var(--color-success); }
+
+.dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--accent);
+}
+
+.actions {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  flex: none;
+}
+
+.iconBtn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 30px;
+  height: 30px;
+  background: transparent;
+  border: none;
+  border-radius: var(--radius-md);
+  color: var(--fg-muted);
+  cursor: pointer;
+  transition: background 90ms ease, color 90ms ease;
+}
+
+.iconBtn:hover { background: var(--hover); color: var(--fg); }
+
+.saveBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  height: 28px;
+  padding: 0 12px;
+  margin-right: 4px;
+  background: var(--accent);
+  border: none;
+  border-radius: var(--radius-md);
+  color: #fff;
+  cursor: pointer;
+  font-size: 12px;
+  font-weight: 600;
+  transition: opacity 90ms ease;
+}
+
+.saveBtn:hover { opacity: 0.9; }
+.saveBtn:disabled {
+  background: transparent;
+  color: var(--fg-muted);
+  cursor: default;
+}
+
+.divider {
+  width: 1px;
+  height: 18px;
+  background: var(--border);
+  margin: 0 5px;
+}
+
+.iconBtn.starred { color: var(--type-media); }
+.iconBtn.starred:hover { color: var(--type-media); }
+
+.moreWrap { position: relative; display: flex; }

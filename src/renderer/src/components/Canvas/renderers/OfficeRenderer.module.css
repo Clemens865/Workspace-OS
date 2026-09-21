@@ -1,0 +1,43 @@
+.root {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  overflow: hidden;
+}
+
+.editBar {
+  height: 36px;
+  flex: none;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 12px;
+  background: var(--accent-soft);
+  border-bottom: 1px solid var(--border);
+}
+
+.editLabel {
+  font-size: var(--text-sm);
+  font-weight: 560;
+  color: var(--accent);
+}
+
+.editBody { flex: 1; overflow: hidden; min-height: 0; }
+
+.editBtn,
+.viewBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  background: var(--surface);
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius-md);
+  color: var(--fg);
+  cursor: pointer;
+  font-size: 12px;
+  font-weight: 540;
+  padding: 4px 10px;
+}
+
+.editBtn { margin-right: 10px; box-shadow: var(--shadow-1); }
+.editBtn:hover, .viewBtn:hover { border-color: var(--accent); color: var(--accent); }

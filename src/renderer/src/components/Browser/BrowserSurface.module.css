@@ -1,0 +1,269 @@
+/* The in-app Browser surface — an address bar + a sandboxed <webview> page,
+ * plus a right-side "Assistant" note. Token language matches the prototype
+ * (docs/design/surfaces-work.html · section 5 · Browser). */
+
+.browser {
+  flex: 1;
+  /* The collapsed-state reopen button is positioned against this. */
+  position: relative;
+  display: grid;
+  /* WOS-012: the assistant column is a variable the surface sets, and collapses
+     to zero when hidden. The 5px track between them is the drag handle. */
+  grid-template-columns: 1fr 5px var(--wos-assistant-w, 300px);
+  min-height: 0;
+  height: 100%;
+}
+
+.bmain {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  border-right: 0.5px solid var(--wos-hair);
+}
+
+.addrbar {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 16px;
+  border-bottom: 0.5px solid var(--wos-hair);
+  background: var(--wos-card);
+}
+
+.navbtn {
+  width: 30px;
+  height: 30px;
+  border: none;
+  background: transparent;
+  border-radius: 8px;
+  display: grid;
+  place-items: center;
+  color: var(--wos-ink-3);
+  cursor: pointer;
+}
+
+.navbtn:hover:not(:disabled) {
+  background: var(--wos-sunk);
+  color: var(--wos-ink-2);
+}
+
+.navbtn:disabled {
+  opacity: 0.35;
+  cursor: default;
+}
+
+.url {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  height: 34px;
+  border-radius: 99px;
+  background: var(--wos-sunk);
+  padding: 0 14px;
+}
+
+.url .lock {
+  width: 14px;
+  height: 14px;
+  color: var(--wos-ink-3);
+  flex: none;
+}
+
+.urlInput {
+  flex: 1;
+  border: none;
+  outline: none;
+  background: transparent;
+  font-family: var(--wos-font);
+  font-size: 13px;
+  color: var(--wos-ink);
+}
+
+.urlInput::placeholder {
+  color: var(--wos-ink-3);
+}
+
+.webhost {
+  flex: 1;
+  min-height: 0;
+  background: var(--wos-bg);
+  position: relative;
+}
+
+/* One webview per tab, all mounted so state survives switches; only the active
+ * one is shown (display toggled inline). Absolute-fill so hidden tabs take no
+ * layout space and the visible one fills the host. */
+.webview {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  border: none;
+  /* display is set inline per-tab (inline-flex when active, none otherwise);
+     electron <webview> needs an explicit display. */
+}
+
+/* HTML5 fullscreen: lift the active webview out of its box to cover the whole
+   window, so a video's fullscreen has a full surface and doesn't bounce back
+   out. Toggled imperatively on enter/leave-html-full-screen. !important beats
+   the inline display + the .webview position. */
+.webviewFs {
+  position: fixed !important;
+  inset: 0 !important;
+  width: 100vw !important;
+  height: 100vh !important;
+  z-index: 2147483647 !important;
+  display: inline-flex !important;
+}
+
+.startpane {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--wos-ink-3);
+  font-size: 13px;
+  pointer-events: none;
+}
+
+/* Zoom indicator — shown ONLY while zoom differs from 100%, because at 100%
+ * there is nothing to report and a permanent badge is just clutter. Clicking
+ * it resets. Overlaid so it never moves the page. */
+.zoomBadge {
+  position: absolute;
+  bottom: 12px;
+  right: 16px;
+  z-index: 45;
+  padding: 4px 10px;
+  border-radius: 99px;
+  border: 0.5px solid var(--wos-hair);
+  background: var(--wos-card);
+  color: var(--wos-ink-2);
+  font-family: var(--wos-font);
+  font-size: 12px;
+  font-variant-numeric: tabular-nums;
+  cursor: pointer;
+  box-shadow: 0 6px 18px rgb(0 0 0 / 14%);
+}
+
+.zoomBadge:hover {
+  color: var(--wos-ink);
+}
+
+
+/* ══ WOS-012 · A collapsible, resizable Assistant ═══════════════════════════
+   It used to be a hard 1fr/300px grid with the panel rendered unconditionally,
+   so the page was permanently 300px narrower — enough to drop responsive sites
+   into their tablet breakpoint on a laptop. */
+
+.browser.assistantClosed {
+  grid-template-columns: 1fr;
+}
+
+.assistantCol {
+  position: relative;
+  display: flex;
+  min-width: 0;
+  overflow: hidden;
+}
+
+.assistantCol > * {
+  flex: 1;
+  min-width: 0;
+}
+
+/* The divider. Wider on hover than it looks at rest, so it is easy to grab
+   without drawing a heavy line down the middle of the surface. */
+.assistantHandle {
+  cursor: col-resize;
+  background: var(--wos-hair);
+  opacity: 0.5;
+  transition: opacity 150ms ease, background 150ms ease;
+}
+
+.assistantHandle:hover,
+.assistantHandle:active {
+  opacity: 1;
+  background: var(--wos-accent, #0071e3);
+}
+
+/* Hide control, floating in the panel's top-right. Dims at rest so it does not
+   compete with the panel's own content. */
+.assistantHide {
+  position: absolute;
+  top: 10px;
+  right: 12px;
+  z-index: 4;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 26px;
+  height: 26px;
+  padding: 0;
+  border: 0.5px solid transparent;
+  border-radius: 7px;
+  background: transparent;
+  color: var(--wos-ink);
+  cursor: pointer;
+  opacity: 0.45;
+  transition: opacity 150ms ease, background 150ms ease, border-color 150ms ease;
+}
+
+.assistantHide:hover {
+  opacity: 1;
+  border-color: var(--wos-hair);
+  background: var(--wos-bg);
+}
+
+/* The way back once it is closed. Pinned to the right edge, mid-height — the
+   place the panel will reappear from, so the gesture reads as reversible. */
+.assistantShow {
+  position: absolute;
+  top: 50%;
+  right: 0;
+  transform: translateY(-50%);
+  z-index: 5;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 26px;
+  height: 48px;
+  padding: 0;
+  border: 0.5px solid var(--wos-hair);
+  border-right: none;
+  border-radius: 8px 0 0 8px;
+  background: rgba(245, 245, 247, 0.9);
+  backdrop-filter: saturate(180%) blur(20px);
+  -webkit-backdrop-filter: saturate(180%) blur(20px);
+  color: var(--wos-ink);
+  cursor: pointer;
+  opacity: 0.5;
+  transition: opacity 180ms ease, width 180ms cubic-bezier(0.32, 0.72, 0, 1);
+}
+
+.assistantShow:hover {
+  opacity: 1;
+  width: 32px;
+}
+
+/* A new tab before it has been sent anywhere. Deliberately NOT a <webview>:
+   one mounted at about:blank never attaches a guest, so it would be a dead
+   element occupying the whole surface (WOS-005, reopened). */
+.blankPane {
+  flex: 1;
+  min-width: 0;
+  background: var(--wos-bg);
+}
+
+/* An identity provider refused to sign in here. An explanation, not an alarm:
+   nothing is broken, and the page below is still usable. */
+.signInBlock {
+  padding: 9px 14px;
+  border-bottom: 0.5px solid #F3D6BE;
+  background: #FFF8F2;
+  color: #7A3A12;
+  font-size: 12.5px;
+  line-height: 1.5;
+}

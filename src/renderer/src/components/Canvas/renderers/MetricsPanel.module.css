@@ -1,0 +1,365 @@
+.panel {
+  position: absolute;
+  top: 0;
+  right: 0;
+  width: 250px;
+  height: 100%;
+  background: var(--color-surface, #f7f7f8);
+  border-left: 1px solid var(--color-border);
+  display: flex;
+  flex-direction: column;
+  overflow-y: auto;
+  z-index: 8;
+  font-size: 12px;
+}
+
+.head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 10px;
+  font-weight: 600;
+  border-bottom: 1px solid var(--color-border);
+  position: sticky;
+  top: 0;
+  background: var(--color-surface, #f7f7f8);
+}
+.x {
+  background: none;
+  border: none;
+  font-size: 16px;
+  line-height: 1;
+  cursor: pointer;
+  color: var(--color-text-muted);
+}
+.x:hover {
+  color: var(--color-text);
+}
+
+.section {
+  padding: 8px 10px;
+  border-bottom: 1px solid var(--color-border);
+}
+.sectionTitle {
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--color-text-muted);
+  margin-bottom: 6px;
+}
+
+.row {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+}
+
+.input,
+.nameEdit,
+.valueEdit {
+  width: 100%;
+  box-sizing: border-box;
+  padding: 5px 7px;
+  border: 1px solid var(--color-border);
+  border-radius: 5px;
+  background: var(--color-bg, #fff);
+  color: var(--color-text);
+  font-size: 12px;
+  margin-bottom: 6px;
+}
+.valueEdit {
+  width: 82px;
+  flex: 0 0 auto;
+}
+
+.btn,
+.insertBtn {
+  padding: 5px 9px;
+  border: 1px solid var(--color-border);
+  border-radius: 5px;
+  background: var(--color-accent, #2f6feb);
+  color: #fff;
+  cursor: pointer;
+  font-size: 12px;
+  white-space: nowrap;
+  margin-bottom: 6px;
+}
+.btn:disabled,
+.insertBtn:disabled {
+  opacity: 0.45;
+  cursor: default;
+}
+.insertBtn {
+  flex: 1 1 auto;
+}
+
+.list {
+  flex: 1 1 auto;
+  padding: 4px 0;
+}
+.empty {
+  padding: 12px 10px;
+  color: var(--color-text-muted);
+}
+.metric {
+  padding: 8px 10px;
+  border-bottom: 1px solid var(--color-border);
+}
+
+.del {
+  background: none;
+  border: 1px solid var(--color-border);
+  border-radius: 5px;
+  padding: 4px 6px;
+  cursor: pointer;
+  margin-bottom: 6px;
+  flex: 0 0 auto;
+}
+.del:hover {
+  border-color: #d33;
+}
+
+.savedNote {
+  font-size: 10.5px;
+  color: #1a7f37;
+  margin: -2px 0 2px;
+}
+
+/* Source-linked metric: the cell its value is read live from. */
+.sourceLine {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 11px;
+  color: var(--color-text-dim, #666);
+  margin: 0 0 6px;
+}
+.sourceLoc {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-variant-numeric: tabular-nums;
+}
+.sourceValue {
+  flex: 0 0 auto;
+  padding: 3px 7px;
+  border: 1px solid var(--color-border);
+  border-radius: 5px;
+  background: var(--color-bg-alt, #f6f6f6);
+  font-variant-numeric: tabular-nums;
+}
+.staleTag {
+  flex: 0 0 auto;
+  font-size: 10px;
+  color: #b26a00;
+  border: 1px solid #e6b566;
+  border-radius: 4px;
+  padding: 1px 5px;
+}
+.refreshBtn {
+  flex: 0 0 auto;
+}
+.refreshAllBtn {
+  width: 100%;
+  padding: 5px 9px;
+  border: 1px solid var(--color-border);
+  border-radius: 5px;
+  background: var(--color-bg, #fff);
+  color: var(--color-text);
+  cursor: pointer;
+  font-size: 11.5px;
+  margin-top: 6px;
+}
+.refreshAllBtn:hover:not(:disabled) {
+  border-color: var(--color-accent, #2f6feb);
+  color: var(--color-accent, #2f6feb);
+}
+.refreshAllBtn:disabled {
+  opacity: 0.45;
+  cursor: default;
+}
+.fromCellBtn {
+  width: 100%;
+  margin-top: 6px;
+}
+
+/* Sync-all: a deliberate, secondary action distinct from the primary Save. */
+.syncBtn {
+  padding: 5px 9px;
+  border: 1px solid var(--color-border);
+  border-radius: 5px;
+  background: var(--color-bg, #fff);
+  color: var(--color-text);
+  cursor: pointer;
+  font-size: 11.5px;
+  white-space: nowrap;
+  width: 100%;
+  margin-bottom: 2px;
+}
+.syncBtn:hover:not(:disabled) {
+  border-color: var(--color-accent, #2f6feb);
+  color: var(--color-accent, #2f6feb);
+}
+.syncBtn:disabled {
+  opacity: 0.45;
+  cursor: default;
+}
+
+.confirm {
+  margin: 4px 0 2px;
+  padding: 8px;
+  border: 1px solid var(--color-border);
+  border-radius: 6px;
+  background: var(--color-bg, #fff);
+}
+.confirmTitle {
+  font-size: 11.5px;
+  font-weight: 600;
+  margin-bottom: 6px;
+}
+.fileList {
+  max-height: 96px;
+  overflow-y: auto;
+  margin: 0 0 6px;
+  padding: 0;
+  list-style: none;
+}
+.fileItem {
+  font-size: 10.5px;
+  color: var(--color-text-muted);
+  padding: 1px 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.confirmNote {
+  font-size: 10.5px;
+  color: var(--color-text-muted);
+  margin-bottom: 6px;
+}
+.confirmRow {
+  display: flex;
+  gap: 6px;
+}
+.confirmRow .btn,
+.confirmRow .del {
+  margin-bottom: 0;
+  flex: 1 1 auto;
+}
+
+/* "Where is this linked": count badge + disclosed, per-file locations. */
+.linkBadge,
+.linkBadgeEmpty {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  padding: 3px 8px;
+  border: 1px solid var(--color-border);
+  border-radius: 999px;
+  background: var(--color-bg, #fff);
+  color: var(--color-text);
+  cursor: pointer;
+  font-size: 11px;
+  margin-bottom: 6px;
+}
+.linkBadge:hover {
+  border-color: var(--color-accent, #2f6feb);
+}
+.linkBadgeEmpty {
+  color: var(--color-text-muted);
+  cursor: default;
+}
+.dotLive {
+  color: #1a7f37;
+  font-size: 9px;
+  line-height: 1;
+}
+.dotIdle {
+  color: var(--color-text-muted);
+  font-size: 9px;
+  line-height: 1;
+}
+.caretGlyph {
+  color: var(--color-text-muted);
+}
+
+.links {
+  margin: 0 0 6px;
+  border: 1px solid var(--color-border);
+  border-radius: 6px;
+  overflow: hidden;
+}
+.linkGroup {
+  border-bottom: 1px solid var(--color-border);
+}
+.linkGroup:last-child {
+  border-bottom: none;
+}
+.linkFile {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 6px;
+  padding: 4px 8px;
+  background: var(--color-surface, #f7f7f8);
+}
+.linkFileName {
+  font-size: 11px;
+  font-weight: 600;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.revealBtn {
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: var(--color-text-muted);
+  font-size: 12px;
+  padding: 0 2px;
+  flex: 0 0 auto;
+}
+.revealBtn:hover {
+  color: var(--color-accent, #2f6feb);
+}
+.linkItem {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 3px 8px;
+}
+.linkLoc {
+  flex: 1 1 auto;
+  font-size: 10.5px;
+  color: var(--color-text-muted);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.linkVal {
+  font-size: 10.5px;
+  font-variant-numeric: tabular-nums;
+  color: var(--color-text);
+  flex: 0 0 auto;
+}
+.linkRemove {
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: var(--color-text-muted);
+  font-size: 11px;
+  line-height: 1;
+  padding: 2px 4px;
+  flex: 0 0 auto;
+}
+.linkRemove:hover {
+  color: #d33;
+}
+
+.footNote {
+  padding: 10px;
+  font-size: 10.5px;
+  line-height: 1.4;
+  color: var(--color-text-muted);
+  border-top: 1px solid var(--color-border);
+}

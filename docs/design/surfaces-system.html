@@ -1,0 +1,721 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/><meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>Workspace · surfaces system</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@400;500;600;640;700&display=swap" rel="stylesheet">
+<style>
+  /* One app, many surfaces. Same shell chrome (rail · Stage tabs · ⌘K · 2 working) across every page.
+     Rules held: ONE blue = the single primary action per surface; content in --ink; --ink-2/-3 metadata only;
+     crafted inline SVG (stroke 1.7); 8-pt spacing; one soft card shadow; plain human language. */
+  :root{
+    --bg:#F5F5F7; --card:#FFFFFF; --sunk:#F0F0F2; --rail:#ECECEE;
+    --ink:#1D1D1F; --ink-2:#6E6E73; --ink-3:#8A8A8E; --hair:rgba(0,0,0,.09);
+    --blue:#0071E3; --dark:#1D1D1F; --ok:#30B44A; --warn-ink:#8A5A00; --warn-bg:#FFF4E0;
+    --sh-card:0 1px 2px rgba(0,0,0,.04), 0 10px 30px rgba(0,0,0,.06); --r:16px;
+  }
+  *{box-sizing:border-box} html,body{margin:0}
+  body{background:#E7E7EA;color:var(--ink);font-family:"Hanken Grotesk",-apple-system,system-ui,sans-serif;-webkit-font-smoothing:antialiased;font-size:14px;line-height:1.5}
+  .ic{width:20px;height:20px;stroke:currentColor;stroke-width:1.7;fill:none;stroke-linecap:round;stroke-linejoin:round;display:block}
+
+  /* gallery scaffold */
+  .gallery{max-width:1280px;margin:0 auto;padding:40px 24px 80px}
+  .cap{margin:40px 4px 10px;display:flex;align-items:baseline;gap:10px}
+  .cap .num{width:22px;height:22px;border-radius:6px;background:var(--dark);color:#fff;font-size:12px;font-weight:640;display:grid;place-items:center;flex-shrink:0}
+  .cap .ct{font-size:15px;font-weight:600;letter-spacing:-.01em}
+  .cap .cs{font-size:13px;color:var(--ink-2)}
+  .frame{height:720px;border-radius:20px;overflow:hidden;box-shadow:0 2px 6px rgba(0,0,0,.06),0 24px 60px rgba(0,0,0,.12);background:var(--bg);position:relative}
+
+  /* SHELL — shared chrome */
+  .shell{display:grid;grid-template-columns:76px 1fr;height:100%}
+  .rail{background:var(--rail);border-right:.5px solid var(--hair);display:flex;flex-direction:column;align-items:center;padding:12px 0;gap:4px}
+  .rlogo{width:32px;height:32px;border-radius:9px;background:var(--dark);display:grid;place-items:center;color:#fff;margin-bottom:10px}.rlogo .ic{width:17px;height:17px;stroke-width:2.1}
+  .ritem{width:56px;padding:8px 0 6px;border-radius:12px;display:flex;flex-direction:column;align-items:center;gap:4px;color:var(--ink-2);cursor:pointer;position:relative}
+  .ritem .ic{width:21px;height:21px}.ritem span{font-size:10px;font-weight:500;letter-spacing:-.01em}
+  .ritem.on{background:var(--card);color:var(--ink);box-shadow:0 1px 3px rgba(0,0,0,.10)}
+  .ritem .badge{position:absolute;transform:translate(14px,-6px);background:var(--blue);color:#fff;font-size:9px;font-weight:700;min-width:15px;height:15px;border-radius:99px;display:grid;place-items:center;padding:0 3px;top:6px;right:8px}
+  .rgap{flex:1}.rdiv{width:34px;height:.5px;background:var(--hair);margin:6px 0}
+  .rspace{width:26px;height:26px;border-radius:8px;display:grid;place-items:center;font-size:11px;font-weight:600;color:#fff;cursor:pointer}
+
+  .stage{display:flex;flex-direction:column;min-width:0}
+  .topbar{display:flex;align-items:center;gap:10px;padding:10px 16px;border-bottom:.5px solid var(--hair);background:rgba(245,245,247,.85);backdrop-filter:blur(20px)}
+  .tabs{display:flex;gap:4px;align-items:center;min-width:0;overflow:hidden}
+  .tab{display:flex;align-items:center;gap:7px;padding:7px 12px;border-radius:10px;color:var(--ink-2);font-size:13px;font-weight:500;cursor:pointer;white-space:nowrap}
+  .tab .ic{width:15px;height:15px}.tab.on{background:var(--card);color:var(--ink);box-shadow:0 1px 3px rgba(0,0,0,.10)}
+  .tab .x{color:var(--ink-3);font-size:14px;margin-left:2px}.tab .po{color:var(--ink-3);margin-left:2px;display:grid;place-items:center}.tab .po .ic{width:13px;height:13px}
+  .tab.add{color:var(--ink-3);padding:7px 9px}
+  .topbar .spacer{flex:1}
+  .cmdk{display:flex;align-items:center;gap:8px;background:var(--card);border:.5px solid var(--hair);border-radius:99px;padding:7px 12px;color:var(--ink-3);font-size:13px;cursor:pointer;min-width:200px}
+  .cmdk .k{margin-left:auto;font-size:11px;background:var(--sunk);padding:2px 6px;border-radius:5px;color:var(--ink-2)}
+  .working{display:flex;align-items:center;gap:7px;color:var(--ink-2);font-size:12.5px;background:var(--card);padding:6px 10px;border-radius:99px;box-shadow:0 1px 2px rgba(0,0,0,.05)}
+  .working .live{width:7px;height:7px;border-radius:99px;background:var(--ok)}
+
+  .body{flex:1;overflow:hidden;position:relative}
+  .scroll{position:absolute;inset:0;overflow:auto}
+  h1.pg{font-size:26px;font-weight:640;letter-spacing:-.035em;margin:0 0 4px}
+  .lede{font-size:15px;color:var(--ink-2);letter-spacing:-.01em;margin:0 0 18px}
+  .sec{display:flex;align-items:baseline;gap:8px;margin:0 2px 12px}.sec h2{font-size:14px;font-weight:600;margin:0}.sec .n{color:var(--ink-3);font-size:12px}.sec .spacer{flex:1}
+  .b{display:inline-flex;align-items:center;justify-content:center;gap:7px;height:40px;padding:0 18px;border-radius:12px;font:inherit;font-weight:600;font-size:14px;cursor:pointer;border:0;letter-spacing:-.01em}
+  .b.blue{background:var(--blue);color:#fff}.b.quiet{background:var(--card);color:var(--ink);box-shadow:0 1px 2px rgba(0,0,0,.05)}
+  .b.sm{height:34px;padding:0 14px;font-size:13px}
+
+  /* AGENTS — assistant lanes */
+  .agwrap{max-width:820px;padding:22px 26px 40px}
+  .lane{background:var(--card);border-radius:var(--r);box-shadow:var(--sh-card);padding:18px 20px;margin-bottom:12px}
+  .lane .lh{display:flex;align-items:center;gap:12px}
+  .lane .who{width:38px;height:38px;border-radius:11px;background:var(--sunk);display:grid;place-items:center;color:var(--ink-2);flex-shrink:0}.lane .who .ic{width:20px;height:20px}
+  .lane .t{flex:1;min-width:0}
+  .lane h3{font-size:15px;font-weight:600;margin:0;letter-spacing:-.01em}
+  .lane .st{display:flex;align-items:center;gap:6px;color:var(--ink-2);font-size:12.5px;margin-top:2px}
+  .lane .st .live{width:7px;height:7px;border-radius:99px;background:var(--ok);flex-shrink:0}
+  .lane .st .idle{width:7px;height:7px;border-radius:99px;background:var(--ink-3);flex-shrink:0}
+  .lane .cost{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:12px;color:var(--ink-3);flex-shrink:0}
+  .lane .doing{margin:12px 0 0;font-size:13.5px;color:var(--ink);padding-left:50px}
+  .lane .prog{height:5px;border-radius:99px;background:var(--sunk);margin:10px 0 0 50px;overflow:hidden}
+  .lane .prog i{display:block;height:100%;border-radius:99px;background:var(--ink-3)}
+  .lane .doneline{display:flex;align-items:center;gap:7px;font-size:13px;color:var(--ink-2);margin:12px 0 0;padding-left:50px}
+  .lane .doneline .ok{color:var(--ok)}
+  .approveband{background:var(--card);border-radius:var(--r);box-shadow:var(--sh-card);padding:18px 20px;margin-bottom:12px;display:flex;align-items:center;gap:16px}
+  .approveband .t{flex:1}.approveband h3{font-size:15px;font-weight:600;margin:0}
+  .approveband .safe{display:flex;align-items:center;gap:7px;color:var(--ink-2);font-size:12.5px;margin-top:4px}.approveband .safe .ok{color:var(--ok)}
+  .newlane{display:flex;align-items:center;gap:10px;color:var(--ink-2);font-size:14px;font-weight:500;background:var(--card);border:1px dashed var(--hair);border-radius:var(--r);padding:16px 20px;cursor:pointer}
+  .newlane .plus{width:30px;height:30px;border-radius:9px;background:var(--sunk);display:grid;place-items:center;color:var(--ink-2)}
+
+  /* CALENDAR */
+  .calwrap{padding:20px 24px 40px}
+  .calhead{display:flex;align-items:center;gap:12px;margin-bottom:16px}
+  .calhead h1{margin:0}.calhead .spacer{flex:1}
+  .calnav{display:flex;align-items:center;gap:2px}
+  .calnav .nb{width:32px;height:32px;border-radius:9px;display:grid;place-items:center;color:var(--ink-2);background:var(--card);box-shadow:0 1px 2px rgba(0,0,0,.05);cursor:pointer}
+  .calnav .nb .ic{width:16px;height:16px}
+  .calsug{background:var(--card);border-radius:var(--r);box-shadow:var(--sh-card);padding:16px 18px;margin-bottom:16px;display:flex;align-items:center;gap:14px}
+  .calsug .who{width:34px;height:34px;border-radius:10px;background:var(--sunk);display:grid;place-items:center;color:var(--ink-2);flex-shrink:0}
+  .calsug .t{flex:1}.calsug h3{font-size:14.5px;font-weight:600;margin:0;letter-spacing:-.01em}
+  .calsug p{margin:3px 0 0;font-size:13px;color:var(--ink-2)}
+  .calgrid{background:var(--card);border-radius:var(--r);box-shadow:var(--sh-card);overflow:hidden;display:grid;grid-template-columns:52px repeat(5,1fr)}
+  .calgrid .cell{border-right:.5px solid var(--hair);border-bottom:.5px solid var(--hair);min-height:46px;position:relative;padding:2px}
+  .calgrid .daycol{border-bottom:.5px solid var(--hair);text-align:center;padding:10px 0 8px;border-right:.5px solid var(--hair)}
+  .calgrid .daycol .dn{font-size:11px;color:var(--ink-3);text-transform:uppercase;letter-spacing:.04em}
+  .calgrid .daycol .dd{font-size:16px;font-weight:600;margin-top:2px;letter-spacing:-.02em}
+  .calgrid .daycol.today .dd{color:var(--blue)}
+  .calgrid .tl{font-size:10.5px;color:var(--ink-3);text-align:right;padding:4px 8px 0 0;border-right:.5px solid var(--hair);border-bottom:.5px solid var(--hair)}
+  .ev{position:absolute;left:3px;right:3px;border-radius:7px;padding:4px 7px;font-size:11px;line-height:1.25;overflow:hidden;background:var(--sunk);color:var(--ink)}
+  .ev .evt{font-weight:600}.ev .evm{color:var(--ink-2);font-size:10px}
+  .ev.clash{box-shadow:0 0 0 1.5px var(--warn-ink) inset;background:var(--warn-bg);color:var(--warn-ink)}
+
+  /* CHATS */
+  .chatsplit{display:grid;grid-template-columns:280px 1fr;height:100%}
+  .chatlist{border-right:.5px solid var(--hair);overflow:auto;padding:14px 12px;background:var(--bg)}
+  .chatlist h1{margin:0 6px 12px}
+  .chsearch{display:flex;align-items:center;gap:8px;background:var(--card);border:.5px solid var(--hair);border-radius:10px;padding:8px 10px;color:var(--ink-3);font-size:13px;margin:0 4px 14px}
+  .chsec{font-size:11px;font-weight:600;color:var(--ink-3);text-transform:uppercase;letter-spacing:.04em;margin:14px 8px 6px}
+  .chrow{display:flex;align-items:center;gap:10px;padding:9px 10px;border-radius:10px;cursor:pointer}
+  .chrow.on{background:var(--card);box-shadow:0 1px 2px rgba(0,0,0,.05)}
+  .chrow .av{width:32px;height:32px;border-radius:9px;background:var(--sunk);display:grid;place-items:center;font-size:12px;font-weight:600;color:var(--ink-2);flex-shrink:0}
+  .chrow .cm{flex:1;min-width:0}.chrow .cn{font-size:13.5px;font-weight:600;letter-spacing:-.01em}
+  .chrow .cp{font-size:12px;color:var(--ink-2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .chrow .cdot{width:8px;height:8px;border-radius:99px;background:var(--blue);flex-shrink:0}
+  .chrow .flag{font-size:10px;font-weight:600;color:var(--warn-ink);background:var(--warn-bg);padding:2px 6px;border-radius:99px;flex-shrink:0}
+  .chansrc{font-size:10px;color:var(--ink-3);margin-left:4px}
+  .thread{display:flex;flex-direction:column;min-width:0}
+  .thhead{display:flex;align-items:center;gap:10px;padding:14px 20px;border-bottom:.5px solid var(--hair)}
+  .thhead .av{width:34px;height:34px;border-radius:9px;background:var(--sunk);display:grid;place-items:center;font-size:13px;font-weight:600;color:var(--ink-2)}
+  .thhead .tn{font-size:15px;font-weight:600;letter-spacing:-.01em}.thhead .ts{font-size:12px;color:var(--ink-3)}
+  .thhead .spacer{flex:1}
+  .thbody{flex:1;overflow:auto;padding:20px 24px}
+  .msg{display:flex;gap:10px;margin-bottom:16px;max-width:74%}
+  .msg .mav{width:28px;height:28px;border-radius:99px;background:var(--sunk);display:grid;place-items:center;font-size:11px;font-weight:600;color:var(--ink-2);flex-shrink:0}
+  .msg .mb{background:var(--card);border-radius:12px;box-shadow:0 1px 2px rgba(0,0,0,.05);padding:10px 13px}
+  .msg .mn{font-size:12px;font-weight:600;color:var(--ink-2);margin-bottom:2px}
+  .msg .mt{font-size:14px;color:var(--ink)}
+  .msg.me{margin-left:auto;flex-direction:row-reverse}.msg.me .mb{background:var(--dark);color:#fff}.msg.me .mn{display:none}
+  .draftcard{background:var(--card);border-radius:var(--r);box-shadow:var(--sh-card);padding:16px;margin:8px 0 20px}
+  .draftcard .dh{display:flex;align-items:center;gap:8px;font-size:12.5px;color:var(--warn-ink);margin-bottom:10px}
+  .draftcard .dh .ic{width:15px;height:15px}
+  .draftcard .dt{font-size:14px;color:var(--ink);background:var(--sunk);border-radius:10px;padding:11px 13px;margin-bottom:12px}
+  .composer{display:flex;align-items:center;gap:10px;padding:12px 20px;border-top:.5px solid var(--hair)}
+  .composer .ci{flex:1;background:var(--card);border:.5px solid var(--hair);border-radius:99px;padding:10px 16px;color:var(--ink-3);font-size:13.5px}
+
+  /* PALETTE */
+  .palshell{filter:blur(0)}
+  .paldim{position:absolute;inset:0;background:rgba(0,0,0,.28);z-index:20;display:grid;place-items:start center;padding-top:96px}
+  .palette{width:560px;background:var(--card);border-radius:16px;box-shadow:0 20px 60px rgba(0,0,0,.35);overflow:hidden}
+  .palq{display:flex;align-items:center;gap:12px;padding:16px 18px;border-bottom:.5px solid var(--hair)}
+  .palq .ic{width:19px;height:19px;color:var(--ink-3)}
+  .palq input{flex:1;border:0;outline:0;font:inherit;font-size:17px;letter-spacing:-.01em;color:var(--ink)}
+  .palq .esc{font-size:11px;color:var(--ink-2);background:var(--sunk);padding:3px 7px;border-radius:5px}
+  .palgroup{padding:8px 0}
+  .pallabel{font-size:11px;font-weight:600;color:var(--ink-3);text-transform:uppercase;letter-spacing:.04em;padding:6px 18px 4px}
+  .palrow{display:flex;align-items:center;gap:12px;padding:9px 18px;cursor:pointer}
+  .palrow.on{background:var(--sunk)}
+  .palrow .pi{width:30px;height:30px;border-radius:8px;background:var(--sunk);display:grid;place-items:center;color:var(--ink-2);flex-shrink:0}
+  .palrow.on .pi{background:var(--card)}
+  .palrow .pt{flex:1;min-width:0}.palrow .pn{font-size:14px;font-weight:500;color:var(--ink)}.palrow .pn b{font-weight:700}
+  .palrow .ps{font-size:12px;color:var(--ink-3)}
+  .palrow .pk{font-size:11px;color:var(--ink-3)}
+  .palrow .go{color:var(--ink-3)}.palrow .go .ic{width:15px;height:15px}
+  .palfoot{display:flex;align-items:center;gap:16px;padding:10px 18px;border-top:.5px solid var(--hair);background:var(--bg);font-size:11.5px;color:var(--ink-3)}
+  .palfoot .h{display:flex;align-items:center;gap:5px}.palfoot .kk{background:var(--card);border:.5px solid var(--hair);border-radius:5px;padding:1px 6px;font-size:11px;color:var(--ink-2)}
+
+  /* SETTINGS */
+  .setwrap{max-width:720px;padding:22px 26px 40px}
+  .setsec{background:var(--card);border-radius:var(--r);box-shadow:var(--sh-card);margin-bottom:16px;overflow:hidden}
+  .setsec .sh{padding:15px 18px 4px}.setsec .sh h2{font-size:15px;font-weight:600;margin:0;letter-spacing:-.01em}
+  .setsec .sh p{margin:3px 0 0;font-size:12.5px;color:var(--ink-2)}
+  .setrow{display:flex;align-items:center;gap:13px;padding:13px 18px;border-top:.5px solid var(--hair)}
+  .setrow:first-of-type{border-top:0}
+  .setrow .si{width:34px;height:34px;border-radius:9px;background:var(--sunk);display:grid;place-items:center;color:var(--ink-2);flex-shrink:0}
+  .setrow .st{flex:1;min-width:0}.setrow .sn{font-size:14px;font-weight:600;letter-spacing:-.01em}
+  .setrow .ss{font-size:12.5px;color:var(--ink-2);margin-top:1px;display:flex;align-items:center;gap:6px}
+  .setrow .ss .live{width:7px;height:7px;border-radius:99px;background:var(--ok)}
+  .setrow .lk{background:var(--card);color:var(--ink);box-shadow:0 1px 2px rgba(0,0,0,.05);height:32px;padding:0 14px;border-radius:9px;font-size:13px;font-weight:600;display:inline-flex;align-items:center;border:0;cursor:pointer}
+  .brand{display:flex;align-items:center;gap:14px;padding:15px 18px;border-top:.5px solid var(--hair)}
+  .swatch{width:26px;height:26px;border-radius:7px}
+  .brandvoice{font-size:13px;color:var(--ink);background:var(--sunk);border-radius:10px;padding:10px 13px;margin:0 18px 16px;max-width:62ch}
+  .privacy .si{color:var(--ok)}
+
+  /* POPPED-OUT WINDOW */
+  .win{height:100%;display:flex;flex-direction:column;background:var(--bg)}
+  .wintitle{display:flex;align-items:center;gap:10px;padding:9px 14px;border-bottom:.5px solid var(--hair);background:rgba(245,245,247,.85);backdrop-filter:blur(20px)}
+  .wintitle .lights{display:flex;gap:7px;margin-right:6px}
+  .wintitle .lights i{width:11px;height:11px;border-radius:99px;display:block}
+  .wintitle .crumb{display:flex;align-items:center;gap:7px;font-size:13px;color:var(--ink-2);font-weight:500}
+  .wintitle .crumb .ic{width:15px;height:15px}.wintitle .crumb b{color:var(--ink);font-weight:600}
+  .wintitle .spacer{flex:1}
+  .mailwin{flex:1;display:grid;grid-template-columns:300px 1fr;min-height:0}
+  .mllist{border-right:.5px solid var(--hair);overflow:auto;padding:10px}
+  .mlrow{padding:11px 12px;border-radius:10px;cursor:pointer}
+  .mlrow.on{background:var(--card);box-shadow:0 1px 2px rgba(0,0,0,.05)}
+  .mlrow .mfrom{display:flex;align-items:center;gap:8px;font-size:13.5px;font-weight:600;letter-spacing:-.01em}
+  .mlrow .mdot{width:8px;height:8px;border-radius:99px;background:var(--blue);flex-shrink:0}
+  .mlrow .mtime{margin-left:auto;font-size:11px;color:var(--ink-3);font-weight:400}
+  .mlrow .msub{font-size:13px;color:var(--ink);margin-top:3px}
+  .mlrow .mprev{font-size:12px;color:var(--ink-2);margin-top:1px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .mlread{overflow:auto;padding:22px 26px}
+  .mlreadh{border-bottom:.5px solid var(--hair);padding-bottom:16px;margin-bottom:16px}
+  .mlreadh h2{font-size:19px;font-weight:640;letter-spacing:-.02em;margin:0 0 8px}
+  .mlreadh .meta{display:flex;align-items:center;gap:10px;font-size:13px;color:var(--ink-2)}
+  .mlreadh .meta .av{width:30px;height:30px;border-radius:99px;background:var(--sunk);display:grid;place-items:center;font-size:12px;font-weight:600;color:var(--ink-2)}
+  .mlbody{font-size:14.5px;color:var(--ink);line-height:1.6;max-width:64ch}
+  .mlactions{display:flex;gap:10px;margin-top:22px}
+</style>
+</head>
+<body>
+<div class="gallery">
+
+<!-- ══════════════════ 1 · AGENTS ══════════════════ -->
+<div class="cap"><span class="num">1</span><span class="ct">Agents</span><span class="cs">— every assistant that's working right now. The deeper view behind Home's "2 working".</span></div>
+<div class="frame">
+  <div class="shell">
+    <div class="rail">
+      <div class="rlogo"><svg class="ic" viewBox="0 0 24 24"><path d="M4 7h16M4 12h16M4 17h10"/></svg></div>
+      <div class="ritem"><svg class="ic" viewBox="0 0 24 24"><path d="M3 11l9-8 9 8"/><path d="M5 10v10h14V10"/></svg><span>Home</span></div>
+      <div class="ritem"><svg class="ic" viewBox="0 0 24 24"><path d="M4 6a2 2 0 0 1 2-2h4l2 3h6a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2z"/></svg><span>Files</span></div>
+      <div class="ritem"><span class="badge">2</span><svg class="ic" viewBox="0 0 24 24"><rect x="4" y="6" width="16" height="12" rx="2"/><path d="M5 8l7 5 7-5"/></svg><span>Mail</span></div>
+      <div class="ritem"><svg class="ic" viewBox="0 0 24 24"><rect x="4" y="5" width="16" height="16" rx="2"/><path d="M4 9h16M8 3v4M16 3v4"/></svg><span>Calendar</span></div>
+      <div class="ritem"><svg class="ic" viewBox="0 0 24 24"><path d="M20 12a8 8 0 1 1-3.5-6.6L20 4v5h-5"/></svg><span>Chats</span></div>
+      <div class="ritem"><svg class="ic" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3a14 14 0 0 1 0 18M12 3a14 14 0 0 0 0 18"/></svg><span>Browser</span></div>
+      <div class="ritem on"><svg class="ic" viewBox="0 0 24 24"><circle cx="12" cy="8" r="3"/><path d="M6 20a6 6 0 0 1 12 0"/></svg><span>Agents</span></div>
+      <div class="rgap"></div><div class="rdiv"></div>
+      <div class="rspace" style="background:#0071E3">W</div><div class="rspace" style="background:#8A8A8E">P</div>
+      <div class="rdiv"></div>
+      <div class="ritem"><svg class="ic" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M12 3v3M12 18v3M3 12h3M18 12h3M6 6l2 2M16 16l2 2M6 18l2-2M16 8l2-2"/></svg><span>Settings</span></div>
+    </div>
+    <div class="stage">
+      <div class="topbar">
+        <div class="tabs">
+          <div class="tab on"><svg class="ic" viewBox="0 0 24 24"><circle cx="12" cy="8" r="3"/><path d="M6 20a6 6 0 0 1 12 0"/></svg> Agents</div>
+          <div class="tab"><svg class="ic" viewBox="0 0 24 24"><path d="M8 4h8l4 4v12H4V4z"/></svg> report.docx <span class="po"><svg class="ic" viewBox="0 0 24 24"><path d="M7 17L17 7M9 7h8v8"/></svg></span> <span class="x">×</span></div>
+          <div class="tab add">+</div>
+        </div>
+        <div class="spacer"></div>
+        <div class="working"><span class="live"></span> 2 working</div>
+        <div class="cmdk"><svg class="ic" style="width:15px;height:15px" viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3-3"/></svg> Search or run <span class="k">⌘K</span></div>
+      </div>
+      <div class="body"><div class="scroll"><div class="agwrap">
+        <h1 class="pg">Assistants at work</h1>
+        <p class="lede">Everything running for you, in one place. Nothing is sent or shared without your say-so.</p>
+
+        <div class="approveband">
+          <div class="t">
+            <h3>Approve all safe changes (2)</h3>
+            <div class="safe"><svg class="ic ok" style="width:15px;height:15px" viewBox="0 0 24 24"><path d="M5 13l4 4L19 7"/></svg> Only edits on your Mac — nothing gets emailed or posted. Undo anytime.</div>
+          </div>
+          <button class="b blue">Approve all safe changes</button>
+        </div>
+
+        <div class="sec"><h2>Running now</h2><span class="n">2</span></div>
+
+        <div class="lane">
+          <div class="lh">
+            <div class="who"><svg class="ic" viewBox="0 0 24 24"><path d="M8 4h7l4 4v12a1 1 0 0 1-1 1H6a1 1 0 0 1-1-1V5a1 1 0 0 1 1-1z"/><path d="M9 13h6M9 16h4"/></svg></div>
+            <div class="t"><h3>Writing assistant</h3><div class="st"><span class="live"></span> Working · started 4 min ago</div></div>
+            <div class="cost">$0.02</div>
+          </div>
+          <p class="doing">Rewriting the executive summary to match the new Q3 revenue figure.</p>
+          <div class="prog"><i style="width:64%"></i></div>
+        </div>
+
+        <div class="lane">
+          <div class="lh">
+            <div class="who"><svg class="ic" viewBox="0 0 24 24"><rect x="4" y="6" width="16" height="12" rx="2"/><path d="M5 8l7 5 7-5"/></svg></div>
+            <div class="t"><h3>Email assistant</h3><div class="st"><span class="live"></span> Working · started just now</div></div>
+            <div class="cost">$0.01</div>
+          </div>
+          <p class="doing">Drafting short replies to 3 unread messages. You'll review each before anything sends.</p>
+          <div class="prog"><i style="width:38%"></i></div>
+        </div>
+
+        <div class="sec" style="margin-top:26px"><h2>Finished, waiting on you</h2><span class="n">1</span></div>
+
+        <div class="lane">
+          <div class="lh">
+            <div class="who"><svg class="ic" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M3 9h18M8 4v16"/></svg></div>
+            <div class="t"><h3>Research assistant</h3><div class="st"><span class="idle"></span> Done · 6 min ago</div></div>
+            <div class="cost">$0.08</div>
+          </div>
+          <p class="doing">Pulled competitor pricing into a new sheet and highlighted the three that changed.</p>
+          <div class="doneline"><svg class="ic ok" style="width:15px;height:15px" viewBox="0 0 24 24"><path d="M5 13l4 4L19 7"/></svg> Saved to your Mac — reversible, undo anytime.</div>
+        </div>
+
+        <div class="newlane" style="margin-top:12px">
+          <div class="plus"><svg class="ic" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg></div>
+          New assistant or task
+        </div>
+      </div></div></div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════ 2 · CALENDAR ══════════════════ -->
+<div class="cap"><span class="num">2</span><span class="ct">Calendar</span><span class="cs">— a calm week view, with one thing your assistant noticed.</span></div>
+<div class="frame">
+  <div class="shell">
+    <div class="rail">
+      <div class="rlogo"><svg class="ic" viewBox="0 0 24 24"><path d="M4 7h16M4 12h16M4 17h10"/></svg></div>
+      <div class="ritem"><svg class="ic" viewBox="0 0 24 24"><path d="M3 11l9-8 9 8"/><path d="M5 10v10h14V10"/></svg><span>Home</span></div>
+      <div class="ritem"><svg class="ic" viewBox="0 0 24 24"><path d="M4 6a2 2 0 0 1 2-2h4l2 3h6a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2z"/></svg><span>Files</span></div>
+      <div class="ritem"><span class="badge">2</span><svg class="ic" viewBox="0 0 24 24"><rect x="4" y="6" width="16" height="12" rx="2"/><path d="M5 8l7 5 7-5"/></svg><span>Mail</span></div>
+      <div class="ritem on"><svg class="ic" viewBox="0 0 24 24"><rect x="4" y="5" width="16" height="16" rx="2"/><path d="M4 9h16M8 3v4M16 3v4"/></svg><span>Calendar</span></div>
+      <div class="ritem"><svg class="ic" viewBox="0 0 24 24"><path d="M20 12a8 8 0 1 1-3.5-6.6L20 4v5h-5"/></svg><span>Chats</span></div>
+      <div class="ritem"><svg class="ic" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3a14 14 0 0 1 0 18M12 3a14 14 0 0 0 0 18"/></svg><span>Browser</span></div>
+      <div class="ritem"><svg class="ic" viewBox="0 0 24 24"><circle cx="12" cy="8" r="3"/><path d="M6 20a6 6 0 0 1 12 0"/></svg><span>Agents</span></div>
+      <div class="rgap"></div><div class="rdiv"></div>
+      <div class="rspace" style="background:#0071E3">W</div><div class="rspace" style="background:#8A8A8E">P</div>
+      <div class="rdiv"></div>
+      <div class="ritem"><svg class="ic" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M12 3v3M12 18v3M3 12h3M18 12h3M6 6l2 2M16 16l2 2M6 18l2-2M16 8l2-2"/></svg><span>Settings</span></div>
+    </div>
+    <div class="stage">
+      <div class="topbar">
+        <div class="tabs">
+          <div class="tab on"><svg class="ic" viewBox="0 0 24 24"><rect x="4" y="5" width="16" height="16" rx="2"/><path d="M4 9h16M8 3v4M16 3v4"/></svg> Calendar</div>
+          <div class="tab add">+</div>
+        </div>
+        <div class="spacer"></div>
+        <div class="working"><span class="live"></span> 2 working</div>
+        <div class="cmdk"><svg class="ic" style="width:15px;height:15px" viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3-3"/></svg> Search or run <span class="k">⌘K</span></div>
+      </div>
+      <div class="body"><div class="scroll"><div class="calwrap">
+        <div class="calhead">
+          <h1 class="pg">This week</h1>
+          <div class="spacer"></div>
+          <span style="font-size:14px;color:var(--ink-2)">July 20 – 24</span>
+          <div class="calnav">
+            <div class="nb"><svg class="ic" viewBox="0 0 24 24"><path d="M15 6l-6 6 6 6"/></svg></div>
+            <div class="nb"><svg class="ic" viewBox="0 0 24 24"><path d="M9 6l6 6-6 6"/></svg></div>
+          </div>
+        </div>
+
+        <div class="calsug">
+          <div class="who"><svg class="ic" viewBox="0 0 24 24"><rect x="4" y="5" width="16" height="16" rx="2"/><path d="M4 9h16M8 3v4M16 3v4"/></svg></div>
+          <div class="t">
+            <h3>Two meetings overlap on Thursday</h3>
+            <p>Your 2:00 design review and 2:30 with Priya clash. Want me to propose a fix? I'll only suggest — nothing changes until you say yes.</p>
+          </div>
+          <button class="b blue">Propose a fix</button>
+        </div>
+
+        <div class="calgrid">
+          <div style="border-right:.5px solid var(--hair);border-bottom:.5px solid var(--hair)"></div>
+          <div class="daycol"><div class="dn">Mon</div><div class="dd">20</div></div>
+          <div class="daycol"><div class="dn">Tue</div><div class="dd">21</div></div>
+          <div class="daycol today"><div class="dn">Wed</div><div class="dd">22</div></div>
+          <div class="daycol"><div class="dn">Thu</div><div class="dd">23</div></div>
+          <div class="daycol"><div class="dn">Fri</div><div class="dd">24</div></div>
+
+          <div class="tl">9</div>
+          <div class="cell"><div class="ev" style="top:6px"><div class="evt">Team standup</div><div class="evm">9:00</div></div></div>
+          <div class="cell"></div>
+          <div class="cell"><div class="ev" style="top:6px"><div class="evt">Team standup</div><div class="evm">9:00</div></div></div>
+          <div class="cell"></div>
+          <div class="cell"><div class="ev" style="top:6px"><div class="evt">1:1 with Sam</div><div class="evm">9:30</div></div></div>
+
+          <div class="tl">11</div>
+          <div class="cell"></div>
+          <div class="cell"><div class="ev" style="top:6px"><div class="evt">Roadmap sync</div><div class="evm">11:00</div></div></div>
+          <div class="cell"></div>
+          <div class="cell"></div>
+          <div class="cell"></div>
+
+          <div class="tl">2 PM</div>
+          <div class="cell"></div>
+          <div class="cell"></div>
+          <div class="cell"><div class="ev" style="top:6px"><div class="evt">Focus block</div><div class="evm">2:00</div></div></div>
+          <div class="cell"><div class="ev clash" style="top:4px;right:52%"><div class="evt">Design review</div><div class="evm">2:00</div></div><div class="ev clash" style="top:16px;left:50%"><div class="evt">Priya call</div><div class="evm">2:30</div></div></div>
+          <div class="cell"></div>
+
+          <div class="tl">4 PM</div>
+          <div class="cell"><div class="ev" style="top:6px"><div class="evt">Investor update</div><div class="evm">4:00</div></div></div>
+          <div class="cell"></div>
+          <div class="cell"></div>
+          <div class="cell"></div>
+          <div class="cell"><div class="ev" style="top:6px"><div class="evt">Wrap-up</div><div class="evm">4:30</div></div></div>
+        </div>
+      </div></div></div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════ 3 · CHATS ══════════════════ -->
+<div class="cap"><span class="num">3</span><span class="ct">Chats</span><span class="cs">— all your messages in one place, whichever app they came from.</span></div>
+<div class="frame">
+  <div class="shell">
+    <div class="rail">
+      <div class="rlogo"><svg class="ic" viewBox="0 0 24 24"><path d="M4 7h16M4 12h16M4 17h10"/></svg></div>
+      <div class="ritem"><svg class="ic" viewBox="0 0 24 24"><path d="M3 11l9-8 9 8"/><path d="M5 10v10h14V10"/></svg><span>Home</span></div>
+      <div class="ritem"><svg class="ic" viewBox="0 0 24 24"><path d="M4 6a2 2 0 0 1 2-2h4l2 3h6a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2z"/></svg><span>Files</span></div>
+      <div class="ritem"><span class="badge">2</span><svg class="ic" viewBox="0 0 24 24"><rect x="4" y="6" width="16" height="12" rx="2"/><path d="M5 8l7 5 7-5"/></svg><span>Mail</span></div>
+      <div class="ritem"><svg class="ic" viewBox="0 0 24 24"><rect x="4" y="5" width="16" height="16" rx="2"/><path d="M4 9h16M8 3v4M16 3v4"/></svg><span>Calendar</span></div>
+      <div class="ritem on"><svg class="ic" viewBox="0 0 24 24"><path d="M20 12a8 8 0 1 1-3.5-6.6L20 4v5h-5"/></svg><span>Chats</span></div>
+      <div class="ritem"><svg class="ic" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3a14 14 0 0 1 0 18M12 3a14 14 0 0 0 0 18"/></svg><span>Browser</span></div>
+      <div class="ritem"><svg class="ic" viewBox="0 0 24 24"><circle cx="12" cy="8" r="3"/><path d="M6 20a6 6 0 0 1 12 0"/></svg><span>Agents</span></div>
+      <div class="rgap"></div><div class="rdiv"></div>
+      <div class="rspace" style="background:#0071E3">W</div><div class="rspace" style="background:#8A8A8E">P</div>
+      <div class="rdiv"></div>
+      <div class="ritem"><svg class="ic" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M12 3v3M12 18v3M3 12h3M18 12h3M6 6l2 2M16 16l2 2M6 18l2-2M16 8l2-2"/></svg><span>Settings</span></div>
+    </div>
+    <div class="stage">
+      <div class="topbar">
+        <div class="tabs">
+          <div class="tab on"><svg class="ic" viewBox="0 0 24 24"><path d="M20 12a8 8 0 1 1-3.5-6.6L20 4v5h-5"/></svg> Chats</div>
+          <div class="tab add">+</div>
+        </div>
+        <div class="spacer"></div>
+        <div class="working"><span class="live"></span> 2 working</div>
+        <div class="cmdk"><svg class="ic" style="width:15px;height:15px" viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3-3"/></svg> Search or run <span class="k">⌘K</span></div>
+      </div>
+      <div class="body">
+        <div class="chatsplit">
+          <div class="chatlist">
+            <h1 class="pg" style="font-size:22px">Messages</h1>
+            <div class="chsearch"><svg class="ic" style="width:15px;height:15px" viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3-3"/></svg> Search messages</div>
+
+            <div class="chsec">Needs a reply</div>
+            <div class="chrow on">
+              <div class="av">PN</div>
+              <div class="cm"><div class="cn">Priya Nair</div><div class="cp">Can you send the Q3 numbers before…</div></div>
+              <span class="flag">Draft ready</span>
+            </div>
+
+            <div class="chsec">Channels</div>
+            <div class="chrow">
+              <div class="av">#</div>
+              <div class="cm"><div class="cn">Product team<span class="chansrc">· Slack</span></div><div class="cp">Sam: shipping the fix today 🎉</div></div>
+              <span class="cdot"></span>
+            </div>
+            <div class="chrow">
+              <div class="av">#</div>
+              <div class="cm"><div class="cn">Design<span class="chansrc">· Teams</span></div><div class="cp">New mockups are up for review</div></div>
+            </div>
+            <div class="chrow">
+              <div class="av">#</div>
+              <div class="cm"><div class="cn">Founders<span class="chansrc">· Matrix</span></div><div class="cp">Maya: board deck looks great</div></div>
+            </div>
+
+            <div class="chsec">Direct messages</div>
+            <div class="chrow">
+              <div class="av">SC</div>
+              <div class="cm"><div class="cn">Sam Cole<span class="chansrc">· Slack</span></div><div class="cp">thanks, that unblocks me</div></div>
+            </div>
+            <div class="chrow">
+              <div class="av">MR</div>
+              <div class="cm"><div class="cn">Maya Ruiz<span class="chansrc">· Teams</span></div><div class="cp">let's sync tomorrow?</div></div>
+            </div>
+          </div>
+
+          <div class="thread">
+            <div class="thhead">
+              <div class="av">PN</div>
+              <div><div class="tn">Priya Nair</div><div class="ts">Slack · direct message</div></div>
+              <div class="spacer"></div>
+              <div class="tab" style="cursor:pointer;color:var(--ink-3)"><svg class="ic" viewBox="0 0 24 24"><path d="M7 17L17 7M9 7h8v8"/></svg></div>
+            </div>
+            <div class="thbody">
+              <div class="msg">
+                <div class="mav">PN</div>
+                <div class="mb"><div class="mn">Priya Nair · 10:24</div><div class="mt">Hey! Can you send the Q3 numbers before our call tomorrow? Want to compare against the pipeline.</div></div>
+              </div>
+              <div class="msg">
+                <div class="mav">PN</div>
+                <div class="mb"><div class="mn">Priya Nair · 10:25</div><div class="mt">No rush — just before 2pm works.</div></div>
+              </div>
+
+              <div class="draftcard">
+                <div class="dh"><svg class="ic" viewBox="0 0 24 24"><path d="M4 6a2 2 0 0 1 2-2h4l2 3h6a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2z"/></svg> Your assistant wrote a reply — nothing is sent until you choose to.</div>
+                <div class="dt">Sure — I'll send the updated Q3 numbers over by 1pm, with both the finance-model and sales-adjusted views so you can compare against the pipeline directly.</div>
+                <div style="display:flex;gap:10px"><button class="b blue">Send reply</button><button class="b quiet">Edit first</button></div>
+              </div>
+            </div>
+            <div class="composer">
+              <div class="ci">Write a message…</div>
+              <div style="color:var(--ink-3)"><svg class="ic" viewBox="0 0 24 24"><path d="M5 12h14M13 6l6 6-6 6"/></svg></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════ 4 · COMMAND PALETTE ══════════════════ -->
+<div class="cap"><span class="num">4</span><span class="ct">Search &amp; do anything</span><span class="cs">— one box to jump anywhere or ask for anything. Press ⌘K from any surface.</span></div>
+<div class="frame">
+  <div class="shell" style="filter:blur(1.5px);opacity:.6">
+    <div class="rail">
+      <div class="rlogo"><svg class="ic" viewBox="0 0 24 24"><path d="M4 7h16M4 12h16M4 17h10"/></svg></div>
+      <div class="ritem on"><svg class="ic" viewBox="0 0 24 24"><path d="M3 11l9-8 9 8"/><path d="M5 10v10h14V10"/></svg><span>Home</span></div>
+      <div class="ritem"><svg class="ic" viewBox="0 0 24 24"><path d="M4 6a2 2 0 0 1 2-2h4l2 3h6a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2z"/></svg><span>Files</span></div>
+      <div class="ritem"><svg class="ic" viewBox="0 0 24 24"><rect x="4" y="6" width="16" height="12" rx="2"/><path d="M5 8l7 5 7-5"/></svg><span>Mail</span></div>
+      <div class="ritem"><svg class="ic" viewBox="0 0 24 24"><rect x="4" y="5" width="16" height="16" rx="2"/><path d="M4 9h16M8 3v4M16 3v4"/></svg><span>Calendar</span></div>
+      <div class="ritem"><svg class="ic" viewBox="0 0 24 24"><path d="M20 12a8 8 0 1 1-3.5-6.6L20 4v5h-5"/></svg><span>Chats</span></div>
+      <div class="ritem"><svg class="ic" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3a14 14 0 0 1 0 18M12 3a14 14 0 0 0 0 18"/></svg><span>Browser</span></div>
+      <div class="ritem"><svg class="ic" viewBox="0 0 24 24"><circle cx="12" cy="8" r="3"/><path d="M6 20a6 6 0 0 1 12 0"/></svg><span>Agents</span></div>
+      <div class="rgap"></div><div class="rdiv"></div>
+      <div class="rspace" style="background:#0071E3">W</div><div class="rspace" style="background:#8A8A8E">P</div>
+      <div class="rdiv"></div>
+      <div class="ritem"><svg class="ic" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M12 3v3M12 18v3M3 12h3M18 12h3M6 6l2 2M16 16l2 2M6 18l2-2M16 8l2-2"/></svg><span>Settings</span></div>
+    </div>
+    <div class="stage">
+      <div class="topbar">
+        <div class="tabs"><div class="tab on"><svg class="ic" viewBox="0 0 24 24"><path d="M3 11l9-8 9 8"/><path d="M5 10v10h14V10"/></svg> Home</div><div class="tab add">+</div></div>
+        <div class="spacer"></div>
+        <div class="working"><span class="live"></span> 2 working</div>
+        <div class="cmdk"><svg class="ic" style="width:15px;height:15px" viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3-3"/></svg> Search or run <span class="k">⌘K</span></div>
+      </div>
+      <div class="body"><div class="scroll"><div style="padding:26px 30px"><h1 class="pg">Ready for you</h1><p class="lede">Two assistants are working. Here's what needs a decision.</p></div></div></div>
+    </div>
+  </div>
+
+  <div class="paldim">
+    <div class="palette">
+      <div class="palq">
+        <svg class="ic" viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3-3"/></svg>
+        <input value="budget" readonly>
+        <span class="esc">esc</span>
+      </div>
+
+      <div class="palgroup">
+        <div class="pallabel">Files</div>
+        <div class="palrow on">
+          <div class="pi"><svg class="ic" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M3 9h18M8 4v16"/></svg></div>
+          <div class="pt"><div class="pn"><b>budget</b>.xlsx</div><div class="ps">Spreadsheet · edited yesterday</div></div>
+          <span class="pk">↵ open</span>
+        </div>
+        <div class="palrow">
+          <div class="pi"><svg class="ic" viewBox="0 0 24 24"><path d="M8 4h8l4 4v12H4V4z"/><path d="M9 13h6M9 16h4"/></svg></div>
+          <div class="pt"><div class="pn">Q3 <b>budget</b> notes.docx</div><div class="ps">Document · 3 days ago</div></div>
+        </div>
+      </div>
+
+      <div class="palgroup">
+        <div class="pallabel">Do something</div>
+        <div class="palrow">
+          <div class="pi"><svg class="ic" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M3 9h18M8 4v16"/></svg></div>
+          <div class="pt"><div class="pn">New spreadsheet</div><div class="ps">Blank sheet, ready to fill</div></div>
+        </div>
+        <div class="palrow">
+          <div class="pi"><svg class="ic" viewBox="0 0 24 24"><rect x="4" y="6" width="16" height="12" rx="2"/><path d="M5 8l7 5 7-5"/></svg></div>
+          <div class="pt"><div class="pn">Reply to Priya</div><div class="ps">About the <b>budget</b> numbers</div></div>
+        </div>
+        <div class="palrow">
+          <div class="pi"><svg class="ic" viewBox="0 0 24 24"><circle cx="12" cy="8" r="3"/><path d="M6 20a6 6 0 0 1 12 0"/></svg></div>
+          <div class="pt"><div class="pn">Ask an assistant to build a <b>budget</b> summary</div><div class="ps">It'll draft one for you to review</div></div>
+        </div>
+      </div>
+
+      <div class="palgroup">
+        <div class="pallabel">Go to</div>
+        <div class="palrow">
+          <div class="pi"><svg class="ic" viewBox="0 0 24 24"><rect x="4" y="6" width="16" height="12" rx="2"/><path d="M5 8l7 5 7-5"/></svg></div>
+          <div class="pt"><div class="pn">Mail</div></div>
+          <span class="go"><svg class="ic" viewBox="0 0 24 24"><path d="M9 6l6 6-6 6"/></svg></span>
+        </div>
+      </div>
+
+      <div class="palfoot">
+        <span class="h"><span class="kk">↑</span><span class="kk">↓</span> move</span>
+        <span class="h"><span class="kk">↵</span> select</span>
+        <span class="h"><span class="kk">esc</span> close</span>
+        <span style="margin-left:auto">Type to search, or just say what you want done</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════ 5 · SETTINGS ══════════════════ -->
+<div class="cap"><span class="num">5</span><span class="ct">Settings</span><span class="cs">— plain-language sections. Apps you've connected, your brand, email, privacy.</span></div>
+<div class="frame">
+  <div class="shell">
+    <div class="rail">
+      <div class="rlogo"><svg class="ic" viewBox="0 0 24 24"><path d="M4 7h16M4 12h16M4 17h10"/></svg></div>
+      <div class="ritem"><svg class="ic" viewBox="0 0 24 24"><path d="M3 11l9-8 9 8"/><path d="M5 10v10h14V10"/></svg><span>Home</span></div>
+      <div class="ritem"><svg class="ic" viewBox="0 0 24 24"><path d="M4 6a2 2 0 0 1 2-2h4l2 3h6a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2z"/></svg><span>Files</span></div>
+      <div class="ritem"><span class="badge">2</span><svg class="ic" viewBox="0 0 24 24"><rect x="4" y="6" width="16" height="12" rx="2"/><path d="M5 8l7 5 7-5"/></svg><span>Mail</span></div>
+      <div class="ritem"><svg class="ic" viewBox="0 0 24 24"><rect x="4" y="5" width="16" height="16" rx="2"/><path d="M4 9h16M8 3v4M16 3v4"/></svg><span>Calendar</span></div>
+      <div class="ritem"><svg class="ic" viewBox="0 0 24 24"><path d="M20 12a8 8 0 1 1-3.5-6.6L20 4v5h-5"/></svg><span>Chats</span></div>
+      <div class="ritem"><svg class="ic" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3a14 14 0 0 1 0 18M12 3a14 14 0 0 0 0 18"/></svg><span>Browser</span></div>
+      <div class="ritem"><svg class="ic" viewBox="0 0 24 24"><circle cx="12" cy="8" r="3"/><path d="M6 20a6 6 0 0 1 12 0"/></svg><span>Agents</span></div>
+      <div class="rgap"></div><div class="rdiv"></div>
+      <div class="rspace" style="background:#0071E3">W</div><div class="rspace" style="background:#8A8A8E">P</div>
+      <div class="rdiv"></div>
+      <div class="ritem on"><svg class="ic" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M12 3v3M12 18v3M3 12h3M18 12h3M6 6l2 2M16 16l2 2M6 18l2-2M16 8l2-2"/></svg><span>Settings</span></div>
+    </div>
+    <div class="stage">
+      <div class="topbar">
+        <div class="tabs">
+          <div class="tab on"><svg class="ic" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M12 3v3M12 18v3M3 12h3M18 12h3M6 6l2 2M16 16l2 2M6 18l2-2M16 8l2-2"/></svg> Settings</div>
+          <div class="tab add">+</div>
+        </div>
+        <div class="spacer"></div>
+        <div class="working"><span class="live"></span> 2 working</div>
+        <div class="cmdk"><svg class="ic" style="width:15px;height:15px" viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3-3"/></svg> Search or run <span class="k">⌘K</span></div>
+      </div>
+      <div class="body"><div class="scroll"><div class="setwrap">
+        <h1 class="pg">Settings</h1>
+        <p class="lede">Connect the apps you use, set your brand, and keep everything private.</p>
+
+        <div class="setsec">
+          <div class="sh"><h2>Apps you've connected</h2><p>Let your assistants read and act inside the tools you already use.</p></div>
+          <div class="setrow">
+            <div class="si"><svg class="ic" viewBox="0 0 24 24"><path d="M9 19c-4 1.5-4-2-6-2m12 4v-3.5a3 3 0 0 0-.9-2.5c3-.3 6-1.5 6-6.5a5 5 0 0 0-1.4-3.5 4.6 4.6 0 0 0-.1-3.5s-1.1-.3-3.6 1.4a12.3 12.3 0 0 0-6.5 0C6.5 1.6 5.4 2 5.4 2A4.6 4.6 0 0 0 5.3 5.5 5 5 0 0 0 4 9c0 5 3 6.2 6 6.5a3 3 0 0 0-.9 2.4V21"/></svg></div>
+            <div class="st"><div class="sn">GitHub</div><div class="ss"><span class="live"></span> Connected — your code and issues</div></div>
+            <button class="lk">Manage</button>
+          </div>
+          <div class="setrow">
+            <div class="si"><svg class="ic" viewBox="0 0 24 24"><rect x="3" y="10" width="4" height="4" rx="1"/><rect x="10" y="3" width="4" height="4" rx="1"/><rect x="10" y="17" width="4" height="4" rx="1"/><rect x="17" y="10" width="4" height="4" rx="1"/></svg></div>
+            <div class="st"><div class="sn">Slack</div><div class="ss"><span class="live"></span> Connected — messages and channels</div></div>
+            <button class="lk">Manage</button>
+          </div>
+          <div class="setrow">
+            <div class="si"><svg class="ic" viewBox="0 0 24 24"><path d="M5 4h9l5 5v11H5z"/><path d="M9 8v8l6-8v8"/></svg></div>
+            <div class="st"><div class="sn">Notion</div><div class="ss">Not connected — your notes and docs</div></div>
+            <button class="b blue sm">Connect</button>
+          </div>
+          <div class="setrow">
+            <div class="si"><svg class="ic" viewBox="0 0 24 24"><path d="M12 3a9 9 0 0 1 9 9c0 3-2 5-4 5s-3-2-3-4a2 2 0 1 0-4 0c0 4 3 7 7 7"/></svg></div>
+            <div class="st"><div class="sn">Sentry</div><div class="ss">Not connected — error reports</div></div>
+            <button class="lk">Connect</button>
+          </div>
+        </div>
+
+        <div class="setsec">
+          <div class="sh"><h2>Your brand</h2><p>Assistants use this when they make documents, decks, and replies for you.</p></div>
+          <div class="brand">
+            <div class="swatch" style="background:#0071E3"></div>
+            <div class="swatch" style="background:#1D1D1F"></div>
+            <div class="swatch" style="background:#30B44A"></div>
+            <div class="st" style="flex:1;margin-left:4px"><div class="sn">Colors &amp; logo</div><div class="ss">Acme blue, dark text · logo set</div></div>
+            <button class="lk">Edit</button>
+          </div>
+          <div style="padding:2px 18px 4px;font-size:12.5px;color:var(--ink-2)">Voice — how your writing sounds</div>
+          <div class="brandvoice">"Clear and direct. Short sentences. Friendly but never fluffy — get to the point and back it with a number."</div>
+        </div>
+
+        <div class="setsec">
+          <div class="sh"><h2>Email accounts</h2><p>The inboxes your assistants can read and draft from.</p></div>
+          <div class="setrow">
+            <div class="si"><svg class="ic" viewBox="0 0 24 24"><rect x="4" y="6" width="16" height="12" rx="2"/><path d="M5 8l7 5 7-5"/></svg></div>
+            <div class="st"><div class="sn">alex@acme.com</div><div class="ss"><span class="live"></span> Connected · work</div></div>
+            <button class="lk">Manage</button>
+          </div>
+          <div class="setrow">
+            <div class="si"><svg class="ic" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg></div>
+            <div class="st"><div class="sn">Add another account</div><div class="ss">Personal or a second work inbox</div></div>
+          </div>
+        </div>
+
+        <div class="setsec">
+          <div class="sh"><h2>Privacy — everything stays on your Mac</h2><p>Your files and messages are never uploaded. Assistants run locally.</p></div>
+          <div class="setrow privacy">
+            <div class="si"><svg class="ic" viewBox="0 0 24 24"><path d="M6 10V8a6 6 0 0 1 12 0v2"/><rect x="5" y="10" width="14" height="10" rx="2"/></svg></div>
+            <div class="st"><div class="sn">On-device only</div><div class="ss"><span class="live"></span> Your data doesn't leave this Mac</div></div>
+            <button class="lk">Learn more</button>
+          </div>
+        </div>
+      </div></div></div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════ 6 · POPPED-OUT WINDOW ══════════════════ -->
+<div class="cap"><span class="num">6</span><span class="ct">A window of its own</span><span class="cs">— Mail, torn off onto a second monitor — same live workspace, slim chrome, no rail.</span></div>
+<div class="frame">
+  <div class="win">
+    <div class="wintitle">
+      <div class="lights"><i style="background:#FF5F57"></i><i style="background:#FEBC2E"></i><i style="background:#28C840"></i></div>
+      <div class="crumb"><svg class="ic" viewBox="0 0 24 24"><rect x="4" y="6" width="16" height="12" rx="2"/><path d="M5 8l7 5 7-5"/></svg> Workspace › <b>Mail</b></div>
+      <div class="spacer"></div>
+      <div class="working"><span class="live"></span> 2 working</div>
+      <div class="cmdk" style="min-width:170px"><svg class="ic" style="width:15px;height:15px" viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3-3"/></svg> Search <span class="k">⌘K</span></div>
+    </div>
+    <div class="mailwin">
+      <div class="mllist">
+        <div class="mlrow on">
+          <div class="mfrom"><span class="mdot"></span> Priya Nair <span class="mtime">10:24</span></div>
+          <div class="msub">Q3 forecast before our call</div>
+          <div class="mprev">Can you send the updated numbers before…</div>
+        </div>
+        <div class="mlrow">
+          <div class="mfrom"><span class="mdot"></span> Sam Cole <span class="mtime">9:50</span></div>
+          <div class="msub">Fix is shipping today</div>
+          <div class="mprev">Pushed the change, deploy is green…</div>
+        </div>
+        <div class="mlrow">
+          <div class="mfrom">Maya Ruiz <span class="mtime">Yesterday</span></div>
+          <div class="msub">Board deck — looks great</div>
+          <div class="mprev">Nice work on the numbers slide…</div>
+        </div>
+        <div class="mlrow">
+          <div class="mfrom">Acme Billing <span class="mtime">Mon</span></div>
+          <div class="msub">Your July invoice</div>
+          <div class="mprev">Attached is your statement for…</div>
+        </div>
+      </div>
+      <div class="mlread">
+        <div class="mlreadh">
+          <h2>Q3 forecast before our call</h2>
+          <div class="meta"><div class="av">PN</div><div><div style="font-weight:600;color:var(--ink)">Priya Nair</div><div style="font-size:12px;color:var(--ink-3)">to me · 10:24 AM</div></div></div>
+        </div>
+        <div class="mlbody">
+          Hey,<br><br>
+          Can you send the updated Q3 numbers before our call tomorrow? I'd love to compare the finance-model figures against the current pipeline directly.<br><br>
+          No rush — anytime before 2pm works.<br><br>
+          Thanks,<br>Priya
+        </div>
+        <div class="mlactions">
+          <button class="b blue">Reply</button>
+          <button class="b quiet">Forward</button>
+        </div>
+        <div style="display:flex;align-items:center;gap:7px;margin-top:20px;font-size:12.5px;color:var(--ink-2)">
+          <svg class="ic" style="width:15px;height:15px;color:var(--ok)" viewBox="0 0 24 24"><path d="M5 13l4 4L19 7"/></svg>
+          Your assistant already drafted a reply — it's waiting in the main window.
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+</div>
+</body>
+</html>

@@ -1,0 +1,531 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/><meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>Workspace · work surfaces</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@400;500;600;640;700&display=swap" rel="stylesheet">
+<style>
+  /* Work surfaces — Files · Word · Spreadsheet · Mail · Browser. Same shell chrome as workspace-shell.html:
+     76px rail · Stage top-tabs · ⌘K pill · "2 working" chip · ⤢ pop-out per Stage tab/pane.
+     Rules held: ONE --blue per surface (the single primary action), content in --ink, crafted stroke-1.7 SVG icons, no jargon. */
+  :root{
+    --bg:#F5F5F7; --card:#FFFFFF; --sunk:#F0F0F2; --rail:#ECECEE;
+    --ink:#1D1D1F; --ink-2:#6E6E73; --ink-3:#8A8A8E; --hair:rgba(0,0,0,.09);
+    --blue:#0071E3; --dark:#1D1D1F; --ok:#30B44A; --warn-ink:#8A5A00; --warn-bg:#FFF4E0;
+    --sh-card:0 1px 2px rgba(0,0,0,.04), 0 10px 30px rgba(0,0,0,.06); --r:16px;
+  }
+  *{box-sizing:border-box} html,body{margin:0}
+  body{background:#E8E8EA;color:var(--ink);font-family:"Hanken Grotesk",-apple-system,system-ui,sans-serif;-webkit-font-smoothing:antialiased;font-size:14px;line-height:1.5}
+  svg{display:block}
+  .ic{width:20px;height:20px;stroke:currentColor;stroke-width:1.7;fill:none;stroke-linecap:round;stroke-linejoin:round}
+  /* gallery frame */
+  .gallery{max-width:1320px;margin:0 auto;padding:40px 28px 80px}
+  .glabel{font-size:13px;font-weight:600;color:#5B5B60;letter-spacing:-.01em;margin:34px 6px 10px}
+  .glabel:first-child{margin-top:0}
+  .glabel .n{color:#9A9AA0;font-weight:500}
+  .frame{height:720px;background:var(--bg);border-radius:14px;box-shadow:0 1px 2px rgba(0,0,0,.05),0 18px 50px rgba(0,0,0,.10);overflow:hidden}
+  .shell{display:grid;grid-template-columns:76px 1fr;height:100%}
+  /* RAIL */
+  .rail{background:var(--rail);border-right:.5px solid var(--hair);display:flex;flex-direction:column;align-items:center;padding:12px 0;gap:4px}
+  .rlogo{width:32px;height:32px;border-radius:9px;background:var(--dark);display:grid;place-items:center;color:#fff;margin-bottom:10px}.rlogo .ic{width:17px;height:17px;stroke-width:2.1}
+  .ritem{width:56px;padding:8px 0 6px;border-radius:12px;display:flex;flex-direction:column;align-items:center;gap:4px;color:var(--ink-2);cursor:pointer}
+  .ritem .ic{width:21px;height:21px}.ritem span{font-size:10px;font-weight:500;letter-spacing:-.01em}
+  .ritem.on{background:var(--card);color:var(--ink);box-shadow:0 1px 3px rgba(0,0,0,.10)}
+  .ritem .badge{position:absolute;transform:translate(14px,-6px);background:var(--blue);color:#fff;font-size:9px;font-weight:700;min-width:15px;height:15px;border-radius:99px;display:grid;place-items:center;padding:0 3px}
+  .rgap{flex:1}.rdiv{width:34px;height:.5px;background:var(--hair);margin:6px 0}
+  .rspace{width:26px;height:26px;border-radius:8px;display:grid;place-items:center;font-size:11px;font-weight:600;color:#fff;cursor:pointer}
+  /* STAGE */
+  .stage{display:flex;flex-direction:column;min-width:0}
+  .topbar{display:flex;align-items:center;gap:10px;padding:10px 16px;border-bottom:.5px solid var(--hair);background:rgba(245,245,247,.8);backdrop-filter:blur(20px)}
+  .tabs{display:flex;gap:4px;align-items:center;min-width:0;overflow:hidden}
+  .tab{display:flex;align-items:center;gap:7px;padding:7px 12px;border-radius:10px;color:var(--ink-2);font-size:13px;font-weight:500;cursor:pointer;white-space:nowrap}
+  .tab .ic{width:15px;height:15px}.tab.on{background:var(--card);color:var(--ink);box-shadow:0 1px 3px rgba(0,0,0,.10)}
+  .tab .pop{color:var(--ink-3);margin-left:2px;display:grid;place-items:center;width:18px;height:18px;border-radius:6px}
+  .tab.on .pop:hover{background:var(--sunk);color:var(--ink-2)}
+  .tab .x{color:var(--ink-3);font-size:14px;margin-left:1px}.tab.add{color:var(--ink-3);padding:7px 9px}
+  .topbar .spacer{flex:1}
+  .cmdk{display:flex;align-items:center;gap:8px;background:var(--card);border:.5px solid var(--hair);border-radius:99px;padding:7px 12px;color:var(--ink-3);font-size:13px;cursor:pointer;min-width:200px}
+  .cmdk .k{margin-left:auto;font-size:11px;background:var(--sunk);padding:2px 6px;border-radius:5px;color:var(--ink-2)}
+  .working{display:flex;align-items:center;gap:7px;color:var(--ink-2);font-size:12.5px;background:var(--card);padding:6px 10px;border-radius:99px;box-shadow:0 1px 2px rgba(0,0,0,.05)}
+  .working .live{width:7px;height:7px;border-radius:99px;background:var(--ok)}
+  /* pop-out control (pane-level) */
+  .popbtn{display:flex;align-items:center;gap:6px;color:var(--ink-2);font-size:12.5px;background:var(--card);padding:7px 10px;border-radius:9px;box-shadow:0 1px 2px rgba(0,0,0,.05);cursor:pointer}
+  .popbtn .ic{width:14px;height:14px}
+  /* shared buttons */
+  .b{height:40px;padding:0 18px;border-radius:11px;font:inherit;font-weight:600;font-size:14px;cursor:pointer;border:0;display:inline-flex;align-items:center;gap:7px}
+  .b .ic{width:16px;height:16px}
+  .b.blue{background:var(--blue);color:#fff}
+  .b.quiet{background:var(--card);color:var(--ink);box-shadow:0 1px 2px rgba(0,0,0,.05)}
+  .live-chip{display:inline-flex;align-items:center;gap:5px;background:var(--sunk);border-radius:7px;padding:1px 7px 1px 6px;font-weight:600;color:var(--ink);white-space:nowrap}
+  .live-chip .dot{width:6px;height:6px;border-radius:99px;background:var(--ok)}
+  .live-chip .ic{width:12px;height:12px;color:var(--ink-3)}
+
+  /* ============ 1 · FILES ============ */
+  .files-split{flex:1;display:grid;grid-template-columns:260px 1fr;min-height:0}
+  .tree{overflow:auto;padding:14px 12px;border-right:.5px solid var(--hair)}
+  .tree .th{display:flex;align-items:center;gap:8px;padding:4px 8px 10px;font-size:12px;font-weight:600;color:var(--ink-2)}
+  .row{display:flex;align-items:center;gap:8px;padding:7px 8px;border-radius:9px;color:var(--ink);font-size:13.5px;cursor:pointer}
+  .row .ic{width:17px;height:17px;color:var(--ink-3);flex-shrink:0}
+  .row.folder .ic{color:var(--ink-2)}
+  .row.on{background:var(--card);box-shadow:0 1px 2px rgba(0,0,0,.06);font-weight:600}
+  .row .chev{width:14px;height:14px;color:var(--ink-3);margin-left:-2px}
+  .row.indent{margin-left:20px}
+  .row .meta{margin-left:auto;color:var(--ink-3);font-size:11.5px;font-weight:400}
+  .peek{display:flex;flex-direction:column;min-width:0;background:var(--bg)}
+  .peekhead{display:flex;align-items:center;gap:12px;padding:14px 22px;border-bottom:.5px solid var(--hair)}
+  .peekhead .picon{width:34px;height:34px;border-radius:9px;background:var(--card);box-shadow:0 1px 2px rgba(0,0,0,.06);display:grid;place-items:center;color:var(--ink-2)}
+  .peekhead .picon .ic{width:19px;height:19px}
+  .peekhead .pt{font-weight:600;font-size:15px;letter-spacing:-.01em}
+  .peekhead .sub{color:var(--ink-3);font-size:12.5px}
+  .peekhead .spacer{flex:1}
+  .peekbody{flex:1;overflow:auto;display:grid;place-items:center;padding:26px}
+  .paper{width:460px;max-width:100%;background:var(--card);border-radius:12px;box-shadow:var(--sh-card);padding:34px 40px;transform:scale(.96)}
+  .paper h4{font-size:19px;font-weight:640;letter-spacing:-.02em;margin:0 0 4px}
+  .paper .psub{color:var(--ink-3);font-size:12.5px;margin-bottom:18px}
+  .paper p{font-size:12.5px;color:var(--ink);line-height:1.7;margin:0 0 10px}
+  .paper .skel{height:9px;border-radius:5px;background:var(--sunk);margin:7px 0}
+
+  /* ============ 2 · WORD ============ */
+  .doctool{display:flex;align-items:center;gap:4px;padding:8px 16px;border-bottom:.5px solid var(--hair);background:var(--card);overflow:hidden}
+  .doctool .grp{display:flex;align-items:center;gap:2px}
+  .doctool .tbtn{width:32px;height:32px;border-radius:8px;display:grid;place-items:center;color:var(--ink-2);cursor:pointer}
+  .doctool .tbtn:hover{background:var(--sunk)}
+  .doctool .tbtn.on{background:var(--sunk);color:var(--ink)}
+  .doctool .tbtn .ic{width:17px;height:17px}
+  .doctool .sty{display:flex;align-items:center;gap:6px;padding:0 10px;height:32px;border-radius:8px;background:var(--sunk);color:var(--ink);font-size:12.5px;font-weight:500;cursor:pointer}
+  .doctool .sty .ic{width:13px;height:13px;color:var(--ink-3)}
+  .doctool .sep{width:.5px;height:22px;background:var(--hair);margin:0 6px}
+  .docscroll{flex:1;overflow:auto;background:var(--bg);display:flex;justify-content:center;padding:26px 0 40px}
+  .page{width:640px;background:var(--card);border-radius:6px;box-shadow:var(--sh-card);padding:56px 68px;min-height:620px}
+  .page h2{font-size:24px;font-weight:640;letter-spacing:-.02em;margin:0 0 6px}
+  .page .dmeta{color:var(--ink-3);font-size:13px;margin-bottom:24px}
+  .page p{font-size:14.5px;color:var(--ink);line-height:1.75;margin:0 0 15px}
+  .page h3{font-size:15px;font-weight:640;margin:22px 0 8px}
+  table.doc{width:100%;border-collapse:collapse;margin:6px 0 18px;font-size:13.5px}
+  table.doc th{text-align:left;font-weight:600;color:var(--ink-2);padding:8px 12px;border-bottom:1.5px solid var(--hair);font-size:12.5px}
+  table.doc td{padding:8px 12px;border-bottom:.5px solid var(--hair);color:var(--ink)}
+  table.doc td.num{text-align:right;font-variant-numeric:tabular-nums}
+
+  /* ============ 3 · SPREADSHEET ============ */
+  .formulabar{display:flex;align-items:center;gap:10px;padding:8px 16px;border-bottom:.5px solid var(--hair);background:var(--card)}
+  .cellref{width:66px;height:30px;border-radius:8px;background:var(--sunk);display:flex;align-items:center;justify-content:center;font-size:12.5px;font-weight:600;color:var(--ink-2)}
+  .fx{width:24px;text-align:center;color:var(--ink-3);font-size:13px;font-style:italic;font-weight:600}
+  .finput{flex:1;height:30px;border-radius:8px;background:var(--bg);border:.5px solid var(--hair);display:flex;align-items:center;padding:0 12px;font-size:13px;color:var(--ink);font-variant-numeric:tabular-nums}
+  .gridwrap{flex:1;overflow:auto;background:var(--card)}
+  table.grid{border-collapse:collapse;width:100%;table-layout:fixed;font-variant-numeric:tabular-nums}
+  table.grid th,table.grid td{border:.5px solid var(--hair);height:30px;font-size:13px;font-weight:400}
+  table.grid thead th,table.grid tbody th{background:var(--sunk);color:var(--ink-2);font-weight:500;font-size:12px;text-align:center}
+  table.grid thead th{position:sticky;top:0;z-index:2}
+  table.grid tbody th{width:42px;position:sticky;left:0}
+  table.grid td{padding:0 12px;color:var(--ink);text-align:right}
+  table.grid td.txt{text-align:left;color:var(--ink)}
+  table.grid td.head{font-weight:600;color:var(--ink);text-align:left}
+  table.grid td.sel{box-shadow:inset 0 0 0 2px var(--blue)}
+  table.grid td .cellin{display:inline-flex;align-items:center;gap:5px;justify-content:flex-end}
+  table.grid td .livedot{width:6px;height:6px;border-radius:99px;background:var(--ok);flex-shrink:0}
+
+  /* ============ 4 · MAIL ============ */
+  .mail-split{flex:1;display:grid;grid-template-columns:180px 300px 1fr;min-height:0}
+  .mfolders{border-right:.5px solid var(--hair);padding:12px 10px;overflow:auto}
+  .mfolders .mf{display:flex;align-items:center;gap:9px;padding:8px 10px;border-radius:9px;color:var(--ink);font-size:13.5px;cursor:pointer}
+  .mfolders .mf .ic{width:17px;height:17px;color:var(--ink-3)}
+  .mfolders .mf.on{background:var(--card);box-shadow:0 1px 2px rgba(0,0,0,.06);font-weight:600}
+  .mfolders .mf .c{margin-left:auto;color:var(--ink-3);font-size:11.5px;font-weight:600}
+  .mlist{border-right:.5px solid var(--hair);overflow:auto}
+  .mitem{padding:12px 16px;border-bottom:.5px solid var(--hair);cursor:pointer}
+  .mitem.on{background:var(--card)}
+  .mitem .l1{display:flex;align-items:center;gap:8px}
+  .mitem .from{font-size:13.5px;font-weight:600;color:var(--ink)}
+  .mitem.unread .from{font-weight:700}
+  .mitem .unreaddot{width:7px;height:7px;border-radius:99px;background:var(--blue);flex-shrink:0}
+  .mitem .when{margin-left:auto;color:var(--ink-3);font-size:11.5px}
+  .mitem .subj{font-size:13px;color:var(--ink);margin-top:2px;font-weight:500}
+  .mitem.unread .subj{font-weight:600}
+  .mitem .prev{font-size:12.5px;color:var(--ink-3);margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .mreader{display:flex;flex-direction:column;min-width:0;background:var(--bg)}
+  .mrhead{padding:18px 26px 14px;border-bottom:.5px solid var(--hair)}
+  .mrhead .rt{font-size:19px;font-weight:640;letter-spacing:-.02em;margin-bottom:10px}
+  .mrhead .frm{display:flex;align-items:center;gap:11px}
+  .mrhead .av{width:36px;height:36px;border-radius:99px;background:var(--sunk);display:grid;place-items:center;color:var(--ink-2);font-weight:600;font-size:14px}
+  .mrhead .fn{font-size:13.5px;font-weight:600;color:var(--ink)}
+  .mrhead .fe{font-size:12.5px;color:var(--ink-3)}
+  .mrhead .spacer{flex:1}
+  .mrbody{flex:1;overflow:auto;padding:20px 26px}
+  .mrbody p{font-size:14.5px;color:var(--ink);line-height:1.7;margin:0 0 13px}
+  .blocknote{display:flex;align-items:center;gap:8px;color:var(--ink-2);background:var(--card);border-radius:10px;box-shadow:0 1px 2px rgba(0,0,0,.05);padding:9px 13px;font-size:12.5px;margin:4px 0 18px}
+  .blocknote .ic{width:15px;height:15px;color:var(--ink-3)}
+  .blocknote a{color:var(--ink);font-weight:600;cursor:pointer}
+  .mractions{display:flex;align-items:center;gap:9px;padding:14px 26px;border-top:.5px solid var(--hair)}
+
+  /* ============ 5 · BROWSER ============ */
+  .browser{flex:1;display:grid;grid-template-columns:1fr 300px;min-height:0}
+  .bmain{display:flex;flex-direction:column;min-width:0;border-right:.5px solid var(--hair)}
+  .addrbar{display:flex;align-items:center;gap:10px;padding:10px 16px;border-bottom:.5px solid var(--hair);background:var(--card)}
+  .navbtn{width:30px;height:30px;border-radius:8px;display:grid;place-items:center;color:var(--ink-3);cursor:pointer}
+  .navbtn:hover{background:var(--sunk);color:var(--ink-2)}
+  .navbtn .ic{width:18px;height:18px}
+  .url{flex:1;display:flex;align-items:center;gap:8px;height:34px;border-radius:99px;background:var(--sunk);padding:0 14px;font-size:13px;color:var(--ink)}
+  .url .ic{width:14px;height:14px;color:var(--ink-3)}
+  .url .dom{color:var(--ink-3)}
+  .webscroll{flex:1;overflow:auto;background:var(--bg);display:flex;justify-content:center;padding:26px 0 40px}
+  .article{width:600px;background:var(--card);border-radius:8px;box-shadow:var(--sh-card);padding:40px 48px}
+  .article .kick{font-size:12px;font-weight:600;color:var(--ink-3);letter-spacing:.02em;text-transform:uppercase;margin-bottom:8px}
+  .article h2{font-size:26px;font-weight:640;letter-spacing:-.025em;line-height:1.15;margin:0 0 10px}
+  .article .abyline{color:var(--ink-3);font-size:12.5px;margin-bottom:22px}
+  .article p{font-size:14px;color:var(--ink);line-height:1.75;margin:0 0 14px}
+  .pricebox{display:flex;align-items:baseline;gap:12px;background:var(--sunk);border-radius:12px;padding:16px 20px;margin:18px 0}
+  .pricebox .big{font-size:30px;font-weight:700;letter-spacing:-.02em;font-variant-numeric:tabular-nums}
+  .pricebox .pl{font-size:12.5px;color:var(--ink-2)}
+  .bnote{padding:22px 20px;overflow:auto;background:var(--bg)}
+  .bnote .ntitle{display:flex;align-items:center;gap:9px;font-size:13.5px;font-weight:640;letter-spacing:-.01em;margin-bottom:10px}
+  .bnote .ntitle .ic{width:18px;height:18px;color:var(--ink-2)}
+  .bnote .ncard{background:var(--card);border-radius:12px;box-shadow:var(--sh-card);padding:15px 16px;margin-bottom:14px}
+  .bnote .ncard p{font-size:12.5px;color:var(--ink);line-height:1.65;margin:0}
+  .safechip{display:inline-flex;align-items:center;gap:6px;color:var(--ink-2);font-size:12px;font-weight:500;background:var(--sunk);border-radius:8px;padding:5px 9px;margin-top:12px}
+  .safechip .ic{width:14px;height:14px;color:var(--ok)}
+</style>
+</head>
+<body>
+<div class="gallery">
+
+<!-- ================= 1 · FILES ================= -->
+<div class="glabel">1 — Files <span class="n">· browse the workspace, peek before you open</span></div>
+<div class="frame"><div class="shell">
+  <div class="rail">
+    <div class="rlogo"><svg class="ic" viewBox="0 0 24 24"><path d="M4 7h16M4 12h16M4 17h10"/></svg></div>
+    <div class="ritem"><svg class="ic" viewBox="0 0 24 24"><path d="M3 11l9-8 9 8"/><path d="M5 10v10h14V10"/></svg><span>Home</span></div>
+    <div class="ritem on"><svg class="ic" viewBox="0 0 24 24"><path d="M4 6a2 2 0 0 1 2-2h4l2 3h6a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2z"/></svg><span>Files</span></div>
+    <div class="ritem" style="position:relative"><span class="badge">2</span><svg class="ic" viewBox="0 0 24 24"><rect x="4" y="6" width="16" height="12" rx="2"/><path d="M5 8l7 5 7-5"/></svg><span>Mail</span></div>
+    <div class="ritem"><svg class="ic" viewBox="0 0 24 24"><rect x="4" y="5" width="16" height="16" rx="2"/><path d="M4 9h16M8 3v4M16 3v4"/></svg><span>Calendar</span></div>
+    <div class="ritem"><svg class="ic" viewBox="0 0 24 24"><path d="M20 12a8 8 0 1 1-3.5-6.6L20 4v5h-5"/></svg><span>Chats</span></div>
+    <div class="ritem"><svg class="ic" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3a14 14 0 0 1 0 18M12 3a14 14 0 0 0 0 18"/></svg><span>Browser</span></div>
+    <div class="ritem"><svg class="ic" viewBox="0 0 24 24"><circle cx="12" cy="8" r="3"/><path d="M6 20a6 6 0 0 1 12 0"/></svg><span>Agents</span></div>
+    <div class="rgap"></div><div class="rdiv"></div>
+    <div class="rspace" style="background:#0071E3">W</div><div class="rspace" style="background:#8A8A8E">P</div>
+    <div class="rdiv"></div>
+    <div class="ritem"><svg class="ic" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M12 3v3M12 18v3M3 12h3M18 12h3M6 6l2 2M16 16l2 2M6 18l2-2M16 8l2-2"/></svg><span>Settings</span></div>
+  </div>
+  <div class="stage">
+    <div class="topbar">
+      <div class="tabs">
+        <div class="tab on"><svg class="ic" viewBox="0 0 24 24"><path d="M4 6a2 2 0 0 1 2-2h4l2 3h6a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2z"/></svg> Files
+          <span class="pop" title="Open in a new window"><svg class="ic" viewBox="0 0 24 24"><path d="M14 4h6v6M20 4l-8 8M18 14v4a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4"/></svg></span></div>
+        <div class="tab add">+</div>
+      </div>
+      <div class="spacer"></div>
+      <div class="working"><span class="live"></span> 2 working</div>
+      <div class="cmdk"><svg class="ic" style="width:15px;height:15px" viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3-3"/></svg> Search or run <span class="k">⌘K</span></div>
+    </div>
+    <div class="files-split">
+      <div class="tree">
+        <div class="th"><svg class="ic" style="width:15px;height:15px" viewBox="0 0 24 24"><path d="M4 6a2 2 0 0 1 2-2h4l2 3h6a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2z"/></svg> Work</div>
+        <div class="row folder"><svg class="chev" viewBox="0 0 24 24"><path d="M9 6l6 6-6 6"/></svg><svg class="ic" viewBox="0 0 24 24"><path d="M4 7a2 2 0 0 1 2-2h4l2 2h6a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2z"/></svg> Q3</div>
+        <div class="row folder"><svg class="chev" style="transform:rotate(90deg)" viewBox="0 0 24 24"><path d="M9 6l6 6-6 6"/></svg><svg class="ic" viewBox="0 0 24 24"><path d="M4 7a2 2 0 0 1 2-2h4l2 2h6a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2z"/></svg> Reports</div>
+        <div class="row indent"><svg class="ic" viewBox="0 0 24 24"><rect x="4" y="4" width="16" height="16" rx="2"/><path d="M8 9h8M8 13h8M8 17h5"/></svg> budget.xlsx <span class="meta">2d</span></div>
+        <div class="row indent on"><svg class="ic" viewBox="0 0 24 24"><path d="M8 4h7l4 4v12H4V4z"/><path d="M9 13h6M9 16h4"/></svg> report.docx <span class="meta">1h</span></div>
+        <div class="row indent"><svg class="ic" viewBox="0 0 24 24"><rect x="4" y="5" width="16" height="14" rx="2"/><path d="M4 15l4-4 3 3 4-5 5 6"/></svg> deck.pptx <span class="meta">3d</span></div>
+        <div class="row folder"><svg class="chev" viewBox="0 0 24 24"><path d="M9 6l6 6-6 6"/></svg><svg class="ic" viewBox="0 0 24 24"><path d="M4 7a2 2 0 0 1 2-2h4l2 2h6a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2z"/></svg> notes</div>
+      </div>
+      <div class="peek">
+        <div class="peekhead">
+          <div class="picon"><svg class="ic" viewBox="0 0 24 24"><path d="M8 4h7l4 4v12H4V4z"/><path d="M9 13h6M9 16h4"/></svg></div>
+          <div><div class="pt">report.docx</div><div class="sub">Word document · edited 1 hour ago · 4 pages</div></div>
+          <div class="spacer"></div>
+          <div class="popbtn" title="Open in a new window"><svg class="ic" viewBox="0 0 24 24"><path d="M14 4h6v6M20 4l-8 8M18 14v4a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4"/></svg> Open in new window</div>
+          <button class="b blue"><svg class="ic" viewBox="0 0 24 24"><path d="M7 17L17 7M9 7h8v8"/></svg> Open</button>
+        </div>
+        <div class="peekbody">
+          <div class="paper">
+            <h4>Q3 Business Review</h4>
+            <div class="psub">Finance · draft</div>
+            <p>Revenue for the third quarter came in ahead of plan, driven by stronger renewals and a healthy new-business pipeline across both regions.</p>
+            <div class="skel" style="width:100%"></div>
+            <div class="skel" style="width:92%"></div>
+            <div class="skel" style="width:96%"></div>
+            <div class="skel" style="width:60%"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div></div>
+
+<!-- ================= 2 · WORD DOCUMENT ================= -->
+<div class="glabel">2 — A document open <span class="n">· report.docx on the Stage — a familiar word processor</span></div>
+<div class="frame"><div class="shell">
+  <div class="rail">
+    <div class="rlogo"><svg class="ic" viewBox="0 0 24 24"><path d="M4 7h16M4 12h16M4 17h10"/></svg></div>
+    <div class="ritem"><svg class="ic" viewBox="0 0 24 24"><path d="M3 11l9-8 9 8"/><path d="M5 10v10h14V10"/></svg><span>Home</span></div>
+    <div class="ritem on"><svg class="ic" viewBox="0 0 24 24"><path d="M4 6a2 2 0 0 1 2-2h4l2 3h6a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2z"/></svg><span>Files</span></div>
+    <div class="ritem" style="position:relative"><span class="badge">2</span><svg class="ic" viewBox="0 0 24 24"><rect x="4" y="6" width="16" height="12" rx="2"/><path d="M5 8l7 5 7-5"/></svg><span>Mail</span></div>
+    <div class="ritem"><svg class="ic" viewBox="0 0 24 24"><rect x="4" y="5" width="16" height="16" rx="2"/><path d="M4 9h16M8 3v4M16 3v4"/></svg><span>Calendar</span></div>
+    <div class="ritem"><svg class="ic" viewBox="0 0 24 24"><path d="M20 12a8 8 0 1 1-3.5-6.6L20 4v5h-5"/></svg><span>Chats</span></div>
+    <div class="ritem"><svg class="ic" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3a14 14 0 0 1 0 18M12 3a14 14 0 0 0 0 18"/></svg><span>Browser</span></div>
+    <div class="ritem"><svg class="ic" viewBox="0 0 24 24"><circle cx="12" cy="8" r="3"/><path d="M6 20a6 6 0 0 1 12 0"/></svg><span>Agents</span></div>
+    <div class="rgap"></div><div class="rdiv"></div>
+    <div class="rspace" style="background:#0071E3">W</div><div class="rspace" style="background:#8A8A8E">P</div>
+    <div class="rdiv"></div>
+    <div class="ritem"><svg class="ic" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M12 3v3M12 18v3M3 12h3M18 12h3M6 6l2 2M16 16l2 2M6 18l2-2M16 8l2-2"/></svg><span>Settings</span></div>
+  </div>
+  <div class="stage">
+    <div class="topbar">
+      <div class="tabs">
+        <div class="tab"><svg class="ic" viewBox="0 0 24 24"><path d="M4 6a2 2 0 0 1 2-2h4l2 3h6a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2z"/></svg> Files</div>
+        <div class="tab on"><svg class="ic" viewBox="0 0 24 24"><path d="M8 4h8l4 4v12H4V4z"/></svg> report.docx
+          <span class="pop" title="Open in a new window"><svg class="ic" viewBox="0 0 24 24"><path d="M14 4h6v6M20 4l-8 8M18 14v4a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4"/></svg></span>
+          <span class="x">×</span></div>
+        <div class="tab add">+</div>
+      </div>
+      <div class="spacer"></div>
+      <div class="working"><span class="live"></span> 2 working</div>
+      <div class="cmdk"><svg class="ic" style="width:15px;height:15px" viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3-3"/></svg> Search or run <span class="k">⌘K</span></div>
+    </div>
+    <div class="doctool">
+      <div class="sty">Body text <svg class="ic" viewBox="0 0 24 24"><path d="M6 9l6 6 6-6"/></svg></div>
+      <div class="sep"></div>
+      <div class="grp">
+        <div class="tbtn on" title="Bold"><svg class="ic" viewBox="0 0 24 24"><path d="M7 5h6a3.5 3.5 0 0 1 0 7H7zM7 12h7a3.5 3.5 0 0 1 0 7H7z"/></svg></div>
+        <div class="tbtn" title="Italic"><svg class="ic" viewBox="0 0 24 24"><path d="M14 5h-4M14 19h-6M15 5l-4 14"/></svg></div>
+        <div class="tbtn" title="Underline"><svg class="ic" viewBox="0 0 24 24"><path d="M7 5v6a5 5 0 0 0 10 0V5M6 20h12"/></svg></div>
+      </div>
+      <div class="sep"></div>
+      <div class="grp">
+        <div class="tbtn" title="List"><svg class="ic" viewBox="0 0 24 24"><path d="M9 6h11M9 12h11M9 18h11M4.5 6h.01M4.5 12h.01M4.5 18h.01"/></svg></div>
+        <div class="tbtn" title="Align left"><svg class="ic" viewBox="0 0 24 24"><path d="M4 6h16M4 12h10M4 18h13"/></svg></div>
+        <div class="tbtn" title="Link"><svg class="ic" viewBox="0 0 24 24"><path d="M10 13a5 5 0 0 0 7 0l2-2a5 5 0 0 0-7-7l-1 1M14 11a5 5 0 0 0-7 0l-2 2a5 5 0 0 0 7 7l1-1"/></svg></div>
+        <div class="tbtn" title="Table"><svg class="ic" viewBox="0 0 24 24"><rect x="4" y="5" width="16" height="14" rx="2"/><path d="M4 10h16M10 5v14"/></svg></div>
+      </div>
+      <div style="flex:1"></div>
+      <div class="popbtn" title="Open in a new window" style="margin-right:8px"><svg class="ic" viewBox="0 0 24 24"><path d="M14 4h6v6M20 4l-8 8M18 14v4a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4"/></svg> New window</div>
+      <button class="b blue"><svg class="ic" viewBox="0 0 24 24"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><path d="M17 21v-8H7v8M7 3v5h8"/></svg> Save</button>
+    </div>
+    <div class="docscroll">
+      <div class="page">
+        <h2>Q3 Business Review</h2>
+        <div class="dmeta">Finance team · draft · updated an hour ago</div>
+        <p>Revenue for the third quarter reached <span class="live-chip"><span class="dot"></span>€4.82M<svg class="ic" viewBox="0 0 24 24"><path d="M13 2L3 14h7l-1 8 10-12h-7z"/></svg></span>, ahead of the plan we set at the start of the year. The growth came mostly from renewals and a stronger new-business pipeline across both regions.</p>
+        <p>This number updates on its own — it is pulled straight from the budget spreadsheet, so the review always shows the latest figure without anyone re-typing it.</p>
+        <h3>Revenue by region</h3>
+        <table class="doc">
+          <thead><tr><th>Region</th><th style="text-align:right">Plan</th><th style="text-align:right">Actual</th><th style="text-align:right">vs plan</th></tr></thead>
+          <tbody>
+            <tr><td>North America</td><td class="num">€2.60M</td><td class="num">€2.81M</td><td class="num">+8%</td></tr>
+            <tr><td>Europe</td><td class="num">€1.90M</td><td class="num">€2.01M</td><td class="num">+6%</td></tr>
+            <tr><td>Total</td><td class="num">€4.50M</td><td class="num">€4.82M</td><td class="num">+7%</td></tr>
+          </tbody>
+        </table>
+        <p>We expect the fourth quarter to hold this pace, with two enterprise deals already in late-stage review and renewals tracking above last year.</p>
+      </div>
+    </div>
+  </div>
+</div></div>
+
+<!-- ================= 3 · SPREADSHEET ================= -->
+<div class="glabel">3 — A spreadsheet open <span class="n">· budget.xlsx — a familiar grid with a formula bar</span></div>
+<div class="frame"><div class="shell">
+  <div class="rail">
+    <div class="rlogo"><svg class="ic" viewBox="0 0 24 24"><path d="M4 7h16M4 12h16M4 17h10"/></svg></div>
+    <div class="ritem"><svg class="ic" viewBox="0 0 24 24"><path d="M3 11l9-8 9 8"/><path d="M5 10v10h14V10"/></svg><span>Home</span></div>
+    <div class="ritem on"><svg class="ic" viewBox="0 0 24 24"><path d="M4 6a2 2 0 0 1 2-2h4l2 3h6a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2z"/></svg><span>Files</span></div>
+    <div class="ritem" style="position:relative"><span class="badge">2</span><svg class="ic" viewBox="0 0 24 24"><rect x="4" y="6" width="16" height="12" rx="2"/><path d="M5 8l7 5 7-5"/></svg><span>Mail</span></div>
+    <div class="ritem"><svg class="ic" viewBox="0 0 24 24"><rect x="4" y="5" width="16" height="16" rx="2"/><path d="M4 9h16M8 3v4M16 3v4"/></svg><span>Calendar</span></div>
+    <div class="ritem"><svg class="ic" viewBox="0 0 24 24"><path d="M20 12a8 8 0 1 1-3.5-6.6L20 4v5h-5"/></svg><span>Chats</span></div>
+    <div class="ritem"><svg class="ic" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3a14 14 0 0 1 0 18M12 3a14 14 0 0 0 0 18"/></svg><span>Browser</span></div>
+    <div class="ritem"><svg class="ic" viewBox="0 0 24 24"><circle cx="12" cy="8" r="3"/><path d="M6 20a6 6 0 0 1 12 0"/></svg><span>Agents</span></div>
+    <div class="rgap"></div><div class="rdiv"></div>
+    <div class="rspace" style="background:#0071E3">W</div><div class="rspace" style="background:#8A8A8E">P</div>
+    <div class="rdiv"></div>
+    <div class="ritem"><svg class="ic" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M12 3v3M12 18v3M3 12h3M18 12h3M6 6l2 2M16 16l2 2M6 18l2-2M16 8l2-2"/></svg><span>Settings</span></div>
+  </div>
+  <div class="stage">
+    <div class="topbar">
+      <div class="tabs">
+        <div class="tab"><svg class="ic" viewBox="0 0 24 24"><path d="M8 4h8l4 4v12H4V4z"/></svg> report.docx</div>
+        <div class="tab on"><svg class="ic" viewBox="0 0 24 24"><rect x="4" y="4" width="16" height="16" rx="2"/><path d="M4 10h16M10 4v16"/></svg> budget.xlsx
+          <span class="pop" title="Open in a new window"><svg class="ic" viewBox="0 0 24 24"><path d="M14 4h6v6M20 4l-8 8M18 14v4a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4"/></svg></span>
+          <span class="x">×</span></div>
+        <div class="tab add">+</div>
+      </div>
+      <div class="spacer"></div>
+      <div class="working"><span class="live"></span> 2 working</div>
+      <div class="cmdk"><svg class="ic" style="width:15px;height:15px" viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3-3"/></svg> Search or run <span class="k">⌘K</span></div>
+    </div>
+    <div class="formulabar">
+      <div class="cellref">C7</div>
+      <div class="fx">fx</div>
+      <div class="finput">=SUM(C4:C6)</div>
+      <div class="popbtn" title="Open in a new window"><svg class="ic" viewBox="0 0 24 24"><path d="M14 4h6v6M20 4l-8 8M18 14v4a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4"/></svg> New window</div>
+    </div>
+    <div class="gridwrap">
+      <table class="grid">
+        <colgroup><col style="width:42px"><col style="width:150px"><col span="5" style="width:120px"></colgroup>
+        <thead><tr><th></th><th>A</th><th>B</th><th>C</th><th>D</th><th>E</th><th>F</th></tr></thead>
+        <tbody>
+          <tr><th>1</th><td class="head">Q3 Budget</td><td></td><td></td><td></td><td></td><td></td></tr>
+          <tr><th>2</th><td class="txt"></td><td></td><td></td><td></td><td></td><td></td></tr>
+          <tr><th>3</th><td class="txt" style="font-weight:600;color:var(--ink-2)">Region</td><td class="txt" style="font-weight:600;color:var(--ink-2);text-align:left">Plan</td><td style="font-weight:600;color:var(--ink-2);text-align:right;padding-right:12px">Actual</td><td style="font-weight:600;color:var(--ink-2)">vs plan</td><td></td><td></td></tr>
+          <tr><th>4</th><td class="txt">North America</td><td class="txt">2,600,000</td><td>2,810,000</td><td>+8%</td><td></td><td></td></tr>
+          <tr><th>5</th><td class="txt">Europe</td><td class="txt">1,900,000</td><td>2,010,000</td><td>+6%</td><td></td><td></td></tr>
+          <tr><th>6</th><td class="txt">Other</td><td class="txt">0</td><td>0</td><td>—</td><td></td><td></td></tr>
+          <tr><th>7</th><td class="txt" style="font-weight:600">Total</td><td class="txt">4,500,000</td>
+            <td class="sel"><span class="cellin"><span class="livedot" title="Used as a live number in report.docx"></span>4,820,000</span></td>
+            <td>+7%</td><td></td><td></td></tr>
+          <tr><th>8</th><td class="txt"></td><td></td><td></td><td></td><td></td><td></td></tr>
+          <tr><th>9</th><td class="txt"></td><td></td><td></td><td></td><td></td><td></td></tr>
+          <tr><th>10</th><td class="txt"></td><td></td><td></td><td></td><td></td><td></td></tr>
+          <tr><th>11</th><td class="txt"></td><td></td><td></td><td></td><td></td><td></td></tr>
+          <tr><th>12</th><td class="txt"></td><td></td><td></td><td></td><td></td><td></td></tr>
+          <tr><th>13</th><td class="txt"></td><td></td><td></td><td></td><td></td><td></td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div></div>
+
+<!-- ================= 4 · MAIL ================= -->
+<div class="glabel">4 — Mail <span class="n">· folders, message list, and the reader</span></div>
+<div class="frame"><div class="shell">
+  <div class="rail">
+    <div class="rlogo"><svg class="ic" viewBox="0 0 24 24"><path d="M4 7h16M4 12h16M4 17h10"/></svg></div>
+    <div class="ritem"><svg class="ic" viewBox="0 0 24 24"><path d="M3 11l9-8 9 8"/><path d="M5 10v10h14V10"/></svg><span>Home</span></div>
+    <div class="ritem"><svg class="ic" viewBox="0 0 24 24"><path d="M4 6a2 2 0 0 1 2-2h4l2 3h6a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2z"/></svg><span>Files</span></div>
+    <div class="ritem on" style="position:relative"><span class="badge">2</span><svg class="ic" viewBox="0 0 24 24"><rect x="4" y="6" width="16" height="12" rx="2"/><path d="M5 8l7 5 7-5"/></svg><span>Mail</span></div>
+    <div class="ritem"><svg class="ic" viewBox="0 0 24 24"><rect x="4" y="5" width="16" height="16" rx="2"/><path d="M4 9h16M8 3v4M16 3v4"/></svg><span>Calendar</span></div>
+    <div class="ritem"><svg class="ic" viewBox="0 0 24 24"><path d="M20 12a8 8 0 1 1-3.5-6.6L20 4v5h-5"/></svg><span>Chats</span></div>
+    <div class="ritem"><svg class="ic" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3a14 14 0 0 1 0 18M12 3a14 14 0 0 0 0 18"/></svg><span>Browser</span></div>
+    <div class="ritem"><svg class="ic" viewBox="0 0 24 24"><circle cx="12" cy="8" r="3"/><path d="M6 20a6 6 0 0 1 12 0"/></svg><span>Agents</span></div>
+    <div class="rgap"></div><div class="rdiv"></div>
+    <div class="rspace" style="background:#0071E3">W</div><div class="rspace" style="background:#8A8A8E">P</div>
+    <div class="rdiv"></div>
+    <div class="ritem"><svg class="ic" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M12 3v3M12 18v3M3 12h3M18 12h3M6 6l2 2M16 16l2 2M6 18l2-2M16 8l2-2"/></svg><span>Settings</span></div>
+  </div>
+  <div class="stage">
+    <div class="topbar">
+      <div class="tabs">
+        <div class="tab on"><svg class="ic" viewBox="0 0 24 24"><rect x="4" y="6" width="16" height="12" rx="2"/><path d="M5 8l7 5 7-5"/></svg> Mail
+          <span class="pop" title="Open in a new window"><svg class="ic" viewBox="0 0 24 24"><path d="M14 4h6v6M20 4l-8 8M18 14v4a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4"/></svg></span></div>
+        <div class="tab add">+</div>
+      </div>
+      <div class="spacer"></div>
+      <div class="working"><span class="live"></span> 2 working</div>
+      <div class="cmdk"><svg class="ic" style="width:15px;height:15px" viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3-3"/></svg> Search or run <span class="k">⌘K</span></div>
+    </div>
+    <div class="mail-split">
+      <div class="mfolders">
+        <div class="mf on"><svg class="ic" viewBox="0 0 24 24"><path d="M4 6h16v10a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2z"/><path d="M4 8l8 5 8-5"/></svg> Inbox <span class="c">2</span></div>
+        <div class="mf"><svg class="ic" viewBox="0 0 24 24"><path d="M22 2L11 13M22 2l-7 20-4-9-9-4z"/></svg> Sent</div>
+        <div class="mf"><svg class="ic" viewBox="0 0 24 24"><path d="M12 20h9M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4z"/></svg> Drafts <span class="c">1</span></div>
+        <div class="mf"><svg class="ic" viewBox="0 0 24 24"><path d="M3 6h18M8 6V4h8v2M6 6l1 14h10l1-14"/></svg> Trash</div>
+      </div>
+      <div class="mlist">
+        <div class="mitem unread on">
+          <div class="l1"><span class="unreaddot"></span><span class="from">Priya Nair</span><span class="when">9:14 AM</span></div>
+          <div class="subj">Q3 forecast — quick check before the call</div>
+          <div class="prev">Hi — could you send the updated Q3 figures before we…</div>
+        </div>
+        <div class="mitem">
+          <div class="l1"><span class="from">Marcus Lee</span><span class="when">Yesterday</span></div>
+          <div class="subj">Renewals dashboard is live</div>
+          <div class="prev">The team pushed the new renewals view — take a look when…</div>
+        </div>
+        <div class="mitem">
+          <div class="l1"><span class="from">Acme Partners</span><span class="when">Mon</span></div>
+          <div class="subj">Contract renewal — signed copy attached</div>
+          <div class="prev">Please find the countersigned agreement attached for your…</div>
+        </div>
+      </div>
+      <div class="mreader">
+        <div class="mrhead">
+          <div class="rt">Q3 forecast — quick check before the call</div>
+          <div class="frm">
+            <div class="av">PN</div>
+            <div><div class="fn">Priya Nair</div><div class="fe">priya@acme-partners.com · to me</div></div>
+            <div class="spacer"></div>
+            <div class="popbtn" title="Open in a new window"><svg class="ic" viewBox="0 0 24 24"><path d="M14 4h6v6M20 4l-8 8M18 14v4a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4"/></svg> New window</div>
+          </div>
+        </div>
+        <div class="mrbody">
+          <div class="blocknote"><svg class="ic" viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M3 8l9 6 9-6"/><path d="M4 4l16 16"/></svg> Images in this message are hidden to protect your privacy. <a>Show images</a></div>
+          <p>Hi,</p>
+          <p>Could you send the updated Q3 figures before we talk tomorrow? I want to line them up against the pipeline so we walk in with one story.</p>
+          <p>The finance-model number and the sales-adjusted view would both be helpful if you have them.</p>
+          <p>Thanks,<br>Priya</p>
+        </div>
+        <div class="mractions">
+          <button class="b blue"><svg class="ic" viewBox="0 0 24 24"><path d="M9 17l-6-5 6-5M3 12h11a6 6 0 0 1 6 6v1"/></svg> Reply</button>
+          <button class="b quiet"><svg class="ic" viewBox="0 0 24 24"><path d="M8 17l-5-5 5-5M13 17l-5-5 5-5M13 12h5a3 3 0 0 1 3 3v2"/></svg> Reply all</button>
+          <button class="b quiet"><svg class="ic" viewBox="0 0 24 24"><path d="M15 17l6-5-6-5M21 12H10a6 6 0 0 0-6 6v1"/></svg> Forward</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div></div>
+
+<!-- ================= 5 · BROWSER ================= -->
+<div class="glabel">5 — Browser <span class="n">· your assistant can read the page and pull data in — you approve every action</span></div>
+<div class="frame"><div class="shell">
+  <div class="rail">
+    <div class="rlogo"><svg class="ic" viewBox="0 0 24 24"><path d="M4 7h16M4 12h16M4 17h10"/></svg></div>
+    <div class="ritem"><svg class="ic" viewBox="0 0 24 24"><path d="M3 11l9-8 9 8"/><path d="M5 10v10h14V10"/></svg><span>Home</span></div>
+    <div class="ritem"><svg class="ic" viewBox="0 0 24 24"><path d="M4 6a2 2 0 0 1 2-2h4l2 3h6a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2z"/></svg><span>Files</span></div>
+    <div class="ritem" style="position:relative"><span class="badge">2</span><svg class="ic" viewBox="0 0 24 24"><rect x="4" y="6" width="16" height="12" rx="2"/><path d="M5 8l7 5 7-5"/></svg><span>Mail</span></div>
+    <div class="ritem"><svg class="ic" viewBox="0 0 24 24"><rect x="4" y="5" width="16" height="16" rx="2"/><path d="M4 9h16M8 3v4M16 3v4"/></svg><span>Calendar</span></div>
+    <div class="ritem"><svg class="ic" viewBox="0 0 24 24"><path d="M20 12a8 8 0 1 1-3.5-6.6L20 4v5h-5"/></svg><span>Chats</span></div>
+    <div class="ritem on"><svg class="ic" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3a14 14 0 0 1 0 18M12 3a14 14 0 0 0 0 18"/></svg><span>Browser</span></div>
+    <div class="ritem"><svg class="ic" viewBox="0 0 24 24"><circle cx="12" cy="8" r="3"/><path d="M6 20a6 6 0 0 1 12 0"/></svg><span>Agents</span></div>
+    <div class="rgap"></div><div class="rdiv"></div>
+    <div class="rspace" style="background:#0071E3">W</div><div class="rspace" style="background:#8A8A8E">P</div>
+    <div class="rdiv"></div>
+    <div class="ritem"><svg class="ic" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M12 3v3M12 18v3M3 12h3M18 12h3M6 6l2 2M16 16l2 2M6 18l2-2M16 8l2-2"/></svg><span>Settings</span></div>
+  </div>
+  <div class="stage">
+    <div class="topbar">
+      <div class="tabs">
+        <div class="tab on"><svg class="ic" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3a14 14 0 0 1 0 18M12 3a14 14 0 0 0 0 18"/></svg> Browser
+          <span class="pop" title="Open in a new window"><svg class="ic" viewBox="0 0 24 24"><path d="M14 4h6v6M20 4l-8 8M18 14v4a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4"/></svg></span></div>
+        <div class="tab add">+</div>
+      </div>
+      <div class="spacer"></div>
+      <div class="working"><span class="live"></span> 2 working</div>
+      <div class="cmdk"><svg class="ic" style="width:15px;height:15px" viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3-3"/></svg> Search or run <span class="k">⌘K</span></div>
+    </div>
+    <div class="browser">
+      <div class="bmain">
+        <div class="addrbar">
+          <div class="navbtn" title="Back"><svg class="ic" viewBox="0 0 24 24"><path d="M15 18l-6-6 6-6"/></svg></div>
+          <div class="navbtn" title="Forward"><svg class="ic" viewBox="0 0 24 24"><path d="M9 6l6 6-6 6"/></svg></div>
+          <div class="navbtn" title="Reload"><svg class="ic" viewBox="0 0 24 24"><path d="M4 4v5h5M20 20v-5h-5"/><path d="M20 9a8 8 0 0 0-14-3L4 9M4 15a8 8 0 0 0 14 3l2-3"/></svg></div>
+          <div class="url"><svg class="ic" viewBox="0 0 24 24"><rect x="5" y="11" width="14" height="9" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/></svg><span class="dom">marketwatch.example.com</span>/energy/steel-prices-q3</div>
+          <div class="popbtn" title="Open in a new window"><svg class="ic" viewBox="0 0 24 24"><path d="M14 4h6v6M20 4l-8 8M18 14v4a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4"/></svg> New window</div>
+        </div>
+        <div class="webscroll">
+          <div class="article">
+            <div class="kick">Commodities</div>
+            <h2>Steel prices ease as Q3 supply steadies</h2>
+            <div class="abyline">By E. Vaughn · Updated today, 8:40 AM</div>
+            <p>Hot-rolled coil settled lower this week as mills restarted capacity and freight bottlenecks cleared, giving buyers their first real breathing room since spring.</p>
+            <div class="pricebox">
+              <span class="big">$742<span style="font-size:16px;color:var(--ink-2)">/ton</span></span>
+              <span class="pl">Hot-rolled coil · spot, today</span>
+            </div>
+            <p>Analysts expect the softening to hold into the fourth quarter as inventories rebuild, though a colder-than-usual winter could pull demand forward and reverse some of the decline.</p>
+            <p>Downstream, fabricators say the relief is welcome after three quarters of margin pressure, and several have already begun locking in forward contracts at the lower level.</p>
+          </div>
+        </div>
+      </div>
+      <div class="bnote">
+        <div class="ntitle"><svg class="ic" viewBox="0 0 24 24"><circle cx="12" cy="8" r="3"/><path d="M6 20a6 6 0 0 1 12 0"/></svg> Assistant</div>
+        <div class="ncard">
+          <p>Your assistant can read this page and pull data into your work — like the steel price into your budget. You approve each action before anything changes.</p>
+          <div class="safechip"><svg class="ic" viewBox="0 0 24 24"><path d="M12 3l7 3v5c0 4.5-3 8-7 10-4-2-7-5.5-7-10V6z"/><path d="M9 12l2 2 4-4"/></svg> Nothing happens without your ok</div>
+        </div>
+        <button class="b blue" style="width:100%;justify-content:center"><svg class="ic" viewBox="0 0 24 24"><path d="M13 2L3 14h7l-1 8 10-12h-7z"/></svg> Capture the price as a live number</button>
+      </div>
+    </div>
+  </div>
+</div></div>
+
+</div>
+</body>
+</html>

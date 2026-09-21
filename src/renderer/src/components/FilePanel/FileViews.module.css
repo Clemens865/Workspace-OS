@@ -1,0 +1,262 @@
+/* The icon, gallery and column views for the Files surface. */
+
+/* ── thumbnails ── */
+.thumbImg {
+  object-fit: cover;
+  border-radius: 6px;
+  background: var(--wos-bg-soft, rgba(0, 0, 0, 0.04));
+  flex-shrink: 0;
+}
+
+.thumbGlyph {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 6px;
+  background: var(--wos-bg-soft, rgba(0, 0, 0, 0.04));
+  opacity: 0.72;
+  flex-shrink: 0;
+}
+
+/* ── icon view ── */
+.iconGrid {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  display: grid;
+  /* auto-fill, not auto-fit: a half-empty folder keeps its tiles at a sane
+     width instead of stretching two of them across the whole pane. */
+  grid-template-columns: repeat(auto-fill, minmax(104px, 1fr));
+  gap: 6px;
+  padding: 14px;
+  align-content: start;
+}
+
+.tile {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 7px;
+  padding: 12px 6px 10px;
+  border: 0.5px solid transparent;
+  border-radius: 10px;
+  background: transparent;
+  color: var(--wos-ink);
+  font-family: var(--wos-font);
+  cursor: pointer;
+  min-width: 0;
+}
+
+.tile:hover {
+  background: var(--wos-bg-soft, rgba(0, 0, 0, 0.035));
+}
+
+.tileOn,
+.tileOn:hover {
+  background: var(--wos-blue, #0071e3);
+  border-color: transparent;
+  color: #fff;
+}
+
+.tileName {
+  font-size: 11.5px;
+  line-height: 1.3;
+  text-align: center;
+  /* Two lines then ellipsis — a long filename must not push the row's tiles
+     out of alignment, and one line hides too much to identify a document. */
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  word-break: break-word;
+  max-width: 100%;
+}
+
+.tileMeta {
+  font-size: 10px;
+  opacity: 0.5;
+}
+
+.tileOn .tileMeta {
+  opacity: 0.8;
+}
+
+/* ── gallery view ── */
+.gallery {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  outline: none;
+}
+
+.galleryStage {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  padding: 20px;
+  overflow: hidden;
+}
+
+.galleryName {
+  font-size: 14px;
+  font-weight: 600;
+  text-align: center;
+  max-width: 90%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.galleryMeta {
+  font-size: 11.5px;
+  opacity: 0.55;
+}
+
+.galleryOpen {
+  margin-top: 4px;
+  padding: 5px 14px;
+  border: 0.5px solid var(--wos-hair);
+  border-radius: 999px;
+  background: var(--wos-bg);
+  color: var(--wos-ink);
+  font-family: var(--wos-font);
+  font-size: 12px;
+  cursor: pointer;
+}
+
+.galleryOpen:hover {
+  background: var(--wos-bg-soft, rgba(0, 0, 0, 0.04));
+}
+
+.strip {
+  flex-shrink: 0;
+  display: flex;
+  gap: 6px;
+  padding: 10px 12px;
+  border-top: 0.5px solid var(--wos-hair);
+  overflow-x: auto;
+  scrollbar-width: thin;
+}
+
+.stripItem {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 5px;
+  width: 74px;
+  flex-shrink: 0;
+  padding: 6px 4px;
+  border: 0.5px solid transparent;
+  border-radius: 8px;
+  background: transparent;
+  color: var(--wos-ink);
+  font-family: var(--wos-font);
+  cursor: pointer;
+}
+
+.stripItem:hover {
+  background: var(--wos-bg-soft, rgba(0, 0, 0, 0.035));
+}
+
+.stripItemOn,
+.stripItemOn:hover {
+  background: var(--wos-blue, #0071e3);
+  color: #fff;
+}
+
+.stripName {
+  font-size: 10px;
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* ── column view ── */
+.columns {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  overflow-x: auto;
+  /* Scroll to the newest column as you drill, so the folder you just opened is
+     the one on screen rather than one off the right edge. */
+  scroll-snap-type: x proximity;
+}
+
+.column {
+  flex: 0 0 216px;
+  min-width: 0;
+  height: 100%;
+  overflow-y: auto;
+  border-right: 0.5px solid var(--wos-hair);
+  padding: 4px 0;
+  scroll-snap-align: end;
+}
+
+.colRow {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  padding: 4px 8px;
+  border: none;
+  background: transparent;
+  color: var(--wos-ink);
+  font-family: var(--wos-font);
+  font-size: 12.5px;
+  text-align: left;
+  cursor: pointer;
+}
+
+.colRow:hover {
+  background: var(--wos-bg-soft, rgba(0, 0, 0, 0.035));
+}
+
+/* The folder whose contents are showing in the column to the right. Muted
+   rather than full selection blue — it marks the PATH, not the cursor. */
+.colRowOpen {
+  background: var(--wos-bg-soft, rgba(0, 0, 0, 0.06));
+  font-weight: 600;
+}
+
+.colRowOn,
+.colRowOn:hover {
+  background: var(--wos-blue, #0071e3);
+  color: #fff;
+}
+
+.colName {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.colChevron {
+  flex-shrink: 0;
+  opacity: 0.4;
+}
+
+.colRowOn .colChevron {
+  opacity: 0.9;
+}
+
+.colEmpty {
+  padding: 14px 10px;
+  font-size: 11.5px;
+  opacity: 0.45;
+  text-align: center;
+}
+
+.note {
+  padding: 22px 14px;
+  font-size: 12.5px;
+  opacity: 0.55;
+  text-align: center;
+}

@@ -1,0 +1,142 @@
+/* The sift — a living stream worked down in place. Lives INSIDE the message
+   column (which scrolls), beside the folder rail. */
+
+.panel {
+  padding: 12px 14px 16px;
+  min-width: 0;
+}
+
+.head { display: flex; align-items: baseline; gap: 10px; }
+.brief { font-size: 13.5px; letter-spacing: -0.01em; flex: 1; min-width: 0; }
+.close {
+  border: 0; background: transparent; color: var(--color-text-muted);
+  cursor: pointer; padding: 2px; border-radius: 6px; flex-shrink: 0; align-self: center;
+}
+.close:hover { color: var(--color-text); }
+
+.busy { font-weight: 400; font-size: 11.5px; color: var(--color-text-muted); }
+
+/* The assistant's overview — quiet, but clearly a voice, not a status bar. */
+.briefing {
+  margin: 8px 0 0;
+  padding: 9px 12px;
+  border-radius: 9px;
+  background: var(--color-surface-hover, rgba(127, 127, 127, 0.07));
+  font-size: 12.5px;
+  line-height: 1.55;
+  color: var(--color-text);
+}
+
+.degraded { margin-top: 6px; font-size: 11.5px; color: var(--color-text-muted); font-style: italic; }
+
+/* One proportional bar: the shape of what's unread, at a glance. */
+.strip { display: flex; height: 5px; border-radius: 99px; overflow: hidden; margin: 10px 0 2px; gap: 2px; }
+.seg { display: block; border-radius: 99px; min-width: 6px; }
+.seg_answer { background: #d97706; }
+.seg_case { background: #6366f1; }
+.seg_glance { background: #94a3b8; }
+.seg_noise { background: var(--color-border); }
+
+.zone { margin-top: 12px; }
+.zoneTitle {
+  margin: 0 0 4px; font-size: 11px; font-weight: 650;
+  text-transform: uppercase; letter-spacing: 0.06em; color: var(--color-text-muted);
+  display: inline-flex; align-items: baseline; gap: 6px; width: 100%;
+}
+.zt_answer { color: #8a5a00; }
+.zt_case { color: #4f46e5; }
+.zoneCount { font-weight: 500; opacity: 0.75; font-variant-numeric: tabular-nums; }
+.zoneAct {
+  margin-left: auto; border: 0; background: transparent; cursor: pointer;
+  font: inherit; font-size: 11.5px; font-weight: 600; letter-spacing: 0;
+  text-transform: none; color: var(--color-accent, #2a6df4); padding: 0 2px;
+  flex-shrink: 0;
+}
+.zoneAct:hover { text-decoration: underline; }
+
+/* rows */
+.row { display: flex; align-items: first baseline; gap: 8px; padding: 5px 2px; min-width: 0; position: relative; }
+.rowDone { opacity: 0.45; }
+.rowDone .from, .rowDone .summary { text-decoration: line-through; }
+.rowBody { display: flex; flex-direction: column; gap: 3px; min-width: 0; flex: 1; }
+.rowTop {
+  display: flex; align-items: baseline; gap: 8px; min-width: 0; width: 100%;
+  border: 0; background: transparent; color: inherit; font: inherit;
+  text-align: left; cursor: pointer; padding: 1px 4px; border-radius: 6px;
+}
+.rowTop:hover { background: var(--color-bg-hover, rgba(0, 0, 0, 0.045)); }
+
+.dot { width: 6px; height: 6px; border-radius: 50%; background: var(--color-border); flex-shrink: 0; transform: translateY(-1px); }
+.dotWarm { background: #d97706; }
+.dotHot { background: #dc2626; }
+
+.from { font-size: 12.5px; font-weight: 620; flex-shrink: 0; max-width: 160px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.summary { font-size: 12.5px; color: var(--color-text-muted); min-width: 0; flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.casePill {
+  flex-shrink: 0; font-size: 10.5px; padding: 1px 7px; border-radius: 99px;
+  background: rgba(99, 102, 241, 0.12); color: #4f46e5; max-width: 140px;
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+.time { flex-shrink: 0; font-size: 11px; color: var(--color-text-muted); font-variant-numeric: tabular-nums; }
+.due {
+  flex-shrink: 0; font-size: 10.5px; padding: 0 6px; border-radius: 99px;
+  background: rgba(217, 119, 6, 0.12); color: #8a5a00; font-variant-numeric: tabular-nums;
+}
+.doneStamp {
+  flex-shrink: 0; display: inline-flex; align-items: center; gap: 3px;
+  font-size: 11px; font-weight: 650; color: var(--color-success, #2c9a44);
+}
+
+/* the verbs line */
+.todoLine { display: flex; align-items: center; gap: 10px; min-width: 0; padding-left: 4px; }
+.todo {
+  font-size: 12px; font-weight: 550; color: #8a5a00;
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap; min-width: 0;
+}
+.acts { display: inline-flex; gap: 5px; margin-left: auto; flex-shrink: 0; align-items: center; }
+.act {
+  display: inline-flex; align-items: center; gap: 4px;
+  border: 0.5px solid var(--color-border); background: var(--color-bg);
+  border-radius: 7px; padding: 2.5px 8px; font: inherit; font-size: 11.5px;
+  font-weight: 600; color: var(--color-text); cursor: pointer; white-space: nowrap;
+}
+.act:hover { background: var(--color-surface-hover, rgba(127, 127, 127, 0.08)); }
+.actPrimary { background: var(--color-accent, #2a6df4); border-color: transparent; color: #fff; }
+.actPrimary:hover { background: var(--color-accent, #2a6df4); opacity: 0.92; }
+.fixBtn {
+  border: 0; background: transparent; font: inherit; font-size: 11px;
+  color: var(--color-text-muted); cursor: pointer; padding: 2px 4px; white-space: nowrap;
+}
+.fixBtn:hover { color: var(--color-text); text-decoration: underline; }
+
+/* the correction popover — a mistake is fixed where it's seen */
+.fix {
+  position: absolute; right: 0; top: 100%; z-index: 5; margin-top: 4px;
+  display: flex; flex-direction: column; gap: 6px;
+  background: var(--color-bg-elevated, #fff); border: 0.5px solid var(--color-border);
+  border-radius: 10px; padding: 10px 12px; box-shadow: 0 12px 32px rgba(0, 0, 0, 0.18);
+  min-width: 260px;
+}
+.fixQ { font-size: 12px; font-weight: 700; }
+.fixOpts { display: flex; gap: 6px; flex-wrap: wrap; }
+.fixOpt {
+  border: 0.5px solid var(--color-border); background: transparent; border-radius: 99px;
+  padding: 2px 10px; font: inherit; font-size: 11.5px; cursor: pointer; color: var(--color-text);
+}
+.fixOpt:hover { background: var(--color-surface-hover, rgba(127, 127, 127, 0.08)); }
+.fixAlways { color: var(--color-text-muted); font-size: 11px; }
+
+/* noise */
+.noiseHeadRow { display: flex; align-items: baseline; gap: 10px; }
+.noiseHead {
+  display: flex; align-items: center; gap: 5px; min-width: 0; flex: 1; border: 0;
+  background: transparent; color: var(--color-text-muted); font: inherit;
+  cursor: pointer; padding: 0 0 4px; text-align: left;
+}
+.noiseHint { font-size: 11px; color: var(--color-text-muted); margin-left: auto; }
+.noiseRow {
+  display: flex; align-items: baseline; gap: 8px; width: 100%; min-width: 0;
+  padding: 5px 4px; border: 0; border-radius: 7px; background: transparent;
+  color: inherit; font: inherit; text-align: left; cursor: pointer;
+}
+.noiseRow:hover { background: var(--color-bg-hover, rgba(0, 0, 0, 0.045)); }

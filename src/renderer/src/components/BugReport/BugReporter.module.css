@@ -1,0 +1,166 @@
+/* Mirrors the QuickOpen / CommandBar palette look — one visual language. */
+
+.backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(20, 20, 22, 0.34);
+  backdrop-filter: blur(2px);
+  -webkit-backdrop-filter: blur(2px);
+  z-index: 240;
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  padding-top: 9vh;
+}
+
+.panel {
+  width: 660px;
+  max-width: 94vw;
+  max-height: 82vh;
+  overflow-y: auto;
+  background: var(--elevated);
+  border: 1px solid var(--border);
+  border-radius: 15px;
+  box-shadow: var(--shadow-3);
+  display: flex;
+  flex-direction: column;
+}
+
+.head {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-4);
+  border-bottom: 1px solid var(--hairline);
+}
+
+.title { margin: 0; font-size: 15px; font-weight: 600; }
+.spacer { flex: 1; }
+
+.close {
+  background: none;
+  border: none;
+  color: var(--fg-subtle);
+  font-size: 20px;
+  line-height: 1;
+  cursor: pointer;
+  padding: 0 var(--space-2);
+}
+.close:hover { color: var(--color-text); }
+
+.setup {
+  padding: var(--space-4);
+  border-bottom: 1px solid var(--hairline);
+  background: var(--accent-soft);
+}
+.setup p { margin: 0 0 var(--space-3); font-size: 13px; line-height: 1.5; }
+
+.input {
+  margin: var(--space-4);
+  min-height: 150px;
+  resize: vertical;
+  padding: var(--space-3);
+  font: inherit;
+  font-size: 14px;
+  line-height: 1.55;
+  color: var(--color-text);
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+}
+.input:focus { outline: none; border-color: var(--color-text-subtle); }
+
+.ctx {
+  margin: 0 var(--space-4) var(--space-3);
+  font-size: 12px;
+  color: var(--fg-subtle);
+}
+
+.foot {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-3) var(--space-4) var(--space-4);
+  border-top: 1px solid var(--hairline);
+}
+
+.hint {
+  flex: 1;
+  font-size: 12px;
+  color: var(--fg-subtle);
+  line-height: 1.45;
+}
+
+.primary,
+.ghost {
+  padding: 7px 14px;
+  font-size: 13px;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  border: 1px solid var(--border);
+  white-space: nowrap;
+}
+.primary { background: var(--color-text); color: var(--elevated); border-color: transparent; font-weight: 500; }
+.primary:disabled { opacity: 0.4; cursor: not-allowed; }
+.ghost { background: transparent; color: var(--color-text); }
+.ghost:hover { background: var(--surface); }
+
+.busy { padding: var(--space-6) var(--space-4); text-align: center; }
+.busy p { margin: 0 0 var(--space-2); font-size: 14px; }
+
+.review { padding: var(--space-4); display: flex; flex-direction: column; gap: var(--space-3); }
+.lede { margin: 0; font-size: 13px; color: var(--fg-subtle); }
+
+.field { display: flex; flex-direction: column; gap: 5px; flex: 1; }
+.field > span { font-size: 11px; text-transform: uppercase; letter-spacing: 0.05em; color: var(--fg-subtle); }
+.field input,
+.field textarea,
+.field select {
+  font: inherit;
+  font-size: 13px;
+  padding: 7px 9px;
+  color: var(--color-text);
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  resize: vertical;
+}
+.field input:focus,
+.field textarea:focus { outline: none; border-color: var(--color-text-subtle); }
+
+.row { display: flex; gap: var(--space-3); }
+
+.steps { margin: 0; padding-left: 18px; font-size: 13px; line-height: 1.6; }
+
+.suspects { margin: 0; padding-left: 18px; font-size: 12px; line-height: 1.7; }
+.suspects code { font-family: var(--mono); font-size: 11px; }
+
+.dupe {
+  margin: 0;
+  padding: var(--space-3);
+  font-size: 12px;
+  line-height: 1.5;
+  background: var(--accent-soft);
+  border-radius: var(--radius-sm);
+}
+
+.error {
+  margin: 0 var(--space-4) var(--space-3);
+  font-size: 12px;
+  color: #c0392b;
+  line-height: 1.5;
+}
+
+.done { padding: var(--space-6) var(--space-4) 0; text-align: center; }
+.big { margin: 0 0 var(--space-2); font-size: 17px; font-weight: 600; }
+.done .foot { border-top: none; }
+
+/* Bug / Idea toggle — same capture, different destination. */
+.kindToggle { display: inline-flex; gap: 2px; margin-left: 10px; }
+.kindOn, .kindOff {
+  padding: 3px 11px; border-radius: 12px; cursor: pointer; font-size: 11px;
+  border: 1px solid var(--color-border); background: none;
+}
+.kindOn { background: var(--color-accent, #2a6df4); border-color: transparent; color: #fff; }
+.kindOff { color: var(--color-text-muted); }
+.kindOff:hover { background: var(--color-surface-hover, rgba(127,127,127,0.10)); }

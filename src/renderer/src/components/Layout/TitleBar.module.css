@@ -1,0 +1,89 @@
+.bar {
+  height: 46px;
+  flex: none;
+  display: flex;
+  align-items: center;
+  padding: 0 12px 0 14px;
+  background: var(--panel);
+  border-bottom: 1px solid var(--hairline);
+  position: relative;
+  z-index: 5;
+  -webkit-app-region: drag;
+}
+
+.left {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  width: 220px;
+  flex: none;
+}
+
+/* Reserve room for macOS traffic lights so our controls don't overlap them */
+.trafficSpace {
+  width: 56px;
+  flex: none;
+}
+
+/* Open-file tabs, inline in the title strip. The TabBar (compact) is no-drag;
+   any leftover space stays draggable for moving the window. */
+.tabs {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  overflow: hidden;
+  padding: 0 8px;
+}
+
+.iconBtn {
+  -webkit-app-region: no-drag;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 30px;
+  height: 30px;
+  background: transparent;
+  border: none;
+  border-radius: var(--radius-md);
+  color: var(--fg-muted);
+  cursor: pointer;
+  transition: background 90ms ease, color 90ms ease;
+}
+
+.iconBtn:hover { background: var(--hover); color: var(--fg); }
+
+.searchTrigger {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  max-width: 480px;
+  height: 30px;
+  padding: 0 10px 0 12px;
+  background: var(--app);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  color: var(--fg-subtle);
+  box-shadow: var(--shadow-1);
+  cursor: pointer;
+  transition: border-color 90ms ease;
+}
+
+.searchTrigger:hover { border-color: var(--border-strong); }
+
+.searchLabel {
+  font-size: 12.5px;
+  flex: 1;
+  text-align: left;
+}
+
+.kbd {
+  font-family: var(--mono);
+  font-size: var(--text-xs);
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: 1px 6px;
+  color: var(--fg-muted);
+}

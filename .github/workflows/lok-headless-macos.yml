@@ -1,0 +1,70 @@
+name: Headless LibreOffice (mac) — LOKit GO/NO-GO
+
+# Phase 3a prerequisite validation. Builds a headless (--disable-gui) LibreOffice
+# on an Apple-Silicon macOS runner and runs lokprobe against it. GREEN here means
+# native LOKit editing is viable on macOS and the M1-M5 editor work is unblocked.
+#
+# Manual trigger only — this is a heavy, billed build (1-4h). Don't run on push.
+
+on:
+  workflow_dispatch:
+    inputs:
+      lok_ref:
+        description: "LibreOffice/core branch or tag to build"
+        required: true
+        default: "master"
+
+jobs:
+  build-and-probe:
+    runs-on: macos-14   # Apple Silicon (arm64)
+    timeout-minutes: 360
+    steps:
+      - name: Checkout Workspace OS
+        uses: actions/checkout@v4
+
+      - name: Free up disk
+        run: |
+          sudo rm -rf /Applications/Xcode_15.0.app /Applications/Xcode_15.1.app || true
+          df -h /
+
+      - name: Provide a test document
+        run: |
+          mkdir -p /tmp/wos-test
+          # Minimal docx fixture isn't in the repo; the build script falls back
+          # to a .docx found inside core/ if this is absent.
+          ls -la /tmp/wos-test || true
+
+      - name: Build headless LibreOffice + run lokprobe
+        env:
+          LOK_REF: ${{ github.event.inputs.lok_ref }}
+          JOBS: "3"   # macos-14 has 3 cores; keep link RAM in check
+        run: |
+          chmod +x scripts/lok/*.sh
+          bash scripts/lok/build-headless-macos.sh
+
+      - name: Upload probe output (rendered tile)
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: lokprobe-output
+          path: |
+            scripts/lok/headless-out.ppm
+          if-no-files-found: ignore
+
+      - name: Package headless engine libs (on success)
+        if: success()
+        run: |
+          OUT="$RUNNER_TEMP/headless-lo"
+          mkdir -p "$OUT"
+          # Capture the built instdir so it can be bundled into the app later.
+          tar -C scripts/lok/core -czf "$OUT/instdir-headless-arm64.tgz" instdir
+          ls -lah "$OUT"
+
+      - name: Upload headless engine artifact
+        if: success()
+        uses: actions/upload-artifact@v4
+        with:
+          name: headless-libreoffice-arm64
+          path: ${{ runner.temp }}/headless-lo/instdir-headless-arm64.tgz
+          if-no-files-found: warn
+          retention-days: 7

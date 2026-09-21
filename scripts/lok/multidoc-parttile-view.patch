@@ -1,0 +1,19 @@
+diff --git a/desktop/source/lib/init.cxx b/desktop/source/lib/init.cxx
+index a1bebedb4..488293ab3 100644
+--- a/desktop/source/lib/init.cxx
++++ b/desktop/source/lib/init.cxx
+@@ -4423,8 +4423,12 @@ inline static int getAlternativeViewForPaint(LibreOfficeKitDocument* pThis, ITil
+     while (pViewShell)
+     {
+         bool bIsInEdit = pViewShell->GetDrawView() && pViewShell->GetDrawView()->GetTextEditOutliner();
++        // Workspace OS: only a view of the SAME document can stand in for the paint;
++        // with several documents loaded a foreign view on the same part number matched
++        // here and the part tile came back blank.
++        bool bSameDoc = !pCurrentViewShell || pViewShell->GetViewFrame().GetObjectShell() == pCurrentViewShell->GetViewFrame().GetObjectShell();
+ 
+-        if (!bIsInEdit && pViewShell != pCurrentViewShell)
++        if (!bIsInEdit && bSameDoc && pViewShell != pCurrentViewShell)
+         {
+             if (pViewShell->getPart() == nPart && pViewShell->getEditMode() == nMode)
+             {
+

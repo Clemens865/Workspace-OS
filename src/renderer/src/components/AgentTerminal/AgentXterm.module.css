@@ -1,0 +1,51 @@
+.root {
+  position: relative;
+  flex: 1;
+  min-height: 0;
+  overflow: hidden;
+  background: #1a1a1f;
+}
+
+.term {
+  position: absolute;
+  inset: 6px 4px 0 12px;
+}
+
+.searchBar {
+  position: absolute;
+  top: 8px;
+  right: 16px;
+  z-index: 5;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  background: var(--term-surface, #232329);
+  border: 1px solid var(--term-border, #333340);
+  border-radius: 6px;
+  padding: 4px 6px;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.35);
+}
+
+.searchInput {
+  background: transparent;
+  border: none;
+  outline: none;
+  color: var(--term-fg, #e8e8f0);
+  font-family: var(--mono);
+  font-size: 12px;
+  width: 190px;
+}
+
+.searchClose {
+  background: none;
+  border: none;
+  color: #9da0a8;
+  cursor: pointer;
+  font-size: 14px;
+  line-height: 1;
+  padding: 0 2px;
+}
+
+.searchClose:hover {
+  color: #e8e8f0;
+}

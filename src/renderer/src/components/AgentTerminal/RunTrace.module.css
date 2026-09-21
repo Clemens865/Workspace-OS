@@ -1,0 +1,92 @@
+/* Run trace — Beautiful-UI-grammar rows on the wos token system. */
+
+.root {
+  border-top: 1px solid var(--wos-hair, var(--color-border));
+  padding: 6px 10px 8px;
+  font-size: 12.5px;
+}
+
+.header {
+  display: inline-flex; align-items: center; gap: 6px;
+  border: 0; background: transparent; color: var(--wos-ink-2, var(--color-text-muted));
+  font-size: 12.5px; padding: 3px 6px; margin-left: -6px;
+  border-radius: 6px; cursor: pointer;
+}
+.header:hover { background: var(--wos-hover, var(--color-hover)); }
+.chevron { transition: transform 200ms cubic-bezier(0.23, 1, 0.32, 1); }
+.chevronClosed { transform: rotate(-90deg); }
+.headerText { font-variant-numeric: tabular-nums; }
+.done { font-size: 11px; color: var(--wos-ink-3, var(--color-text-subtle)); }
+
+/* The reference's grid-rows collapse — height animates without measuring. */
+.reveal {
+  display: grid;
+  transition: grid-template-rows 300ms cubic-bezier(0.23, 1, 0.32, 1), opacity 300ms;
+}
+.revealInner { min-height: 0; overflow: hidden; }
+
+.rows { display: flex; flex-direction: column; gap: 2px; margin-top: 4px; }
+.row {
+  display: flex; align-items: center; gap: 8px; min-width: 0;
+  height: 26px; padding: 0 4px; border-radius: 6px;
+  animation: traceFadeUp 300ms cubic-bezier(0.23, 1, 0.32, 1) both;
+}
+.row:hover { background: var(--wos-hover, var(--color-hover)); }
+.icon { flex-shrink: 0; color: var(--wos-ink-3, var(--color-text-subtle)); }
+.iconLive { color: var(--wos-accent, var(--color-accent, #1a73e8)); }
+.label { flex-shrink: 0; font-weight: 550; color: var(--wos-ink-1, var(--color-text)); }
+.chip {
+  min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+  font-family: ui-monospace, 'SF Mono', Menlo, monospace; font-size: 11.5px;
+  color: var(--wos-ink-2, var(--color-text-muted));
+  background: var(--wos-sunk, rgba(0, 0, 0, 0.04));
+  border-radius: 5px; padding: 2px 6px;
+}
+.count {
+  flex-shrink: 0; font-size: 11px; font-variant-numeric: tabular-nums;
+  color: var(--wos-ink-3, var(--color-text-subtle));
+}
+
+/* Live dots — same rhythm as the dock's existing activity indicator. */
+.dots { display: inline-flex; gap: 3px; }
+.dots i {
+  width: 4px; height: 4px; border-radius: 50%;
+  background: var(--wos-accent, var(--color-accent, #1a73e8));
+  animation: traceDot 1.2s infinite ease-in-out;
+}
+.dots i:nth-child(2) { animation-delay: 0.15s; }
+.dots i:nth-child(3) { animation-delay: 0.3s; }
+
+/* Post-run deliverable chips. */
+.files {
+  display: flex; flex-wrap: wrap; gap: 6px;
+  margin-top: 8px; padding-top: 8px;
+  border-top: 1px solid var(--wos-hair, var(--color-border));
+}
+.fileChip {
+  display: inline-flex; align-items: center; max-width: 100%;
+  height: 24px; padding: 0 8px; border-radius: 999px;
+  border: 1px solid var(--wos-hair, var(--color-border));
+  background: var(--wos-surface, var(--color-surface)); color: inherit;
+  font-family: ui-monospace, 'SF Mono', Menlo, monospace; font-size: 11.5px;
+  cursor: pointer; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+  animation: tracePopIn 250ms cubic-bezier(0.23, 1, 0.32, 1) both;
+}
+.fileChip:hover { background: var(--wos-hover, var(--color-hover)); }
+
+@keyframes traceFadeUp {
+  from { opacity: 0; transform: translateY(4px); }
+  to { opacity: 1; transform: none; }
+}
+@keyframes tracePopIn {
+  from { opacity: 0; transform: scale(0.92); }
+  to { opacity: 1; transform: none; }
+}
+@keyframes traceDot {
+  0%, 60%, 100% { opacity: 0.35; transform: none; }
+  30% { opacity: 1; transform: translateY(-1px); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .row, .fileChip, .dots i { animation: none; }
+  .reveal, .chevron { transition: none; }
+}

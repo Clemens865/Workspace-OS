@@ -1,0 +1,68 @@
+.root { display: flex; flex-direction: column; height: 100%; overflow: hidden; background: var(--color-canvas); }
+
+.toolbar {
+  display: flex; align-items: center; gap: 10px; flex-wrap: wrap;
+  padding: 7px 12px; background: var(--color-surface);
+  border-bottom: 1px solid var(--color-border); flex-shrink: 0;
+}
+.tools, .colors, .zoom { display: flex; align-items: center; gap: 4px; }
+.toolOn, .toolOff, .btn {
+  border: 1px solid var(--color-border); border-radius: 6px; cursor: pointer;
+  font-size: 12px; padding: 4px 10px; color: var(--color-text);
+  background: var(--color-surface-raised);
+}
+.toolOn { background: var(--color-accent-soft, #e8f0fe); border-color: var(--color-accent, #1a73e8); color: var(--color-accent, #1a73e8); font-weight: 600; }
+.toolOff:hover, .btn:hover { background: var(--color-hover); }
+.toolOff:disabled, .btn:disabled { opacity: 0.45; cursor: default; }
+
+.swatch { width: 18px; height: 18px; border-radius: 50%; border: 2px solid transparent; cursor: pointer; padding: 0; }
+.swatchOn { border-color: var(--color-text); }
+
+.spacer { flex: 1; }
+.note { font-size: 11px; color: var(--color-danger, #b4483f); }
+.count { font-size: 11.5px; color: var(--color-text-muted); font-variant-numeric: tabular-nums; }
+.zoom button { background: var(--color-surface-raised); border: 1px solid var(--color-border); border-radius: 5px; width: 22px; height: 22px; cursor: pointer; color: var(--color-text); }
+.zoom span { font-size: 11.5px; min-width: 40px; text-align: center; color: var(--color-text-muted); }
+
+.status {
+  padding: 6px 12px; font-size: 12px; cursor: pointer;
+  background: var(--color-accent-soft, #e8f0fe); color: var(--color-text);
+  border-bottom: 1px solid var(--color-border);
+}
+
+.viewport { flex: 1; position: relative; overflow: auto; min-height: 0; }
+.pages { display: flex; flex-direction: column; align-items: center; gap: 16px; padding: 16px; position: relative; }
+/* While a marking tool is active the text layer must not eat the pointer. */
+.marking .textLayer { pointer-events: none; }
+.selecting .textLayer { pointer-events: auto; }
+.marking { cursor: crosshair; }
+
+.pageWrap { position: relative; box-shadow: var(--shadow-2); background: #fff; }
+.pageCanvas { display: block; }
+
+/* pdf.js text layer: invisible glyphs positioned over the canvas so the text is
+   selectable. Opacity (not display:none) — it must remain hit-testable. */
+.textLayer {
+  position: absolute; inset: 0; overflow: hidden; opacity: 0.01; line-height: 1;
+}
+.textLayer :global(span) { position: absolute; white-space: pre; transform-origin: 0 0; color: transparent; }
+.textLayer :global(::selection) { background: rgba(120, 170, 255, 0.5); }
+
+.annotLayer { position: absolute; inset: 0; pointer-events: none; }
+.annotLayer > * { pointer-events: auto; }
+
+.highlight { position: absolute; mix-blend-mode: multiply; opacity: 0.45; border-radius: 2px; cursor: pointer; }
+.noteMark {
+  position: absolute; width: 16px; height: 16px; border-radius: 50%;
+  border: 1px solid rgba(0,0,0,0.25); font-size: 9px; line-height: 1; color: #fff;
+  cursor: pointer; padding: 0; transform: translate(-50%, -50%);
+}
+.inkSvg { position: absolute; pointer-events: none; overflow: visible; }
+.inkSvg path { pointer-events: stroke; cursor: pointer; }
+
+.overlay, .overlayMuted {
+  position: absolute; inset: 0; display: flex; align-items: center; justify-content: center;
+  z-index: 2; font-size: 13px;
+}
+.overlay { color: var(--color-danger); }
+.overlayMuted { color: var(--color-text-muted); }

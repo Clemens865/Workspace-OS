@@ -1,0 +1,63 @@
+.backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgb(20 20 22 / 34%);
+  backdrop-filter: blur(2px);
+  z-index: 240;
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  padding-top: 12vh;
+}
+
+.card {
+  width: 440px;
+  max-width: 92vw;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 16px 18px 18px;
+  background: var(--wos-card, #fff);
+  color: var(--wos-ink);
+  border: 0.5px solid var(--wos-hair);
+  border-radius: 14px;
+  box-shadow: var(--wos-sh-raised, 0 24px 60px rgb(0 0 0 / 26%));
+}
+
+.head { display: flex; align-items: center; justify-content: space-between; }
+.title { display: inline-flex; align-items: center; gap: 8px; font-size: 15px; font-weight: 640; }
+.close { background: none; border: none; cursor: pointer; color: var(--wos-ink-soft); display: flex; }
+.close:hover { color: var(--wos-ink); }
+
+.field { display: flex; flex-direction: column; gap: 5px; }
+.label { font-size: 11.5px; color: var(--wos-ink-soft); }
+.input {
+  border: 0.5px solid var(--wos-hair);
+  border-radius: 8px;
+  background: var(--wos-bg);
+  color: var(--wos-ink);
+  font-size: 13.5px;
+  padding: 8px 10px;
+}
+.input:focus { outline: 2px solid var(--wos-accent, #2f5bff); outline-offset: -1px; }
+
+.attach {
+  display: inline-flex; align-items: center; gap: 6px; align-self: flex-start;
+  font-size: 12px; color: var(--wos-ink-soft);
+  background: var(--wos-sunk); border-radius: 7px; padding: 4px 9px;
+}
+
+.error { font-size: 12.5px; color: #b42318; }
+
+.actions { display: flex; justify-content: flex-end; gap: 8px; margin-top: 2px; }
+.ghost, .primary {
+  display: inline-flex; align-items: center; gap: 6px;
+  font-size: 13px; font-weight: 550; padding: 7px 13px; border-radius: 9px; cursor: pointer;
+  border: 0.5px solid var(--wos-hair);
+}
+.ghost { background: var(--wos-sunk); color: var(--wos-ink); }
+.primary { background: var(--wos-ink); color: var(--wos-card); border-color: transparent; }
+.primary:disabled, .ghost:disabled { opacity: 0.5; cursor: default; }
+
+.spin { animation: ncspin 0.8s linear infinite; }
+@keyframes ncspin { to { transform: rotate(360deg); } }

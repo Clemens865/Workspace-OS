@@ -1,0 +1,85 @@
+/* Unified agent composer — Beautiful-UI prompt-bar grammar on wos tokens. */
+
+/* Fills whatever host it sits in — inside a flex composer the intrinsic
+   textarea width (~20 columns) would otherwise win and waste the row. */
+.root { position: relative; display: flex; flex-direction: column; gap: 6px; min-width: 0; width: 100%; flex: 1; }
+
+.chips { display: flex; flex-wrap: wrap; gap: 5px; }
+.chip {
+  display: inline-flex; align-items: center; gap: 5px; max-width: 220px;
+  height: 22px; padding: 0 4px 0 8px; border-radius: 999px;
+  border: 1px solid var(--wos-hair, var(--color-border));
+  background: var(--wos-sunk, rgba(0, 0, 0, 0.04));
+  font-size: 11.5px; color: var(--wos-ink-2, var(--color-text-muted));
+  animation: pbPop 200ms cubic-bezier(0.23, 1, 0.32, 1) both;
+}
+/* A case chip reads as a thread, not a file — indigo tint, no monospace. */
+.chipCase { background: #eef0ff; border-color: #d5d9f7; color: #4f46e5; }
+.chipCase .chipName { font-family: inherit; font-weight: 550; }
+.chipName { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-family: ui-monospace, 'SF Mono', Menlo, monospace; }
+.chipRemove {
+  display: inline-flex; align-items: center; justify-content: center;
+  width: 16px; height: 16px; border: 0; border-radius: 50%;
+  background: transparent; color: inherit; cursor: pointer; padding: 0;
+}
+.chipRemove:hover { background: var(--wos-hover, var(--color-hover)); }
+
+.bar { position: relative; display: flex; align-items: flex-end; gap: 6px; min-width: 0; }
+
+.input {
+  flex: 1; min-width: 0; resize: none; box-sizing: border-box;
+  border: 1px solid var(--wos-hair, var(--color-border)); border-radius: 8px;
+  background: var(--wos-surface, var(--color-surface)); color: inherit;
+  font-size: 13px; font-family: inherit; line-height: 1.45;
+  padding: 7px 10px;
+  /* Grows with what is typed (JS sets height), up to ~6 lines, then scrolls. */
+  max-height: 132px; overflow-y: auto;
+}
+.input:focus { outline: 2px solid var(--wos-accent, var(--color-accent, #1a73e8)); outline-offset: -1px; }
+.input:disabled { opacity: 0.6; }
+
+.send {
+  display: inline-flex; align-items: center; justify-content: center;
+  width: 30px; height: 30px; flex-shrink: 0;
+  border: 1px solid var(--wos-hair, var(--color-border)); border-radius: 8px;
+  background: var(--wos-surface, var(--color-surface-raised)); color: inherit; cursor: pointer;
+}
+.send:hover:not(:disabled) { background: var(--wos-hover, var(--color-hover)); }
+.send:disabled { opacity: 0.45; cursor: default; }
+
+/* Compact header variant — the Ask boxes. */
+.compact .input { font-size: 12.5px; padding: 5px 9px; }
+.compact .send { width: 26px; height: 26px; }
+
+/* Completion popover — opens up by default (the dock lives at the bottom). */
+.popover {
+  position: absolute; left: 0; right: 36px; bottom: calc(100% + 6px);
+  display: flex; flex-direction: column; padding: 4px;
+  border: 1px solid var(--wos-hair, var(--color-border)); border-radius: 10px;
+  background: var(--wos-surface, var(--color-surface));
+  box-shadow: 0 8px 28px rgba(0, 0, 0, 0.18);
+  z-index: 30; max-height: 260px; overflow-y: auto;
+  animation: pbPop 160ms cubic-bezier(0.23, 1, 0.32, 1) both;
+}
+.popoverDown { bottom: auto; top: calc(100% + 6px); }
+
+.option {
+  display: flex; align-items: center; gap: 8px; min-width: 0;
+  border: 0; border-radius: 6px; background: transparent; color: inherit;
+  padding: 6px 8px; font-size: 12.5px; text-align: left; cursor: pointer;
+}
+.optionSel { background: var(--wos-accent-soft, var(--color-accent-soft, rgba(26, 115, 232, 0.1))); }
+.optionIcon { flex-shrink: 0; color: var(--wos-ink-3, var(--color-text-subtle)); }
+.optionName { flex-shrink: 0; font-weight: 550; font-family: ui-monospace, 'SF Mono', Menlo, monospace; font-size: 12px; }
+.optionHint {
+  min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+  font-size: 11px; color: var(--wos-ink-3, var(--color-text-subtle));
+}
+
+@keyframes pbPop {
+  from { opacity: 0; transform: translateY(2px) scale(0.98); }
+  to { opacity: 1; transform: none; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .chip, .popover { animation: none; }
+}

@@ -1,0 +1,143 @@
+.backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.5);
+  z-index: 160; /* above the Checkpoints list (150) so preview stacks on it */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.panel {
+  width: 760px;
+  max-width: 92vw;
+  max-height: 78vh;
+  display: flex;
+  flex-direction: column;
+  background: var(--color-surface-raised);
+  border: 1px solid var(--color-border);
+  border-radius: 10px;
+  overflow: hidden;
+  box-shadow: 0 16px 48px rgba(0, 0, 0, 0.5);
+}
+
+.header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 16px;
+  border-bottom: 1px solid var(--color-border);
+}
+
+.title {
+  flex: 1;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--color-text);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.stats { font-size: 12px; color: var(--color-text-muted); white-space: nowrap; }
+.statAdd { color: #3fb950; }
+.statDel { color: #f85149; }
+
+.closeBtn {
+  background: none;
+  border: none;
+  color: var(--color-text-muted);
+  cursor: pointer;
+  font-size: 18px;
+  line-height: 1;
+  padding: 2px 6px;
+}
+.closeBtn:hover { color: var(--color-text); }
+
+.body { flex: 1; overflow: auto; padding: 10px 14px; }
+
+.state {
+  padding: 28px 0;
+  text-align: center;
+  font-size: 13px;
+  color: var(--color-text-muted);
+}
+
+.file {
+  margin-bottom: 14px;
+  border: 1px solid var(--color-border);
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.fileHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 6px 10px;
+  background: var(--color-surface);
+  border-bottom: 1px solid var(--color-border);
+}
+
+.filePath {
+  font-family: var(--font-mono, ui-monospace, monospace);
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--color-text);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.fileStats { font-size: 11px; white-space: nowrap; }
+
+.binary { padding: 10px; font-size: 12px; color: var(--color-text-muted); }
+
+.hunks {
+  margin: 0;
+  padding: 4px 0;
+  font-family: var(--font-mono, ui-monospace, monospace);
+  font-size: 12px;
+  line-height: 1.5;
+  overflow-x: auto;
+}
+
+.line { padding: 0 10px; white-space: pre; }
+.marker { display: inline-block; width: 14px; opacity: 0.75; user-select: none; }
+
+.add { background: rgba(63, 185, 80, 0.14); color: var(--color-text); }
+.del { background: rgba(248, 81, 73, 0.14); color: var(--color-text); }
+.ctx { color: var(--color-text-muted); }
+.hunk { color: #58a6ff; background: rgba(88, 166, 255, 0.08); padding-top: 2px; padding-bottom: 2px; }
+
+.footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  padding: 10px 16px;
+  border-top: 1px solid var(--color-border);
+}
+
+.revertBtn {
+  background: none;
+  border: 1px solid var(--color-danger);
+  border-radius: 6px;
+  color: var(--color-danger);
+  cursor: pointer;
+  font-size: 12px;
+  padding: 5px 12px;
+}
+.revertBtn:hover:not(:disabled) { background: var(--color-danger); color: #fff; }
+.revertBtn:disabled { opacity: 0.5; cursor: default; }
+
+.keepBtn {
+  background: var(--color-accent);
+  border: none;
+  border-radius: 6px;
+  color: #fff;
+  cursor: pointer;
+  font-size: 12px;
+  padding: 5px 14px;
+}
+.keepBtn:hover { filter: brightness(1.1); }

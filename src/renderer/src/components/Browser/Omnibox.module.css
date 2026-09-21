@@ -1,0 +1,134 @@
+/* The omnibox — one input for address, search, history and bookmarks.
+ * Token language matches BrowserSurface.module.css (--wos-*). The pill keeps
+ * the exact geometry of the address bar it replaces, so adopting it costs no
+ * vertical space: the suggestion list is an overlay, not a row. */
+
+.wrap {
+  flex: 1;
+  position: relative;
+  min-width: 0;
+}
+
+.url {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  height: 34px;
+  border-radius: 99px;
+  background: var(--wos-sunk);
+  padding: 0 8px 0 14px;
+}
+
+.lead {
+  color: var(--wos-ink-3);
+  flex: none;
+}
+
+.input {
+  flex: 1;
+  min-width: 0;
+  border: none;
+  outline: none;
+  background: transparent;
+  font-family: var(--wos-font);
+  font-size: 13px;
+  color: var(--wos-ink);
+}
+
+.input::placeholder {
+  color: var(--wos-ink-3);
+}
+
+.star,
+.starOn {
+  width: 26px;
+  height: 26px;
+  border: none;
+  background: transparent;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  cursor: pointer;
+  flex: none;
+}
+
+.star {
+  color: var(--wos-ink-3);
+}
+
+/* A bookmarked page is the one state worth colour in this row. */
+.starOn {
+  color: var(--wos-accent, #e0a33e);
+}
+
+.star:hover {
+  color: var(--wos-ink);
+}
+
+/* Overlaid, never in flow — the page must not shift when suggestions appear. */
+.list {
+  position: absolute;
+  top: calc(100% + 6px);
+  left: 0;
+  right: 0;
+  z-index: 40;
+  margin: 0;
+  padding: 4px;
+  list-style: none;
+  max-height: 420px;
+  overflow-y: auto;
+  background: var(--wos-card);
+  border: 0.5px solid var(--wos-hair);
+  border-radius: 12px;
+  box-shadow: 0 12px 32px rgb(0 0 0 / 18%);
+}
+
+.row,
+.rowOn {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 7px 10px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 13px;
+  color: var(--wos-ink);
+}
+
+.rowOn {
+  background: var(--wos-sunk);
+}
+
+.row:hover {
+  background: var(--wos-sunk);
+}
+
+.icon {
+  color: var(--wos-ink-3);
+  flex: none;
+}
+
+.fav {
+  width: 14px;
+  height: 14px;
+  border-radius: 3px;
+  flex: none;
+}
+
+.title {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.host {
+  color: var(--wos-ink-3);
+  font-size: 12px;
+  flex: none;
+  max-width: 40%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}

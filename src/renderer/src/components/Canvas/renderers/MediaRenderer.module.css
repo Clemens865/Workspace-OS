@@ -1,0 +1,38 @@
+.root {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  background: #111;
+}
+
+.video {
+  max-width: 100%;
+  max-height: 100%;
+  outline: none;
+}
+
+.audioWrap {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+}
+
+.audioLabel {
+  color: var(--color-text-muted);
+  font-size: 14px;
+}
+
+.audio {
+  width: 400px;
+  max-width: 90vw;
+}
+
+.loading, .error {
+  padding: 20px;
+  color: var(--color-text-muted);
+  font-size: 13px;
+}
+
+.error { color: var(--color-danger); }

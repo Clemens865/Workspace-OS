@@ -1,0 +1,89 @@
+.strip {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  padding: 8px 12px;
+  border-top: 1px solid var(--term-border);
+  background: var(--term-bg);
+  flex-shrink: 0;
+  max-height: 128px;
+  overflow-y: auto;
+}
+
+/* One run's outputs cluster together with a subtle left rule. */
+.group {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  padding-left: 8px;
+  border-left: 2px solid var(--term-border);
+}
+
+.card {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: var(--term-surface);
+  border: 1px solid var(--term-border);
+  border-radius: 8px;
+  padding: 6px 8px;
+  min-width: 180px;
+  max-width: 260px;
+}
+
+.card:hover { border-color: var(--color-accent, #6e8ae0); }
+
+.icon {
+  font-size: 15px;
+  line-height: 1;
+  flex-shrink: 0;
+  width: 20px;
+  text-align: center;
+}
+
+.meta {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  margin-right: auto;
+}
+
+.name {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--term-fg);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 150px;
+}
+
+.type {
+  font-size: 10px;
+  color: #9da0a8;
+}
+
+.cardActions {
+  display: flex;
+  gap: 4px;
+  flex-shrink: 0;
+}
+
+.openBtn,
+.revealBtn {
+  background: none;
+  border: 1px solid var(--term-border);
+  border-radius: 10px;
+  color: var(--term-fg);
+  cursor: pointer;
+  font-size: 10px;
+  padding: 2px 8px;
+}
+
+.openBtn:hover {
+  border-color: var(--color-accent, #6e8ae0);
+  color: var(--color-accent, #6e8ae0);
+}
+
+.revealBtn { color: #9da0a8; }
+.revealBtn:hover { border-color: var(--color-accent, #6e8ae0); color: var(--term-fg); }

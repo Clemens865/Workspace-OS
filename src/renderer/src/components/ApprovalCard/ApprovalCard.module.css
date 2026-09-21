@@ -1,0 +1,78 @@
+/* Approval card — the Beautiful-UI question grammar on wos tokens. */
+
+.card {
+  border: 1px solid var(--wos-hair, var(--color-border));
+  border-radius: 12px;
+  background: var(--wos-surface, var(--color-surface));
+  padding: 12px 14px;
+  max-width: 420px;
+  animation: acFadeUp 350ms cubic-bezier(0.23, 1, 0.32, 1) both;
+}
+
+.head { display: flex; align-items: flex-start; justify-content: space-between; gap: 10px; }
+.question { font-size: 13px; font-weight: 600; color: var(--wos-ink-1, var(--color-text)); }
+.dismiss {
+  display: inline-flex; align-items: center; justify-content: center; flex-shrink: 0;
+  width: 22px; height: 22px; border: 0; border-radius: 6px;
+  background: transparent; color: var(--wos-ink-3, var(--color-text-subtle)); cursor: pointer;
+}
+.dismiss:hover { background: var(--wos-hover, var(--color-hover)); color: var(--wos-ink-1, var(--color-text)); }
+
+.options { display: flex; flex-direction: column; gap: 4px; margin-top: 10px; }
+.option {
+  display: flex; align-items: center; gap: 9px; min-width: 0; text-align: left;
+  border: 0; border-radius: 8px; background: transparent; color: inherit;
+  padding: 7px 8px; font-size: 12.5px; cursor: pointer;
+}
+.option:hover:not(:disabled) { background: var(--wos-hover, var(--color-hover)); }
+.option:disabled { opacity: 0.55; cursor: default; }
+.radio {
+  width: 14px; height: 14px; flex-shrink: 0; border-radius: 50%;
+  border: 1.5px solid var(--wos-ink-3, var(--color-text-subtle));
+  transition: border-color 120ms, box-shadow 120ms;
+}
+.option:hover:not(:disabled) .radio {
+  border-color: var(--wos-accent, var(--color-accent, #1a73e8));
+  box-shadow: inset 0 0 0 3px var(--wos-accent-soft, rgba(26, 115, 232, 0.25));
+}
+.optionLabel { font-weight: 550; flex-shrink: 0; }
+.optionHint {
+  min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+  font-size: 11px; color: var(--wos-ink-3, var(--color-text-subtle));
+}
+
+.freeRow { display: flex; gap: 6px; margin-top: 8px; }
+.free {
+  flex: 1; min-width: 0;
+  border: 1px solid var(--wos-hair, var(--color-border)); border-radius: 8px;
+  background: var(--wos-sunk, rgba(0, 0, 0, 0.03)); color: inherit;
+  font-size: 12.5px; padding: 6px 9px;
+}
+.free:focus { outline: 2px solid var(--wos-accent, var(--color-accent, #1a73e8)); outline-offset: -1px; }
+.freeSend {
+  display: inline-flex; align-items: center; justify-content: center;
+  width: 28px; height: 28px; flex-shrink: 0;
+  border: 1px solid var(--wos-hair, var(--color-border)); border-radius: 8px;
+  background: var(--wos-surface, var(--color-surface-raised)); color: inherit; cursor: pointer;
+}
+.freeSend:hover:not(:disabled) { background: var(--wos-hover, var(--color-hover)); }
+.freeSend:disabled { opacity: 0.45; cursor: default; }
+
+/* Answered → the card fires off into a small confirmation badge. */
+.sent { animation: acPop 260ms cubic-bezier(0.23, 1, 0.32, 1) both; }
+.sentBadge {
+  display: inline-flex; align-items: center; gap: 7px; max-width: 100%;
+  border-radius: 999px; padding: 3px 11px 3px 4px;
+  background: var(--good-soft, #eaf6f0); color: var(--good, #1f6b4a);
+  font-size: 12.5px; font-weight: 550;
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+.sentCheck {
+  display: inline-flex; align-items: center; justify-content: center; flex-shrink: 0;
+  width: 18px; height: 18px; border-radius: 50%;
+  background: var(--good, #1f6b4a); color: #fff;
+}
+
+@keyframes acFadeUp { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: none; } }
+@keyframes acPop { from { opacity: 0; transform: scale(0.94); } to { opacity: 1; transform: none; } }
+@media (prefers-reduced-motion: reduce) { .card, .sent { animation: none; } }

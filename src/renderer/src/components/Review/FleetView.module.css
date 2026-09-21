@@ -1,0 +1,218 @@
+/* The fleet cockpit — N agent lanes stacked in the light Living-Feed surface.
+ * Calm white lane cards, one blue on the primary batch action. Tokens from
+ * styles/tokens.css (--wos-*); --rv-* fall back to them. */
+.root {
+  flex: 1;
+  overflow-y: auto;
+  padding: 18px 30px 60px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  max-width: 900px;
+  width: 100%;
+  margin: 0 auto;
+}
+
+.fleetBar {
+  position: sticky;
+  top: 0;
+  z-index: 4;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 14px 0;
+  border-bottom: 0.5px solid var(--wos-hair);
+  background: var(--wos-bg);
+}
+.fleetTitle {
+  font-family: var(--rv-body, sans-serif);
+  font-size: 15px;
+  font-weight: 640;
+  letter-spacing: -0.02em;
+  color: var(--wos-ink);
+}
+.spacer { flex: 1; }
+
+.approveAll {
+  font-family: var(--rv-body, sans-serif);
+  font-size: 13px;
+  font-weight: 600;
+  padding: 8px 16px;
+  border-radius: 11px;
+  border: 0;
+  background: var(--wos-blue);
+  color: #fff;
+  cursor: pointer;
+}
+.approveAll:hover { background: #0060bf; }
+.gatedNote {
+  font-family: var(--rv-body, sans-serif);
+  font-size: 12px;
+  color: var(--wos-warn-ink);
+}
+
+/* Launch-agent affordance. */
+.launchWrap { position: relative; }
+.launchBtn {
+  font-family: var(--rv-body, sans-serif);
+  font-size: 13px;
+  font-weight: 600;
+  padding: 8px 14px;
+  border-radius: 11px;
+  border: 0;
+  background: var(--wos-sunk);
+  color: var(--wos-ink);
+  cursor: pointer;
+}
+.launchBtn:hover { background: #e8e8ec; }
+.launchMenu {
+  position: absolute;
+  right: 0;
+  top: calc(100% + 6px);
+  z-index: 10;
+  min-width: 200px;
+  max-height: 320px;
+  overflow-y: auto;
+  padding: 6px;
+  border-radius: 14px;
+  background: var(--wos-card);
+  border: 0.5px solid var(--wos-hair);
+  box-shadow: var(--wos-sh-card);
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.launchItem {
+  text-align: left;
+  font-family: var(--rv-body, sans-serif);
+  font-size: 13px;
+  padding: 8px 10px;
+  border: none;
+  border-radius: 9px;
+  background: transparent;
+  color: var(--wos-ink);
+  cursor: pointer;
+}
+.launchItem:hover { background: var(--wos-sunk); }
+.launchEmpty {
+  font-family: var(--rv-body, sans-serif);
+  font-size: 12px;
+  color: var(--wos-ink-2);
+  padding: 8px 10px;
+}
+
+.lanes {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.empty {
+  font-family: var(--rv-body, sans-serif);
+  font-size: 14px;
+  color: var(--wos-ink-2);
+  padding: 40px 6px;
+  text-align: center;
+}
+
+/* One lane — a calm white card. */
+.lane {
+  border-radius: var(--wos-r);
+  background: var(--wos-card);
+  box-shadow: var(--wos-sh-card);
+  overflow: hidden;
+}
+.laneHeader {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 14px 18px;
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  text-align: left;
+}
+.laneHeader:hover { background: var(--wos-sunk); }
+.dot {
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+.laneName {
+  font-family: var(--rv-body, sans-serif);
+  font-size: 15px;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  color: var(--wos-ink);
+}
+.laneStatus {
+  font-family: var(--rv-body, sans-serif);
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--wos-ink-2);
+}
+.pendingPill {
+  font-family: var(--rv-body, sans-serif);
+  font-size: 11px;
+  font-weight: 700;
+  min-width: 18px;
+  text-align: center;
+  padding: 1px 6px;
+  border-radius: 999px;
+  background: var(--wos-blue);
+  color: #fff;
+}
+.laneMeta {
+  display: inline-flex;
+  gap: 10px;
+  font-family: var(--rv-body, sans-serif);
+  font-size: 12px;
+  color: var(--wos-ink-2);
+}
+.mono { font-family: var(--rv-mono, monospace); }
+.chevron {
+  font-size: 12px;
+  color: var(--wos-ink-3);
+  margin-left: 4px;
+}
+.latest {
+  padding: 0 18px 14px 37px;
+  font-family: var(--rv-body, sans-serif);
+  font-size: 13px;
+  color: var(--wos-ink-2);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.laneBody {
+  padding: 8px 18px 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  border-top: 0.5px solid var(--wos-hair);
+}
+.batchRow {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding-top: 8px;
+}
+.batchBtn {
+  font-family: var(--rv-body, sans-serif);
+  font-size: 13px;
+  font-weight: 600;
+  padding: 8px 14px;
+  border-radius: 11px;
+  border: 0;
+  background: var(--wos-blue);
+  color: #fff;
+  cursor: pointer;
+}
+.batchBtn:hover { background: #0060bf; }
+.batchNote {
+  font-family: var(--rv-body, sans-serif);
+  font-size: 12px;
+  color: var(--wos-warn-ink);
+}

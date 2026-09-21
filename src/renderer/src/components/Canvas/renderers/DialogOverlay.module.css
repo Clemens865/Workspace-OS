@@ -1,0 +1,56 @@
+.backdrop {
+  position: absolute;
+  inset: 0;
+  z-index: 30;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(0, 0, 0, 0.32);
+}
+
+.dialog {
+  background: var(--color-surface, #fff);
+  border: 1px solid var(--color-border, #d8d8d8);
+  border-radius: 10px;
+  box-shadow: 0 18px 50px rgba(0, 0, 0, 0.32);
+  overflow: hidden;
+  outline: none;
+}
+
+.titleBar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 10px 8px 14px;
+  background: var(--color-surface-raised, #f3f3f3);
+  border-bottom: 1px solid var(--color-border, #e2e2e2);
+}
+
+.title {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--color-text, #1a1a1a);
+}
+
+.close {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  background: transparent;
+  border: none;
+  border-radius: 5px;
+  color: var(--color-text-muted, #666);
+  cursor: pointer;
+}
+
+.close:hover {
+  background: var(--color-danger, #e0533d);
+  color: #fff;
+}
+
+.canvas {
+  display: block;
+  background: #fff;
+}

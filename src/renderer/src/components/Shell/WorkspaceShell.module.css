@@ -1,0 +1,741 @@
+/* Redesigned shell — styled entirely from the design tokens (styles/tokens.css).
+ * Structure mirrors docs/design/prototype.html: rail | Stage (tabs + body). */
+
+.root {
+  display: grid;
+  grid-template-columns: 76px 1fr;
+  height: 100vh;
+  width: 100vw;
+  overflow: hidden;
+  background: var(--wos-bg);
+  color: var(--wos-ink);
+  font-family: var(--wos-font);
+}
+
+/* ── Rail ── */
+.rail {
+  background: var(--wos-rail);
+  border-right: 0.5px solid var(--wos-hair);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 12px 0;
+  gap: 4px;
+  overflow-y: auto;
+}
+
+.rlogo {
+  width: 32px;
+  height: 32px;
+  border-radius: 9px;
+  background: var(--wos-dark);
+  display: grid;
+  place-items: center;
+  color: #fff;
+  margin-bottom: 10px;
+  font-weight: 700;
+  font-size: 15px;
+  flex-shrink: 0;
+}
+
+.ritem {
+  width: 56px;
+  padding: 8px 0 6px;
+  border-radius: 12px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  color: var(--wos-ink-2);
+  cursor: pointer;
+  position: relative;
+  border: 0;
+  background: transparent;
+  font: inherit;
+  font-size: 10.5px;
+  flex-shrink: 0;
+}
+
+.ritem:hover {
+  color: var(--wos-ink);
+}
+
+.ritemOn {
+  background: var(--wos-card);
+  color: var(--wos-ink);
+  box-shadow: var(--wos-sh-raised);
+}
+
+.ritem svg {
+  width: 20px;
+  height: 20px;
+}
+
+.railSpacer {
+  flex: 1;
+}
+
+.railHair {
+  width: 32px;
+  height: 0.5px;
+  background: var(--wos-hair);
+  margin: 6px 0;
+  flex-shrink: 0;
+}
+
+/* ── Stage ── */
+.stage {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  height: 100%;
+}
+
+.topbar {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 16px;
+  border-bottom: 0.5px solid var(--wos-hair);
+  background: rgba(245, 245, 247, 0.8);
+  backdrop-filter: saturate(180%) blur(20px);
+  -webkit-backdrop-filter: saturate(180%) blur(20px);
+  -webkit-app-region: drag;
+}
+
+.tabs {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  flex: 1;
+  min-width: 0;
+  overflow-x: auto;
+  -webkit-app-region: no-drag;
+}
+
+.tab {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  padding: 7px 12px;
+  border-radius: 10px;
+  color: var(--wos-ink-2);
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  white-space: nowrap;
+  border: 0;
+  background: transparent;
+  font-family: inherit;
+}
+
+.tabOn {
+  background: var(--wos-card);
+  color: var(--wos-ink);
+  box-shadow: var(--wos-sh-raised);
+}
+
+.tabClose {
+  color: var(--wos-ink-3);
+  cursor: pointer;
+  display: inline-flex;
+  font-size: 14px;
+  line-height: 1;
+}
+
+.tabClose:hover {
+  color: var(--wos-ink);
+}
+
+.cmdk {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: var(--wos-card);
+  border: 0.5px solid var(--wos-hair);
+  border-radius: var(--wos-r-pill);
+  padding: 7px 12px;
+  color: var(--wos-ink-3);
+  font-size: 13px;
+  cursor: pointer;
+  min-width: 200px;
+  -webkit-app-region: no-drag;
+}
+
+.cmdkKey {
+  margin-left: auto;
+  font-size: 11px;
+  background: var(--wos-sunk);
+  padding: 2px 6px;
+  border-radius: 5px;
+  color: var(--wos-ink-2);
+}
+
+/* Terminal toggle — visible, self-explaining entry to the dock (also ⌘J). */
+.termToggle {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  background: var(--wos-card);
+  border: 0.5px solid var(--wos-hair);
+  border-radius: var(--wos-r-pill);
+  padding: 7px 12px;
+  color: var(--wos-ink-2);
+  font-size: 13px;
+  cursor: pointer;
+  -webkit-app-region: no-drag;
+  transition: background 0.12s ease, color 0.12s ease;
+}
+.termToggle:hover {
+  background: var(--wos-sunk);
+  color: var(--wos-ink);
+}
+.termToggleLabel {
+  font-weight: 500;
+}
+/* Active = dock open: quiet sunk state (NOT blue — blue stays for primary actions). */
+.termToggleOn {
+  background: var(--wos-sunk);
+  color: var(--wos-ink);
+  border-color: transparent;
+}
+
+/* ── Stage body — hosts the composed existing component ── */
+.body {
+  flex: 1;
+  min-height: 0;
+  position: relative;
+  overflow: hidden;
+  background: var(--wos-bg);
+}
+
+/* ── Integrated Terminal Dock hosts ── */
+/* placement=right: body + a right column live side-by-side. */
+.stageMain {
+  flex: 1;
+  min-height: 0;
+  min-width: 0;
+  display: flex;
+  flex-direction: row;
+}
+
+.stageMain .body {
+  flex: 1;
+}
+
+.dockRight {
+  flex-shrink: 0;
+  min-width: 220px;
+  display: flex;
+}
+
+.dockBottom {
+  flex-shrink: 0;
+  min-height: 160px;
+  display: flex;
+}
+
+/* The dock must FILL its strip/column — otherwise TerminalDock hugs its
+   intrinsic width and lands cramped in the corner. */
+.dockBottom > *,
+.dockRight > * {
+  flex: 1;
+  min-width: 0;
+  min-height: 0;
+}
+
+/* Drag handles — 5px hairline gutters (blue on hover, matching the calm token). */
+.dockHandleV {
+  width: 5px;
+  cursor: col-resize;
+  flex-shrink: 0;
+  background: transparent;
+}
+
+.dockHandleH {
+  height: 5px;
+  cursor: row-resize;
+  flex-shrink: 0;
+  background: transparent;
+}
+
+.dockHandleV:hover,
+.dockHandleH:hover {
+  background: var(--wos-blue);
+  opacity: 0.5;
+}
+
+/* Each mounted surface stays in the DOM (display toggled) so heavy editors /
+ * mail sessions keep their state, matching the legacy layout's discipline. */
+.surface {
+  position: absolute;
+  inset: 0;
+  overflow: auto;
+  /* Each surface is its own stacking context: a z-indexed child of one surface
+     (Calc's sticky headers, the Metrics button) must never paint over a LATER
+     surface's content, whatever the visibility logic says. */
+  isolation: isolate;
+}
+
+.hidden {
+  display: none;
+}
+
+/* ── Placeholder ("coming soon") surfaces ── */
+.placeholder {
+  height: 100%;
+  display: grid;
+  place-items: center;
+  text-align: center;
+  color: var(--wos-ink-3);
+  padding: 40px;
+}
+
+.placeholder h1 {
+  font-size: 20px;
+  font-weight: 640;
+  letter-spacing: -0.02em;
+  color: var(--wos-ink);
+  margin: 0 0 6px;
+}
+
+/* ── Home two-pane (triage feed | dashboard/peek) ── */
+.home {
+  display: grid;
+  grid-template-columns: minmax(320px, 420px) 1fr;
+  height: 100%;
+  min-height: 0;
+}
+
+.feed {
+  border-right: 0.5px solid var(--wos-hair);
+  min-width: 0;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+/* ReviewFeed's own root is position:absolute/inset:0, so it needs a sized,
+ * positioned host — feedHost fills the column and provides that. */
+.feedHost {
+  /* Its parent .surface is absolute inset:0 (not flex), so flex:1 was ignored
+     and this collapsed to 0 — filling it explicitly gives ReviewFeed a real box. */
+  position: absolute;
+  inset: 0;
+  min-height: 0;
+}
+
+.peek {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  background: var(--wos-bg);
+  overflow: hidden;
+}
+
+.peekHost {
+  flex: 1;
+  min-height: 0;
+  position: relative;
+  overflow: auto;
+}
+
+.peekEmpty {
+  display: grid;
+  place-items: center;
+  height: 100%;
+  color: var(--wos-ink-3);
+  font-size: 14px;
+  text-align: center;
+  padding: 40px;
+}
+
+.dash {
+  padding: 26px 30px;
+}
+
+.dashTitle {
+  font-size: 20px;
+  font-weight: 640;
+  letter-spacing: -0.02em;
+}
+
+.dashSub {
+  color: var(--wos-ink-2);
+  margin-bottom: 20px;
+}
+
+.dashGrid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 14px;
+}
+
+.card {
+  background: var(--wos-card);
+  border-radius: var(--wos-r);
+  box-shadow: var(--wos-sh-card);
+  padding: 20px;
+}
+
+.cardLabel {
+  font-size: 12px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--wos-ink-2);
+}
+
+.prow {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 7px 0;
+  cursor: pointer;
+  color: var(--wos-ink);
+  border: 0;
+  background: transparent;
+  font: inherit;
+  width: 100%;
+  text-align: left;
+}
+
+.prow:hover {
+  color: var(--wos-blue);
+}
+
+/* Peek header when a document is opened into the Home pane. */
+.peekHead {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 14px 20px;
+  border-bottom: 0.5px solid var(--wos-hair);
+}
+
+.peekTitle {
+  font-weight: 600;
+  font-size: 15px;
+}
+
+.peekSub {
+  color: var(--wos-ink-3);
+  font-size: 12px;
+}
+
+.peekAct {
+  margin-left: auto;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--wos-ink-2);
+  font-size: 12.5px;
+  background: var(--wos-card);
+  padding: 7px 11px;
+  border-radius: 9px;
+  box-shadow: var(--wos-sh-raised);
+  cursor: pointer;
+  border: 0;
+  font-family: inherit;
+}
+
+/* Files surface: tree (left) + in-place document pane (right) — tree stays visible. */
+.filesSplit {
+  display: grid;
+  grid-template-columns: minmax(240px, 300px) 1fr;
+  height: 100%;
+  min-height: 0;
+}
+.filesTree {
+  min-width: 0;
+  overflow: hidden;
+  border-right: 0.5px solid var(--wos-hair);
+  display: flex;
+}
+.filesTree > * { flex: 1; min-width: 0; }
+
+/* Content-search overlay — hosts the reused SearchPanel above the Stage.
+   Opened from the Go ▸ Search menu; self-contained so SearchPanel is unchanged. */
+.searchOverlay {
+  position: fixed;
+  top: 12%;
+  left: 50%;
+  transform: translateX(-50%);
+  width: min(720px, 92vw);
+  max-height: 70vh;
+  display: flex;
+  flex-direction: column;
+  background: var(--wos-card);
+  color: var(--wos-ink);
+  border: 0.5px solid var(--wos-hair);
+  border-radius: 12px;
+  box-shadow: var(--wos-sh-raised);
+  overflow: hidden;
+  z-index: 60;
+}
+.searchOverlayHead {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 14px;
+  border-bottom: 0.5px solid var(--wos-hair);
+  font-size: 13px;
+  color: var(--wos-ink-2);
+}
+.searchOverlayClose {
+  border: none;
+  background: transparent;
+  color: var(--wos-ink-3);
+  font-size: 18px;
+  line-height: 1;
+  cursor: pointer;
+}
+.searchOverlayClose:hover { color: var(--wos-ink); }
+.searchOverlayBody {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+}
+.searchOverlayBody > * { flex: 1; min-width: 0; }
+
+/* ══ WOS-011 · Fill the window ══════════════════════════════════════════════
+   One surface takes the whole window: the rail slides out, the tab strip
+   collapses, the terminal dock unmounts.
+
+   The animation is on the GRID TRACK and the topbar height rather than on the
+   surface itself. A transform on the surface would be cheaper, but the surface
+   hosts the browser's <webview>, whose guest is a separate compositing process
+   — transforming it produces a smeared, half-scaled page for the length of the
+   animation. Animating the container's size instead makes the guest re-lay-out
+   at its own pace, which reads as a clean sweep rather than a stretch.
+
+   `cubic-bezier(0.32, 0.72, 0, 1)` is a decelerating ease — fast to start,
+   settling at the end. It is what makes this feel like the panel is getting out
+   of the way rather than the layout jumping. */
+
+.root {
+  transition: grid-template-columns 320ms cubic-bezier(0.32, 0.72, 0, 1);
+}
+
+.root.railOut {
+  grid-template-columns: 0px 1fr;
+}
+
+/* The rail keeps its width while the TRACK closes over it, so its icons slide
+   out of view intact instead of being squashed on the way. */
+.root.railOut > :first-child {
+  transform: translateX(-76px);
+  opacity: 0;
+  pointer-events: none;
+}
+
+.root > :first-child {
+  transition:
+    transform 320ms cubic-bezier(0.32, 0.72, 0, 1),
+    opacity 200ms ease;
+  will-change: transform;
+}
+
+/* The tab strip folds upward. max-height rather than height so the topbar keeps
+   sizing itself normally when open. */
+.root .topbar {
+  overflow: hidden;
+  max-height: 60px;
+  transition:
+    max-height 300ms cubic-bezier(0.32, 0.72, 0, 1),
+    opacity 180ms ease,
+    padding 300ms cubic-bezier(0.32, 0.72, 0, 1);
+}
+
+.root.expanded .topbar {
+  max-height: 0;
+  padding-top: 0;
+  padding-bottom: 0;
+  opacity: 0;
+  border-bottom-color: transparent;
+  pointer-events: none;
+}
+
+/* The way out. Sits over the top-left corner — where the rail used to be, and
+   out of the way of a document's own content. Keeps the traffic-light inset so
+   it never lands under the window buttons.
+
+   It fades to nearly transparent once the pointer leaves, rather than
+   disappearing: an exit you cannot see is how a full-screen mode traps people,
+   and an exit that never dims is a permanent smudge on the page you wanted to
+   look at. */
+.expandExit {
+  position: fixed;
+  top: 12px;
+  left: 84px;
+  z-index: 60;
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 6px 11px;
+  border: 0.5px solid var(--wos-hair);
+  border-radius: 999px;
+  background: rgba(245, 245, 247, 0.82);
+  backdrop-filter: saturate(180%) blur(20px);
+  -webkit-backdrop-filter: saturate(180%) blur(20px);
+  color: var(--wos-ink);
+  font-family: var(--wos-font);
+  font-size: 12px;
+  cursor: pointer;
+  opacity: 0.28;
+  -webkit-app-region: no-drag;
+  transition: opacity 200ms ease, transform 200ms cubic-bezier(0.32, 0.72, 0, 1);
+  animation: wosExpandExitIn 380ms cubic-bezier(0.32, 0.72, 0, 1);
+}
+
+.expandExit:hover {
+  opacity: 1;
+  transform: translateY(1px);
+}
+
+.expandExit kbd {
+  padding: 1px 5px;
+  border: 0.5px solid var(--wos-hair);
+  border-radius: 4px;
+  background: var(--wos-bg);
+  font-family: var(--wos-font);
+  font-size: 10px;
+  opacity: 0.75;
+}
+
+@keyframes wosExpandExitIn {
+  from {
+    opacity: 0;
+    transform: translateY(-6px);
+  }
+  to {
+    opacity: 0.28;
+    transform: translateY(0);
+  }
+}
+
+/* Someone who has asked the OS to stop animating things means it. Both states
+   still work — they just arrive immediately. */
+@media (prefers-reduced-motion: reduce) {
+  .root,
+  .root > :first-child,
+  .root .topbar,
+  .expandExit {
+    transition: none;
+    animation: none;
+  }
+}
+
+/* ══ Terminal dock — minimised ══════════════════════════════════════════════
+   Minimised is a THIRD state between open and hidden: the dock stays mounted
+   (its shell session and scrollback survive) and collapses to this bar.
+
+   `.dockCollapsed` is how the mounted-but-invisible half is done. Height/width
+   go to zero via the inline style; this kills the border and any overflow so a
+   collapsed dock cannot leave a stray hairline or a scrollbar behind. */
+.dockCollapsed {
+  overflow: hidden;
+  border: none;
+  min-height: 0;
+  min-width: 0;
+}
+
+.dockBar {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  flex-shrink: 0;
+  height: 28px;
+  padding: 0 6px 0 10px;
+  border-top: 0.5px solid var(--wos-hair);
+  background: rgba(245, 245, 247, 0.8);
+  backdrop-filter: saturate(180%) blur(20px);
+  -webkit-backdrop-filter: saturate(180%) blur(20px);
+}
+
+.dockBarMain {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  flex: 1;
+  min-width: 0;
+  height: 100%;
+  padding: 0;
+  border: none;
+  background: transparent;
+  color: var(--wos-ink);
+  font-family: var(--wos-font);
+  font-size: 11.5px;
+  text-align: left;
+  cursor: pointer;
+  opacity: 0.72;
+}
+
+.dockBarMain:hover {
+  opacity: 1;
+}
+
+/* Says the session is alive. Without it a minimised dock reads as a closed one,
+   and the user opens a second terminal instead of restoring the first. */
+.dockBarHint {
+  font-size: 10.5px;
+  opacity: 0.55;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.dockBarBtn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 22px;
+  height: 22px;
+  padding: 0;
+  border: none;
+  border-radius: 6px;
+  background: transparent;
+  color: var(--wos-ink);
+  cursor: pointer;
+  opacity: 0.55;
+  flex-shrink: 0;
+}
+
+.dockBarBtn:hover {
+  opacity: 1;
+  background: var(--wos-bg-soft, rgba(0, 0, 0, 0.06));
+}
+
+/* Right-placed dock: the stub is a narrow vertical strip on the same edge, so
+   it stays where the user last saw the terminal. The label and hint are hidden
+   rather than rotated — sideways text in a 28px strip is decoration, not
+   information, and the icon plus the tooltip already say what it is. */
+.dockBarV {
+  flex-direction: column;
+  width: 28px;
+  height: auto;
+  align-self: stretch;
+  padding: 6px 0;
+  border-top: none;
+  border-left: 0.5px solid var(--wos-hair);
+}
+
+.dockBarV .dockBarMain {
+  flex: 0 0 auto;
+  justify-content: center;
+  height: 24px;
+}
+
+.dockBarV .dockBarMain > span {
+  display: none;
+}
+
+/* Home as a single full-surface column (the widget board or the peeked doc). */
+.homeSolo {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  min-height: 0;
+  overflow-y: auto;
+}
+.homeSolo .peekHost { flex: 1; position: relative; min-height: 0; overflow: hidden; }

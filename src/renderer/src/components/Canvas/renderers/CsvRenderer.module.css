@@ -1,0 +1,151 @@
+.root {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  overflow: hidden;
+}
+
+.toolbar {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 6px 12px;
+  background: var(--color-surface);
+  border-bottom: 1px solid var(--color-border);
+  flex-shrink: 0;
+}
+
+.filter {
+  background: var(--color-bg);
+  border: 1px solid var(--color-border);
+  border-radius: 4px;
+  color: var(--color-text);
+  font-size: 12px;
+  padding: 4px 8px;
+  outline: none;
+  width: 220px;
+}
+
+.filter:focus { border-color: var(--color-accent); }
+
+.count {
+  font-size: 12px;
+  color: var(--color-text-muted);
+}
+
+.tableWrap {
+  flex: 1;
+  overflow: auto;
+}
+
+.table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 12px;
+}
+
+.th {
+  position: sticky;
+  top: 0;
+  background: var(--color-surface);
+  border-bottom: 2px solid var(--color-border);
+  padding: 5px 10px;
+  text-align: left;
+  color: var(--color-text-muted);
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.sortIcon { color: var(--color-accent); }
+
+/* Editable header/body cells. */
+.cellEdit {
+  outline: none;
+  cursor: text;
+  user-select: text;
+  display: inline-block;
+  min-width: 18px;
+}
+.cellEdit:focus {
+  background: var(--color-bg);
+  box-shadow: inset 0 0 0 1px var(--color-accent);
+  border-radius: 2px;
+}
+
+.sortBtn {
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: var(--color-text-muted);
+  padding: 0 2px;
+  margin-left: 6px;
+  font-size: 11px;
+  vertical-align: middle;
+}
+.sortBtn:hover { color: var(--color-accent); }
+
+.opBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  background: var(--color-bg);
+  border: 1px solid var(--color-border);
+  border-radius: 4px;
+  color: var(--color-text);
+  font-size: 12px;
+  padding: 4px 8px;
+  cursor: pointer;
+}
+.opBtn:hover { border-color: var(--color-accent); }
+
+.actionTh {
+  position: sticky;
+  top: 0;
+  width: 34px;
+  background: var(--color-surface);
+  border-bottom: 2px solid var(--color-border);
+}
+.actionTd {
+  padding: 2px 4px;
+  border-bottom: 1px solid var(--color-border);
+  text-align: center;
+}
+.delBtn {
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: var(--color-text-muted);
+  opacity: 0;
+  padding: 2px;
+  display: inline-flex;
+}
+.table tbody tr:hover .delBtn { opacity: 0.7; }
+.delBtn:hover { color: var(--color-danger); opacity: 1; }
+
+.empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  padding: 36px;
+  color: var(--color-text-muted);
+  font-size: 13px;
+}
+
+.td {
+  padding: 5px 10px;
+  border-bottom: 1px solid var(--color-border);
+  color: var(--color-text);
+  max-width: 320px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.even { background: rgba(255,255,255,0.02); }
+
+.error {
+  padding: 20px;
+  color: var(--color-danger);
+  font-size: 13px;
+}

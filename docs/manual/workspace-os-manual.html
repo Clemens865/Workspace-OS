@@ -1,0 +1,250 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Workspace OS Manual</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap">
+<style>
+:root{--bg:#f5f5f7;--card:#fff;--sunk:#ececee;--ink:#1d1d1f;--ink2:#6e6e73;--ink3:#8a8a8e;--hair:rgba(0,0,0,.09);--blue:#0071e3;--warn-ink:#8a5a00;--warn-bg:#fff4e0;--sh:0 1px 2px rgba(0,0,0,.04),0 10px 30px rgba(0,0,0,.06);--font:'Hanken Grotesk',-apple-system,system-ui,sans-serif;--mono:'JetBrains Mono',ui-monospace,SFMono-Regular,monospace}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#141416;--card:#1e1e21;--sunk:#26262a;--ink:#f0f0f2;--ink2:#a4a4aa;--ink3:#7a7a80;--hair:rgba(255,255,255,.1);--blue:#4a9eff;--warn-ink:#f0b95a;--warn-bg:#2c2410;--sh:0 1px 2px rgba(0,0,0,.3),0 10px 30px rgba(0,0,0,.4)}}
+:root[data-theme="dark"]{--bg:#141416;--card:#1e1e21;--sunk:#26262a;--ink:#f0f0f2;--ink2:#a4a4aa;--ink3:#7a7a80;--hair:rgba(255,255,255,.1);--blue:#4a9eff;--warn-ink:#f0b95a;--warn-bg:#2c2410;--sh:0 1px 2px rgba(0,0,0,.3),0 10px 30px rgba(0,0,0,.4)}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--font);font-size:16px;line-height:1.55;-webkit-font-smoothing:antialiased}
+.wrap{display:grid;grid-template-columns:220px minmax(0,1fr);gap:40px;max-width:1240px;margin:0 auto;padding:48px 28px 96px}
+@media (max-width:900px){.wrap{grid-template-columns:1fr}.toc{position:static;max-height:none}}
+.toc{position:sticky;top:24px;align-self:start;max-height:calc(100vh - 48px);overflow:auto;font-size:13px}
+.toc a{display:block;color:var(--ink2);text-decoration:none;padding:4px 0}
+.toc a:hover{color:var(--ink)}
+.toc .grp{margin:14px 0 4px;font-size:11px;font-weight:600;letter-spacing:.07em;text-transform:uppercase;color:var(--ink3)}
+.main{min-width:0}
+.eyebrow{font-size:12px;font-weight:600;letter-spacing:.07em;text-transform:uppercase;color:var(--ink3);margin:0 0 12px}
+h1{font-size:44px;line-height:1.08;letter-spacing:-.02em;font-weight:700;margin:0 0 16px;text-wrap:balance}
+.lede{font-size:19px;color:var(--ink2);max-width:62ch;margin:0 0 10px}
+.meta{font-size:13px;color:var(--ink3);margin:0 0 40px;font-variant-numeric:tabular-nums}
+h2{font-size:26px;letter-spacing:-.015em;font-weight:600;margin:64px 0 6px;text-wrap:balance;scroll-margin-top:24px}
+h3{font-size:17px;font-weight:600;margin:26px 0 8px}
+.what{font-size:17px;color:var(--ink2);margin:0 0 18px;max-width:66ch}
+p{max-width:66ch;margin:0 0 12px}
+ul{max-width:66ch;padding-left:20px;margin:0 0 12px}
+li{margin:0 0 6px}
+li strong{font-weight:600}
+code,kbd{font-family:var(--mono);font-size:.86em;background:var(--sunk);padding:1px 6px;border-radius:6px;color:var(--ink)}
+kbd{box-shadow:inset 0 0 0 .5px var(--hair)}
+figure{margin:18px 0 22px}
+figure img{display:block;width:100%;height:auto;border-radius:12px;box-shadow:var(--sh)}
+figcaption{font-size:12.5px;color:var(--ink3);margin:8px 2px 0}
+.cols{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:22px;margin:0 0 8px}
+.cols h4{margin:0 0 6px;font-size:12px;letter-spacing:.06em;text-transform:uppercase;color:var(--ink3);font-weight:600}
+.reach{font-size:14px;color:var(--ink2)}
+.reach b{font-weight:600;color:var(--ink)}
+.pill{display:inline-block;padding:2px 9px;border-radius:99px;font-size:11.5px;font-weight:600;white-space:nowrap;vertical-align:middle;background:var(--warn-bg);color:var(--warn-ink)}
+.tablewrap{overflow-x:auto;margin:14px 0 8px;border-radius:12px;background:var(--card);box-shadow:var(--sh)}
+table{border-collapse:collapse;width:100%;min-width:560px;font-size:14px}
+th{text-align:left;font-size:11.5px;letter-spacing:.06em;text-transform:uppercase;color:var(--ink3);font-weight:600;padding:12px 14px 8px;border-bottom:.5px solid var(--hair)}
+td{padding:10px 14px;vertical-align:top;border-bottom:.5px solid var(--hair)}
+tr:last-child td{border-bottom:0}
+td.k{white-space:nowrap;font-family:var(--mono);font-size:12.5px}
+.note{border-left:2px solid var(--warn-ink);padding:2px 0 2px 14px;color:var(--ink2);max-width:66ch;margin:16px 0}
+.intro{margin:0 0 8px}
+.intro p{font-size:17px}
+.principles{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:16px;margin:22px 0 26px}
+.principles div{background:var(--card);border-radius:12px;padding:16px 18px;box-shadow:var(--sh)}
+.principles h4{margin:0 0 6px;font-size:15px;font-weight:600}
+.principles p{font-size:14px;color:var(--ink2);margin:0}
+.map{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:10px 22px;margin:14px 0 8px;max-width:none}
+.map a{display:block;color:inherit;text-decoration:none;padding:8px 0;border-bottom:.5px solid var(--hair);font-size:14px}
+.map a b{display:block;font-weight:600}
+.map a span{color:var(--ink2);font-size:13px}
+.map a:hover b{color:var(--blue)}
+</style></head><body>
+<div class="wrap">
+<nav class="toc">
+<div class="grp">Start</div><a href="#what">What it is</a><a href="#shell">The shell</a><a href="#home">Home</a>
+<div class="grp">Work</div><a href="#files">Files</a><a href="#writer">Word documents</a><a href="#calc">Spreadsheets</a><a href="#impress">Presentations</a><a href="#csv">CSV and data</a><a href="#notes">Notes</a>
+<div class="grp">Communicate</div><a href="#mail">Mail</a><a href="#calendar">Calendar</a><a href="#browser">Browser</a>
+<div class="grp">Agents</div><a href="#agents">Agents</a><a href="#routines">Routines</a><a href="#cockpit">Cockpit</a><a href="#cases">Cases</a><a href="#dock">Terminal dock</a>
+<div class="grp">Know</div><a href="#knowledge">Knowledge</a><a href="#memory">Memory</a><a href="#connectors">Connectors</a><a href="#settings">Settings</a>
+<div class="grp">Everywhere</div><a href="#find">Find and run</a><a href="#crosscut">Live links, safety, more</a><a href="#cli">Agent commands</a><a href="#keys">Keyboard</a><a href="#notyet">Not yet</a>
+</nav>
+<main class="main">
+<p class="eyebrow">Workspace OS · v0.1.118 · 4 September 2026</p>
+<h1>Workspace OS Manual</h1>
+<p class="lede">One window where your documents, mail, calendar and browser live together with a team of agents that do real work, and where every result waits for you to keep or undo it. This manual walks every surface with a real screenshot and says what it does for you, what you can do there, and how an agent uses it.</p>
+<p class="meta">Screenshots taken from the built app on a seeded demo workspace. Nothing is mocked; where a feature is a preview or placeholder, it says so.</p>
+<figure><img src="img/00-splash.jpg" alt="Startup splash"><figcaption>Startup. The logo refracts through a water simulation while the shell loads beneath it; Enter or a click lets you in.</figcaption></figure>
+
+<h2 id="what">What Workspace OS is</h2>
+<div class="intro">
+<p class="what">A desk for people who run things: accounts, projects, a team. One app on the Mac where the work you already do and the agents that help you do it share the same window.</p>
+<p>Most of a manager's day is spread across a dozen windows: the proposal in Word, the forecast in Excel, the deck, the inbox, the calendar, a browser full of tabs, and lately a chat window where an AI writes text you then carry back by hand. Workspace OS folds these into one place. Documents open in a real office engine, mail and calendar are native, the browser is built in, and a team of agents works inside the same folder you do. When an agent finishes something, it is a file on your disk and a card in your feed, not a paragraph to copy.</p>
+<p>The unit of work is a <strong>case</strong>: a renewal, a forecast, a hire. A case gathers its notes, files, mail and calendar dates, and the app keeps track of which one is waiting on you. Home tells you that the moment you sit down.</p>
+<div class="principles">
+<div><h4>One window</h4><p>Word, Excel, PowerPoint, CSV, notes, mail, calendar and the web, side by side as tabs. Nothing to switch to.</p></div>
+<div><h4>Agents that do real work</h4><p>Specialists you describe in a sentence. They read your files, drive the browser, draft replies, build decks and spreadsheets, and run on a schedule while you are away.</p></div>
+<div><h4>Keep or undo</h4><p>Every agent run lands as a checkpoint. You see what changed, then keep it or roll it back in one click. Nothing is silently overwritten.</p></div>
+<div><h4>Numbers that stay live</h4><p>A figure lives in one spreadsheet and flows into the document and the deck that quote it. Change the source, and everything downstream follows.</p></div>
+<div><h4>Sign in once</h4><p>Connectors remember your accounts securely. Agents inherit the session, so the CRM, the drive and the mailbox are simply there.</p></div>
+<div><h4>It remembers</h4><p>Knowledge links your notes; Memory holds what is worth keeping across sessions and lets you correct it. The desk assistant sees all of it.</p></div>
+</div>
+<h3>Where things are</h3>
+<div class="map">
+<a href="#home"><b>Home</b><span>What waits on you, what is next, who is working.</span></a>
+<a href="#files"><b>Files</b><span>The workspace folder and every editor.</span></a>
+<a href="#writer"><b>Documents</b><span>Word, Excel, PowerPoint and CSV in a real engine.</span></a>
+<a href="#notes"><b>Notes</b><span>Markdown with edit, split and preview.</span></a>
+<a href="#mail"><b>Mail</b><span>Native inbox, and a sift that sorts it for you.</span></a>
+<a href="#calendar"><b>Calendar</b><span>Your calendars, editable, with an agent beside them.</span></a>
+<a href="#browser"><b>Browser</b><span>Tabs agents can drive.</span></a>
+<a href="#agents"><b>Agents</b><span>The team, the feed, the fleet, routines.</span></a>
+<a href="#cockpit"><b>Cockpit</b><span>Home, Stream and Map of everything in motion.</span></a>
+<a href="#cases"><b>Cases</b><span>The thread a piece of work belongs to.</span></a>
+<a href="#knowledge"><b>Knowledge and Memory</b><span>What the workspace knows, and what it keeps.</span></a>
+<a href="#connectors"><b>Connectors</b><span>Accounts and tools, signed in once.</span></a>
+</div>
+<p class="meta" style="margin-top:14px">Workspace OS runs on macOS and is in active development; version numbers are early, and the last section lists what is not built yet.</p>
+</div>
+
+<h2 id="shell">The shell</h2>
+<p class="what">A left rail of surfaces, a stage of tabs, a search-or-run field, and a terminal that knows where you are.</p>
+<ul><li><strong>Rail</strong> on the left: Home, Files, Mail, Calendar, Chats, Browser, Agents, Cockpit, Knowledge, Memory, Connectors, Settings. <kbd>⌘B</kbd> hides it.</li><li><strong>Stage</strong> tabs: Home is pinned, every opened document is a closable tab. <kbd>⌘W</kbd> closes, <kbd>⇧⌘]</kbd> and <kbd>⇧⌘[</kbd> step through.</li><li><strong>Search or run</strong> <kbd>⌘K</kbd>: a command palette that finds files and runs actions.</li><li><strong>Terminal</strong> <kbd>⌘J</kbd> docks a shell and an agent at the bottom or the right.</li><li><strong>Fill the window</strong> <kbd>⌃⌘F</kbd>, Esc to leave.</li></ul>
+
+<h2 id="home">Home</h2>
+<p class="what">Coming home: what happened while you were away, the one thing waiting on you, and an assistant that sees the whole desk.</p>
+<figure><img src="img/01-home.jpg" alt="Home"><figcaption>The hero names the one thing waiting on you, or says the desk is clear. Below it: open cases, what is next on the calendar, who is working, mail, and the files you touched last.</figcaption></figure>
+<div class="cols"><div><h4>What you can do</h4><ul><li>Open the waiting case, see all cases, or snooze it with <strong>Not now</strong> until tomorrow morning; with nothing waiting, Home offers your agents instead.</li><li>Ask the <strong>Desk assistant</strong> anything about the workspace; <code>@</code> mentions a file.</li><li>Switch workspaces from the folder name at the top; recents and Open folder live there.</li><li><strong>Customize</strong> the cards: show, hide, resize, reorder, list or slider view.</li><li>Open any file from a card into a preview beside it, then pop it out to a full tab.</li></ul></div><div><h4>Reach it</h4><p class="reach"><b>Rail</b> Home · <b>Tab</b> Home is always the first tab.</p><h4>Cards</h4><p class="reach">While you were away · Cases · Calendar · Agents · Files · Browser · Mail · Knowledge · Assistant.</p></div></div>
+
+<h2 id="files">Files</h2>
+<p class="what">Your workspace folder, with the tree on the left and the file open beside it.</p>
+<figure><img src="img/02-files.jpg" alt="Files"><figcaption>The tree, recents, and the last opened document staying open on the right.</figcaption></figure>
+<div class="cols"><div><h4>What you can do</h4><ul><li>Browse the tree, filter by name, create files and folders, trash and restore.</li><li>Open anything: the right editor comes up by file type (see the next sections).</li><li>Preview in place, then <strong>Open full</strong> for a stage tab of its own.</li><li>Reveal a file in Finder; drag files in.</li></ul></div><div><h4>Reach it</h4><p class="reach"><b>Rail</b> Files · <b>Menu</b> File ▸ Open Folder <kbd>⌘O</kbd>, Open Recent, Close Folder <kbd>⇧⌘W</kbd> · <b>Go to file</b> <kbd>⌘P</kbd>.</p><h4>Agents</h4><p class="reach">Every agent runs inside this folder. Files it creates appear in Home and the cockpit the moment they land on disk.</p></div></div>
+<h2 id="writer">Word documents</h2>
+<p class="what">A native word processor in the window: real .docx, edited in place by the LibreOffice engine, with a ribbon that speaks Word.</p>
+<figure><img src="img/03-writer.jpg" alt="Writer"><figcaption>Proposal.docx open with the Home ribbon: styles, font, paragraph, undo. Metrics and Components float over the page.</figcaption></figure>
+<figure><img src="img/30-writer-context-menu.jpg" alt="Writer context menu"><figcaption>Right-click is the engine's own menu for what is under the pointer: paste, clone or clear formatting, Character, Paragraph and List submenus, a comment, page style. Entries the engine would grey out are simply gone.</figcaption></figure>
+<figure><img src="img/31-writer-references-ruler.jpg" alt="References tab and ruler"><figcaption>The ruler above the page: margins, indents and tab stops drag; a click adds a tab stop. The References tab inserts a table of contents in one click, footnotes, captions, bookmarks and cross-references.</figcaption></figure>
+<figure><img src="img/32-writer-review.jpg" alt="Review panel"><figcaption>Review: comments at the cursor with reply, resolve and delete; tracked changes with Record, accept and reject one by one or all at once. The margin marks each comment on the page.</figcaption></figure>
+<figure><img src="img/33-writer-table-grips.jpg" alt="Table grips"><figcaption>A table under the cursor brings its own Table tab and grips: click a grip to select a row or column, the + inserts one, borders drag to resize, the corner selects the table.</figcaption></figure>
+<div class="cols"><div><h4>What you can do</h4><ul><li>Type, format, style; Home, Insert, Layout, References, Review and View tabs, plus Table and Picture tabs that appear with the selection.</li><li><strong>Right-click</strong> anywhere: the engine's menu for that target, with submenus, check marks and keyboard navigation.</li><li>Every dialog the engine has (Paragraph, Character, Table of contents, Bookmark, Columns, Sort…) opens as a native-looking dialog of ours; message boxes too.</li><li><strong>Review</strong>: comments and tracked changes in a panel; margin anchors open the thread.</li><li>Layout: margins, orientation, header and footer, page numbers, columns, a <strong>watermark</strong> picker, line numbering. View: Normal, Web, Print preview, and the ruler.</li><li>Pictures wrap and anchor from their tab; shapes get fill, outline, arrange, rotate and flip, and a rotate handle on the canvas.</li><li>The <strong>native menu bar</strong> mirrors LibreOffice's Edit, View, Insert, Format, Styles, Table and Tools menus; ⌘K runs any of them by name.</li><li><strong>Export</strong> to PDF or Word; <strong>Save</strong> writes the .docx back, faithfully.</li><li>Place a <strong>live metric</strong> in the text; it stays in step with the spreadsheet it came from.</li></ul></div><div><h4>Also opens here</h4><p class="reach">.doc, .odt. PDFs open in a viewer with annotation and page tools.</p><h4>Agents</h4><p class="reach">An agent builds real documents with <code>wos-gen docx</code> from a JSON spec; the file opens in a tab when it lands.</p></div></div>
+
+<h2 id="calc">Spreadsheets</h2>
+<p class="what">Real .xlsx with formulas, formats and sheets, rendered fast enough to feel native.</p>
+<figure><img src="img/04-calc.jpg" alt="Calc"><figcaption>Q3 forecast.xlsx: formula bar, column and row headers, the Data tab, sheet tabs at the bottom.</figcaption></figure>
+<figure><img src="img/34-calc-outline-formulas.jpg" alt="Outline bar and Formulas tab"><figcaption>Data ▸ Group folds rows or columns behind a −/+ bar beside the headers. The Formulas tab: function wizard, recalculate, formula to value, show formulas, and auditing arrows for precedents, dependents and errors.</figcaption></figure>
+<figure><img src="img/35-calc-sort-expand.jpg" alt="Sort asks to expand"><figcaption>Sort A→Z on a column inside a table asks first: expand so the rows travel together, or sort only that column. The header row stays where it is.</figcaption></figure>
+<figure><img src="img/36-calc-engine-dialog.jpg" alt="Engine dialog"><figcaption>Text to columns, like every engine dialog, renders as one of ours: real controls, tabs and lists, answered in place.</figcaption></figure>
+<div class="cols"><div><h4>What you can do</h4><ul><li>Edit cells and formulas; AutoSum; number formats; borders; conditional formatting; data validation; find and replace; a <strong>name box</strong> for jumping to and naming ranges.</li><li><strong>Fill handle</strong> at the selection corner continues a series; ⌘-wheel and pinch zoom; a floating toolbar on every selection.</li><li><strong>AutoFilter</strong> arrows with the engine's own dropdown; Sort that asks whether to expand the selection; Data ▸ Group and Outline with a −/+ bar.</li><li>Cell styles and Format as table on Home; a Layout tab (margins, orientation, headers and footers, breaks, print area); a Formulas tab (calculation and auditing); Data tools (text to columns, duplicates, consolidate, goal seek, solver, scenarios).</li><li>Right-click cells, sheet tabs and headers for the engine's menus; sheet tabs rename, reorder by drag, hide and colour.</li><li>The status bar sums and averages the selection; View ▸ Page break shows the print layout.</li><li>Turn a cell into a <strong>live metric</strong> that flows into decks, documents and mail.</li></ul></div><div><h4>Also opens here</h4><p class="reach">.xls, .ods, and CSV/TSV (next section).</p><h4>Agents</h4><p class="reach"><code>wos-gen xlsx</code> builds a workbook; <code>wos-metric create --source "book.xlsx!Sheet1!B2"</code> binds a cell as the source of truth.</p></div></div>
+
+<h2 id="impress">Presentations</h2>
+<p class="what">Real .pptx with a slide rail, speaker notes, and a Present mode.</p>
+<figure><img src="img/05-impress.jpg" alt="Impress"><figcaption>Board deck.pptx: the slide rail on the left, the Design tab, and the slide canvas.</figcaption></figure>
+<figure><img src="img/37-impress-animations.jpg" alt="Animations tab and pane"><figcaption>Animations: entrance, emphasis and exit effects from the engine's own catalogue, a start trigger, and the Animation pane with the sequence, order, duration and delay. They travel into the .pptx as PowerPoint knows them.</figcaption></figure>
+<figure><img src="img/38-impress-transitions.jpg" alt="Transitions tab"><figcaption>Transitions: a gallery of the ones PowerPoint round-trips, duration, advance on click or after a number of seconds, apply to all. The slideshow honours the timing.</figcaption></figure>
+<figure><img src="img/39-impress-sorter.jpg" alt="Slide sorter"><figcaption>View ▸ Sorter lays every slide out as a card: click to go, double-click to open, drag to reorder, right-click for the slide menu. View ▸ Outline edits every title and bullet as text.</figcaption></figure>
+<div class="cols"><div><h4>What you can do</h4><ul><li>Reorder slides by drag, edit text and shapes, add speaker notes, present full screen; the slideshow advances on its own when a transition says so.</li><li>Shapes: a Shape tab appears with the selection (fill, outline, arrange, rotate and flip, group, duplicate); drags snap to <strong>smart guides</strong> on other shapes and the slide centre; a rotate handle sits above the box.</li><li>Slide tables get a Table tab and grips for rows and columns; right-click a thumbnail for new, duplicate, layout, hide, move, transition or start from here.</li><li><strong>Transitions</strong> and <strong>Animations</strong> tabs with an Animation pane; View ▸ Notes, Master, Sorter and Outline.</li><li>Find and replace, comments in the Review panel, header and footer, slide number and other fields, QR codes.</li><li>Drop in reusable <strong>Components</strong> (cards, timelines, callouts) from the components panel.</li><li>Anchor a shape to a <strong>live metric</strong>; the number in the deck follows the sheet.</li></ul></div><div><h4>Agents</h4><p class="reach"><code>wos-gen pptx</code> with layouts (cover, section, bullets, table, chart, closing) and a theme; the recipe in the agent's guidance builds a deck whose numbers stay bound to the spreadsheet.</p></div></div>
+
+<h2 id="csv">CSV and data</h2>
+<p class="what">A CSV opens straight into the spreadsheet engine with its delimiter sniffed, and saves back in its own dialect.</p>
+<figure><img src="img/06-csv.jpg" alt="CSV in Calc"><figcaption>sales.csv opened as a sheet. The file stays CSV on save.</figcaption></figure>
+
+<h2 id="notes">Notes and code</h2>
+<p class="what">Markdown, text, code and JSON open in an editor with a live markdown preview; links between notes become a graph.</p>
+<figure><img src="img/07a-md-edit.jpg" alt="Markdown, Edit view"><figcaption><strong>Edit</strong>: the raw markdown with a toolbar for headings, lists, links and quotes.</figcaption></figure>
+<figure><img src="img/07b-md-split.jpg" alt="Markdown, Split view"><figcaption><strong>Split</strong>: editor on the left, the styled page on the right, updating as you type.</figcaption></figure>
+<figure><img src="img/07c-md-preview.jpg" alt="Markdown, Preview view"><figcaption><strong>Preview</strong>: the styled page alone, for reading. <code>[[Q3 plan]]</code> links the account note to the plan.</figcaption></figure>
+<div class="cols"><div><h4>What you can do</h4><ul><li>Switch between <strong>Edit</strong>, <strong>Split</strong> and <strong>Preview</strong> with the segmented control on the toolbar.</li><li>Write with a markdown toolbar and a live preview that also renders live transclusions.</li><li>Link notes with <code>[[Note]]</code>; see backlinks and related notes under Knowledge.</li><li>HTML files render with a preview and code toggle; images, video and audio open in place; a <code>.wcanvas</code> file is an infinite canvas.</li></ul></div><div><h4>Reach it</h4><p class="reach">Open any .md, .txt, .json, .yaml or code file from Files or <kbd>⌘P</kbd>.</p></div></div>
+
+<h2 id="mail">Mail</h2>
+<p class="what">A full native mail client that also sorts the inbox for you, and lets agents draft while you send.</p>
+<figure><img src="img/08-mail.jpg" alt="Mail"><figcaption>The demo mailbox: folders, filters, and the toolbar with Sift, Triage and Newsletters.</figcaption></figure>
+<div class="cols"><div><h4>What you can do</h4><ul><li>Read and send over IMAP and SMTP, several accounts, folders, search, archive, star, unread, undo-send, drafts, signatures.</li><li><strong>Sift</strong>: one pass sorts new mail into zones (needs a reply, your cases, worth a glance, noise). Every row carries its verbs; "not right?" teaches a permanent sender rule.</li><li><strong>Triage</strong> proposes filing; <strong>Newsletters</strong> sweeps subscriptions into one place, never moving anything on its own.</li><li><strong>Rich compose</strong>: arrangeable blocks, headings, images, live metric values, live tables, table-cell charts, your brand kit, split editor and preview.</li></ul></div><div><h4>Reach it</h4><p class="reach"><b>Rail</b> Mail. Add an account with provider presets or Google and Microsoft sign-in; or try the offline demo mailbox.</p><h4>Agents</h4><p class="reach">Agents read and draft replies; drafts arrive as cards in Agents and on Home. Sending is always yours.</p></div></div>
+
+<h2 id="calendar">Calendar</h2>
+<p class="what">Your real calendars, editable, with invitations actually sent by the server.</p>
+<figure><img src="img/10-calendar.jpg" alt="Calendar"><figcaption>Week view with a subscribed team calendar. Day and Month views sit beside it.</figcaption></figure>
+<div class="cols"><div><h4>What you can do</h4><ul><li>Create events with an inline calendar picker; open details; edit surgically so attendees and alarms survive; drag to reschedule in 15-minute steps; two-step delete.</li><li>Recurring series with per-occurrence changes; attendee replies shown as marks; add or remove attendees.</li><li>Sources: CalDAV (iCloud, Fastmail, Nextcloud) read and write, local .ics, subscribed feeds, Google and Microsoft read-only.</li><li>An <strong>Ask</strong> box on the surface lets you say "move Thursday's review to 3" in words.</li></ul></div><div><h4>Reach it</h4><p class="reach"><b>Rail</b> Calendar · <b>Add calendar</b> top right.</p><h4>Agents</h4><p class="reach"><code>wos-action run calendar.createEvent</code> schedules; the next event is pinned on Home.</p></div></div>
+
+<h2 id="browser">Browser</h2>
+<p class="what">A real Chromium browser inside the window, with an assistant that reads the page, and that agents can drive while you watch.</p>
+<figure><img src="img/11-browser.jpg" alt="Browser"><figcaption>Tabs, omnibox, and the page Assistant on the right with what it can do here.</figcaption></figure>
+<div class="cols"><div><h4>What you can do</h4><ul><li>Tabs and tab groups, find in page, zoom, bookmarks, history search, session restore.</li><li><strong>Deep-read this site</strong>: a bounded multi-page profile; ask a question about the page.</li><li>Sign in to a site once; the session persists, and agents work there as you (see Connectors).</li></ul></div><div><h4>Agents</h4><p class="reach">Navigate, click, type, extract, map, screenshot and deep-read through <code>wos-action run browser.*</code>. Research fans out one tab per helper. Links from mail and agents open here on their own.</p></div></div>
+<h2 id="agents">Agents</h2>
+<p class="what">Your specialists, and the place where their work waits for your decision.</p>
+<figure><img src="img/13-agents-feed.jpg" alt="Feed"><figcaption>Feed: the Living Feed. Pending cards on top, resolved below. Keep or Revert per card; anything that sends asks you first.</figcaption></figure>
+<figure><img src="img/14-agents-fleet.jpg" alt="Fleet"><figcaption>Fleet: one lane per assistant, with batched approval for the reversible tier.</figcaption></figure>
+<div class="cols"><div><h4>What you can do</h4><ul><li><strong>Team</strong>: run a specialist in a fresh agent tab; open one to read how it thinks; forge a new one from a description and approve the proposal.</li><li><strong>Feed</strong>: review runs with inline diffs, answer live permission requests, keep or revert. Mail drafts arrive here too. The reward is queue zero.</li><li><strong>Fleet</strong>: see every lane at once and approve all reversible work in one go.</li></ul></div><div><h4>Reach it</h4><p class="reach"><b>Rail</b> Agents · <kbd>⌘⇧A</kbd> focuses the agent · <b>Menu</b> Agent ▸ New Agent, Checkpoints, Mode, Run Skill.</p><h4>Safety</h4><p class="reach">A checkpoint is taken before every agent write; Revert rolls it back. Safe mode reads and generates only; Full mode edits and runs commands with destructive ones blocked.</p></div></div>
+
+<h2 id="routines">Routines</h2>
+<p class="what">Agents on a clock. Each run lands in the Feed for you to look over; nothing is sent on its own.</p>
+<figure><img src="img/15-agents-routines.jpg" alt="Routines"><figcaption>Three templates ship switched off: Morning sift, Weekly case report, Stale case check.</figcaption></figure>
+<div class="cols"><div><h4>What you can do</h4><ul><li>Create a routine: a name, what it does, when (every day, weekday, week, or every few hours), which agent, and exactly what it may reach.</li><li>Turn it on or off, run it now, edit, delete. Last and next run are shown on the row.</li><li>Missed runs catch up once when the app opens; a routine never stacks on top of itself.</li></ul></div><div><h4>Under the hood</h4><p class="reach">Routines are background runs owned by the app, not a window: they survive the window closing, run in safe mode, and can only reach the capabilities you ticked. A run that needs you sends a notification.</p></div></div>
+
+<h2 id="cockpit">Cockpit</h2>
+<p class="what">Standing back from the work. Three views on the same data: what needs you now, what happened, and how it connects.</p>
+<figure><img src="img/16-cockpit-home.jpg" alt="Cockpit Home"><figcaption>Home: open cases first, then Needs you, Working and Landed. Healthy work stays quiet; only what needs you runs warm.</figcaption></figure>
+<figure><img src="img/17-cockpit-headof.jpg" alt="Head-of altitude"><figcaption>The Head-of altitude: one area's cases as a river through their stages, the stage waiting on you warm.</figcaption></figure>
+<figure><img src="img/18-cockpit-stream.jpg" alt="Stream"><figcaption>Stream: everything that happened, one sentence each, by day. A hairline marks where you last looked; each day carries its run cost.</figcaption></figure>
+<figure><img src="img/19-cockpit-map.jpg" alt="Map"><figcaption>Map: cases as territories holding their documents, documents no case holds, live values, and the links drawn between documents.</figcaption></figure>
+<div class="cols"><div><h4>What you can do</h4><ul><li>Fly between <strong>altitudes</strong>: Head-of, Team-lead and Agent are live; CEO is a preview <span class="pill">preview</span>.</li><li>Re-slice with the <strong>lens</strong>; open a case from any view, one move away.</li><li>Stream: group by day, case, agent or kind; jump to a case or file.</li><li>Map: click a document to open it, a case to land on it.</li></ul></div><div><h4>Reach it</h4><p class="reach"><b>Rail</b> Cockpit · Home, Stream, Map at the top.</p></div></div>
+
+<h2 id="cases">Cases</h2>
+<p class="what">The thread a piece of work leaves behind: its documents, its notes, its status, in a plain markdown file you own.</p>
+<figure><img src="img/20-case.jpg" alt="Case"><figcaption>A case full screen: the renewal's stages, its notes as a timeline, the proposal and deck attached, and the Data tab that charts what its artifacts contain.</figcaption></figure>
+<div class="cols"><div><h4>What you can do</h4><ul><li>Create a case, move it through its stages, add notes, attach files, ask an agent to work on it.</li><li>Offers the notes imply (research a person, prepare for the meeting, put it on the calendar) appear as one-tap suggestions.</li><li>Tag a prompt with <code>#case</code> in the prompt bar to give the agent the case as context.</li></ul></div><div><h4>Where they live</h4><p class="reach"><code>Cases/*.md</code> in the workspace, or global. Home and the cockpit read the same files.</p><h4>Agents</h4><p class="reach"><code>wos-case new · ls · get · note · attach · status · view</code>, so terminal work lands in a case, not loose files.</p></div></div>
+
+<h2 id="dock">Terminal dock</h2>
+<p class="what">A real shell and a real agent, docked bottom or right, that already know where you are.</p>
+<figure><img src="img/25-terminal-dock.jpg" alt="Terminal dock"><figcaption>The dock open under Home: a shell tab, the live context line, and Bottom or Right placement.</figcaption></figure>
+<figure><img src="img/26-agent-tab.jpg" alt="New agent"><figcaption>+ New agent: pick the default assistant or a specialist from your team for a fresh agent tab.</figcaption></figure>
+<div class="cols"><div><h4>What you can do</h4><ul><li>Open with <kbd>⌘J</kbd>; <kbd>⌥⌘J</kbd> minimises to a title bar that keeps the session alive.</li><li>Agent tabs run Claude with the live harness: the root, the surface you are on, the open file, and the actions that surface offers.</li><li>Per-surface quick-action chips; files the agent touches become chips that open in the editor.</li><li>Tabs, transcripts and the feed belong to the open workspace and return when you come back to it.</li></ul></div><div><h4>Reach it</h4><p class="reach"><kbd>⌘J</kbd> · the <b>Terminal</b> button top right · <b>Menu</b> View ▸ Toggle Terminal, Agent ▸ New Shell.</p></div></div>
+<h2 id="knowledge">Knowledge</h2>
+<p class="what">Your notes as a connected web instead of loose files.</p>
+<figure><img src="img/21-knowledge.jpg" alt="Knowledge"><figcaption>For the open note: backlinks, outgoing links, related notes by shared links, and unresolved stubs. The graph view sits behind the second icon.</figcaption></figure>
+<div class="cols"><div><h4>What you can do</h4><ul><li>See what links to the open note and where it links; jump either way.</li><li>Related notes are found by shared links, no model involved.</li><li>Stubs list <code>[[links]]</code> to notes that do not exist yet, so you can create them.</li><li>Graph view lays the whole web out.</li></ul></div><div><h4>Reach it</h4><p class="reach"><b>Rail</b> Knowledge, with a note open · a document's <b>Show backlinks</b> action.</p><h4>Agents</h4><p class="reach"><code>wos-action run knowledge.search</code> and the Knowledge capability.</p></div></div>
+
+<h2 id="memory">Memory</h2>
+<p class="what">What the workspace has learned, so agents and you both remember.</p>
+<div class="cols"><div><h4>What you can do</h4><ul><li>Tell it something worth remembering; search; filter by kind; forget an entry.</li><li>Agents read relevant memories before every run and record what they learn as they work.</li><li>Insights (decisions, blockers, progress) gathered from sessions appear below.</li></ul></div><div><h4>Agents</h4><p class="reach"><code>wos-action run memory.search</code> is available to every run; <code>memory.remember</code> needs the Knowledge capability.</p></div></div>
+
+<h2 id="connectors">Connectors</h2>
+<p class="what">Everything the workspace is signed into, on one page, with what to click when a sign-in dies.</p>
+<figure><img src="img/23-connectors.jpg" alt="Connectors"><figcaption>One row per service: status, the honest mechanism, what it gives agents, and one action. Rows that need you come first.</figcaption></figure>
+<div class="cols"><div><h4>What you can do</h4><ul><li>Turn MCP connectors on or off and store their keys; keys are written into the keychain and never shown again.</li><li>Connect OAuth services (Sentry, Linear, Asana) through the system browser.</li><li><strong>Sign in to a site</strong>: you log in on the real site in a browser tab; only the session is kept, and agents then work there as you.</li><li>Mail, calendar and Drive accounts show with a status computed by trying a real refresh; <strong>Check again</strong> re-probes.</li></ul></div><div><h4>Catalog</h4><p class="reach">GitHub, Filesystem, Postgres, Brave Search, Slack, Notion, Tavily (keys); Sentry, Linear, Asana (OAuth); Google Drive; any site.</p></div></div>
+
+<h2 id="settings">Settings</h2>
+<p class="what">The few switches that change how the whole app behaves.</p>
+<figure><img src="img/24-settings.jpg" alt="Settings"><figcaption>Appearance, Design (the new shell is the default; Classic brings the previous layout back), terminal placement, default agent mode, auto-approve, default file format, quick-task model, notifications, brand kit, engine status.</figcaption></figure>
+<ul><li><strong>Notifications</strong>: an agent is asking · a routine needs a look · a case is waiting on you (off by default) · a sign-in died. One per thing per ten minutes.</li><li><strong>Brand kit</strong>: colours, fonts, logo and voice that steer rich mail and generated documents.</li><li><strong>Engine and tools</strong>: whether the office engine, the document generator and the Claude CLI were found.</li></ul>
+
+<h2 id="find">Find and run</h2>
+<figure><img src="img/27-quick-open.jpg" alt="Quick open"><figcaption><kbd>⌘P</kbd> Go to file: recents and the whole workspace.</figcaption></figure>
+<figure><img src="img/28-search.jpg" alt="Search or run"><figcaption><kbd>⌘K</kbd> Search or run: files and actions in one field. <kbd>⇧⌘F</kbd> searches file contents.</figcaption></figure>
+<figure><img src="img/29-bug-reporter.jpg" alt="Bug reporter"><figcaption><kbd>⌘⇧B</kbd> Report a bug or suggest a feature from anywhere; it captures where you were and what was open.</figcaption></figure>
+
+<h2 id="crosscut">Live links, safety, and the rest</h2>
+<h3>Live transclusion</h3><p>One number or table lives in one place and stays true across spreadsheets, documents, decks, mail and notes. A metric is read from a cell and linked into a deck shape or a document field; sync pushes the value into every linked file on disk. A broken link shows a visible placeholder, never a wrong number.</p>
+<h3>Checkpoints and revert</h3><p>Before an agent writes, a shadow checkpoint is taken. Every card in the Feed can be kept or reverted; Agent ▸ Checkpoints lists them with diffs.</p>
+<h3>Notifications</h3><p>Local notifications for the four things worth an interruption, throttled to one per thing per ten minutes. A click lands on the rail the thing lives on.</p>
+<h3>Snapshots</h3><p>File ▸ Snapshots saves and restores the whole desk: open files, the active one, panel layout.</p>
+<h3>Updates</h3><p>A banner appears only when there is an update; Workspace OS ▸ Check for Updates.</p>
+
+<h2 id="cli">Agent commands</h2>
+<p>Every agent run has these on its PATH. They are how an agent reaches the app without touching anything it was not given.</p>
+<div class="tablewrap"><table><thead><tr><th>Command</th><th>What it does</th></tr></thead><tbody>
+<tr><td class="k">wos-gen</td><td>Build a real .pptx, .xlsx or .docx from a JSON spec. The file opens in a tab when it lands.</td></tr>
+<tr><td class="k">wos-metric</td><td>Create, read, set, link, refresh and sync live metrics and ranges across every linked file.</td></tr>
+<tr><td class="k">wos-collection</td><td>Typed record sets with filtered, sorted views linked into tables and ranges; sync updates them.</td></tr>
+<tr><td class="k">wos-case</td><td>Create and update cases: note, attach, status, view.</td></tr>
+<tr><td class="k">wos-action</td><td>Drive the live app: list, context, run. Every action is non-destructive; it can never send or delete. Each run carries a token and can only run what its grant allows.</td></tr>
+<tr><td class="k">wos-mcp-token</td><td>Mint the current bearer for a remote OAuth connector; never logs a secret.</td></tr>
+</tbody></table></div>
+
+<h2 id="keys">Keyboard</h2>
+<div class="tablewrap"><table><thead><tr><th>Keys</th><th>Does</th></tr></thead><tbody>
+<tr><td class="k">⌘K</td><td>Search or run</td></tr><tr><td class="k">⌘P</td><td>Go to file</td></tr><tr><td class="k">⇧⌘F</td><td>Search in files</td></tr>
+<tr><td class="k">⌘J · ⌥⌘J</td><td>Terminal dock: toggle · minimise</td></tr><tr><td class="k">⌘⇧A</td><td>Focus the agent</td></tr>
+<tr><td class="k">⌘B</td><td>Hide the rail</td></tr><tr><td class="k">⌘W · ⇧⌘] · ⇧⌘[</td><td>Close tab · next · previous</td></tr>
+<tr><td class="k">⌃- · ⌃⇧-</td><td>Back · forward through tabs</td></tr><tr><td class="k">⌃⌘F</td><td>Fill the window; Esc leaves</td></tr>
+<tr><td class="k">⌘O · ⇧⌘W</td><td>Open folder · close folder</td></tr><tr><td class="k">⌘⇧B</td><td>Report a bug</td></tr>
+</tbody></table></div>
+
+<h2 id="notyet">Not yet</h2>
+<div class="note">Honest edges as of v0.1.118. <strong>Chats</strong> on the rail is a placeholder. The Cockpit's <strong>CEO altitude</strong> is a preview on mock data; Head-of, Team-lead and Agent are live. <strong>Google</strong> paths (Gmail, Drive, Calendar write) wait on a client id. Calendar has no agenda list or event search yet, and new recurrence rules cannot be authored. Image generation is not built. Workspace Apps are a blueprint.</div>
+<p class="meta" style="margin-top:40px">Built from the app at master v0.1.118. Screenshots from a seeded demo workspace; names and mail are fictitious.</p>
+</main></div>
+</body></html>

@@ -1,0 +1,304 @@
+.root {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  width: 100%;
+  overflow: hidden;
+  background: var(--color-surface);
+}
+
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--space-2) var(--space-2) var(--space-2) var(--space-4);
+  border-bottom: 1px solid var(--color-border);
+  flex-shrink: 0;
+  gap: var(--space-1);
+}
+
+.title {
+  font-size: var(--text-xs);
+  font-weight: 650;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--color-text-muted);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  flex: 1;
+}
+
+.headerBtns {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  flex-shrink: 0;
+}
+
+.iconBtn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: none;
+  border: none;
+  color: var(--color-text-muted);
+  cursor: pointer;
+  width: 26px;
+  height: 26px;
+  border-radius: var(--radius-md);
+  transition: background 90ms ease, color 90ms ease;
+}
+
+.iconBtn:hover {
+  color: var(--color-text);
+  background: var(--color-hover);
+}
+
+.searchBar {
+  position: relative;
+  display: flex;
+  align-items: center;
+  padding: var(--space-2) var(--space-3);
+  border-bottom: 1px solid var(--color-border);
+  flex-shrink: 0;
+}
+
+.indexing {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px var(--space-3);
+  font-size: 11px;
+  color: var(--color-text-muted);
+  background: var(--color-surface);
+  border-bottom: 1px solid var(--color-border);
+  flex-shrink: 0;
+}
+.indexingSpin { animation: indexspin 1s linear infinite; flex: none; }
+@keyframes indexspin { to { transform: rotate(360deg); } }
+
+.searchIcon {
+  position: absolute;
+  left: calc(var(--space-3) + var(--space-2));
+  color: var(--color-text-subtle);
+  pointer-events: none;
+}
+
+.searchInput {
+  width: 100%;
+  background: var(--color-bg);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  color: var(--color-text);
+  font-size: var(--text-sm);
+  padding: var(--space-2) var(--space-5) var(--space-2) 30px;
+  outline: none;
+  transition: border-color 90ms ease, box-shadow 90ms ease;
+}
+
+.searchInput::placeholder { color: var(--color-text-subtle); }
+
+.searchInput:focus {
+  border-color: var(--color-accent);
+  box-shadow: 0 0 0 3px var(--color-accent-soft);
+}
+
+.clearSearch {
+  position: absolute;
+  right: calc(var(--space-3) + var(--space-1));
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: none;
+  border: none;
+  color: var(--color-text-subtle);
+  cursor: pointer;
+  padding: 2px;
+  border-radius: var(--radius-sm);
+}
+
+.clearSearch:hover { color: var(--color-text); background: var(--color-hover); }
+
+.body {
+  flex: 1;
+  overflow-y: auto;
+  padding: var(--space-2) 0;
+}
+
+.empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  gap: var(--space-2);
+  padding: var(--space-5);
+  text-align: center;
+}
+
+.emptyIcon { color: var(--color-text-subtle); margin-bottom: var(--space-1); }
+
+.emptyTitle {
+  font-size: var(--text-md);
+  font-weight: 600;
+  color: var(--color-text);
+}
+
+.emptyHint {
+  font-size: var(--text-sm);
+  color: var(--color-text-muted);
+  margin-bottom: var(--space-2);
+}
+
+.openFolderBtn {
+  background: var(--color-accent);
+  border: none;
+  border-radius: var(--radius-md);
+  color: #fff;
+  cursor: pointer;
+  font-size: var(--text-base);
+  font-weight: 550;
+  padding: var(--space-2) var(--space-5);
+  box-shadow: var(--shadow-sm);
+  transition: background 90ms ease;
+}
+
+.openFolderBtn:hover { background: var(--color-accent-hover); }
+
+.section {
+  margin-bottom: var(--space-1);
+}
+
+.sectionLabel {
+  font-size: 10.5px;
+  font-weight: 700;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+  color: var(--fg-subtle);
+  padding: 14px 16px 4px;
+}
+
+.section:first-child .sectionLabel { padding-top: 6px; }
+
+.libRow {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  padding: 6px 12px 6px 16px;
+  margin: 0 var(--space-2);
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  transition: background 90ms ease;
+}
+
+.libRow:hover { background: var(--hover); }
+
+.libName {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: var(--text-base);
+}
+
+.libTime {
+  font-size: var(--text-xs);
+  color: var(--fg-subtle);
+  flex: none;
+}
+
+.starBtn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 2px;
+  border-radius: var(--radius-sm);
+  flex: none;
+}
+
+.starBtn:hover { background: var(--active); }
+
+.newWrap {
+  position: relative;
+  display: inline-flex;
+}
+
+.newBackdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 40;
+}
+
+.newMenu {
+  position: absolute;
+  top: 28px;
+  left: 0;
+  z-index: 50;
+  min-width: 180px;
+  background: var(--color-surface, #fff);
+  border: 1px solid var(--color-border, #e2e2e2);
+  border-radius: 8px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.18);
+  padding: 4px;
+  display: flex;
+  flex-direction: column;
+}
+
+.newMenu button {
+  text-align: left;
+  background: transparent;
+  border: none;
+  border-radius: 5px;
+  color: var(--color-text, #1a1a1a);
+  cursor: pointer;
+  font-size: 13px;
+  padding: 7px 10px;
+}
+
+.newMenu button:hover {
+  background: var(--active, var(--color-surface-raised, #f0f0f0));
+}
+
+.newDivider {
+  height: 1px;
+  margin: 4px 6px;
+  background: var(--color-border, #e2e2e2);
+}
+
+/* Recent workspaces in the no-folder empty state. */
+.recentWs {
+  width: 100%;
+  margin-top: var(--space-4);
+  text-align: left;
+}
+
+.recentWsRow {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  width: 100%;
+  background: none;
+  border: none;
+  border-radius: var(--radius-md);
+  padding: var(--space-2) var(--space-3);
+  color: var(--color-text-muted);
+  font-size: var(--text-sm);
+  cursor: pointer;
+  overflow: hidden;
+}
+
+.recentWsRow:hover {
+  color: var(--color-text);
+  background: var(--color-hover);
+}
+
+.recentWsName {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}

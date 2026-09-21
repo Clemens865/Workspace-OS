@@ -1,0 +1,371 @@
+/* ── Backdrop + centered modal ── */
+.backdrop {
+  position: absolute;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.24);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 50;
+  padding: 24px;
+  animation: fade 0.15s ease;
+}
+
+@keyframes fade {
+  from {
+    opacity: 0;
+  }
+}
+
+.modal {
+  position: relative;
+  width: 720px;
+  max-width: 94vw;
+  max-height: 90vh;
+  overflow-y: auto;
+  background: var(--wos-card);
+  border-radius: var(--wos-r);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1), 0 24px 64px rgba(0, 0, 0, 0.22);
+  padding: 28px 30px 24px;
+  animation: rise 0.2s ease;
+  font-family: var(--wos-font);
+}
+
+@keyframes rise {
+  from {
+    transform: translateY(12px) scale(0.985);
+    opacity: 0;
+  }
+}
+
+/* ── Shared heading ── */
+.title {
+  font-size: 21px;
+  font-weight: 600;
+  color: var(--wos-ink);
+  letter-spacing: -0.02em;
+}
+
+.sub {
+  margin: 6px 0 18px;
+  font-size: 13.5px;
+  line-height: 1.5;
+  color: var(--wos-ink-2);
+}
+
+/* ── Step 1 — describe ── */
+.textarea {
+  width: 100%;
+  box-sizing: border-box;
+  resize: vertical;
+  min-height: 96px;
+  padding: 14px 16px;
+  font: inherit;
+  font-size: 14px;
+  line-height: 1.5;
+  color: var(--wos-ink);
+  background: var(--wos-sunk);
+  border: 1px solid transparent;
+  border-radius: var(--wos-r-sm);
+  transition: border-color 0.14s ease, background 0.14s ease;
+}
+
+.textarea::placeholder {
+  color: var(--wos-ink-3);
+}
+
+.textarea:focus {
+  outline: none;
+  background: var(--wos-card);
+  border-color: var(--wos-blue);
+}
+
+.textarea:disabled {
+  opacity: 0.6;
+}
+
+.chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 12px;
+}
+
+.exampleChip {
+  font: inherit;
+  font-size: 12.5px;
+  font-weight: 500;
+  padding: 6px 13px;
+  border-radius: var(--wos-r-pill);
+  background: var(--wos-sunk);
+  color: var(--wos-ink-2);
+  border: 1px solid var(--wos-hair);
+  cursor: pointer;
+  transition: background 0.14s ease, color 0.14s ease, border-color 0.14s ease;
+}
+
+.exampleChip:hover:not(:disabled) {
+  color: var(--wos-ink);
+  border-color: rgba(0, 0, 0, 0.16);
+}
+
+.exampleChip:disabled {
+  opacity: 0.5;
+  cursor: default;
+}
+
+/* Calm building state */
+.building {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  margin-top: 22px;
+  padding: 16px 18px;
+  border-radius: var(--wos-r-sm);
+  background: var(--wos-sunk);
+}
+
+.buildingTitle {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--wos-ink);
+}
+
+.buildingHint {
+  font-size: 12.5px;
+  color: var(--wos-ink-2);
+  margin-top: 2px;
+}
+
+.spinner {
+  flex-shrink: 0;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  border: 2.5px solid var(--wos-hair);
+  border-top-color: var(--wos-blue);
+  animation: spin 0.7s linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.error {
+  margin-top: 16px;
+  padding: 10px 14px;
+  font-size: 13px;
+  line-height: 1.45;
+  color: var(--wos-warn-ink);
+  background: var(--wos-warn-bg);
+  border-radius: var(--wos-r-sm);
+}
+
+/* ── Step 2 — preview & approve ── */
+.columns {
+  display: grid;
+  grid-template-columns: 240px 1fr;
+  gap: 26px;
+  align-items: start;
+}
+
+.previewPane {
+  position: sticky;
+  top: 0;
+}
+
+/* Non-interactive wrapper for the live AgentCard preview. */
+.cardWrap {
+  pointer-events: none;
+  user-select: none;
+}
+
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  min-width: 0;
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.label {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--wos-ink-2);
+  letter-spacing: -0.01em;
+}
+
+.input,
+.personaArea {
+  width: 100%;
+  box-sizing: border-box;
+  font: inherit;
+  font-size: 13.5px;
+  color: var(--wos-ink);
+  background: var(--wos-sunk);
+  border: 1px solid transparent;
+  border-radius: var(--wos-r-sm);
+  transition: border-color 0.14s ease, background 0.14s ease;
+}
+
+.input {
+  height: 38px;
+  padding: 0 12px;
+}
+
+.personaArea {
+  resize: vertical;
+  min-height: 96px;
+  padding: 10px 12px;
+  line-height: 1.5;
+}
+
+.input:focus,
+.personaArea:focus {
+  outline: none;
+  background: var(--wos-card);
+  border-color: var(--wos-blue);
+}
+
+.capChips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.capChip {
+  font: inherit;
+  font-size: 12.5px;
+  font-weight: 500;
+  padding: 6px 13px;
+  border-radius: var(--wos-r-pill);
+  background: var(--wos-sunk);
+  color: var(--wos-ink-2);
+  border: 1px solid transparent;
+  cursor: pointer;
+  transition: background 0.14s ease, color 0.14s ease, border-color 0.14s ease;
+}
+
+.capChip:hover {
+  color: var(--wos-ink);
+}
+
+.capChipOn {
+  color: var(--wos-ink);
+  border-color: var(--wos-blue);
+  background: var(--wos-card);
+  box-shadow: inset 0 0 0 1px var(--wos-blue);
+}
+
+.row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+}
+
+/* Segmented safe/full */
+.segment {
+  display: inline-flex;
+  padding: 3px;
+  background: var(--wos-sunk);
+  border-radius: var(--wos-r-pill);
+  gap: 2px;
+}
+
+.seg {
+  flex: 1;
+  font: inherit;
+  font-size: 12.5px;
+  font-weight: 600;
+  height: 32px;
+  padding: 0 16px;
+  border: 0;
+  border-radius: var(--wos-r-pill);
+  background: transparent;
+  color: var(--wos-ink-2);
+  cursor: pointer;
+  transition: background 0.14s ease, color 0.14s ease;
+}
+
+.segOn {
+  background: var(--wos-card);
+  color: var(--wos-ink);
+  box-shadow: var(--wos-sh-raised);
+}
+
+/* ── Footer ── */
+.footer {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-top: 24px;
+}
+
+.spacer {
+  flex: 1;
+}
+
+.primary {
+  height: 38px;
+  padding: 0 20px;
+  border: 0;
+  border-radius: var(--wos-r-pill);
+  background: var(--wos-blue);
+  color: #fff;
+  font: inherit;
+  font-size: 13.5px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.14s ease, opacity 0.14s ease;
+}
+
+.primary:hover:not(:disabled) {
+  background: #0060bf;
+}
+
+.primary:disabled {
+  opacity: 0.45;
+  cursor: default;
+}
+
+.quiet {
+  height: 38px;
+  padding: 0 16px;
+  border: 0;
+  border-radius: var(--wos-r-pill);
+  background: transparent;
+  color: var(--wos-ink-2);
+  font: inherit;
+  font-size: 13.5px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.14s ease, color 0.14s ease;
+}
+
+.quiet:hover:not(:disabled) {
+  background: var(--wos-sunk);
+  color: var(--wos-ink);
+}
+
+.quiet:disabled {
+  opacity: 0.5;
+  cursor: default;
+}
+
+@media (max-width: 640px) {
+  .columns {
+    grid-template-columns: 1fr;
+  }
+  .previewPane {
+    position: static;
+    max-width: 240px;
+    margin: 0 auto;
+  }
+}

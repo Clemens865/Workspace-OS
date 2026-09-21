@@ -1,0 +1,96 @@
+.root {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  overflow: hidden;
+  background: var(--term-bg);
+}
+
+.header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 12px;
+  border-bottom: 1px solid var(--term-border);
+  flex-shrink: 0;
+  font-size: 11px;
+}
+
+.modeBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  background: var(--term-surface);
+  border: 1px solid var(--term-border);
+  border-radius: 12px;
+  padding: 3px 10px;
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--term-fg);
+  cursor: pointer;
+}
+
+.modeBtn:hover { border-color: var(--color-accent, #6e8ae0); }
+
+.modeHint {
+  color: #9da0a8;
+  font-size: 11px;
+}
+
+.spacer { flex: 1; }
+
+.budget {
+  color: #9da0a8;
+  font-family: var(--mono);
+  font-size: 11px;
+}
+
+.exited {
+  color: #e08a6e;
+  font-family: var(--mono);
+  font-size: 11px;
+}
+
+.term {
+  flex: 1;
+  min-height: 0;
+  padding: 6px 8px;
+}
+
+/* The HITL approval gate — a styled affordance over claude's native prompt. */
+.gate {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 12px;
+  border-top: 1px solid var(--color-accent, #6e8ae0);
+  background: rgba(110, 138, 224, 0.08);
+  flex-shrink: 0;
+}
+
+.gateIcon { font-size: 14px; }
+
+.gateText {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--term-fg);
+}
+
+.gateBtn {
+  border: 1px solid var(--term-border);
+  border-radius: 12px;
+  padding: 4px 12px;
+  font-size: 11px;
+  font-weight: 600;
+  cursor: pointer;
+  color: var(--term-fg);
+  background: var(--term-surface);
+}
+
+.allow { border-color: var(--color-success, #6ec87e); color: var(--color-success, #6ec87e); }
+.allow:hover { background: rgba(110, 200, 126, 0.15); }
+
+.allowSession:hover { border-color: var(--color-accent, #6e8ae0); color: var(--color-accent, #6e8ae0); }
+
+.deny { border-color: var(--color-danger, #e0736e); color: var(--color-danger, #e0736e); }
+.deny:hover { background: rgba(224, 115, 110, 0.15); }

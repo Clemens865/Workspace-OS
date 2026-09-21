@@ -1,0 +1,159 @@
+/* The Living Feed — the calm light Cockpit surface (docs/design/cockpit-redesign.html).
+ * Overlays the canvas region when the Review view is active. Tokens from
+ * styles/tokens.css (--wos-*). */
+.surface {
+  position: absolute;
+  inset: 0;
+  z-index: 6;
+  display: flex;
+  flex-direction: column;
+  background: var(--wos-bg);
+  color: var(--wos-ink);
+  font-family: var(--wos-font);
+  --rv-body: var(--wos-font, 'Hanken Grotesk', -apple-system, system-ui, sans-serif);
+  --rv-mono: var(--wos-font-mono, 'JetBrains Mono', 'SF Mono', ui-monospace, monospace);
+}
+
+.topBar {
+  position: sticky;
+  top: 0;
+  z-index: 5;
+  display: flex;
+  align-items: baseline;
+  gap: 14px;
+  flex-wrap: wrap;
+  padding: 16px 30px;
+  background: rgba(245, 245, 247, 0.8);
+  backdrop-filter: saturate(180%) blur(20px);
+  -webkit-backdrop-filter: saturate(180%) blur(20px);
+  border-bottom: 0.5px solid var(--wos-hair);
+}
+
+.count {
+  font-family: var(--rv-body);
+  font-size: 20px;
+  font-weight: 640;
+  letter-spacing: -0.02em;
+  color: var(--wos-ink);
+}
+
+.eta {
+  font-family: var(--rv-body);
+  font-size: 13px;
+  color: var(--wos-ink-3);
+}
+
+.subtitle {
+  flex-basis: 100%;
+  font-family: var(--rv-body);
+  font-size: 13px;
+  color: var(--wos-ink-2);
+}
+
+.spacerFlex { flex: 1; }
+
+/* Feed / Fleet segmented toggle in the top bar. */
+.viewToggle {
+  display: inline-flex;
+  gap: 3px;
+  padding: 3px;
+  border-radius: 999px;
+  background: var(--wos-sunk);
+}
+.viewOn,
+.viewOff {
+  font-family: var(--rv-body);
+  font-size: 12px;
+  font-weight: 500;
+  padding: 5px 14px;
+  border: none;
+  border-radius: 999px;
+  cursor: pointer;
+  transition: background 0.12s ease, color 0.12s ease;
+}
+.viewOn {
+  background: var(--wos-card);
+  color: var(--wos-ink);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.12);
+}
+.viewOff {
+  background: transparent;
+  color: var(--wos-ink-2);
+}
+.viewOff:hover { color: var(--wos-ink); }
+
+.stream {
+  flex: 1;
+  overflow-y: auto;
+  padding: 22px 30px 60px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  max-width: 860px;
+  width: 100%;
+  margin: 0 auto;
+}
+
+/* A card has overflow:hidden, which lets a flex column shrink it below its
+ * content; with a full feed every card squeezed to a sliver. Cards, the
+ * divider and the zero state keep their height; the column scrolls. */
+.stream > * {
+  flex-shrink: 0;
+}
+
+.divider {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin: 12px 0 2px;
+  font-family: var(--rv-body);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+  color: var(--wos-ink-3);
+}
+.divider::after {
+  content: '';
+  flex: 1;
+  height: 0.5px;
+  background: var(--wos-hair);
+}
+
+/* ── Queue-zero: the calm "you're caught up" reward (not approval volume). */
+.zero {
+  text-align: center;
+  padding: 60px 30px;
+  animation: rv-rise 0.6s ease both;
+}
+@keyframes rv-rise {
+  from { opacity: 0; transform: translateY(12px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+.zeroRing {
+  width: 74px;
+  height: 74px;
+  border-radius: 50%;
+  margin: 0 auto 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 1.5px solid rgba(48, 180, 74, 0.4);
+  background: radial-gradient(circle at 50% 35%, rgba(48, 180, 74, 0.14), transparent 70%);
+}
+.zeroTitle {
+  font-family: var(--rv-body);
+  font-size: 28px;
+  font-weight: 640;
+  letter-spacing: -0.03em;
+  color: var(--wos-ink);
+  margin-bottom: 12px;
+}
+.zeroText {
+  font-family: var(--rv-body);
+  font-size: 15px;
+  line-height: 1.5;
+  color: var(--wos-ink-2);
+  max-width: 340px;
+  margin: 0 auto;
+}

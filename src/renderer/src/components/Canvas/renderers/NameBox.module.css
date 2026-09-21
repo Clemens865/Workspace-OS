@@ -1,0 +1,7 @@
+.box {
+  width: 86px; height: 24px; padding: 0 8px;
+  font: inherit; font-size: 12.5px; font-variant-numeric: tabular-nums;
+  border: 1px solid var(--color-border, #d8d8d8); border-radius: 6px;
+  background: var(--color-surface, #fff); color: var(--color-text, #1a1a1a);
+}
+.box:focus { outline: 2px solid var(--color-accent-soft, rgba(26,115,232,.35)); outline-offset: 0; }

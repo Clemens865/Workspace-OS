@@ -1,0 +1,56 @@
+/* Find-in-page — an overlay pinned to the top-right of the page area.
+ * Never in flow: searching a page must not move the page. */
+
+.bar {
+  position: absolute;
+  top: 10px;
+  right: 16px;
+  z-index: 50;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 5px 6px 5px 12px;
+  border-radius: 10px;
+  background: var(--wos-card);
+  border: 0.5px solid var(--wos-hair);
+  box-shadow: 0 10px 28px rgb(0 0 0 / 20%);
+}
+
+.input {
+  width: 200px;
+  border: none;
+  outline: none;
+  background: transparent;
+  font-family: var(--wos-font);
+  font-size: 13px;
+  color: var(--wos-ink);
+}
+
+.input::placeholder {
+  color: var(--wos-ink-3);
+}
+
+.count {
+  font-size: 12px;
+  color: var(--wos-ink-3);
+  min-width: 54px;
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+
+.btn {
+  width: 24px;
+  height: 24px;
+  border: none;
+  background: transparent;
+  border-radius: 6px;
+  display: grid;
+  place-items: center;
+  color: var(--wos-ink-3);
+  cursor: pointer;
+}
+
+.btn:hover {
+  background: var(--wos-sunk);
+  color: var(--wos-ink);
+}

@@ -1,0 +1,159 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/><meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>Workspace · shell + peek</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@400;500;600;640;700&display=swap" rel="stylesheet">
+<style>
+  /* Whole-app shell + PEEK: RAIL (switcher) · STAGE · Home triage LEFT · artifact peek RIGHT (open → review in context) · ⌘K. */
+  :root{
+    --bg:#F5F5F7; --card:#FFFFFF; --sunk:#F0F0F2; --rail:#ECECEE;
+    --ink:#1D1D1F; --ink-2:#6E6E73; --ink-3:#8A8A8E; --hair:rgba(0,0,0,.09);
+    --blue:#0071E3; --dark:#1D1D1F; --ok:#30B44A; --warn-ink:#8A5A00; --warn-bg:#FFF4E0;
+    --sh-card:0 1px 2px rgba(0,0,0,.04), 0 10px 30px rgba(0,0,0,.06); --r:16px;
+  }
+  *{box-sizing:border-box} html,body{margin:0;height:100%}
+  body{background:var(--bg);color:var(--ink);font-family:"Hanken Grotesk",-apple-system,system-ui,sans-serif;-webkit-font-smoothing:antialiased;font-size:14px;line-height:1.5}
+  .ic{width:20px;height:20px;stroke:currentColor;stroke-width:1.7;fill:none;stroke-linecap:round;stroke-linejoin:round}
+  .shell{display:grid;grid-template-columns:76px 1fr;height:100vh}
+  /* RAIL */
+  .rail{background:var(--rail);border-right:.5px solid var(--hair);display:flex;flex-direction:column;align-items:center;padding:12px 0;gap:4px}
+  .rlogo{width:32px;height:32px;border-radius:9px;background:var(--dark);display:grid;place-items:center;color:#fff;margin-bottom:10px}.rlogo .ic{width:17px;height:17px;stroke-width:2.1}
+  .ritem{width:56px;padding:8px 0 6px;border-radius:12px;display:flex;flex-direction:column;align-items:center;gap:4px;color:var(--ink-2);cursor:pointer}
+  .ritem .ic{width:21px;height:21px}.ritem span{font-size:10px;font-weight:500;letter-spacing:-.01em}
+  .ritem.on{background:var(--card);color:var(--ink);box-shadow:0 1px 3px rgba(0,0,0,.10)}
+  .ritem .badge{position:absolute;transform:translate(14px,-6px);background:var(--blue);color:#fff;font-size:9px;font-weight:700;min-width:15px;height:15px;border-radius:99px;display:grid;place-items:center;padding:0 3px}
+  .rgap{flex:1}.rdiv{width:34px;height:.5px;background:var(--hair);margin:6px 0}
+  .rspace{width:26px;height:26px;border-radius:8px;display:grid;place-items:center;font-size:11px;font-weight:600;color:#fff;cursor:pointer}
+  /* STAGE */
+  .stage{display:flex;flex-direction:column;min-width:0}
+  .topbar{display:flex;align-items:center;gap:10px;padding:10px 16px;border-bottom:.5px solid var(--hair);background:rgba(245,245,247,.8);backdrop-filter:blur(20px)}
+  .tabs{display:flex;gap:4px;align-items:center;min-width:0;overflow:hidden}
+  .tab{display:flex;align-items:center;gap:7px;padding:7px 12px;border-radius:10px;color:var(--ink-2);font-size:13px;font-weight:500;cursor:pointer;white-space:nowrap}
+  .tab .ic{width:15px;height:15px}.tab.on{background:var(--card);color:var(--ink);box-shadow:0 1px 3px rgba(0,0,0,.10)}
+  .tab .x{color:var(--ink-3);font-size:14px;margin-left:2px}.tab.add{color:var(--ink-3);padding:7px 9px}
+  .topbar .spacer{flex:1}
+  .cmdk{display:flex;align-items:center;gap:8px;background:var(--card);border:.5px solid var(--hair);border-radius:99px;padding:7px 12px;color:var(--ink-3);font-size:13px;cursor:pointer;min-width:200px}
+  .cmdk .k{margin-left:auto;font-size:11px;background:var(--sunk);padding:2px 6px;border-radius:5px;color:var(--ink-2)}
+  .working{display:flex;align-items:center;gap:7px;color:var(--ink-2);font-size:12.5px;background:var(--card);padding:6px 10px;border-radius:99px;box-shadow:0 1px 2px rgba(0,0,0,.05)}
+  .working .live{width:7px;height:7px;border-radius:99px;background:var(--ok)}
+  /* two-pane Home: triage LEFT, peek RIGHT */
+  .split{flex:1;display:grid;grid-template-columns:minmax(360px,420px) 1fr;min-height:0}
+  .feed{overflow:auto;padding:18px 22px 40px;border-right:.5px solid var(--hair)}
+  h1{font-size:26px;font-weight:640;letter-spacing:-.035em;margin:4px 0 4px}
+  .lede{font-size:15px;color:var(--ink-2);letter-spacing:-.01em;margin-bottom:18px}
+  .command{display:flex;align-items:center;gap:8px;background:var(--card);border-radius:99px;box-shadow:var(--sh-card);padding:6px 6px 6px 15px;margin-bottom:20px}
+  .command input{flex:1;border:0;outline:0;background:transparent;font:inherit;font-size:14px}.command input::placeholder{color:var(--ink-3)}
+  .command .ask{background:var(--dark);color:#fff;border:0;font:inherit;font-weight:600;font-size:12.5px;padding:9px 14px;border-radius:99px;cursor:pointer}
+  .sec{display:flex;align-items:baseline;gap:8px;margin:0 2px 10px}.sec h2{font-size:14px;font-weight:600;margin:0}.sec .n{color:var(--ink-3);font-size:12px}
+  .card{background:var(--card);border-radius:14px;box-shadow:var(--sh-card);padding:15px;margin-bottom:10px;cursor:pointer}
+  .card.sel{box-shadow:0 0 0 2px var(--blue), var(--sh-card)}
+  .card .top{display:flex;align-items:center;gap:10px}
+  .who{width:30px;height:30px;border-radius:8px;background:var(--sunk);display:grid;place-items:center;color:var(--ink-2)}.who .ic{width:17px;height:17px}
+  .card h3{font-size:14px;font-weight:600;margin:0;letter-spacing:-.01em}
+  .card .by{color:var(--ink-2);font-size:12px;margin-top:1px}
+  .card .go{margin-left:auto;color:var(--ink-3);font-size:12px}
+  .card .mini{margin:9px 0 0;font-size:12.5px;color:var(--ink-2)}
+  .tag{display:inline-flex;align-items:center;gap:5px;font-size:11.5px;margin-top:9px;color:var(--ink-2)}.tag .ic{width:13px;height:13px}.tag .ok{color:var(--ok)}
+  .tag.willsend{color:var(--warn-ink)}
+  /* PEEK pane */
+  .peek{display:flex;flex-direction:column;min-width:0;background:var(--bg)}
+  .peekhead{display:flex;align-items:center;gap:10px;padding:14px 24px;border-bottom:.5px solid var(--hair)}
+  .peekhead .pt{font-weight:600;font-size:15px;letter-spacing:-.01em}
+  .peekhead .sub{color:var(--ink-3);font-size:12.5px}
+  .peekhead .spacer{flex:1}
+  .peekhead .act{display:flex;align-items:center;gap:6px;color:var(--ink-2);font-size:12.5px;background:var(--card);padding:7px 11px;border-radius:9px;box-shadow:0 1px 2px rgba(0,0,0,.05);cursor:pointer}
+  .peekhead .close{width:28px;height:28px;border-radius:8px;display:grid;place-items:center;color:var(--ink-3);cursor:pointer}
+  .peekbody{flex:1;overflow:auto;padding:24px;max-width:680px}
+  .mail{background:var(--card);border-radius:var(--r);box-shadow:var(--sh-card);overflow:hidden}
+  .mailrow{display:flex;gap:10px;padding:12px 18px;border-bottom:.5px solid var(--hair);font-size:13.5px}
+  .mailrow .l{color:var(--ink-3);width:64px;flex-shrink:0}.mailrow .v{color:var(--ink)}
+  .mailbody{padding:18px;font-size:14.5px;color:var(--ink);line-height:1.6}
+  .willbar{display:flex;align-items:center;gap:8px;margin:18px 0;color:var(--warn-ink);background:var(--warn-bg);padding:10px 14px;border-radius:12px;font-size:13.5px;font-weight:500}
+  .willbar .ic{width:16px;height:16px}
+  .actions{display:flex;gap:10px}
+  .b{height:42px;padding:0 20px;border-radius:12px;font:inherit;font-weight:600;font-size:15px;cursor:pointer;border:0}
+  .b.blue{background:var(--blue);color:#fff}.b.quiet{background:var(--card);color:var(--ink);box-shadow:0 1px 2px rgba(0,0,0,.05)}
+  .crumbs{padding:14px 24px 0;color:var(--ink-3);font-size:12px}.crumbs b{color:var(--ink-2)}
+</style>
+</head>
+<body>
+<div class="shell">
+  <div class="rail">
+    <div class="rlogo"><svg class="ic" viewBox="0 0 24 24"><path d="M4 7h16M4 12h16M4 17h10"/></svg></div>
+    <div class="ritem on"><svg class="ic" viewBox="0 0 24 24"><path d="M3 11l9-8 9 8"/><path d="M5 10v10h14V10"/></svg><span>Home</span></div>
+    <div class="ritem"><svg class="ic" viewBox="0 0 24 24"><path d="M4 6a2 2 0 0 1 2-2h4l2 3h6a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2z"/></svg><span>Files</span></div>
+    <div class="ritem" style="position:relative"><span class="badge">2</span><svg class="ic" viewBox="0 0 24 24"><rect x="4" y="6" width="16" height="12" rx="2"/><path d="M5 8l7 5 7-5"/></svg><span>Mail</span></div>
+    <div class="ritem"><svg class="ic" viewBox="0 0 24 24"><rect x="4" y="5" width="16" height="16" rx="2"/><path d="M4 9h16M8 3v4M16 3v4"/></svg><span>Calendar</span></div>
+    <div class="ritem"><svg class="ic" viewBox="0 0 24 24"><path d="M20 12a8 8 0 1 1-3.5-6.6L20 4v5h-5"/></svg><span>Chats</span></div>
+    <div class="ritem"><svg class="ic" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3a14 14 0 0 1 0 18M12 3a14 14 0 0 0 0 18"/></svg><span>Browser</span></div>
+    <div class="ritem"><svg class="ic" viewBox="0 0 24 24"><circle cx="12" cy="8" r="3"/><path d="M6 20a6 6 0 0 1 12 0"/></svg><span>Agents</span></div>
+    <div class="rgap"></div><div class="rdiv"></div>
+    <div class="rspace" style="background:#0071E3">W</div><div class="rspace" style="background:#8A8A8E">P</div>
+    <div class="rdiv"></div>
+    <div class="ritem"><svg class="ic" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M12 3v3M12 18v3M3 12h3M18 12h3M6 6l2 2M16 16l2 2M6 18l2-2M16 8l2-2"/></svg><span>Settings</span></div>
+  </div>
+
+  <div class="stage">
+    <div class="topbar">
+      <div class="tabs">
+        <div class="tab on"><svg class="ic" viewBox="0 0 24 24"><path d="M3 11l9-8 9 8"/><path d="M5 10v10h14V10"/></svg> Home</div>
+        <div class="tab"><svg class="ic" viewBox="0 0 24 24"><path d="M8 4h8l4 4v12H4V4z"/></svg> report.docx <span class="x">×</span></div>
+        <div class="tab add">+</div>
+      </div>
+      <div class="spacer"></div>
+      <div class="working"><span class="live"></span> 2 working</div>
+      <div class="cmdk"><svg class="ic" style="width:15px;height:15px" viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3-3"/></svg> Search or run <span class="k">⌘K</span></div>
+    </div>
+
+    <div class="split">
+      <!-- LEFT: triage feed -->
+      <div class="feed">
+        <h1>Ready for you</h1>
+        <div class="lede">2 need a decision · 1 still working</div>
+        <div class="command"><input placeholder="Ask an assistant…"/><button class="ask">Ask →</button></div>
+        <div class="sec"><h2>Needs a decision</h2><span class="n">2</span></div>
+
+        <div class="card">
+          <div class="top">
+            <div class="who"><svg class="ic" viewBox="0 0 24 24"><path d="M8 4h7l4 4v12a1 1 0 0 1-1 1H6a1 1 0 0 1-1-1V5a1 1 0 0 1 1-1z"/><path d="M9 13h6M9 16h4"/></svg></div>
+            <div><h3>Updated Q3 revenue</h3><div class="by">Writing assistant · report.docx</div></div>
+            <span class="go">open →</span>
+          </div>
+          <span class="tag"><svg class="ic ok" viewBox="0 0 24 24"><path d="M5 13l4 4L19 7"/></svg> Reversible — undo anytime</span>
+        </div>
+
+        <div class="card sel">
+          <div class="top">
+            <div class="who"><svg class="ic" viewBox="0 0 24 24"><rect x="4" y="6" width="16" height="12" rx="2"/><path d="M5 8l7 5 7-5"/></svg></div>
+            <div><h3>Drafted a reply to Priya</h3><div class="by">Email assistant · “Q3 forecast”</div></div>
+            <span class="go">open →</span>
+          </div>
+          <span class="tag willsend"><svg class="ic" viewBox="0 0 24 24"><path d="M12 9v4M12 16h.01M10.3 4.3l-7 12A1 1 0 0 0 4 18h16a1 1 0 0 0 .8-1.6l-7-12z"/></svg> Not sent yet</span>
+        </div>
+      </div>
+
+      <!-- RIGHT: PEEK — the selected card's real artifact, reviewed in context -->
+      <div class="peek">
+        <div class="peekhead">
+          <div><div class="pt">Reply to Priya</div><div class="sub">Email assistant · reviewing before you send</div></div>
+          <div class="spacer"></div>
+          <div class="act"><svg class="ic" style="width:14px;height:14px" viewBox="0 0 24 24"><path d="M7 17L17 7M9 7h8v8"/></svg> Open in Mail</div>
+          <div class="close"><svg class="ic" style="width:15px;height:15px" viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18"/></svg></div>
+        </div>
+        <div class="peekbody">
+          <div class="mail">
+            <div class="mailrow"><span class="l">To</span><span class="v">Priya Nair &lt;priya@acme-partners.com&gt;</span></div>
+            <div class="mailrow"><span class="l">Subject</span><span class="v">Re: Q3 forecast</span></div>
+            <div class="mailbody">Hi Priya,<br><br>Yes — I’ll send the updated Q3 forecast before our call tomorrow. I’ve included both the finance-model figures and a sales-adjusted view so you can compare them against the pipeline directly.<br><br>Talk soon,<br>Clemens</div>
+          </div>
+          <div class="willbar"><svg class="ic" viewBox="0 0 24 24"><path d="M12 9v4M12 16h.01M10.3 4.3l-7 12A1 1 0 0 0 4 18h16a1 1 0 0 0 .8-1.6l-7-12a1 1 0 0 0-1.5 0z"/></svg> This will send an email to Priya. Nothing has been sent yet.</div>
+          <div class="actions"><button class="b blue">Send it</button><button class="b quiet">Edit first</button></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+</body>
+</html>

@@ -1,0 +1,53 @@
+/* Pixel-grid loader — Beautiful UI loading-state grammar on wos tokens. */
+
+.root { display: inline-flex; align-items: center; gap: 10px; }
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(3, 4px);
+  gap: 1.5px;
+  flex-shrink: 0;
+}
+.px {
+  width: 4px;
+  height: 4px;
+  border-radius: 1px;
+  background: var(--wos-ink-1, var(--color-text));
+  opacity: 0.15;
+}
+
+.label {
+  font-size: 13px;
+  font-weight: 500;
+  background-image: linear-gradient(
+    90deg,
+    var(--wos-ink-3, #787d96) 35%,
+    var(--wos-ink-1, #14162a) 50%,
+    var(--wos-ink-3, #787d96) 65%
+  );
+  background-size: 200% 100%;
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  animation: wosShimmerText 1.4s linear infinite;
+}
+
+.elapsed {
+  font-family: ui-monospace, 'SF Mono', Menlo, monospace;
+  font-size: 12px;
+  font-variant-numeric: tabular-nums;
+  color: var(--wos-ink-3, var(--color-text-subtle));
+}
+
+@keyframes wosPxOn {
+  0%, 60%, 100% { opacity: 0.15; }
+  25% { opacity: 0.9; }
+}
+@keyframes wosShimmerText {
+  from { background-position: 200% 0; }
+  to { background-position: 0% 0; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .px { animation: none !important; }
+  .label { animation: none; color: var(--wos-ink-2, var(--color-text-muted)); background: none; }
+}

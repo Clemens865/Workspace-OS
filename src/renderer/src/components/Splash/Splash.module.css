@@ -1,0 +1,94 @@
+/* The startup splash — logo under rippling water, Loading → Enter. */
+
+.splash {
+  position: fixed;
+  inset: 0;
+  z-index: 500; /* above every surface, incl. the terminal dock */
+  background: #06070d;
+  overflow: hidden;
+  opacity: 1;
+  transition: opacity 0.55s ease;
+}
+
+.leaving { opacity: 0; pointer-events: none; }
+
+.canvas {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+
+.staticLogo {
+  position: absolute;
+  top: 42%;
+  left: 50%;
+  width: min(38vh, 42vw);
+  transform: translate(-50%, -50%);
+  border-radius: 18%;
+}
+
+.overlay {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 9vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 22px;
+  pointer-events: none;
+}
+
+.word {
+  font-family: 'Inter', 'Helvetica Neue', sans-serif;
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: 0.42em;
+  color: rgb(232 236 255 / 72%);
+  text-indent: 0.42em; /* balances the tracking on the last glyph */
+  text-shadow: 0 1px 12px rgb(0 0 0 / 45%);
+}
+
+.loading {
+  font-family: ui-monospace, 'SF Mono', Menlo, monospace;
+  font-size: 11px;
+  letter-spacing: 0.18em;
+  color: rgb(174 186 224 / 55%);
+  height: 38px;
+  display: flex;
+  align-items: center;
+}
+
+.dots i { font-style: normal; animation: splashDot 1.4s infinite; }
+.dots i:nth-child(2) { animation-delay: 0.2s; }
+.dots i:nth-child(3) { animation-delay: 0.4s; }
+@keyframes splashDot { 0%, 60%, 100% { opacity: 0.25; } 30% { opacity: 1; } }
+
+.enter {
+  pointer-events: auto;
+  height: 38px;
+  padding: 0 42px;
+  border-radius: 999px;
+  border: 1px solid rgb(255 255 255 / 22%);
+  background: rgb(255 255 255 / 9%);
+  color: #eef1ff;
+  font-family: 'Inter', 'Helvetica Neue', sans-serif;
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: 0.14em;
+  cursor: pointer;
+  backdrop-filter: blur(10px);
+  animation: splashRise 0.5s ease both;
+  transition: background 0.18s, border-color 0.18s, transform 0.18s;
+}
+.enter:hover { background: rgb(255 255 255 / 16%); border-color: rgb(255 255 255 / 38%); transform: translateY(-1px); }
+.enter:focus-visible { outline: 2px solid rgb(140 170 255 / 80%); outline-offset: 2px; }
+@keyframes splashRise { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
+
+@media (prefers-reduced-motion: reduce) {
+  .splash { transition: none; }
+  .enter { animation: none; }
+  .dots i { animation: none; }
+}

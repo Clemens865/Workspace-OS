@@ -1,0 +1,74 @@
+.bar {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  padding: 4px 8px;
+  background: var(--color-surface);
+  border-top: 1px solid var(--color-border);
+  flex-shrink: 0;
+  overflow-x: auto;
+}
+
+.tab,
+.active {
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: 6px;
+  color: var(--color-text-muted);
+  cursor: pointer;
+  font-size: 12px;
+  padding: 4px 12px;
+  white-space: nowrap;
+  max-width: 180px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  transition: background 100ms ease, color 100ms ease;
+}
+.tab:hover {
+  background: var(--color-hover);
+  color: var(--color-text);
+}
+.active {
+  background: var(--color-accent-soft);
+  color: var(--color-accent);
+  font-weight: 600;
+}
+
+.edit {
+  font-size: 12px;
+  padding: 3px 8px;
+  border: 1px solid var(--color-accent);
+  border-radius: 6px;
+  background: var(--color-bg);
+  color: var(--color-text);
+  width: 110px;
+  outline: none;
+}
+
+.spacer {
+  flex: 1 1 auto;
+}
+
+.icon {
+  flex: none;
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: 6px;
+  color: var(--color-text-muted);
+  cursor: pointer;
+  font-size: 12px;
+  line-height: 1;
+  padding: 4px 7px;
+  transition: background 100ms ease, color 100ms ease;
+}
+.icon:hover:not(:disabled) {
+  background: var(--color-hover);
+  color: var(--color-text);
+}
+.icon:disabled {
+  opacity: 0.35;
+  cursor: default;
+}
+
+/* Drop marker while a tab is dragged to a new slot. */
+.dropTarget { box-shadow: inset 3px 0 0 var(--accent, #6e8ae0); }

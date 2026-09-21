@@ -1,0 +1,42 @@
+.root {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  width: 100%;
+}
+
+.actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 10px;
+  border-bottom: 1px solid var(--border, rgba(0, 0, 0, 0.1));
+  background: var(--surface, #fff);
+  flex: 0 0 auto;
+}
+
+.actionBtn {
+  font-size: 12px;
+  padding: 4px 10px;
+  border: 1px solid var(--border, rgba(0, 0, 0, 0.15));
+  border-radius: 6px;
+  background: var(--surface-2, transparent);
+  color: var(--text, inherit);
+  cursor: pointer;
+}
+
+.actionBtn:hover {
+  background: var(--surface-hover, rgba(0, 0, 0, 0.05));
+}
+
+.status {
+  font-size: 12px;
+  color: var(--text-muted, #666);
+}
+
+/* tldraw positions itself absolutely; it needs a sized, positioned container. */
+.canvas {
+  position: relative;
+  flex: 1 1 auto;
+  min-height: 0;
+}

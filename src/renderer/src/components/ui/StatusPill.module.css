@@ -1,0 +1,18 @@
+/* The shared status pill — quiet tints, one grammar for every row. */
+
+.pill {
+  display: inline-flex; align-items: center; gap: 5px; flex: none;
+  font-size: 11px; font-weight: 600; letter-spacing: 0.02em;
+  padding: 2px 9px; border-radius: 20px; white-space: nowrap;
+}
+
+.neutral { background: var(--wos-sunk, rgba(0, 0, 0, 0.05)); color: var(--wos-ink-2, var(--color-text-muted)); }
+.good { background: var(--good-soft, #eaf6f0); color: var(--good, #1f6b4a); }
+.warn { background: var(--warn-soft, #fff3e8); color: var(--warn, #b4531a); }
+.gap { background: #fce9e9; color: #9b2c2c; }
+.accent { background: var(--wos-accent-soft, rgba(26, 115, 232, 0.12)); color: var(--wos-accent, #1a73e8); }
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme='light']) .gap { background: #331616; color: #ff9e9e; }
+}
+:root[data-theme='dark'] .gap { background: #331616; color: #ff9e9e; }

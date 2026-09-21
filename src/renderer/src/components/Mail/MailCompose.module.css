@@ -1,0 +1,314 @@
+.backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(20, 20, 22, 0.34);
+  backdrop-filter: blur(2px);
+  z-index: 220;
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  padding-top: 8vh;
+}
+
+.panel {
+  width: 560px;
+  max-width: 92vw;
+  max-height: 84vh;
+  display: flex;
+  flex-direction: column;
+  background: var(--elevated, var(--color-surface, #fff));
+  border: 1px solid var(--border, var(--color-border));
+  border-radius: 16px;
+  box-shadow: var(--shadow-3, 0 30px 80px rgba(0, 0, 0, 0.3));
+  overflow: hidden;
+}
+
+/* Full-screen compose. Designed mail is judged by how it reads, and a 560px
+   keyhole cannot show that — expanded, the window takes the screen and (in
+   rich mode) the preview moves beside the editor. */
+.backdropTall { padding-top: 3vh; }
+.panelExpanded { width: min(1280px, 96vw); height: 94vh; max-height: 94vh; }
+
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 18px;
+  border-bottom: 1px solid var(--color-border);
+}
+.headerTools { display: flex; align-items: center; gap: 12px; }
+.title { font-size: 15px; font-weight: 640; letter-spacing: -0.01em; color: var(--color-text); }
+.close { background: none; border: none; cursor: pointer; color: var(--color-text-muted); display: flex; }
+.close:hover { color: var(--color-text); }
+
+.body { padding: 4px 18px 14px; overflow-y: auto; display: flex; flex-direction: column; gap: 0; flex: 1; min-height: 0; }
+
+/* Expanded rich compose: editor left, the recipient's view right. */
+.bodySplit {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  gap: 24px;
+  align-items: start;
+}
+.editorPlain { display: contents; }
+.editorCol { display: flex; flex-direction: column; min-width: 0; }
+.previewCol {
+  position: sticky;
+  top: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  min-width: 0;
+  padding-top: 9px;
+}
+.previewTall {
+  width: 100%;
+  /* NO flex: 1 here. In the preview column (a flex column with auto height)
+     flex-basis: 0% overrides `height` on the main axis, and the iframe
+     collapsed to its intrinsic 150px — a keyhole that hid every block and made
+     drag-reorder look dead because nothing visible ever changed. Measured in
+     the real app: 152px with flex, full height without. */
+  height: calc(94vh - 200px);
+  border: 1px solid var(--color-border);
+  border-radius: 10px;
+  background: #fff;
+  box-sizing: border-box;
+}
+
+/* Header fields read as clean rows split by calm hairlines (mockup .mailrow),
+   not boxed inputs — the compose surface stays quiet. */
+.fromRow, .addrRow {
+  display: flex; align-items: center; gap: 10px;
+  padding: 9px 0; border-bottom: 1px solid var(--color-border);
+}
+.rowKey { width: 56px; flex: none; font-size: 12.5px; font-weight: 500; color: var(--color-text-subtle, var(--color-text-muted)); }
+.fromValue { font-size: 13.5px; color: var(--color-text); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+.input {
+  flex: 1;
+  background: transparent;
+  border: none;
+  border-radius: 0;
+  color: var(--color-text);
+  font-size: 13.5px;
+  padding: 1px 0;
+  outline: none;
+  min-width: 0;
+}
+.input::placeholder { color: var(--color-text-subtle, var(--color-text-muted)); }
+
+.ccToggle {
+  flex: none; background: none; border: none; cursor: pointer;
+  color: var(--color-text-subtle, var(--color-text-muted)); font-size: 12px; font-weight: 500; padding: 2px 6px;
+}
+.ccToggle:hover { color: var(--color-text); }
+
+.textarea {
+  width: 100%; box-sizing: border-box; min-height: 240px; resize: vertical;
+  background: transparent;
+  border: none; border-radius: 0;
+  color: var(--color-text); font-size: 14.5px; line-height: 1.65; padding: 16px 0 4px; outline: none;
+  font-family: var(--wos-font, -apple-system, system-ui, sans-serif);
+}
+.textarea::placeholder { color: var(--color-text-subtle, var(--color-text-muted)); }
+
+.attachments { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 10px; }
+.attachment {
+  display: inline-flex; align-items: center; gap: 6px; font-size: 12px; color: var(--color-text);
+  background: var(--color-hover); border: none; border-radius: 8px; padding: 5px 8px 5px 10px;
+}
+.attRemove { background: none; border: none; cursor: pointer; color: var(--color-text-subtle, var(--color-text-muted)); display: flex; padding: 1px; }
+.attRemove:hover { color: var(--color-danger, #d9534f); }
+
+.errorMsg {
+  display: flex; align-items: center; gap: 8px; font-size: 12.5px; font-weight: 500; margin-top: 10px;
+  color: var(--color-danger, #d9534f); background: rgba(224, 121, 122, 0.12); padding: 9px 12px; border-radius: 10px;
+}
+.sentMsg {
+  display: flex; align-items: center; gap: 8px; font-size: 12.5px; font-weight: 500; margin-top: 10px;
+  color: var(--color-success); background: rgba(48, 180, 74, 0.1); padding: 9px 12px; border-radius: 10px;
+}
+
+.footer {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 12px 18px; border-top: 1px solid var(--color-border); gap: 10px;
+}
+.footerRight { display: flex; align-items: center; gap: 10px; }
+
+.attachBtn {
+  display: inline-flex; align-items: center; justify-content: center;
+  color: var(--color-text-subtle, var(--color-text-muted)); cursor: pointer; padding: 8px; border-radius: 9px;
+  border: none; background: transparent;
+}
+.attachBtn:hover { color: var(--color-text); background: var(--color-hover); }
+
+.primary, .ghost {
+  display: inline-flex; align-items: center; gap: 7px;
+  font-size: 13px; font-weight: 600; padding: 9px 20px; border-radius: 11px; cursor: pointer;
+  border: none;
+}
+/* The one blue in the whole surface — the Send that actually sends. */
+.primary { background: var(--color-accent); color: #fff; }
+.primary:hover:not(:disabled) { background: var(--color-accent-hover, var(--color-accent)); }
+.primary:disabled { opacity: 0.45; cursor: default; }
+.ghost { background: transparent; color: var(--color-text-muted); }
+.ghost:hover { color: var(--color-text); background: var(--color-hover); }
+
+.spin { animation: mailspin 0.9s linear infinite; }
+@keyframes mailspin { to { transform: rotate(360deg); } }
+
+/* ── Rich mode ──────────────────────────────────────────────────────────── */
+
+/* Plain / Rich as a calm segmented control — sits quietly under the body. */
+.modeRow {
+  display: inline-flex; gap: 2px; margin-top: 12px; padding: 3px;
+  background: var(--color-hover); border-radius: 10px; align-self: flex-start;
+}
+.modeToggle {
+  display: inline-flex; align-items: center; gap: 5px;
+  font-size: 12px; font-weight: 600; padding: 5px 12px; border-radius: 8px; cursor: pointer;
+  border: none; background: transparent; color: var(--color-text-muted);
+}
+.modeToggle:hover { color: var(--color-text); }
+.modeToggleActive {
+  background: var(--color-surface); color: var(--color-text);
+  box-shadow: var(--wos-sh-raised, 0 1px 2px rgba(0, 0, 0, 0.08));
+}
+
+.rich { display: flex; flex-direction: column; gap: 10px; margin-top: 12px; }
+
+.richBar { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; }
+.richBarKey {
+  display: inline-flex; align-items: center; gap: 4px;
+  width: 56px; flex: none; font-size: 11.5px; font-weight: 500; color: var(--color-text-subtle, var(--color-text-muted));
+}
+
+/* Toolbar chips read as calm actions, not technical controls. */
+.themeChip, .assistChip {
+  display: inline-flex; align-items: center; gap: 5px;
+  font-size: 12px; font-weight: 500; padding: 5px 11px; border-radius: 8px; cursor: pointer;
+  border: none; background: var(--color-hover); color: var(--color-text);
+}
+.themeChip:hover, .assistChip:hover { background: var(--color-active, var(--color-hover)); color: var(--color-text); }
+.assistChip:disabled { opacity: 0.5; cursor: default; }
+.themeChipActive {
+  background: var(--color-surface); color: var(--color-text);
+  box-shadow: inset 0 0 0 1px var(--color-border), var(--wos-sh-raised, 0 1px 2px rgba(0, 0, 0, 0.06));
+  font-weight: 600;
+}
+
+.extras { display: flex; flex-wrap: wrap; gap: 6px; }
+.extraChip {
+  display: inline-flex; align-items: center; gap: 6px; font-size: 12px; color: var(--color-text);
+  background: var(--color-hover); border: none; border-radius: 8px; padding: 5px 8px 5px 11px;
+}
+
+/* The block list — the message's parts as an arrangeable stack. Each card is
+   one block of the outgoing email, in order; drag (or the arrows) to move. */
+.blockList { display: flex; flex-direction: column; gap: 5px; }
+.blockCard {
+  border: 1px solid var(--color-border);
+  border-radius: 9px;
+  background: var(--color-surface, #fff);
+  padding: 0;
+}
+.blockCard[draggable='true'] { cursor: grab; }
+.blockCardOver { box-shadow: inset 0 2px 0 var(--wos-accent, #2f5bff); }
+.blockRow { display: flex; align-items: center; gap: 7px; padding: 6px 8px 6px 6px; }
+.blockGrip { display: flex; color: var(--color-text-subtle, var(--color-text-muted)); }
+.blockName {
+  flex: 1; min-width: 0; font-size: 12.5px; color: var(--color-text);
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+.blockTools { display: flex; align-items: center; gap: 2px; }
+.blockBtn {
+  display: inline-flex; align-items: center; justify-content: center;
+  width: 24px; height: 24px; border: none; border-radius: 6px;
+  background: none; color: var(--color-text-muted); cursor: pointer; font-size: 12px;
+}
+.blockBtn:hover { background: var(--color-hover); color: var(--color-text); }
+.blockBtn:disabled { opacity: 0.35; cursor: default; }
+.blockBtnActive { background: var(--color-active, var(--color-hover)); color: var(--color-text); }
+
+.blockEdit {
+  display: flex; flex-direction: column; gap: 7px;
+  padding: 8px 10px 10px; border-top: 1px solid var(--color-border);
+}
+.blockEditInput {
+  border: 1px solid var(--color-border); border-radius: 7px; background: transparent;
+  color: var(--color-text); font-size: 12.5px; padding: 6px 9px; outline: none;
+}
+.blockEditInput:focus { border-color: var(--wos-accent, #2f5bff); }
+.blockEditText {
+  min-height: 84px; resize: vertical;
+  border: 1px solid var(--color-border); border-radius: 7px; background: transparent;
+  color: var(--color-text); font-size: 13px; line-height: 1.55; padding: 7px 9px; outline: none;
+  font-family: var(--wos-font, -apple-system, system-ui, sans-serif);
+}
+.blockEditText:focus { border-color: var(--wos-accent, #2f5bff); }
+.blockEditImg {
+  max-width: 220px;
+  max-height: 140px;
+  object-fit: contain;
+  border: 1px solid var(--color-border);
+  border-radius: 7px;
+  align-self: flex-start;
+  background: #fff;
+}
+
+.warnMsg {
+  display: flex; align-items: center; gap: 8px; font-size: 12.5px; font-weight: 500;
+  color: var(--wos-warn-ink); background: var(--wos-warn-bg); padding: 9px 12px; border-radius: 10px;
+}
+
+.previewLabel { font-size: 11.5px; font-weight: 600; color: var(--color-text-subtle, var(--color-text-muted)); margin-top: 2px; }
+.preview {
+  width: 100%; height: 320px; border: 1px solid var(--color-border); border-radius: 10px;
+  background: #fff; box-sizing: border-box;
+}
+
+.pickerCard {
+  border: 1px solid var(--color-border); border-radius: 9px; overflow: hidden;
+  background: var(--elevated, var(--color-surface, #fff));
+}
+.pickerHead {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 8px 12px; font-size: 12.5px; font-weight: 600; color: var(--color-text);
+  border-bottom: 1px solid var(--color-border);
+}
+.pickerList { max-height: 180px; overflow-y: auto; display: flex; flex-direction: column; }
+.pickerRow {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 8px 12px; font-size: 12.5px; color: var(--color-text); background: none; border: none;
+  cursor: pointer; text-align: left; border-bottom: 1px solid var(--color-border);
+}
+.pickerRow:hover { background: var(--color-hover); }
+.pickerVal { font-variant-numeric: tabular-nums; color: var(--color-text-muted); font-size: 12px; }
+.pickerForm { display: flex; flex-direction: column; gap: 8px; padding: 10px 12px; }
+
+.status { padding: 10px 12px; font-size: 12px; color: var(--color-text-muted); }
+
+/* Recipient autocomplete, from real correspondence. */
+.recipientWrap { position: relative; display: block; }
+.suggestions {
+  position: absolute; z-index: 20; top: 100%; left: 0; right: 0;
+  max-height: 220px; overflow-y: auto;
+  background: var(--color-surface, #fff);
+  border: 1px solid var(--color-border);
+  border-radius: 8px; box-shadow: 0 8px 24px rgba(0,0,0,0.14);
+  margin-top: 2px; padding: 4px;
+}
+.suggestion {
+  display: flex; flex-direction: column; align-items: flex-start; gap: 1px;
+  width: 100%; text-align: left; padding: 6px 8px; border-radius: 6px;
+  background: none; border: none; cursor: pointer;
+}
+.suggestion:hover { background: var(--color-surface-hover, rgba(127,127,127,0.10)); }
+.suggestName { font-size: 12px; color: var(--color-text); }
+.suggestAddr { font-size: 11px; color: var(--color-text-muted); }
+
+/* Draft save feedback — quiet, above the footer. */
+.draftNote {
+  padding: 6px 14px; font-size: 11px; color: var(--color-text-muted);
+  border-top: 1px solid var(--color-border);
+}

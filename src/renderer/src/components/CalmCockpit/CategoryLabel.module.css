@@ -1,0 +1,70 @@
+/* The categorical label — the "A+D blend": a hairline-outlined chip carrying a
+ * 5px category-colored dot + HUMAN sentence-case wording ("To review", "Failed").
+ * Construction:
+ *   - a hairline outline + a barely-there tint floor so it reads as a chip
+ *     without shouting; the ink stays dark and legible.
+ *   - a 5px category dot carries the colour; the TEXT stays near-ink, so colour
+ *     is a cue, never the message. Four categories stay distinguishable at a
+ *     glance while the surface stays calm.
+ *   - quiet sentence-case micro-type, subtle tracking — reads like a human
+ *     phrase, not a systemic tag. Never borrows the reserved --wos-blue.
+ *     Per-category accents are local vars so the dot + tint stay in sync. */
+.tag {
+  --cat: var(--wos-ink-3);
+  --cat-tint: rgba(0, 0, 0, 0.03);
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  height: 19px;
+  padding: 0 9px 0 7px;
+  border-radius: 6px;
+  background: var(--cat-tint);
+  box-shadow: inset 0 0 0 0.5px var(--wos-hair);
+  color: var(--wos-ink-2);
+  font-size: 11px;
+  font-weight: 560;
+  letter-spacing: 0.005em;
+  line-height: 1;
+  white-space: nowrap;
+  user-select: none;
+}
+
+.dot {
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: var(--cat);
+  flex: none;
+}
+
+/* ── Category accents. One hue each; all restrained, all light-friendly. ── */
+
+/* REVIEW — a checkpointed edit to look over. Calm teal (the "reversible" green
+ * the feed already uses for keep/revert), signalling "safe to undo". */
+.tag[data-category='REVIEW'] {
+  --cat: #3fbfa3;
+  --cat-tint: rgba(63, 191, 163, 0.08);
+}
+
+/* SEND — an outbound draft. The reserved blue's cooler cousin so it reads
+ * "will leave the workspace" without borrowing the primary-action blue. */
+.tag[data-category='SEND'] {
+  --cat: #6e9bf4;
+  --cat-tint: rgba(110, 155, 244, 0.09);
+}
+
+/* DECISION — a plain yes/no. Warm amber (the feed's warn ink), the "your call"
+ * temperature, quiet but forward. */
+.tag[data-category='DECISION'] {
+  --cat: #c98a2e;
+  --cat-tint: rgba(201, 138, 46, 0.09);
+  color: var(--wos-warn-ink);
+}
+
+/* ERROR — the run failed. A muted rose (never a shouting red) — legible,
+ * concerned, not alarming. */
+.tag[data-category='ERROR'] {
+  --cat: #e0797a;
+  --cat-tint: rgba(224, 121, 122, 0.1);
+  color: #9c3a3b;
+}

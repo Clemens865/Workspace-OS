@@ -1,0 +1,177 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Workspace · Ready for you</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@400;500;600;640;700&display=swap" rel="stylesheet">
+<style>
+  /* ── v3 — enforces its own rules: ONE blue (approval only) · real type scale ·
+     8-pt grid · content in ink (never gray) · differentiated elevation · plain language. */
+  :root{
+    --bg:#F5F5F7; --card:#FFFFFF; --sunk:#F0F0F2;
+    --ink:#1D1D1F; --ink-2:#6E6E73; --ink-3:#8A8A8E;
+    --hair:rgba(0,0,0,.09);
+    --blue:#0071E3; --blue-press:#0060BF;   /* ONLY on Keep / Send */
+    --dark:#1D1D1F;                          /* the neutral "Ask" action */
+    --ok:#30B44A; --warn-ink:#8A5A00; --warn-bg:#FFF4E0;
+    --sh-card:0 1px 2px rgba(0,0,0,.04), 0 10px 30px rgba(0,0,0,.06);
+    --sh-cmd:0 1px 2px rgba(0,0,0,.04), 0 4px 12px rgba(0,0,0,.05);
+    --r:18px; --r-sm:12px;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--ink);
+    font-family:"Hanken Grotesk",-apple-system,BlinkMacSystemFont,system-ui,sans-serif;
+    -webkit-font-smoothing:antialiased;font-size:15px;line-height:1.5;}
+  .wrap{max-width:760px;margin:0 auto;padding:0 24px 72px}
+  svg{display:block}
+  .ic{width:20px;height:20px;stroke:currentColor;stroke-width:1.75;fill:none;stroke-linecap:round;stroke-linejoin:round}
+
+  header{position:sticky;top:0;background:rgba(245,245,247,.75);backdrop-filter:saturate(180%) blur(20px);
+    -webkit-backdrop-filter:saturate(180%) blur(20px);z-index:5;margin:0 -24px;padding:14px 24px;
+    border-bottom:.5px solid var(--hair);display:flex;align-items:center;gap:10px}
+  .mark{width:24px;height:24px;border-radius:7px;background:var(--dark);display:grid;place-items:center;color:#fff}
+  .mark .ic{width:13px;height:13px;stroke-width:2.2}
+  header .name{font-weight:600;font-size:15px;letter-spacing:-.02em}
+  header .spacer{flex:1}
+  .working{display:flex;align-items:center;gap:8px;color:var(--ink-2);font-size:13px;
+    background:var(--card);padding:6px 8px 6px 12px;border-radius:99px;box-shadow:var(--sh-cmd)}
+  .working .live{width:7px;height:7px;border-radius:99px;background:var(--ok)}
+  .working .stop{display:grid;place-items:center;width:22px;height:22px;border-radius:99px;background:var(--sunk);color:var(--ink-2);cursor:pointer}
+  .working .stop .ic{width:11px;height:11px}
+  .private{display:flex;align-items:center;gap:6px;color:var(--ink-3);font-size:12.5px}
+  .private .ic{width:13px;height:13px}
+
+  .title{padding:48px 0 0}
+  h1{font-size:34px;font-weight:640;letter-spacing:-.035em;line-height:1.05;margin:0}
+  .lede{color:var(--ink);font-size:20px;font-weight:400;letter-spacing:-.02em;margin-top:8px}
+
+  .command{display:flex;align-items:center;gap:12px;background:var(--card);border-radius:99px;
+    box-shadow:var(--sh-cmd);padding:8px 8px 8px 20px;margin:32px 0}
+  .command input{flex:1;border:0;outline:0;background:transparent;font:inherit;font-size:16px;letter-spacing:-.015em}
+  .command input::placeholder{color:var(--ink-3)}
+  .command .mode{color:var(--ink-2);font-size:13px;display:flex;align-items:center;gap:5px;padding:8px 4px}
+  .command .ask{display:flex;align-items:center;gap:7px;background:var(--dark);color:#fff;border:0;
+    font:inherit;font-weight:600;font-size:14px;padding:11px 18px;border-radius:99px;cursor:pointer}
+
+  .sec{display:flex;align-items:baseline;gap:10px;margin:0 2px 12px}
+  .sec h2{font-size:16px;font-weight:600;margin:0;letter-spacing:-.02em}
+  .sec .n{color:var(--ink-3);font-size:13px}
+  .sec .spacer{flex:1}
+  .sec .also{color:var(--ink-3);font-size:13px}
+
+  .cards{display:flex;flex-direction:column;gap:12px}
+  .card{background:var(--card);border-radius:var(--r);box-shadow:var(--sh-card);padding:24px}
+  .card .top{display:flex;align-items:center;gap:12px;margin-bottom:12px}
+  .who{width:36px;height:36px;border-radius:10px;background:var(--sunk);display:grid;place-items:center;color:var(--ink-2);flex-shrink:0}
+  .card .t{flex:1;min-width:0}
+  .card h3{font-size:16px;font-weight:600;margin:0;letter-spacing:-.02em}
+  .card .by{color:var(--ink-2);font-size:13px;margin-top:2px}
+  .card .body{color:var(--ink);font-size:15px;margin:0 0 16px;max-width:62ch}
+  .quote{color:var(--ink);font-size:15px;margin:0 0 16px;max-width:62ch;
+    padding-left:16px;border-left:2px solid var(--hair)}
+  .note{display:inline-flex;align-items:center;gap:7px;font-size:13.5px;color:var(--ink-2);margin-bottom:16px}
+  .note .ic{width:16px;height:16px;stroke-width:1.9}
+  .note .ok{color:var(--ok)}
+  .note.willsend{color:var(--warn-ink);background:var(--warn-bg);padding:8px 12px;border-radius:99px;font-weight:500}
+  .actions{display:flex;gap:10px}
+  .b{display:inline-flex;align-items:center;justify-content:center;height:42px;padding:0 20px;border-radius:12px;
+     font:inherit;font-weight:600;font-size:15px;cursor:pointer;border:0;letter-spacing:-.01em}
+  .b.blue{background:var(--blue);color:#fff}
+  .b.blue:active{background:var(--blue-press)}
+  .b.quiet{background:var(--sunk);color:var(--ink)}
+
+  .assistant{margin-top:32px;background:var(--card);border-radius:var(--r);border:.5px solid var(--hair)}
+  .assistant .bar{display:flex;align-items:center;gap:10px;padding:16px 20px;cursor:pointer}
+  .assistant .bar .chev{color:var(--ink-3)}
+  .assistant .bar b{font-weight:600;font-size:15px;letter-spacing:-.01em}
+  .assistant .bar .hint{color:var(--ink-3);font-size:13px}
+  .assistant .bar .seg{margin-left:auto;display:flex;background:var(--sunk);border-radius:99px;padding:3px}
+  .assistant .bar .seg button{border:0;background:transparent;font:inherit;font-size:13px;font-weight:500;color:var(--ink-2);padding:6px 14px;border-radius:99px;cursor:pointer}
+  .assistant .bar .seg button.on{background:var(--card);color:var(--ink);box-shadow:0 1px 3px rgba(0,0,0,.12)}
+  .assistant .chat{padding:0 20px 20px;border-top:.5px solid var(--hair)}
+  .turn{display:flex;gap:12px;padding:12px 0 0}
+  .turn .av{width:28px;height:28px;border-radius:99px;flex-shrink:0;display:grid;place-items:center;font-size:12px;font-weight:600}
+  .turn.you .av{background:var(--dark);color:#fff}
+  .turn.ai .av{background:var(--sunk);color:var(--ink-2)}
+  .turn .m{font-size:15px;padding-top:4px}
+  .turn .m .s{color:var(--ink-2)}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div class="mark"><svg class="ic" viewBox="0 0 24 24"><path d="M4 7h16M4 12h16M4 17h10"/></svg></div>
+    <span class="name">Workspace</span>
+    <div class="spacer"></div>
+    <span class="private"><svg class="ic" viewBox="0 0 24 24"><path d="M6 10V8a6 6 0 0 1 12 0v2"/><rect x="5" y="10" width="14" height="10" rx="2"/></svg> On your Mac</span>
+    <div class="working"><span class="live"></span> 2 working
+      <span class="stop" title="Stop"><svg class="ic" viewBox="0 0 24 24"><rect x="7" y="7" width="10" height="10" rx="2"/></svg></span>
+    </div>
+  </header>
+
+  <div class="title">
+    <h1>Ready for you</h1>
+    <div class="lede">Two assistants are working. Here’s what needs a decision.</div>
+  </div>
+
+  <div class="command">
+    <input placeholder="Ask an assistant to do something…" />
+    <span class="mode">Thorough <svg class="ic" style="width:14px;height:14px" viewBox="0 0 24 24"><path d="M6 9l6 6 6-6"/></svg></span>
+    <button class="ask">Ask <svg class="ic" style="width:15px;height:15px" viewBox="0 0 24 24"><path d="M5 12h14M13 6l6 6-6 6"/></svg></button>
+  </div>
+
+  <div class="sec">
+    <h2>Needs a decision</h2><span class="n">2</span>
+    <div class="spacer"></div>
+    <span class="also">1 still working…</span>
+  </div>
+
+  <div class="cards">
+
+    <!-- DONE + reversible: green check, "undo anytime", blue = Keep -->
+    <div class="card">
+      <div class="top">
+        <div class="who"><svg class="ic" viewBox="0 0 24 24"><path d="M8 4h7l4 4v12a1 1 0 0 1-1 1H6a1 1 0 0 1-1-1V5a1 1 0 0 1 1-1z"/><path d="M9 13h6M9 16h4"/></svg></div>
+        <div class="t"><h3>Updated Q3 revenue in your report</h3><div class="by">Writing assistant · report.docx · 2 min ago</div></div>
+      </div>
+      <p class="body">Set Q3 revenue to the live model figure and refreshed the summary table to match.</p>
+      <span class="note"><svg class="ic ok" viewBox="0 0 24 24"><path d="M5 13l4 4L19 7"/></svg> Already changed on your Mac — reversible, undo anytime</span>
+      <div class="actions">
+        <button class="b blue">Keep</button>
+        <button class="b quiet">Undo</button>
+      </div>
+    </div>
+
+    <!-- NOT sent yet: amber "will send", blue = Send -->
+    <div class="card">
+      <div class="top">
+        <div class="who"><svg class="ic" viewBox="0 0 24 24"><rect x="4" y="6" width="16" height="12" rx="2"/><path d="M5 8l7 5 7-5"/></svg></div>
+        <div class="t"><h3>Drafted a reply to Priya</h3><div class="by">Email assistant · “Q3 forecast” · just now</div></div>
+      </div>
+      <p class="quote">“Yes — I’ll send the updated forecast before our call. I’ve included both the finance-model and sales-adjusted views so you can compare them directly.”</p>
+      <span class="note willsend"><svg class="ic" viewBox="0 0 24 24"><path d="M12 9v4M12 16h.01M10.3 4.3l-7 12A1 1 0 0 0 4 18h16a1 1 0 0 0 .8-1.6l-7-12a1 1 0 0 0-1.5 0z"/></svg> Not sent yet — Send will email Priya</span>
+      <div class="actions">
+        <button class="b blue">Send it</button>
+        <button class="b quiet">Edit first</button>
+      </div>
+    </div>
+
+  </div>
+
+  <div class="assistant">
+    <div class="bar">
+      <svg class="ic chev" viewBox="0 0 24 24"><path d="M6 9l6 6 6-6"/></svg>
+      <b>Assistant</b><span class="hint">— ask a question, or open the activity log</span>
+      <div class="seg"><button class="on">Chat</button><button>Activity log</button></div>
+    </div>
+    <div class="chat">
+      <div class="turn you"><div class="av">C</div><div class="m">Draft replies to my unread mail — keep them short.</div></div>
+      <div class="turn ai"><div class="av">AI</div><div class="m">Done — I drafted <b>3 replies</b>. <span class="s">They’re above; keep, send, or edit each one.</span></div></div>
+    </div>
+  </div>
+</div>
+</body>
+</html>

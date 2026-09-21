@@ -1,0 +1,80 @@
+.root {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  overflow: hidden;
+  background: var(--color-canvas);
+}
+
+.content {
+  flex: 1;
+  overflow: hidden;
+  position: relative;
+}
+
+.empty {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-2);
+  color: var(--color-text-muted);
+}
+
+.emptyIcon {
+  color: var(--color-text-subtle);
+  opacity: 0.7;
+  margin-bottom: var(--space-1);
+}
+
+.emptyTitle {
+  font-size: var(--text-md);
+  font-weight: 550;
+  color: var(--color-text-muted);
+}
+
+.hint {
+  font-size: var(--text-sm);
+  color: var(--color-text-subtle);
+}
+
+.placeholder {
+  padding: 20px;
+  color: var(--color-text-muted);
+}
+
+.path {
+  font-family: 'SF Mono', 'Fira Code', monospace;
+  font-size: 12px;
+}
+
+/* Markdown Edit | Split | Preview layout. Monaco stays mounted in every mode. */
+.mdSingle {
+  position: absolute;
+  inset: 0;
+}
+.mdSplit {
+  position: absolute;
+  inset: 0;
+  display: flex;
+}
+.mdSplit > * {
+  flex: 1 1 50%;
+  min-width: 0;
+  height: 100%;
+}
+.mdSplit .mdPreviewPane {
+  border-left: 1px solid var(--border, #e3e3e6);
+}
+.mdEditorPane, .mdPreviewPane {
+  height: 100%;
+}
+.mdSingle .mdEditorPane, .mdSingle .mdPreviewPane {
+  position: absolute;
+  inset: 0;
+}
+.hidden {
+  display: none;
+}

@@ -1,0 +1,17 @@
+.backdrop { position: absolute; inset: 0; z-index: 30; background: rgba(0,0,0,.18); display: flex; align-items: center; justify-content: center; }
+.dialog {
+  width: 420px; max-width: calc(100% - 32px); padding: 18px 20px 16px;
+  background: var(--color-surface, #fff); color: var(--color-text, #1a1a1a);
+  border: 1px solid var(--color-border, #e6e6e6); border-radius: 10px;
+  box-shadow: 0 12px 40px rgba(0,0,0,.22); font-size: 13px;
+}
+.title { font-weight: 600; font-size: 14px; margin-bottom: 8px; }
+.text { margin: 0 0 14px; line-height: 1.45; color: var(--color-text-subtle, #555); }
+.actions { display: flex; flex-direction: column; gap: 6px; }
+.primary, .secondary {
+  font: inherit; font-size: 13px; padding: 7px 12px; border-radius: 7px; cursor: pointer; text-align: left;
+  border: 1px solid var(--color-border, #d8d8d8); background: var(--color-surface, #fff); color: inherit;
+}
+.primary { background: var(--color-accent, #1a73e8); color: #fff; border-color: transparent; }
+.primary:focus, .secondary:focus { outline: 2px solid var(--color-accent-soft, rgba(26,115,232,.4)); outline-offset: 1px; }
+.secondary:hover { background: var(--color-hover, rgba(0,0,0,.04)); }

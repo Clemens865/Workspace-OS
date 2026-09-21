@@ -1,0 +1,47 @@
+.wrap {
+  position: relative;
+  flex: 1;
+  min-height: 0;
+  width: 100%;
+  overflow: hidden;
+  background: var(--color-bg);
+}
+
+.canvas {
+  display: block;
+  width: 100%;
+  height: 100%;
+  cursor: grab;
+  touch-action: none;
+}
+.canvas:active {
+  cursor: grabbing;
+}
+
+.status {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  padding: var(--space-6);
+  text-align: center;
+  color: var(--color-text-subtle);
+  font-size: var(--text-xs);
+}
+
+.overlay {
+  position: absolute;
+  left: var(--space-2);
+  bottom: var(--space-2);
+  display: flex;
+  gap: var(--space-3);
+  align-items: center;
+  pointer-events: none;
+  font-size: 10px;
+  color: var(--color-text-subtle);
+}
+
+.hoverLabel {
+  color: var(--color-text);
+  font-weight: 600;
+}

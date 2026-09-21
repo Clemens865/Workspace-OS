@@ -1,0 +1,148 @@
+*, *::before, *::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+/*
+ * Design tokens — imported from the Claude Design "Workspace OS UI Redesign"
+ * project. The design's named tokens are the source of truth; the --color-*
+ * aliases keep existing components on the new palette without churn.
+ */
+:root {
+  --font: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+  --mono: ui-monospace, 'SF Mono', 'Cascadia Code', 'Segoe UI Mono', Menlo, monospace;
+  --serif: 'Iowan Old Style', 'Palatino Linotype', Georgia, 'Times New Roman', serif;
+
+  /* Type scale */
+  --text-xs: 11px;
+  --text-sm: 12px;
+  --text-base: 13px;
+  --text-md: 14px;
+  --text-lg: 16px;
+  --text-xl: 20px;
+
+  /* Spacing scale */
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 24px;
+  --space-6: 32px;
+
+  /* Radii */
+  --radius-sm: 5px;
+  --radius-md: 7px;
+  --radius-lg: 9px;
+  --radius-xl: 14px;
+
+  /* File-type accents (used by brand icons + tree) */
+  --type-doc: #2b579a;
+  --type-sheet: #1e7145;
+  --type-slide: #c43e1c;
+  --type-pdf: #d7382b;
+  --type-image: #7a48c9;
+  --type-media: #d6336c;
+  --type-code: #3e6e9e;
+}
+
+/* Light theme (default) — exact design values */
+:root, [data-theme='light'] {
+  --app: #f4f4f2;
+  --surround: #e9e9e6;
+  --panel: #fbfbfa;
+  --surface: #ffffff;
+  --elevated: #ffffff;
+  --border: #e5e5e1;
+  --border-strong: #d7d7d2;
+  --hairline: #ededea;
+  --fg: #1b1b19;
+  --fg-muted: #6a6a64;
+  --fg-subtle: #9a9a92;
+  --accent: #2f6bd8;
+  --accent-soft: rgba(47, 107, 216, 0.10);
+  --accent-border: rgba(47, 107, 216, 0.32);
+  --selection: rgba(47, 107, 216, 0.12);
+  --hover: rgba(0, 0, 0, 0.045);
+  --active: rgba(0, 0, 0, 0.06);
+  --shadow-1: 0 1px 2px rgba(20, 20, 20, .06), 0 1px 1px rgba(20, 20, 20, .04);
+  --shadow-2: 0 6px 18px rgba(20, 20, 20, .10), 0 1px 3px rgba(20, 20, 20, .05);
+  --shadow-3: 0 22px 50px rgba(20, 20, 20, .20), 0 6px 14px rgba(20, 20, 20, .10);
+
+  /* Terminal stays dark in both themes (per design) */
+  --term-bg: #17181b;
+  --term-fg: #d6d7db;
+  --term-surface: #212329;
+  --term-border: #2e3036;
+}
+
+[data-theme='dark'] {
+  --app: #1a1b1e;
+  --surround: #141518;
+  --panel: #1f2024;
+  --surface: #26272c;
+  --elevated: #2a2b30;
+  --border: #34353b;
+  --border-strong: #41424a;
+  --hairline: #2a2b30;
+  --fg: #e8e8ec;
+  --fg-muted: #9a9aa4;
+  --fg-subtle: #6b6b76;
+  --accent: #5b8aff;
+  --accent-soft: rgba(91, 138, 255, 0.14);
+  --accent-border: rgba(91, 138, 255, 0.36);
+  --selection: rgba(91, 138, 255, 0.16);
+  --hover: rgba(255, 255, 255, 0.05);
+  --active: rgba(255, 255, 255, 0.08);
+  --shadow-1: 0 1px 2px rgba(0, 0, 0, .3);
+  --shadow-2: 0 6px 18px rgba(0, 0, 0, .4);
+  --shadow-3: 0 22px 50px rgba(0, 0, 0, .55);
+  --term-bg: #141518;
+  --term-fg: #d6d7db;
+  --term-surface: #212329;
+  --term-border: #2e3036;
+}
+
+/* Aliases — existing components reference these */
+:root, [data-theme='light'], [data-theme='dark'] {
+  --color-bg: var(--app);
+  --color-surface: var(--panel);
+  --color-surface-raised: var(--surface);
+  --color-canvas: var(--surround);
+  --color-border: var(--border);
+  --color-border-strong: var(--border-strong);
+  --color-text: var(--fg);
+  --color-text-muted: var(--fg-muted);
+  --color-text-subtle: var(--fg-subtle);
+  --color-accent: var(--accent);
+  --color-accent-hover: var(--accent);
+  --color-accent-soft: var(--accent-soft);
+  --color-danger: #d7382b;
+  --color-success: #1e7145;
+  --color-hover: var(--hover);
+  --color-active: var(--active);
+}
+
+html {
+  font-family: var(--font);
+  font-size: var(--text-base);
+  line-height: 1.5;
+  color: var(--fg);
+  background: var(--app);
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+html, body, #root { height: 100%; overflow: hidden; }
+
+::selection { background: var(--selection); }
+
+::-webkit-scrollbar { width: 11px; height: 11px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb {
+  background: rgba(130, 130, 130, .35);
+  border-radius: 8px;
+  border: 3px solid transparent;
+  background-clip: content-box;
+}
+::-webkit-scrollbar-thumb:hover { background: rgba(130, 130, 130, .55); background-clip: content-box; }

@@ -1,0 +1,138 @@
+.root {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  overflow: hidden;
+  background: var(--color-bg);
+}
+
+.body {
+  display: flex;
+  flex: 1;
+  overflow: hidden;
+}
+
+.filePanel {
+  position: relative;
+  display: flex;
+  flex-shrink: 0;
+  min-width: 160px;
+  max-width: 600px;
+  background: var(--color-surface);
+  border-right: 1px solid var(--color-border);
+}
+
+.sidebar {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  overflow: hidden;
+}
+
+.sideTabs {
+  display: flex;
+  flex-shrink: 0;
+  gap: 2px;
+  padding: var(--space-1) var(--space-2) 0;
+  border-bottom: 1px solid var(--color-border);
+  background: var(--color-surface);
+}
+
+.sideTab {
+  background: none;
+  border: none;
+  border-bottom: 2px solid transparent;
+  color: var(--color-text-muted);
+  font-size: var(--text-xs);
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  padding: var(--space-1) var(--space-2) 6px;
+  cursor: pointer;
+}
+
+.sideTab:hover { color: var(--color-text); }
+
+.sideTabActive {
+  color: var(--color-text);
+  border-bottom-color: var(--color-accent);
+}
+
+.sideView {
+  display: flex;
+  flex: 1;
+  overflow: hidden;
+}
+
+.main {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  overflow: hidden;
+}
+
+.canvas {
+  position: relative;
+  flex: 1;
+  overflow: hidden;
+}
+
+.terminal {
+  position: relative;
+  flex-shrink: 0;
+  min-height: 120px;
+  max-height: 70vh;
+  border-top: 1px solid var(--color-border);
+  background: var(--color-surface);
+}
+
+.resizeHandleV {
+  position: absolute;
+  top: 0;
+  right: -3px;
+  width: 6px;
+  height: 100%;
+  cursor: col-resize;
+  z-index: 10;
+}
+
+.resizeHandleV:hover {
+  background: var(--color-accent);
+  opacity: 0.4;
+}
+
+.resizeHandleH {
+  position: absolute;
+  top: -3px;
+  left: 0;
+  right: 0;
+  height: 6px;
+  cursor: row-resize;
+  z-index: 10;
+}
+
+.resizeHandleH:hover {
+  background: var(--color-accent);
+  opacity: 0.4;
+}
+
+.commandPaletteBackdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.5);
+  z-index: 100;
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  padding-top: 15vh;
+}
+
+.commandPalettePlaceholder {
+  background: var(--color-surface-raised);
+  border: 1px solid var(--color-border);
+  border-radius: 8px;
+  padding: 16px 24px;
+  color: var(--color-text-muted);
+  font-size: 13px;
+  min-width: 480px;
+}

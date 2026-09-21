@@ -1,0 +1,543 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<style>
+  *{box-sizing:border-box;}
+  html,body{margin:0;height:100%;}
+  ::selection{background:rgba(47,107,216,0.20);}
+  @keyframes blink{0%,49%{opacity:1;}50%,100%{opacity:0;}}
+  @keyframes dots{0%,20%{opacity:.2;}50%{opacity:1;}100%{opacity:.2;}}
+  ::-webkit-scrollbar{width:11px;height:11px;}
+  ::-webkit-scrollbar-thumb{background:rgba(130,130,130,.35);border-radius:8px;border:3px solid transparent;background-clip:content-box;}
+  ::-webkit-scrollbar-thumb:hover{background:rgba(130,130,130,.55);background-clip:content-box;}
+  ::-webkit-scrollbar-track{background:transparent;}
+</style>
+</helmet>
+
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <symbol id="ic-search" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.35-4.35"/></symbol>
+  <symbol id="ic-x" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></symbol>
+  <symbol id="ic-plus" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14"/><path d="M5 12h14"/></symbol>
+  <symbol id="ic-chev-r" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 6 6 6-6 6"/></symbol>
+  <symbol id="ic-chev-d" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></symbol>
+  <symbol id="ic-folder" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 20a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2h-7.9a2 2 0 0 1-1.69-.9L9.6 3.9A2 2 0 0 0 7.93 3H4a2 2 0 0 0-2 2v13a2 2 0 0 0 2 2Z"/></symbol>
+  <symbol id="ic-folder-open" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m6 14 1.45-2.9A2 2 0 0 1 9.24 10H20a2 2 0 0 1 1.94 2.5l-1.55 6a2 2 0 0 1-1.94 1.5H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h3.93a2 2 0 0 1 1.66.9l.82 1.2a2 2 0 0 0 1.66.9H18a2 2 0 0 1 2 2v2"/></symbol>
+  <symbol id="ic-terminal" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m4 17 6-6-6-6"/><path d="M12 19h8"/></symbol>
+  <symbol id="ic-sparkles" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9.94 14.06A2 2 0 0 0 8.5 12.62l-5.14-1.32a.5.5 0 0 1 0-.96L8.5 9.02a2 2 0 0 0 1.44-1.44l1.32-5.14a.5.5 0 0 1 .96 0l1.32 5.14a2 2 0 0 0 1.44 1.44l5.14 1.32a.5.5 0 0 1 0 .96l-5.14 1.32a2 2 0 0 0-1.44 1.44l-1.32 5.14a.5.5 0 0 1-.96 0z"/><path d="M20 3v4M22 5h-4M4 17v2M5 18H3"/></symbol>
+  <symbol id="ic-star" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 17.3 6.16 20.3l1.12-6.5L2.5 9.2l6.56-.95L12 2.3l2.94 5.95 6.56.95-4.78 4.6 1.12 6.5z"/></symbol>
+  <symbol id="ic-star-fill" viewBox="0 0 24 24" fill="currentColor" stroke="none"><path d="M12 17.3 6.16 20.3l1.12-6.5L2.5 9.2l6.56-.95L12 2.3l2.94 5.95 6.56.95-4.78 4.6 1.12 6.5z"/></symbol>
+  <symbol id="ic-trash" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2M10 11v6M14 11v6"/></symbol>
+  <symbol id="ic-clock" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></symbol>
+  <symbol id="ic-settings" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M4.9 4.9l2.1 2.1M17 17l2.1 2.1M2 12h3M19 12h3M4.9 19.1 7 17M17 7l2.1-2.1"/></symbol>
+  <symbol id="ic-panel" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M9 3v18"/></symbol>
+  <symbol id="ic-dots" viewBox="0 0 24 24" fill="currentColor" stroke="none"><circle cx="12" cy="12" r="1.6"/><circle cx="19" cy="12" r="1.6"/><circle cx="5" cy="12" r="1.6"/></symbol>
+  <symbol id="ic-command" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 6a3 3 0 1 1 3 3h-3zm0 0v12a3 3 0 1 0 3-3H6a3 3 0 1 0 3 3V6a3 3 0 1 0-3 3h12"/></symbol>
+  <symbol id="ic-enter" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 5v6a3 3 0 0 1-3 3H4M9 19l-5-5 5-5"/></symbol>
+  <symbol id="ic-eye" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12Z"/><circle cx="12" cy="12" r="3"/></symbol>
+  <symbol id="ic-share" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><path d="m8.6 13.5 6.8 4M15.4 6.5l-6.8 4"/></symbol>
+  <symbol id="ic-print" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9V3h12v6M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2M6 14h12v8H6z"/></symbol>
+  <symbol id="ic-undo" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 14 4 9l5-5M4 9h11a6 6 0 0 1 0 12h-3"/></symbol>
+  <symbol id="ic-redo" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m15 14 5-5-5-5M20 9H9a6 6 0 0 0 0 12h3"/></symbol>
+  <symbol id="ic-bold" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M6 4h7a4 4 0 0 1 0 8H6zM6 12h8a4 4 0 0 1 0 8H6z"/></symbol>
+  <symbol id="ic-italic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 4h-9M14 20H5M15 4 9 20"/></symbol>
+  <symbol id="ic-underline" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 4v6a6 6 0 0 0 12 0V4M4 21h16"/></symbol>
+  <symbol id="ic-list" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 6h13M8 12h13M8 18h13M3 6h.01M3 12h.01M3 18h.01"/></symbol>
+  <symbol id="ic-align" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 6h16M4 12h12M4 18h16"/></symbol>
+  <symbol id="ic-save" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><path d="M17 21v-8H7v8M7 3v5h7"/></symbol>
+  <symbol id="ic-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></symbol>
+  <symbol id="ic-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"/></symbol>
+  <symbol id="ic-check" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></symbol>
+  <symbol id="ic-send" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 2 11 13M22 2l-7 20-4-9-9-4z"/></symbol>
+  <symbol id="ic-min" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/></symbol>
+  <symbol id="ic-broom" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 5 13 11M14 4l6 6-7 7H7l-3 3-1-1 3-3v-6z"/></symbol>
+
+  <symbol id="ft-word" viewBox="0 0 24 24"><path d="M6 2.5h7.2L19 8.3V20a1.5 1.5 0 0 1-1.5 1.5h-11A1.5 1.5 0 0 1 5 20V4a1.5 1.5 0 0 1 1-1.5z" fill="#2B579A"/><path d="M13.2 2.6 19 8.3h-4.4a1.4 1.4 0 0 1-1.4-1.4z" fill="#1B3F73"/><text x="11.9" y="16.6" font-size="7" font-weight="800" fill="#fff" text-anchor="middle" font-family="-apple-system,Segoe UI,sans-serif">W</text></symbol>
+  <symbol id="ft-excel" viewBox="0 0 24 24"><path d="M6 2.5h7.2L19 8.3V20a1.5 1.5 0 0 1-1.5 1.5h-11A1.5 1.5 0 0 1 5 20V4a1.5 1.5 0 0 1 1-1.5z" fill="#1E7145"/><path d="M13.2 2.6 19 8.3h-4.4a1.4 1.4 0 0 1-1.4-1.4z" fill="#13502F"/><text x="11.9" y="16.6" font-size="7" font-weight="800" fill="#fff" text-anchor="middle" font-family="-apple-system,Segoe UI,sans-serif">X</text></symbol>
+  <symbol id="ft-ppt" viewBox="0 0 24 24"><path d="M6 2.5h7.2L19 8.3V20a1.5 1.5 0 0 1-1.5 1.5h-11A1.5 1.5 0 0 1 5 20V4a1.5 1.5 0 0 1 1-1.5z" fill="#C43E1C"/><path d="M13.2 2.6 19 8.3h-4.4a1.4 1.4 0 0 1-1.4-1.4z" fill="#8F2C13"/><text x="11.9" y="16.6" font-size="7" font-weight="800" fill="#fff" text-anchor="middle" font-family="-apple-system,Segoe UI,sans-serif">P</text></symbol>
+  <symbol id="ft-pdf" viewBox="0 0 24 24"><path d="M6 2.5h7.2L19 8.3V20a1.5 1.5 0 0 1-1.5 1.5h-11A1.5 1.5 0 0 1 5 20V4a1.5 1.5 0 0 1 1-1.5z" fill="#D7382B"/><path d="M13.2 2.6 19 8.3h-4.4a1.4 1.4 0 0 1-1.4-1.4z" fill="#9E2018"/><text x="11.9" y="17.2" font-size="5" font-weight="800" fill="#fff" text-anchor="middle" font-family="-apple-system,Segoe UI,sans-serif" letter-spacing="-.3">PDF</text></symbol>
+  <symbol id="ft-img" viewBox="0 0 24 24"><path d="M6 2.5h7.2L19 8.3V20a1.5 1.5 0 0 1-1.5 1.5h-11A1.5 1.5 0 0 1 5 20V4a1.5 1.5 0 0 1 1-1.5z" fill="#7A48C9"/><path d="M13.2 2.6 19 8.3h-4.4a1.4 1.4 0 0 1-1.4-1.4z" fill="#542E91"/><circle cx="9.2" cy="12.4" r="1.3" fill="#fff"/><path d="M7 18h9l-3.3-4-2.2 2.6-1.2-1.3z" fill="#fff"/></symbol>
+  <symbol id="ft-video" viewBox="0 0 24 24"><path d="M6 2.5h7.2L19 8.3V20a1.5 1.5 0 0 1-1.5 1.5h-11A1.5 1.5 0 0 1 5 20V4a1.5 1.5 0 0 1 1-1.5z" fill="#D6336C"/><path d="M13.2 2.6 19 8.3h-4.4a1.4 1.4 0 0 1-1.4-1.4z" fill="#9E2350"/><path d="M10 11.5v5l4.2-2.5z" fill="#fff"/></symbol>
+  <symbol id="ft-audio" viewBox="0 0 24 24"><path d="M6 2.5h7.2L19 8.3V20a1.5 1.5 0 0 1-1.5 1.5h-11A1.5 1.5 0 0 1 5 20V4a1.5 1.5 0 0 1 1-1.5z" fill="#0E9488"/><path d="M13.2 2.6 19 8.3h-4.4a1.4 1.4 0 0 1-1.4-1.4z" fill="#09655D"/><path d="M14.5 11v5.2" stroke="#fff" stroke-width="1.3" stroke-linecap="round"/><circle cx="12.7" cy="16.4" r="1.5" fill="#fff"/><path d="M14.5 11l-3 .9" stroke="#fff" stroke-width="1.3" stroke-linecap="round"/></symbol>
+  <symbol id="ft-code" viewBox="0 0 24 24"><path d="M6 2.5h7.2L19 8.3V20a1.5 1.5 0 0 1-1.5 1.5h-11A1.5 1.5 0 0 1 5 20V4a1.5 1.5 0 0 1 1-1.5z" fill="#3E6E9E"/><path d="M13.2 2.6 19 8.3h-4.4a1.4 1.4 0 0 1-1.4-1.4z" fill="#284C70"/><path d="M10.3 11.5 8.5 14l1.8 2.5M13.7 11.5 15.5 14l-1.8 2.5" stroke="#fff" stroke-width="1.3" fill="none" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+  <symbol id="ft-md" viewBox="0 0 24 24"><path d="M6 2.5h7.2L19 8.3V20a1.5 1.5 0 0 1-1.5 1.5h-11A1.5 1.5 0 0 1 5 20V4a1.5 1.5 0 0 1 1-1.5z" fill="#475569"/><path d="M13.2 2.6 19 8.3h-4.4a1.4 1.4 0 0 1-1.4-1.4z" fill="#2C3947"/><path d="M7.5 16.5v-5l2 2.2 2-2.2v5" stroke="#fff" stroke-width="1.2" fill="none" stroke-linejoin="round"/><path d="M14.6 11.6v4.2M13 14.4l1.6 1.6 1.6-1.6" stroke="#fff" stroke-width="1.2" fill="none" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+  <symbol id="ft-csv" viewBox="0 0 24 24"><path d="M6 2.5h7.2L19 8.3V20a1.5 1.5 0 0 1-1.5 1.5h-11A1.5 1.5 0 0 1 5 20V4a1.5 1.5 0 0 1 1-1.5z" fill="#2F9E5B"/><path d="M13.2 2.6 19 8.3h-4.4a1.4 1.4 0 0 1-1.4-1.4z" fill="#1C6B3C"/><path d="M7.5 11.5h9M7.5 14h9M7.5 16.5h9M11 11.2v5.6" stroke="#fff" stroke-width="1" opacity=".9"/></symbol>
+  <symbol id="ft-json" viewBox="0 0 24 24"><path d="M6 2.5h7.2L19 8.3V20a1.5 1.5 0 0 1-1.5 1.5h-11A1.5 1.5 0 0 1 5 20V4a1.5 1.5 0 0 1 1-1.5z" fill="#C98A19"/><path d="M13.2 2.6 19 8.3h-4.4a1.4 1.4 0 0 1-1.4-1.4z" fill="#8F6210"/><path d="M10.6 11c-1 0-1.4.5-1.4 1.4v.6c0 .6-.3.9-.9.9.6 0 .9.3.9.9v.6c0 .9.4 1.4 1.4 1.4M13.4 11c1 0 1.4.5 1.4 1.4v.6c0 .6.3.9.9.9-.6 0-.9.3-.9.9v.6c0 .9-.4 1.4-1.4 1.4" stroke="#fff" stroke-width="1.1" fill="none" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+</svg>
+
+<div ref="{{ rootRef }}" style="--font:-apple-system,BlinkMacSystemFont,'Segoe UI',system-ui,sans-serif; --mono:ui-monospace,'SF Mono','Cascadia Code','Segoe UI Mono',Menlo,monospace; --serif:'Iowan Old Style','Palatino Linotype',Georgia,'Times New Roman',serif; --app:#F4F4F2; --surround:#E9E9E6; --panel:#FBFBFA; --surface:#FFFFFF; --elevated:#FFFFFF; --border:#E5E5E1; --border-strong:#D7D7D2; --hairline:#EDEDEA; --fg:#1B1B19; --fg-muted:#6A6A64; --fg-subtle:#9A9A92; --accent:#2F6BD8; --accent-soft:rgba(47,107,216,0.10); --accent-border:rgba(47,107,216,0.32); --selection:rgba(47,107,216,0.12); --hover:rgba(0,0,0,0.045); --active:rgba(0,0,0,0.06); --shadow-1:0 1px 2px rgba(20,20,20,.06),0 1px 1px rgba(20,20,20,.04); --shadow-2:0 6px 18px rgba(20,20,20,.10),0 1px 3px rgba(20,20,20,.05); --shadow-3:0 22px 50px rgba(20,20,20,.20),0 6px 14px rgba(20,20,20,.10); display:flex; flex-direction:column; height:100vh; overflow:hidden; font-family:var(--font); background:var(--app); color:var(--fg); -webkit-font-smoothing:antialiased; font-size:13px;">
+
+  <!-- ===================== TITLE BAR ===================== -->
+  <div style="height:46px; flex:none; display:flex; align-items:center; gap:0; padding:0 12px 0 14px; background:var(--panel); border-bottom:1px solid var(--hairline); position:relative; z-index:5;">
+    <div style="display:flex; align-items:center; gap:8px; width:264px; flex:none;">
+      <div style="display:flex; gap:8px; align-items:center; margin-right:6px;">
+        <span style="width:12px; height:12px; border-radius:50%; background:#F0625B; box-shadow:inset 0 0 0 .5px rgba(0,0,0,.12);"></span>
+        <span style="width:12px; height:12px; border-radius:50%; background:#F5BD4F; box-shadow:inset 0 0 0 .5px rgba(0,0,0,.12);"></span>
+        <span style="width:12px; height:12px; border-radius:50%; background:#61C554; box-shadow:inset 0 0 0 .5px rgba(0,0,0,.12);"></span>
+      </div>
+      <button onClick="{{ toggleSidebar }}" title="Toggle sidebar" style="font-family:inherit; cursor:pointer; width:30px; height:30px; display:flex; align-items:center; justify-content:center; background:transparent; border:none; border-radius:7px; color:var(--fg-muted);" style-hover="background:var(--hover); color:var(--fg);"><svg width="17" height="17"><use href="#ic-panel"></use></svg></button>
+    </div>
+
+    <div style="flex:1; display:flex; justify-content:center;">
+      <button onClick="{{ openCmdk }}" style="font-family:inherit; cursor:pointer; display:flex; align-items:center; gap:10px; width:100%; max-width:480px; height:30px; padding:0 10px 0 12px; background:var(--app); border:1px solid var(--border); border-radius:9px; color:var(--fg-subtle); box-shadow:var(--shadow-1);" style-hover="border-color:var(--border-strong);">
+        <svg width="15" height="15"><use href="#ic-search"></use></svg>
+        <span style="font-size:12.5px; flex:1; text-align:left;">Search files and contents…</span>
+        <span style="display:flex; gap:3px;">
+          <span style="font-family:var(--mono); font-size:11px; background:var(--surface); border:1px solid var(--border); border-radius:5px; padding:1px 6px; color:var(--fg-muted);">⌘P</span>
+        </span>
+      </button>
+    </div>
+
+    <div style="display:flex; align-items:center; gap:3px; justify-content:flex-end; width:264px; flex:none;">
+      <button onClick="{{ cycleDirection }}" title="Appearance" style="font-family:inherit; cursor:pointer; display:flex; align-items:center; gap:7px; height:30px; padding:0 10px; background:transparent; border:none; border-radius:8px; color:var(--fg-muted);" style-hover="background:var(--hover); color:var(--fg);">
+        <span style="width:13px; height:13px; border-radius:4px; background:var(--accent); box-shadow:inset 0 0 0 1px rgba(0,0,0,.08);"></span>
+        <span style="font-size:12px; font-weight:540;">{{ dirLabel }}</span>
+      </button>
+      <button onClick="{{ toggleTheme }}" title="Toggle theme" style="font-family:inherit; cursor:pointer; width:30px; height:30px; display:flex; align-items:center; justify-content:center; background:transparent; border:none; border-radius:8px; color:var(--fg-muted);" style-hover="background:var(--hover); color:var(--fg);"><svg width="16" height="16"><use href="{{ themeIcon }}"></use></svg></button>
+      <button title="Settings" style="font-family:inherit; cursor:pointer; width:30px; height:30px; display:flex; align-items:center; justify-content:center; background:transparent; border:none; border-radius:8px; color:var(--fg-muted);" style-hover="background:var(--hover); color:var(--fg);"><svg width="16" height="16"><use href="#ic-settings"></use></svg></button>
+    </div>
+  </div>
+
+  <!-- ===================== BODY ===================== -->
+  <div style="flex:1; display:flex; min-height:0;">
+
+    <!-- ---------- SIDEBAR ---------- -->
+    <div ref="{{ sidebarRef }}" style="width:264px; flex:none; background:var(--panel); border-right:1px solid var(--hairline); display:flex; flex-direction:column; min-height:0;">
+      <!-- workspace header -->
+      <div style="height:42px; flex:none; display:flex; align-items:center; gap:8px; padding:0 8px 0 14px; border-bottom:1px solid var(--hairline);">
+        <svg width="16" height="16" style="color:var(--accent);"><use href="#ic-folder-open"></use></svg>
+        <span style="font-size:13px; font-weight:600; letter-spacing:-0.01em; flex:1; min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">Marketing</span>
+        <button onClick="{{ openCmdk }}" title="Search" style="font-family:inherit; cursor:pointer; width:28px; height:28px; display:flex; align-items:center; justify-content:center; background:transparent; border:none; border-radius:7px; color:var(--fg-muted);" style-hover="background:var(--hover); color:var(--fg);"><svg width="15" height="15"><use href="#ic-search"></use></svg></button>
+        <button title="New file" style="font-family:inherit; cursor:pointer; width:28px; height:28px; display:flex; align-items:center; justify-content:center; background:transparent; border:none; border-radius:7px; color:var(--fg-muted);" style-hover="background:var(--hover); color:var(--fg);"><svg width="16" height="16"><use href="#ic-plus"></use></svg></button>
+      </div>
+
+      <sc-if value="{{ isWorkspace }}" hint-placeholder-val="{{ true }}">
+      <div style="flex:1; overflow-y:auto; overflow-x:hidden; padding:10px 8px 14px;">
+
+        <!-- STARRED -->
+        <div style="display:flex; align-items:center; gap:6px; padding:6px 8px 4px;">
+          <span style="font-size:10.5px; font-weight:700; letter-spacing:0.07em; text-transform:uppercase; color:var(--fg-subtle);">Starred</span>
+        </div>
+        <div style="display:flex; align-items:center; gap:9px; padding:6px 9px; border-radius:7px; cursor:pointer;" style-hover="background:var(--hover);">
+          <svg width="17" height="17" style="flex:none;"><use href="#ft-word"></use></svg>
+          <span style="font-size:13px; flex:1; min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">Q3 Proposal.docx</span>
+          <svg width="13" height="13" style="flex:none; color:#E8B339;"><use href="#ic-star-fill"></use></svg>
+        </div>
+        <div style="display:flex; align-items:center; gap:9px; padding:6px 9px; border-radius:7px; cursor:pointer;" style-hover="background:var(--hover);">
+          <svg width="17" height="17" style="flex:none;"><use href="#ft-excel"></use></svg>
+          <span style="font-size:13px; flex:1; min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">Budget FY26.xlsx</span>
+          <svg width="13" height="13" style="flex:none; color:#E8B339;"><use href="#ic-star-fill"></use></svg>
+        </div>
+
+        <!-- RECENT -->
+        <div style="display:flex; align-items:center; gap:6px; padding:14px 8px 4px;">
+          <span style="font-size:10.5px; font-weight:700; letter-spacing:0.07em; text-transform:uppercase; color:var(--fg-subtle);">Recent</span>
+        </div>
+        <div style="display:flex; align-items:center; gap:9px; padding:6px 9px; border-radius:7px; cursor:pointer;" style-hover="background:var(--hover);">
+          <svg width="17" height="17" style="flex:none;"><use href="#ft-ppt"></use></svg>
+          <span style="font-size:13px; flex:1; min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">Roadmap.pptx</span>
+          <span style="font-size:11px; color:var(--fg-subtle); flex:none;">2h</span>
+        </div>
+        <div style="display:flex; align-items:center; gap:9px; padding:6px 9px; border-radius:7px; cursor:pointer;" style-hover="background:var(--hover);">
+          <svg width="17" height="17" style="flex:none;"><use href="#ft-pdf"></use></svg>
+          <span style="font-size:13px; flex:1; min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">Q2 Report.pdf</span>
+          <span style="font-size:11px; color:var(--fg-subtle); flex:none;">Tue</span>
+        </div>
+        <div style="display:flex; align-items:center; gap:9px; padding:6px 9px; border-radius:7px; cursor:pointer;" style-hover="background:var(--hover);">
+          <svg width="17" height="17" style="flex:none;"><use href="#ft-md"></use></svg>
+          <span style="font-size:13px; flex:1; min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">launch-notes.md</span>
+          <span style="font-size:11px; color:var(--fg-subtle); flex:none;">Tue</span>
+        </div>
+
+        <!-- FILES -->
+        <div style="display:flex; align-items:center; gap:6px; padding:14px 8px 4px;">
+          <span style="font-size:10.5px; font-weight:700; letter-spacing:0.07em; text-transform:uppercase; color:var(--fg-subtle);">Files</span>
+        </div>
+
+        <!-- Proposals (open) -->
+        <div style="display:flex; align-items:center; gap:7px; padding:6px 9px; border-radius:7px; cursor:pointer;" style-hover="background:var(--hover);">
+          <svg width="14" height="14" style="flex:none; color:var(--fg-subtle);"><use href="#ic-chev-d"></use></svg>
+          <svg width="16" height="16" style="flex:none; color:var(--fg-muted);"><use href="#ic-folder-open"></use></svg>
+          <span style="font-size:13px; font-weight:540;">Proposals</span>
+        </div>
+        <div style="display:flex; align-items:center; gap:9px; padding:6px 9px 6px 30px; border-radius:7px; cursor:pointer; background:var(--selection); position:relative;">
+          <span style="position:absolute; left:0; top:6px; bottom:6px; width:2.5px; border-radius:3px; background:var(--accent);"></span>
+          <svg width="17" height="17" style="flex:none;"><use href="#ft-word"></use></svg>
+          <span style="font-size:13px; font-weight:560; color:var(--fg); flex:1; min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">Q3 Proposal.docx</span>
+          <svg width="14" height="14" style="flex:none; color:var(--accent);"><use href="#ic-eye"></use></svg>
+        </div>
+        <div style="display:flex; align-items:center; gap:9px; padding:6px 9px 6px 30px; border-radius:7px; cursor:pointer;" style-hover="background:var(--hover);">
+          <svg width="17" height="17" style="flex:none;"><use href="#ft-excel"></use></svg>
+          <span style="font-size:13px; flex:1; min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">Pricing.xlsx</span>
+        </div>
+        <div style="display:flex; align-items:center; gap:9px; padding:6px 9px 6px 30px; border-radius:7px; cursor:pointer;" style-hover="background:var(--hover);">
+          <svg width="17" height="17" style="flex:none;"><use href="#ft-img"></use></svg>
+          <span style="font-size:13px; flex:1; min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">cover-art.png</span>
+        </div>
+
+        <!-- Decks (closed) -->
+        <div style="display:flex; align-items:center; gap:7px; padding:6px 9px; border-radius:7px; cursor:pointer;" style-hover="background:var(--hover);">
+          <svg width="14" height="14" style="flex:none; color:var(--fg-subtle);"><use href="#ic-chev-r"></use></svg>
+          <svg width="16" height="16" style="flex:none; color:var(--fg-muted);"><use href="#ic-folder"></use></svg>
+          <span style="font-size:13px; font-weight:540;">Decks</span>
+        </div>
+
+        <!-- Research (open) -->
+        <div style="display:flex; align-items:center; gap:7px; padding:6px 9px; border-radius:7px; cursor:pointer;" style-hover="background:var(--hover);">
+          <svg width="14" height="14" style="flex:none; color:var(--fg-subtle);"><use href="#ic-chev-d"></use></svg>
+          <svg width="16" height="16" style="flex:none; color:var(--fg-muted);"><use href="#ic-folder-open"></use></svg>
+          <span style="font-size:13px; font-weight:540;">Research</span>
+        </div>
+        <div style="display:flex; align-items:center; gap:9px; padding:6px 9px 6px 30px; border-radius:7px; cursor:pointer;" style-hover="background:var(--hover);">
+          <svg width="17" height="17" style="flex:none;"><use href="#ft-md"></use></svg>
+          <span style="font-size:13px; flex:1; min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">interviews.md</span>
+        </div>
+        <div style="display:flex; align-items:center; gap:9px; padding:6px 9px 6px 30px; border-radius:7px; cursor:pointer;" style-hover="background:var(--hover);">
+          <svg width="17" height="17" style="flex:none;"><use href="#ft-csv"></use></svg>
+          <span style="font-size:13px; flex:1; min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">survey-data.csv</span>
+        </div>
+        <div style="display:flex; align-items:center; gap:9px; padding:6px 9px 6px 30px; border-radius:7px; cursor:pointer;" style-hover="background:var(--hover);">
+          <svg width="17" height="17" style="flex:none;"><use href="#ft-video"></use></svg>
+          <span style="font-size:13px; flex:1; min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">focus-group.mp4</span>
+        </div>
+
+        <!-- root files -->
+        <div style="display:flex; align-items:center; gap:9px; padding:6px 9px 6px 9px; border-radius:7px; cursor:pointer;" style-hover="background:var(--hover);">
+          <svg width="16" height="16" style="flex:none; color:transparent;"><use href="#ic-chev-r"></use></svg>
+          <svg width="17" height="17" style="flex:none; margin-left:-2px;"><use href="#ft-md"></use></svg>
+          <span style="font-size:13px; flex:1; min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">README.md</span>
+        </div>
+        <div style="display:flex; align-items:center; gap:9px; padding:6px 9px 6px 9px; border-radius:7px; cursor:pointer;" style-hover="background:var(--hover);">
+          <svg width="16" height="16" style="flex:none; color:transparent;"><use href="#ic-chev-r"></use></svg>
+          <svg width="17" height="17" style="flex:none; margin-left:-2px;"><use href="#ft-json"></use></svg>
+          <span style="font-size:13px; flex:1; min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">workspace.json</span>
+        </div>
+      </div>
+      </sc-if>
+
+      <sc-if value="{{ isEmpty }}">
+      <div style="flex:1; display:flex; flex-direction:column; align-items:center; justify-content:center; padding:24px; text-align:center; gap:6px;">
+        <svg width="22" height="22" style="color:var(--fg-subtle); margin-bottom:4px;"><use href="#ic-folder"></use></svg>
+        <div style="font-size:12.5px; color:var(--fg-muted);">No folder open</div>
+      </div>
+      </sc-if>
+
+      <!-- trash -->
+      <div style="flex:none; border-top:1px solid var(--hairline); padding:6px 8px;">
+        <div style="display:flex; align-items:center; gap:9px; padding:7px 9px; border-radius:7px; cursor:pointer; color:var(--fg-muted);" style-hover="background:var(--hover); color:var(--fg);">
+          <svg width="16" height="16" style="flex:none;"><use href="#ic-trash"></use></svg>
+          <span style="font-size:13px; flex:1;">Trash</span>
+          <span style="font-size:11px; color:var(--fg-subtle);">3</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- ---------- MAIN ---------- -->
+    <div style="flex:1; display:flex; flex-direction:column; min-width:0;">
+
+      <sc-if value="{{ isWorkspace }}" hint-placeholder-val="{{ true }}">
+      <div style="flex:1; display:flex; flex-direction:column; min-width:0; min-height:0;">
+
+        <!-- TAB BAR -->
+        <div style="height:40px; flex:none; display:flex; align-items:stretch; background:var(--app); border-bottom:1px solid var(--border); padding-left:6px;">
+          <div style="display:flex; align-items:stretch; min-width:0; overflow:hidden;">
+            <!-- active -->
+            <div style="display:flex; align-items:center; gap:8px; padding:0 11px 0 13px; background:var(--surface); border:1px solid var(--border); border-bottom:1px solid var(--surface); border-radius:8px 8px 0 0; margin-top:5px; position:relative; max-width:200px;">
+              <span style="position:absolute; top:0; left:8px; right:8px; height:2px; background:var(--accent); border-radius:0 0 2px 2px;"></span>
+              <svg width="15" height="15" style="flex:none;"><use href="#ft-word"></use></svg>
+              <span style="font-size:12.5px; font-weight:560; flex:1; min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">Q3 Proposal.docx</span>
+              <button style="font-family:inherit; cursor:pointer; width:18px; height:18px; display:flex; align-items:center; justify-content:center; background:transparent; border:none; border-radius:5px; color:var(--fg-subtle); flex:none;" style-hover="background:var(--active); color:var(--fg);"><svg width="12" height="12"><use href="#ic-x"></use></svg></button>
+            </div>
+            <!-- inactive -->
+            <div style="display:flex; align-items:center; gap:8px; padding:0 11px 0 13px; margin-top:5px; color:var(--fg-muted); max-width:180px; border-radius:8px 8px 0 0; cursor:pointer;" style-hover="background:var(--hover);">
+              <svg width="15" height="15" style="flex:none;"><use href="#ft-excel"></use></svg>
+              <span style="font-size:12.5px; flex:1; min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">Budget FY26.xlsx</span>
+              <button style="font-family:inherit; cursor:pointer; width:18px; height:18px; display:flex; align-items:center; justify-content:center; background:transparent; border:none; border-radius:5px; color:var(--fg-subtle); flex:none; opacity:.7;" style-hover="background:var(--active);"><svg width="12" height="12"><use href="#ic-x"></use></svg></button>
+            </div>
+            <div style="display:flex; align-items:center; gap:8px; padding:0 11px 0 13px; margin-top:5px; color:var(--fg-muted); max-width:170px; border-radius:8px 8px 0 0; cursor:pointer;" style-hover="background:var(--hover);">
+              <svg width="15" height="15" style="flex:none;"><use href="#ft-ppt"></use></svg>
+              <span style="font-size:12.5px; flex:1; min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">Roadmap.pptx</span>
+              <button style="font-family:inherit; cursor:pointer; width:18px; height:18px; display:flex; align-items:center; justify-content:center; background:transparent; border:none; border-radius:5px; color:var(--fg-subtle); flex:none; opacity:.7;" style-hover="background:var(--active);"><svg width="12" height="12"><use href="#ic-x"></use></svg></button>
+            </div>
+          </div>
+          <button title="New tab" style="font-family:inherit; cursor:pointer; width:30px; margin:5px 4px 0; display:flex; align-items:center; justify-content:center; background:transparent; border:none; border-radius:7px; color:var(--fg-muted);" style-hover="background:var(--hover); color:var(--fg);"><svg width="16" height="16"><use href="#ic-plus"></use></svg></button>
+          <div style="flex:1;"></div>
+          <button title="More" style="font-family:inherit; cursor:pointer; width:30px; margin:5px 8px 0 0; display:flex; align-items:center; justify-content:center; background:transparent; border:none; border-radius:7px; color:var(--fg-muted);" style-hover="background:var(--hover); color:var(--fg);"><svg width="17" height="17"><use href="#ic-dots"></use></svg></button>
+        </div>
+
+        <!-- BREADCRUMB + DOC ACTIONS -->
+        <div style="height:42px; flex:none; display:flex; align-items:center; gap:10px; padding:0 14px; background:var(--panel); border-bottom:1px solid var(--hairline);">
+          <div style="display:flex; align-items:center; gap:5px; min-width:0; flex:1;">
+            <span style="font-size:12.5px; color:var(--fg-muted); cursor:pointer;" style-hover="color:var(--fg);">Marketing</span>
+            <svg width="13" height="13" style="color:var(--fg-subtle); flex:none;"><use href="#ic-chev-r"></use></svg>
+            <span style="font-size:12.5px; color:var(--fg-muted); cursor:pointer;" style-hover="color:var(--fg);">Proposals</span>
+            <svg width="13" height="13" style="color:var(--fg-subtle); flex:none;"><use href="#ic-chev-r"></use></svg>
+            <span style="display:inline-flex; align-items:center; gap:6px; font-size:12.5px; font-weight:600; color:var(--fg);"><svg width="14" height="14"><use href="#ft-word"></use></svg>Q3 Proposal.docx</span>
+            <span style="display:inline-flex; align-items:center; gap:5px; margin-left:8px; font-size:11px; color:var(--fg-subtle);"><svg width="12" height="12" style="color:#61C554;"><use href="#ic-check"></use></svg>Saved</span>
+          </div>
+          <div style="display:flex; align-items:center; gap:2px;">
+            <button title="Star" style="font-family:inherit; cursor:pointer; width:30px; height:30px; display:flex; align-items:center; justify-content:center; background:transparent; border:none; border-radius:7px; color:#E8B339;" style-hover="background:var(--hover);"><svg width="16" height="16"><use href="#ic-star-fill"></use></svg></button>
+            <button title="Share" style="font-family:inherit; cursor:pointer; width:30px; height:30px; display:flex; align-items:center; justify-content:center; background:transparent; border:none; border-radius:7px; color:var(--fg-muted);" style-hover="background:var(--hover); color:var(--fg);"><svg width="16" height="16"><use href="#ic-share"></use></svg></button>
+            <button title="Print" style="font-family:inherit; cursor:pointer; width:30px; height:30px; display:flex; align-items:center; justify-content:center; background:transparent; border:none; border-radius:7px; color:var(--fg-muted);" style-hover="background:var(--hover); color:var(--fg);"><svg width="16" height="16"><use href="#ic-print"></use></svg></button>
+            <div style="width:1px; height:18px; background:var(--border); margin:0 5px;"></div>
+            <button title="More" style="font-family:inherit; cursor:pointer; width:30px; height:30px; display:flex; align-items:center; justify-content:center; background:transparent; border:none; border-radius:7px; color:var(--fg-muted);" style-hover="background:var(--hover); color:var(--fg);"><svg width="17" height="17"><use href="#ic-dots"></use></svg></button>
+          </div>
+        </div>
+
+        <!-- FORMATTING TOOLBAR -->
+        <div style="height:42px; flex:none; display:flex; align-items:center; gap:4px; padding:0 12px; background:var(--surface); border-bottom:1px solid var(--border);">
+          <div style="display:flex; align-items:center; gap:6px; height:28px; padding:0 9px; border:1px solid var(--border); border-radius:7px; font-size:12.5px; color:var(--fg); cursor:pointer; background:var(--panel);" style-hover="border-color:var(--border-strong);">Heading 1<svg width="12" height="12" style="color:var(--fg-subtle);"><use href="#ic-chev-d"></use></svg></div>
+          <div style="display:flex; align-items:center; gap:6px; height:28px; padding:0 9px; border:1px solid var(--border); border-radius:7px; font-size:12.5px; color:var(--fg); cursor:pointer; background:var(--panel); margin-left:2px;" style-hover="border-color:var(--border-strong);">Aptos<svg width="12" height="12" style="color:var(--fg-subtle);"><use href="#ic-chev-d"></use></svg></div>
+          <div style="display:flex; align-items:center; justify-content:center; width:42px; height:28px; border:1px solid var(--border); border-radius:7px; font-size:12.5px; color:var(--fg); cursor:pointer; background:var(--panel);">11</div>
+          <div style="width:1px; height:20px; background:var(--border); margin:0 6px;"></div>
+          <button style="font-family:inherit; cursor:pointer; width:30px; height:30px; display:flex; align-items:center; justify-content:center; background:var(--active); border:none; border-radius:7px; color:var(--fg);"><svg width="16" height="16"><use href="#ic-bold"></use></svg></button>
+          <button style="font-family:inherit; cursor:pointer; width:30px; height:30px; display:flex; align-items:center; justify-content:center; background:transparent; border:none; border-radius:7px; color:var(--fg-muted);" style-hover="background:var(--hover); color:var(--fg);"><svg width="16" height="16"><use href="#ic-italic"></use></svg></button>
+          <button style="font-family:inherit; cursor:pointer; width:30px; height:30px; display:flex; align-items:center; justify-content:center; background:transparent; border:none; border-radius:7px; color:var(--fg-muted);" style-hover="background:var(--hover); color:var(--fg);"><svg width="16" height="16"><use href="#ic-underline"></use></svg></button>
+          <div style="display:flex; flex-direction:column; align-items:center; cursor:pointer; padding:0 7px;"><span style="font-size:14px; font-weight:700; line-height:1; color:var(--fg);">A</span><span style="width:16px; height:3px; border-radius:2px; background:var(--accent); margin-top:2px;"></span></div>
+          <div style="width:1px; height:20px; background:var(--border); margin:0 6px;"></div>
+          <button style="font-family:inherit; cursor:pointer; width:30px; height:30px; display:flex; align-items:center; justify-content:center; background:transparent; border:none; border-radius:7px; color:var(--fg-muted);" style-hover="background:var(--hover); color:var(--fg);"><svg width="16" height="16"><use href="#ic-align"></use></svg></button>
+          <button style="font-family:inherit; cursor:pointer; width:30px; height:30px; display:flex; align-items:center; justify-content:center; background:transparent; border:none; border-radius:7px; color:var(--fg-muted);" style-hover="background:var(--hover); color:var(--fg);"><svg width="16" height="16"><use href="#ic-list"></use></svg></button>
+          <div style="flex:1;"></div>
+          <button style="font-family:inherit; cursor:pointer; height:28px; padding:0 9px; display:flex; align-items:center; gap:6px; background:transparent; border:none; border-radius:7px; color:var(--fg-muted); font-size:12px;" style-hover="background:var(--hover); color:var(--fg);"><svg width="15" height="15"><use href="#ic-undo"></use></svg></button>
+          <button style="font-family:inherit; cursor:pointer; height:28px; padding:0 9px; display:flex; align-items:center; gap:6px; background:transparent; border:none; border-radius:7px; color:var(--fg-muted); font-size:12px;" style-hover="background:var(--hover); color:var(--fg);"><svg width="15" height="15"><use href="#ic-redo"></use></svg></button>
+        </div>
+
+        <!-- CANVAS -->
+        <div style="flex:1; overflow-y:auto; background:var(--surround); min-height:0; padding:34px 0 56px;">
+          <div style="max-width:760px; margin:0 auto; background:#FFFFFF; box-shadow:0 1px 2px rgba(0,0,0,.10),0 12px 40px rgba(0,0,0,.12); border-radius:3px; padding:80px 92px; color:#23211E; min-height:920px;">
+            <div style="font-size:12px; font-weight:600; letter-spacing:0.12em; text-transform:uppercase; color:#9A4B2E;">Confidential — Marketing</div>
+            <h1 style="font-family:var(--serif); font-size:38px; font-weight:600; letter-spacing:-0.01em; line-height:1.12; margin:16px 0 0; color:#1A1916;">Q3 Growth Proposal</h1>
+            <div style="display:flex; align-items:center; gap:14px; margin-top:18px; padding-bottom:22px; border-bottom:1px solid #E8E6E1; font-size:13.5px; color:#7A766E;">
+              <span>Prepared by Avery Chen</span><span style="color:#CFC; color:#D8D4CC;">·</span><span>June 18, 2026</span><span style="color:#D8D4CC;">·</span><span>6 min read</span>
+            </div>
+            <p style="font-family:var(--serif); font-size:16.5px; line-height:1.78; margin:26px 0 0; color:#2E2B26;">This proposal outlines a focused plan to accelerate qualified pipeline through the third quarter, concentrating investment on the three channels that delivered the strongest return in H1. The recommendation is deliberately narrow: do fewer things, measured weekly, with a clear owner for each motion.</p>
+            <h2 style="font-family:var(--serif); font-size:22px; font-weight:600; margin:34px 0 0; color:#1A1916;">1. Where we are today</h2>
+            <p style="font-family:var(--serif); font-size:16.5px; line-height:1.78; margin:14px 0 0; color:#2E2B26;">Inbound demand grew 24% quarter-over-quarter, but conversion from trial to paid plateaued at 11%. The gap is not awareness — it is the activation moment. Most accounts that churn never complete a second session within their first week.</p>
+            <div style="margin:26px 0; padding:20px 22px; background:#F6F4EF; border-left:3px solid #2B579A; border-radius:0 8px 8px 0;">
+              <div style="font-size:12.5px; font-weight:700; letter-spacing:0.04em; text-transform:uppercase; color:#2B579A; margin-bottom:7px;">Recommendation</div>
+              <p style="font-family:var(--serif); font-size:16px; line-height:1.7; margin:0; color:#2E2B26;">Shift 30% of paid-social spend into lifecycle activation, and instrument a single north-star activation event measured weekly.</p>
+            </div>
+            <h2 style="font-family:var(--serif); font-size:22px; font-weight:600; margin:30px 0 0; color:#1A1916;">2. The plan in three moves</h2>
+            <ul style="font-family:var(--serif); font-size:16.5px; line-height:1.8; margin:14px 0 0; padding-left:24px; color:#2E2B26;">
+              <li style="margin-bottom:8px;"><strong style="font-weight:600;">Activation sprint.</strong> A two-week onboarding redesign targeting the first-session drop-off.</li>
+              <li style="margin-bottom:8px;"><strong style="font-weight:600;">Lifecycle email.</strong> Five-touch sequence triggered by behavioral milestones, not calendar days.</li>
+              <li><strong style="font-weight:600;">Channel consolidation.</strong> Pause the two lowest-ROI channels and reinvest in search and partnerships.</li>
+            </ul>
+            <p style="font-family:var(--serif); font-size:16.5px; line-height:1.78; margin:22px 0 0; color:#2E2B26;">Each move has a named owner, a weekly metric, and a clear stop condition. We will review progress every Friday and cut anything that is not moving the activation rate after three weeks.</p>
+          </div>
+        </div>
+      </div>
+      </sc-if>
+
+      <!-- EMPTY / FIRST-RUN -->
+      <sc-if value="{{ isEmpty }}">
+      <div style="flex:1; display:flex; flex-direction:column; align-items:center; justify-content:center; background:var(--surround); padding:40px; text-align:center; min-height:0;">
+        <div style="width:72px; height:72px; border-radius:18px; background:var(--surface); border:1px solid var(--border); box-shadow:var(--shadow-2); display:flex; align-items:center; justify-content:center; color:var(--accent); margin-bottom:26px;"><svg width="34" height="34"><use href="#ic-folder-open"></use></svg></div>
+        <h1 style="margin:0; font-size:26px; font-weight:620; letter-spacing:-0.02em; color:var(--fg);">Open a folder to begin</h1>
+        <p style="margin:12px 0 28px; font-size:15px; color:var(--fg-muted); max-width:400px; line-height:1.6;">Your documents, spreadsheets, decks, and PDFs — opened side by side in one calm, native workspace.</p>
+        <div style="display:flex; gap:10px;">
+          <button onClick="{{ toggleFirstRun }}" style="font-family:inherit; cursor:pointer; border:none; background:var(--accent); color:#fff; font-size:13.5px; font-weight:560; padding:11px 20px; border-radius:9px; box-shadow:var(--shadow-1); display:flex; align-items:center; gap:8px;" style-hover="filter:brightness(1.06);"><svg width="17" height="17"><use href="#ic-folder"></use></svg>Open folder…</button>
+          <button onClick="{{ openCmdk }}" style="font-family:inherit; cursor:pointer; background:var(--surface); color:var(--fg); font-size:13.5px; font-weight:560; padding:10px 18px; border-radius:9px; border:1px solid var(--border-strong); box-shadow:var(--shadow-1); display:flex; align-items:center; gap:8px;" style-hover="background:var(--hover);"><svg width="16" height="16"><use href="#ic-clock"></use></svg>Recent workspaces</button>
+        </div>
+      </div>
+      </sc-if>
+
+      <!-- ===================== TERMINAL PANEL ===================== -->
+      <div ref="{{ termRef }}" style="flex:none; height:228px; display:flex; flex-direction:column; border-top:1px solid var(--border); background:#17181B; min-height:0;">
+        <!-- header -->
+        <div style="height:38px; flex:none; display:flex; align-items:center; gap:2px; padding:0 8px 0 6px; background:var(--panel); border-bottom:1px solid var(--hairline);">
+          <button onClick="{{ setShell }}" style="font-family:inherit; cursor:pointer; display:flex; align-items:center; gap:7px; height:38px; padding:0 12px; background:transparent; border:none; border-bottom:2px solid {{ shellBorder }}; color:{{ shellColor }}; font-size:12.5px; font-weight:540;">
+            <svg width="15" height="15"><use href="#ic-terminal"></use></svg>Shell
+          </button>
+          <button onClick="{{ setAgent }}" style="font-family:inherit; cursor:pointer; display:flex; align-items:center; gap:7px; height:38px; padding:0 12px; background:transparent; border:none; border-bottom:2px solid {{ agentBorder }}; color:{{ agentColor }}; font-size:12.5px; font-weight:540;">
+            <svg width="15" height="15"><use href="#ic-sparkles"></use></svg>Agent
+            <span style="display:inline-flex; align-items:center; height:15px; padding:0 5px; border-radius:5px; background:var(--accent-soft); color:var(--accent); font-size:10px; font-weight:700;">AI</span>
+          </button>
+          <button title="New terminal" style="font-family:inherit; cursor:pointer; width:28px; height:28px; margin-left:4px; display:flex; align-items:center; justify-content:center; background:transparent; border:none; border-radius:7px; color:var(--fg-muted);" style-hover="background:var(--hover); color:var(--fg);"><svg width="15" height="15"><use href="#ic-plus"></use></svg></button>
+          <div style="flex:1;"></div>
+          <span style="font-size:11px; color:var(--fg-subtle); font-family:var(--mono); margin-right:8px;">zsh · ~/Marketing</span>
+          <button title="Clear" style="font-family:inherit; cursor:pointer; width:28px; height:28px; display:flex; align-items:center; justify-content:center; background:transparent; border:none; border-radius:7px; color:var(--fg-muted);" style-hover="background:var(--hover); color:var(--fg);"><svg width="15" height="15"><use href="#ic-broom"></use></svg></button>
+          <button onClick="{{ toggleTerm }}" title="Collapse" style="font-family:inherit; cursor:pointer; width:28px; height:28px; display:flex; align-items:center; justify-content:center; background:transparent; border:none; border-radius:7px; color:var(--fg-muted);" style-hover="background:var(--hover); color:var(--fg);"><svg width="15" height="15"><use href="#ic-min"></use></svg></button>
+        </div>
+
+        <!-- SHELL body -->
+        <sc-if value="{{ showShell }}" hint-placeholder-val="{{ true }}">
+        <div style="flex:1; overflow-y:auto; padding:12px 16px; font-family:var(--mono); font-size:12.5px; line-height:1.75; color:#D6D7DB; min-height:0;">
+          <div><span style="color:#5BC8AF;">avery</span><span style="color:#6E7079;">@</span><span style="color:#6AA6FF;">workspace-os</span><span style="color:#6E7079;"> ~/Marketing</span> <span style="color:#C9CBD2;">$</span> ls Proposals</div>
+          <div style="color:#9DA0A8; padding:2px 0 6px;">Q3&nbsp;Proposal.docx&nbsp;&nbsp;&nbsp;Pricing.xlsx&nbsp;&nbsp;&nbsp;cover-art.png</div>
+          <div><span style="color:#5BC8AF;">avery</span><span style="color:#6E7079;">@</span><span style="color:#6AA6FF;">workspace-os</span><span style="color:#6E7079;"> ~/Marketing</span> <span style="color:#C9CBD2;">$</span> git status</div>
+          <div style="color:#9DA0A8;">On branch <span style="color:#E3C778;">main</span> — your branch is up to date.</div>
+          <div style="color:#9DA0A8; padding-bottom:6px;">Changes not staged: <span style="color:#E08A6E;">Proposals/Q3 Proposal.docx</span></div>
+          <div><span style="color:#5BC8AF;">avery</span><span style="color:#6E7079;">@</span><span style="color:#6AA6FF;">workspace-os</span><span style="color:#6E7079;"> ~/Marketing</span> <span style="color:#C9CBD2;">$</span> <span style="display:inline-block; width:8px; height:16px; background:#D6D7DB; vertical-align:-3px; animation:blink 1.1s steps(1) infinite;"></span></div>
+        </div>
+        </sc-if>
+
+        <!-- AGENT body -->
+        <sc-if value="{{ showAgent }}">
+        <div style="flex:1; display:flex; flex-direction:column; min-height:0;">
+          <div style="flex:1; overflow-y:auto; padding:14px 16px; font-size:13px; line-height:1.6; color:#D6D7DB; min-height:0;">
+            <div style="display:flex; gap:10px; margin-bottom:14px;">
+              <div style="width:22px; height:22px; flex:none; border-radius:50%; background:#2E3036; display:flex; align-items:center; justify-content:center; color:#A7AAB2; font-size:10px; font-weight:700;">AC</div>
+              <div style="color:#E4E5E9; padding-top:1px;">Summarize the Q3 proposal and pull the revenue targets into Budget FY26.xlsx.</div>
+            </div>
+            <div style="display:flex; gap:10px;">
+              <div style="width:22px; height:22px; flex:none; border-radius:6px; background:var(--accent); display:flex; align-items:center; justify-content:center; color:#fff;"><svg width="13" height="13"><use href="#ic-sparkles"></use></svg></div>
+              <div style="min-width:0; color:#C9CBD2;">
+                <div style="display:inline-flex; align-items:center; gap:7px; padding:4px 9px; background:#212329; border:1px solid #2E3036; border-radius:7px; font-size:11.5px; color:#9DA0A8; font-family:var(--mono); margin-bottom:9px;"><svg width="13" height="13" style="color:#6AA6FF;"><use href="#ic-eye"></use></svg>Read Q3 Proposal.docx<span style="color:#5BC8AF;">✓</span></div>
+                <div style="display:inline-flex; align-items:center; gap:7px; padding:4px 9px; background:#212329; border:1px solid #2E3036; border-radius:7px; font-size:11.5px; color:#9DA0A8; font-family:var(--mono); margin-bottom:11px; margin-left:7px;"><svg width="13" height="13" style="color:#5BC8AF;"><use href="#ft-excel"></use></svg>Edit Budget FY26.xlsx<span style="color:#E3C778;">writing…</span></div>
+                <div>The proposal recommends shifting 30% of paid-social spend into lifecycle activation, targeting an activation-rate lift from 11% to 16%. I've added the three revenue targets to the <span style="color:#7FB3FF;">Q3 Plan</span> sheet<span style="display:inline-block; width:7px; height:14px; background:#C9CBD2; vertical-align:-2px; margin-left:1px; animation:blink 1.1s steps(1) infinite;"></span></div>
+              </div>
+            </div>
+          </div>
+          <div style="flex:none; padding:10px 12px 12px; border-top:1px solid #25272C;">
+            <div style="display:flex; align-items:center; gap:10px; background:#212329; border:1px solid #30333A; border-radius:10px; padding:9px 10px 9px 13px;">
+              <span style="flex:1; font-size:13px; color:#74767E;">Ask the agent to edit, summarize, or analyze…</span>
+              <span style="font-family:var(--mono); font-size:10.5px; color:#74767E; background:#191A1E; border:1px solid #30333A; border-radius:5px; padding:2px 6px;">⌘↵</span>
+              <button style="font-family:inherit; cursor:pointer; width:30px; height:30px; display:flex; align-items:center; justify-content:center; background:var(--accent); border:none; border-radius:7px; color:#fff;"><svg width="15" height="15"><use href="#ic-send"></use></svg></button>
+            </div>
+          </div>
+        </div>
+        </sc-if>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ===================== COMMAND BAR OVERLAY ===================== -->
+  <sc-if value="{{ cmdkOpen }}">
+  <div onClick="{{ closeCmdk }}" style="position:fixed; inset:0; background:rgba(20,20,22,0.34); backdrop-filter:blur(2px); -webkit-backdrop-filter:blur(2px); display:flex; align-items:flex-start; justify-content:center; padding-top:13vh; z-index:50;">
+    <div onClick="{{ stop }}" style="width:600px; max-width:92vw; background:var(--elevated); border:1px solid var(--border); border-radius:15px; box-shadow:var(--shadow-3); overflow:hidden;">
+      <div style="display:flex; align-items:center; gap:12px; padding:16px 18px; border-bottom:1px solid var(--hairline);">
+        <svg width="19" height="19" style="color:var(--fg-subtle);"><use href="#ic-search"></use></svg>
+        <span style="font-size:16px; color:var(--fg); flex:1;">budget<span style="display:inline-block; width:1.5px; height:18px; background:var(--accent); vertical-align:-3px; margin-left:1px; animation:blink 1.1s steps(1) infinite;"></span></span>
+        <span style="font-size:11px; color:var(--fg-subtle); font-family:var(--mono); background:var(--app); border:1px solid var(--border); border-radius:5px; padding:3px 7px;">esc</span>
+      </div>
+      <div style="padding:8px; max-height:48vh; overflow-y:auto;">
+        <div style="font-size:10.5px; font-weight:700; letter-spacing:0.06em; text-transform:uppercase; color:var(--fg-subtle); padding:8px 10px 6px;">Files</div>
+        <div style="display:flex; align-items:center; gap:11px; padding:9px 10px; border-radius:8px; background:var(--accent-soft); cursor:pointer;">
+          <svg width="19" height="19" style="flex:none;"><use href="#ft-excel"></use></svg>
+          <div style="min-width:0; flex:1;"><div style="font-size:13.5px; font-weight:560;">Budget FY26.xlsx</div><div style="font-size:11.5px; color:var(--fg-subtle);">Finance / Planning</div></div>
+          <svg width="15" height="15" style="margin-left:auto; color:var(--accent); flex:none;"><use href="#ic-enter"></use></svg>
+        </div>
+        <div style="display:flex; align-items:center; gap:11px; padding:9px 10px; border-radius:8px; cursor:pointer;" style-hover="background:var(--hover);">
+          <svg width="19" height="19" style="flex:none;"><use href="#ft-word"></use></svg>
+          <div style="min-width:0; flex:1;"><div style="font-size:13.5px;">Budget narrative.docx</div><div style="font-size:11.5px; color:var(--fg-subtle);">Marketing / Proposals</div></div>
+        </div>
+        <div style="font-size:10.5px; font-weight:700; letter-spacing:0.06em; text-transform:uppercase; color:var(--fg-subtle); padding:14px 10px 6px;">In documents</div>
+        <div style="display:flex; align-items:center; gap:11px; padding:9px 10px; border-radius:8px; cursor:pointer;" style-hover="background:var(--hover);">
+          <svg width="19" height="19" style="flex:none;"><use href="#ft-word"></use></svg>
+          <div style="min-width:0; flex:1;"><div style="font-size:13.5px;">Q3 Proposal.docx</div><div style="font-size:11.5px; color:var(--fg-subtle);">“…shift 30% of the <mark style="background:var(--accent-soft); color:var(--accent); border-radius:3px; padding:0 2px;">budget</mark> into lifecycle…” · 3 matches</div></div>
+        </div>
+        <div style="display:flex; align-items:center; gap:11px; padding:9px 10px; border-radius:8px; cursor:pointer;" style-hover="background:var(--hover);">
+          <svg width="19" height="19" style="flex:none;"><use href="#ft-pdf"></use></svg>
+          <div style="min-width:0; flex:1;"><div style="font-size:13.5px;">Q2 Report.pdf</div><div style="font-size:11.5px; color:var(--fg-subtle);">“…the <mark style="background:var(--accent-soft); color:var(--accent); border-radius:3px; padding:0 2px;">budget</mark> variance was within 4%…” · 1 match</div></div>
+        </div>
+      </div>
+      <div style="display:flex; align-items:center; gap:16px; padding:9px 16px; border-top:1px solid var(--hairline); background:var(--panel); font-size:11px; color:var(--fg-subtle);">
+        <span style="display:flex; align-items:center; gap:5px;"><span style="font-family:var(--mono); background:var(--surface); border:1px solid var(--border); border-radius:4px; padding:1px 5px;">↑↓</span>navigate</span>
+        <span style="display:flex; align-items:center; gap:5px;"><span style="font-family:var(--mono); background:var(--surface); border:1px solid var(--border); border-radius:4px; padding:1px 5px;">↵</span>open</span>
+        <span style="margin-left:auto; display:flex; align-items:center; gap:6px;"><svg width="13" height="13"><use href="#ic-command"></use></svg>Search across filenames and contents</span>
+      </div>
+    </div>
+  </div>
+  </sc-if>
+
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:&quot;100%&quot;,&quot;height&quot;:&quot;100%&quot;},&quot;theme&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;light&quot;,&quot;dark&quot;],&quot;default&quot;:&quot;light&quot;,&quot;tsType&quot;:&quot;'light'|'dark'&quot;},&quot;direction&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;Graphite&quot;,&quot;Paper&quot;,&quot;Porcelain&quot;],&quot;default&quot;:&quot;Graphite&quot;,&quot;tsType&quot;:&quot;'Graphite'|'Paper'|'Porcelain'&quot;},&quot;firstRun&quot;:{&quot;editor&quot;:&quot;boolean&quot;,&quot;default&quot;:false,&quot;tsType&quot;:&quot;boolean&quot;}}">
+class Component extends DCLogic {
+  state = { theme: null, dir: null, term: "shell", firstRun: null, cmdk: false };
+
+  componentDidMount() {
+    this.applyTokens();
+    this._key = (e) => {
+      if ((e.metaKey || e.ctrlKey) && (e.key === "p" || e.key === "P")) { e.preventDefault(); this.setState({ cmdk: true }); }
+      if (e.key === "Escape") this.setState({ cmdk: false });
+    };
+    window.addEventListener("keydown", this._key);
+  }
+  componentWillUnmount() { window.removeEventListener("keydown", this._key); }
+  componentDidUpdate() { this.applyTokens(); }
+
+  theme() { return this.state.theme ?? this.props.theme ?? "light"; }
+  dir() { return this.state.dir ?? this.props.direction ?? "Graphite"; }
+  isFirstRun() { return this.state.firstRun ?? this.props.firstRun ?? false; }
+
+  rgba(hex, a) {
+    const h = hex.replace("#", "");
+    const r = parseInt(h.slice(0, 2), 16), g = parseInt(h.slice(2, 4), 16), b = parseInt(h.slice(4, 6), 16);
+    return `rgba(${r},${g},${b},${a})`;
+  }
+
+  tokens() {
+    const theme = this.theme(), dir = this.dir();
+    const accents = { Graphite: { l: "#2F6BD8", d: "#5B8DF0" }, Paper: { l: "#2B579A", d: "#6E9BE0" }, Porcelain: { l: "#4B4ACF", d: "#8A89EE" } };
+    const a = theme === "dark" ? accents[dir].d : accents[dir].l;
+    const lightN = {
+      Graphite: { app: "#F4F4F2", surround: "#E9E9E6", panel: "#FBFBFA", surface: "#FFFFFF", border: "#E5E5E1", borderStrong: "#D7D7D2", hairline: "#EDEDEA", fg: "#1B1B19", muted: "#6A6A64", subtle: "#9A9A92" },
+      Paper: { app: "#F3F1EC", surround: "#E7E3D9", panel: "#FBFAF6", surface: "#FFFDF9", border: "#E6E1D6", borderStrong: "#D8D2C4", hairline: "#EFEDE6", fg: "#23211C", muted: "#6E685C", subtle: "#9C9588" },
+      Porcelain: { app: "#F6F7F9", surround: "#EBEDF1", panel: "#FCFCFD", surface: "#FFFFFF", border: "#E6E8EC", borderStrong: "#D6DAE1", hairline: "#EEF0F3", fg: "#16181D", muted: "#646A75", subtle: "#99A0AD" },
+    };
+    const dark = { app: "#1B1B1E", surround: "#141416", panel: "#212125", surface: "#27272B", elevated: "#2C2C31", border: "#34343A", borderStrong: "#42424A", hairline: "#2B2B30", fg: "#ECECEC", muted: "#9B9BA1", subtle: "#6C6C73" };
+    const n = theme === "dark" ? dark : lightN[dir];
+    const elevated = theme === "dark" ? n.elevated : n.surface;
+    const shadow1 = theme === "dark" ? "0 1px 2px rgba(0,0,0,.4)" : "0 1px 2px rgba(20,20,20,.06),0 1px 1px rgba(20,20,20,.04)";
+    const shadow2 = theme === "dark" ? "0 8px 22px rgba(0,0,0,.5),0 1px 3px rgba(0,0,0,.4)" : "0 6px 18px rgba(20,20,20,.10),0 1px 3px rgba(20,20,20,.05)";
+    const shadow3 = theme === "dark" ? "0 28px 60px rgba(0,0,0,.6),0 8px 18px rgba(0,0,0,.5)" : "0 22px 50px rgba(20,20,20,.20),0 6px 14px rgba(20,20,20,.10)";
+    return {
+      "--app": n.app, "--surround": n.surround, "--panel": n.panel, "--surface": n.surface, "--elevated": elevated,
+      "--border": n.border, "--border-strong": n.borderStrong, "--hairline": n.hairline,
+      "--fg": n.fg, "--fg-muted": n.muted, "--fg-subtle": n.subtle,
+      "--accent": a, "--accent-soft": this.rgba(a, theme === "dark" ? 0.18 : 0.10), "--accent-border": this.rgba(a, theme === "dark" ? 0.42 : 0.32),
+      "--selection": this.rgba(a, theme === "dark" ? 0.24 : 0.12),
+      "--hover": theme === "dark" ? "rgba(255,255,255,0.055)" : "rgba(0,0,0,0.045)",
+      "--active": theme === "dark" ? "rgba(255,255,255,0.09)" : "rgba(0,0,0,0.06)",
+      "--shadow-1": shadow1, "--shadow-2": shadow2, "--shadow-3": shadow3,
+    };
+  }
+
+  applyTokens() {
+    if (!this.root) return;
+    const t = this.tokens();
+    for (const k in t) this.root.style.setProperty(k, t[k]);
+  }
+
+  renderVals() {
+    const theme = this.theme(), term = this.state.term, empty = this.isFirstRun();
+    const ac = "var(--accent)", muted = "var(--fg-muted)";
+    return {
+      rootRef: (el) => { this.root = el; if (el) this.applyTokens(); },
+      sidebarRef: () => {}, termRef: () => {},
+      toggleTheme: () => this.setState({ theme: this.theme() === "dark" ? "light" : "dark" }),
+      cycleDirection: () => { const order = ["Graphite", "Paper", "Porcelain"]; const i = order.indexOf(this.dir()); this.setState({ dir: order[(i + 1) % 3] }); },
+      toggleSidebar: () => {},
+      toggleFirstRun: () => this.setState({ firstRun: false }),
+      openCmdk: () => this.setState({ cmdk: true }),
+      closeCmdk: () => this.setState({ cmdk: false }),
+      stop: (e) => { e.stopPropagation(); },
+      setShell: () => this.setState({ term: "shell" }),
+      setAgent: () => this.setState({ term: "agent" }),
+      toggleTerm: () => {},
+      themeIcon: theme === "dark" ? "#ic-sun" : "#ic-moon",
+      dirLabel: this.dir(),
+      isWorkspace: !empty,
+      isEmpty: empty,
+      cmdkOpen: this.state.cmdk,
+      showShell: term === "shell",
+      showAgent: term === "agent",
+      shellColor: term === "shell" ? "var(--fg)" : muted,
+      shellBorder: term === "shell" ? ac : "transparent",
+      agentColor: term === "agent" ? "var(--fg)" : muted,
+      agentBorder: term === "agent" ? ac : "transparent",
+    };
+  }
+}
+</script>
+</body>
+</html>

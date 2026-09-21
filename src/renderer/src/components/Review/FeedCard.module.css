@@ -1,0 +1,391 @@
+/*
+ * Cockpit card language — matches docs/design/cockpit-redesign.html.
+ * White soft-shadow cards, 18px radius, ONE blue (only the primary action),
+ * content in ink (never gray), plain-language consequence notes (green check
+ * for reversible edits, amber pill for outbound). 8-pt spacing, crafted look.
+ * Tokens come from styles/tokens.css (--wos-*).
+ */
+.card {
+  --rv-body: var(--wos-font, 'Hanken Grotesk', -apple-system, system-ui, sans-serif);
+  --rv-mono: var(--wos-font-mono, 'JetBrains Mono', 'SF Mono', ui-monospace, monospace);
+
+  position: relative;
+  border-radius: var(--wos-r, 18px);
+  overflow: hidden;
+  background: var(--wos-card, #fff);
+  box-shadow: var(--wos-sh-card);
+  color: var(--wos-ink);
+  animation: rv-arrive 0.5s cubic-bezier(0.2, 0.8, 0.2, 1) both;
+}
+
+.card.live {
+  box-shadow: 0 0 0 1px rgba(0, 113, 227, 0.28), var(--wos-sh-card);
+}
+
+@keyframes rv-arrive {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* The mockup has no family-colored bar; keep the element but collapse it. */
+.topAccent {
+  height: 0;
+  width: 100%;
+}
+
+.body {
+  padding: 24px;
+}
+
+.kickerRow {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 12px;
+}
+
+.family {
+  font-family: var(--rv-body);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+}
+
+.session {
+  font-family: var(--rv-body);
+  font-size: 13px;
+  color: var(--wos-ink-2);
+}
+
+.time {
+  margin-left: auto;
+  font-family: var(--rv-body);
+  font-size: 13px;
+  color: var(--wos-ink-3);
+}
+
+.headline {
+  margin: 0 0 12px;
+  font-family: var(--rv-body);
+  font-size: 16px;
+  font-weight: 600;
+  line-height: 1.3;
+  letter-spacing: -0.02em;
+  color: var(--wos-ink);
+}
+
+.deliverable {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin: 0 0 14px;
+  padding: 6px 12px;
+  border-radius: 10px;
+  background: var(--wos-sunk);
+  border: 0;
+  color: var(--wos-ink);
+  font-family: var(--rv-body);
+  font-size: 13px;
+  cursor: pointer;
+}
+.deliverable:hover { background: #e8e8ec; }
+
+.stakes {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 7px;
+  margin-bottom: 14px;
+}
+
+.chip,
+.chipMono,
+.chipError {
+  padding: 3px 10px;
+  border-radius: 999px;
+  font-size: 12px;
+  background: var(--wos-sunk);
+  color: var(--wos-ink-2);
+}
+.chip { font-family: var(--rv-body); }
+.chipMono { font-family: var(--rv-mono); color: var(--wos-ink-2); }
+.chipError {
+  font-family: var(--rv-body);
+  color: var(--wos-warn-ink);
+  background: var(--wos-warn-bg);
+}
+
+/* Plain-language consequence note — green check for reversible, amber pill for
+ * outbound (see .gateNote.willsend via JS; here it defaults to the calm form). */
+.gateNote {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  margin: 0 0 16px;
+  font-family: var(--rv-body);
+  font-size: 13.5px;
+  line-height: 1.45;
+  color: var(--wos-ink-2);
+}
+
+/* Reversible-edit note: calm, green check leads it. */
+.gateNote .noteIcon {
+  width: 16px;
+  height: 16px;
+  flex-shrink: 0;
+  fill: none;
+  stroke: var(--wos-ok);
+  stroke-width: 1.9;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+/* Outbound / irreversible note: the amber "this sends…" pill. */
+.gateNote.willsend {
+  color: var(--wos-warn-ink);
+  background: var(--wos-warn-bg);
+  padding: 8px 12px;
+  border-radius: 999px;
+  font-weight: 500;
+}
+.gateNote.willsend .noteIcon {
+  stroke: var(--wos-warn-ink);
+}
+
+/* ── Actions: ONE blue on the primary (first) action; secondary is quiet. */
+.actions {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 4px;
+}
+
+.act {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  height: 42px;
+  padding: 0 20px;
+  border-radius: 12px;
+  font-family: var(--rv-body);
+  font-size: 15px;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  cursor: pointer;
+  transition: background 0.16s;
+  border: 0;
+  background: var(--wos-sunk);
+  color: var(--wos-ink);
+}
+.act:hover:not(:disabled) { background: #e8e8ec; }
+.act:disabled { opacity: 0.5; cursor: default; }
+
+/* The primary action = the first button in the row: the one blue per card. */
+.actions .act:first-child {
+  background: var(--wos-blue);
+  color: #fff;
+}
+.actions .act:first-child:hover:not(:disabled) { background: #0060bf; }
+
+/* Armed = the deliberate second-tap confirm — stays blue (committing). */
+.actArmed,
+.actions .actArmed:first-child {
+  background: #0060bf;
+  color: #fff;
+}
+.actArmed:hover:not(:disabled) { background: #0060bf; }
+
+.disclosure {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px;
+  padding-top: 12px;
+}
+
+.discBtn {
+  background: none;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+  font-family: var(--rv-body);
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--wos-ink-2);
+}
+.discBtn:hover { color: var(--wos-ink); }
+
+/* ── Disclosure tiers (unfold inline; never a new page). */
+.tier {
+  margin-top: 16px;
+  padding-top: 16px;
+  border-top: 0.5px solid var(--wos-hair);
+  animation: rv-unfold 0.28s ease both;
+}
+
+@keyframes rv-unfold {
+  from { opacity: 0; transform: translateY(-4px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.tierKicker {
+  font-family: var(--rv-body);
+  font-size: 10.5px;
+  font-weight: 700;
+  letter-spacing: 0.09em;
+  color: var(--wos-ink-3);
+  margin-bottom: 10px;
+}
+
+.metaLabel {
+  font-family: var(--rv-body);
+  font-size: 10.5px;
+  font-weight: 700;
+  letter-spacing: 0.07em;
+  color: var(--wos-ink-2);
+  margin: 10px 0 6px;
+}
+
+.prompt {
+  margin: 0;
+  padding: 12px 14px;
+  border-radius: 10px;
+  background: var(--wos-sunk);
+  font-family: var(--rv-mono);
+  font-size: 12px;
+  line-height: 1.5;
+  color: var(--wos-ink);
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+.artifactList { display: flex; flex-wrap: wrap; gap: 7px; }
+.artifactChip {
+  padding: 5px 11px;
+  border-radius: 9px;
+  background: var(--wos-sunk);
+  border: 0;
+  color: var(--wos-ink);
+  font-family: var(--rv-body);
+  font-size: 12px;
+  cursor: pointer;
+}
+.artifactChip:hover { background: #e8e8ec; }
+
+.provRow {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 14px;
+  margin-top: 12px;
+  font-family: var(--rv-mono);
+  font-size: 11px;
+  color: var(--wos-ink-3);
+}
+
+/* ── Inline diff (Draft tier). */
+.diffState {
+  padding: 10px 12px;
+  font-family: var(--rv-body);
+  font-size: 13px;
+  color: var(--wos-ink-2);
+}
+.diffFiles { display: flex; flex-direction: column; gap: 12px; }
+.diffFile {
+  border: 0.5px solid var(--wos-hair);
+  border-radius: 10px;
+  overflow: hidden;
+}
+.diffFileHeader {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 7px 11px;
+  background: var(--wos-sunk);
+  border-bottom: 0.5px solid var(--wos-hair);
+}
+.diffPath {
+  font-family: var(--rv-mono);
+  font-size: 12px;
+  color: var(--wos-ink);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.diffFileStat { margin-left: auto; font-family: var(--rv-mono); font-size: 11px; }
+.add { color: #1e7145; }
+.del { color: #d7382b; }
+
+.hunks {
+  margin: 0;
+  padding: 6px 0;
+  max-height: 320px;
+  overflow: auto;
+  font-family: var(--rv-mono);
+  font-size: 11.5px;
+  line-height: 1.5;
+}
+.line { display: flex; padding: 0 10px; white-space: pre-wrap; word-break: break-word; }
+.marker { width: 14px; flex-shrink: 0; color: var(--wos-ink-3); }
+.add { background: rgba(30, 113, 69, 0.08); }
+.del { background: rgba(215, 56, 43, 0.08); }
+.hunk { color: #5563c8; background: rgba(85, 99, 200, 0.07); }
+.ctx { color: var(--wos-ink-2); }
+
+/* ── Mail card: the editable drafted-reply textarea (draft tier). */
+.draftArea {
+  width: 100%;
+  box-sizing: border-box;
+  min-height: 120px;
+  resize: vertical;
+  padding: 12px 14px;
+  border-radius: 10px;
+  background: var(--wos-card);
+  border: 0.5px solid var(--wos-hair);
+  color: var(--wos-ink);
+  font-family: var(--rv-body);
+  font-size: 14px;
+  line-height: 1.5;
+}
+.draftArea:focus { outline: none; border-color: var(--wos-blue); }
+.replyToggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 10px;
+  font-family: var(--rv-body);
+  font-size: 13px;
+  color: var(--wos-ink-2);
+  cursor: pointer;
+}
+
+/* ── Resolved (memory) state — kept and reverted rendered with equal weight. */
+.card.resolved { animation: none; }
+.resolvedRow {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 16px 24px;
+}
+.resolvedBadge {
+  flex-shrink: 0;
+  padding: 3px 10px;
+  border-radius: 999px;
+  background: var(--wos-sunk);
+  color: var(--wos-ink-2);
+  font-family: var(--rv-body);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+}
+.resolvedText {
+  font-family: var(--rv-body);
+  font-size: 14px;
+  color: var(--wos-ink);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.resolvedMeta {
+  margin-left: auto;
+  flex-shrink: 0;
+  font-family: var(--rv-body);
+  font-size: 12px;
+  color: var(--wos-ink-3);
+}

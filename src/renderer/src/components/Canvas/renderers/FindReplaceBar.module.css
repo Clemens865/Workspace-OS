@@ -1,0 +1,80 @@
+.bar {
+  position: absolute;
+  top: 10px;
+  right: 14px;
+  z-index: 28;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 8px 10px;
+  background: var(--color-surface, #fff);
+  border: 1px solid var(--color-border, #e2e2e2);
+  border-radius: 10px;
+  box-shadow: 0 12px 34px rgba(0, 0, 0, 0.24);
+  color: var(--color-text, #1a1a1a);
+  font-size: 13px;
+  min-width: 340px;
+}
+
+.row {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.leadIcon {
+  color: var(--color-text-muted);
+  flex: 0 0 auto;
+}
+
+.input {
+  flex: 1 1 auto;
+  min-width: 0;
+  padding: 5px 8px;
+  border: 1px solid var(--color-border);
+  border-radius: 7px;
+  background: var(--color-surface);
+  color: var(--color-text);
+  font-size: 13px;
+  outline: none;
+}
+.input:focus { border-color: var(--color-accent, #2f6bd8); }
+
+.opts {
+  display: flex;
+  gap: 2px;
+  flex: 0 0 auto;
+  margin: 0 2px;
+}
+
+.opt, .optOn, .btn, .close {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 26px;
+  height: 26px;
+  border-radius: 6px;
+  border: 1px solid transparent;
+  background: transparent;
+  color: var(--color-text);
+  cursor: pointer;
+  flex: 0 0 auto;
+}
+.opt:hover, .btn:hover, .close:hover { background: var(--color-surface-raised); }
+
+.optOn {
+  background: var(--color-accent-soft, rgba(47, 107, 216, 0.16));
+  border-color: var(--color-accent, #2f6bd8);
+  color: var(--color-accent, #2f6bd8);
+}
+
+.btn:disabled { opacity: 0.4; cursor: default; }
+.btn:disabled:hover { background: transparent; }
+
+.close { color: var(--color-text-muted); }
+
+.note {
+  padding: 0 2px 2px;
+  color: var(--color-text-muted);
+  font-size: 11.5px;
+}

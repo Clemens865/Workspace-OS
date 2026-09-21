@@ -1,0 +1,108 @@
+diff --git a/Repository.mk b/Repository.mk
+index 79eceddda..1c28a9eba 100644
+--- a/Repository.mk
++++ b/Repository.mk
+@@ -531,7 +531,7 @@ $(eval $(call gb_Helper_register_plugins_for_install,OOOLIBS,ooo, \
+     sdui \
+     $(if $(ENABLE_GEN),vclplug_gen) \
+     $(if $(filter $(OS),WNT),vclplug_win) \
+-    $(if $(filter $(OS),MACOSX),vclplug_osx) \
++    $(if $(filter $(OS)$(DISABLE_GUI),MACOSX),vclplug_osx) \
+ ))
+ 
+ $(eval $(call gb_Helper_register_libraries_for_install,OOOLIBS,postgresqlsdbc, \
+diff --git a/configure.ac b/configure.ac
+index 4234e1239..1644e4913 100644
+--- a/configure.ac
++++ b/configure.ac
+@@ -5943,11 +5943,10 @@ fi
+ DISABLE_GUI=""
+ if test "$enable_gui" = "no"; then
+     if test "$using_x11" != yes; then
+-        AC_MSG_ERROR([$host_os operating system is not suitable to build LibreOffice with --disable-gui.])
++        AC_MSG_WARN([Workspace OS: forcing headless (--disable-gui) on $host_os without X11 - experimental Cairo backend])
+     fi
+     USING_X11=
+     DISABLE_GUI=TRUE
+-    test_epoxy=no
+ else
+     AC_DEFINE(HAVE_FEATURE_UI)
+ fi
+@@ -12856,7 +12855,7 @@ ENABLE_OPENGL_TRANSITIONS=
+ ENABLE_OPENGL_CANVAS=
+ if test $_os = iOS -o $_os = Android -o "$ENABLE_FUZZERS" = "TRUE"; then
+    : # disable
+-elif test "$_os" = "Darwin"; then
++elif test "$_os" = "Darwin" -a "$DISABLE_GUI" != "TRUE"; then
+     # We use frameworks on macOS, no need for detail checks
+     ENABLE_OPENGL_TRANSITIONS=TRUE
+     AC_DEFINE(HAVE_FEATURE_OPENGL,1)
+diff --git a/desktop/source/lib/init.cxx b/desktop/source/lib/init.cxx
+index a1bebedb4..e769f69d7 100644
+--- a/desktop/source/lib/init.cxx
++++ b/desktop/source/lib/init.cxx
+@@ -4274,7 +4274,7 @@ static void doc_paintTile(LibreOfficeKitDocument* pThis,
+         return;
+     }
+ 
+-#if defined(UNX) && !defined(MACOSX) || defined(_WIN32)
++#if defined(UNX) || defined(_WIN32)
+ 
+     // Painting of zoomed or HiDPI spreadsheets is special, we actually draw everything at 100%,
+     // and only set cairo's (or CoreGraphic's, in the iOS case) scale factor accordingly, so that
+diff --git a/vcl/Library_vcl.mk b/vcl/Library_vcl.mk
+index 1452533b7..96d7d50cf 100644
+--- a/vcl/Library_vcl.mk
++++ b/vcl/Library_vcl.mk
+@@ -21,7 +21,7 @@ $(eval $(call gb_Library_Library,vcl))
+ 
+ $(eval $(call gb_Library_set_componentfile,vcl,vcl/vcl.common,services))
+ 
+-ifeq ($(OS),MACOSX)
++ifeq ($(OS)$(DISABLE_GUI),MACOSX)
+ $(eval $(call gb_Library_add_componentimpl,vcl,macosx))
+ else ifeq ($(OS),WNT)
+ $(eval $(call gb_Library_add_componentimpl,vcl,windows))
+@@ -798,7 +798,7 @@ $(eval $(call gb_Library_use_system_darwin_frameworks,vcl,\
+ endif
+ 
+ 
+-ifeq ($(OS),MACOSX)
++ifeq ($(OS)$(DISABLE_GUI),MACOSX)
+ $(eval $(call gb_Library_add_objcxxobjects,vcl,\
+     vcl/quartz/cgutils \
+     $(if $(filter SKIA,$(BUILD_TYPE)), \
+diff --git a/vcl/Module_vcl.mk b/vcl/Module_vcl.mk
+index ed9247d58..be3707e95 100644
+--- a/vcl/Module_vcl.mk
++++ b/vcl/Module_vcl.mk
+@@ -134,7 +134,7 @@ $(eval $(call gb_Module_add_targets,vcl,\
+ ))
+ endif
+ 
+-ifeq ($(OS),MACOSX)
++ifeq ($(OS)$(DISABLE_GUI),MACOSX)
+ $(eval $(call gb_Module_add_targets,vcl,\
+     Package_osxres \
+     Library_vclplug_osx \
+diff --git a/vcl/headless/svpinst.cxx b/vcl/headless/svpinst.cxx
+index 7560f6ada..91ac41ea0 100644
+--- a/vcl/headless/svpinst.cxx
++++ b/vcl/headless/svpinst.cxx
+@@ -18,6 +18,7 @@
+  */
+ 
+ #include <sal/config.h>
++#include <config_features.h>
+ 
+ #include <mutex>
+ 
+@@ -107,7 +108,7 @@ SvpSalInstance::SvpSalInstance( std::unique_ptr<SalYieldMutex> pMutex )
+ 
+ void SvpSalInstance::AfterAppInit()
+ {
+-#if defined(MACOSX)
++#if defined(MACOSX) && HAVE_FEATURE_UI
+     SalInstance::MacStartupWorkarounds();
+ #endif
+ }
