@@ -133,9 +133,13 @@ async function remember(sessionId: string, ask: string, out: string, runId: stri
 }
 
 /** Opens the case a session lives in, carrying over what it already did. */
-async function openCase(s: Session): Promise<string> {
+async function openCase(s: Session, ask?: string): Promise<string> {
   const cases = window.workspace.cases
-  const made = await cases.create({ title: s.title, type: 'task', description: `Started with ${s.agentName ? signOf(s.agentName) : 'the assistant'} on ${new Date(s.createdAt).toLocaleDateString()}.` })
+  // What it is about, in the person's own words: the first ask (the title is only its opening).
+  const first = (ask ?? s.messages.find((m) => m.role === 'user')?.text ?? '').replace(/\s+/g, ' ').trim()
+  const about = first.length > 400 ? first.slice(0, 399) + '…' : first
+  const started = `Started with ${s.agentName ? signOf(s.agentName) : 'the assistant'} on ${new Date(s.createdAt).toLocaleDateString()}.`
+  const made = await cases.create({ title: s.title, type: 'task', description: about ? `${about}\n\n${started}` : started })
   // Carry the turns so far (asks and outcome lines only) and the files.
   const msgs = s.messages
   for (let i = 0; i < msgs.length; i++) {
@@ -199,7 +203,7 @@ export const sessionStore = {
     if (s.turns === 0) patch(id, { title: s.title === 'New session' ? titleFromPrompt(ask) : s.title })
     let caseId = sessions.find((x) => x.id === id)!.caseId
     if (!caseId && s.turns === 0 && caseOnFirstAsk(mode)) {
-      caseId = await openCase(sessions.find((x) => x.id === id)!).catch(() => null)
+      caseId = await openCase(sessions.find((x) => x.id === id)!, ask).catch(() => null)
       if (caseId) patch(id, { caseId })
     }
     const runId = `sess-${id}-${Date.now()}`

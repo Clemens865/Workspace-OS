@@ -147,6 +147,14 @@ try {
     allWork: !!document.querySelector('[data-testid="all-work"]'),
   }))
   check('the case stands in the work row', row.work.includes(`case:${kept.id}`) && row.allWork, JSON.stringify(row))
+  // The card says what the case is: its status (never "Idle"), what happened last, who worked on it.
+  const workFace = (await win.textContent(`[data-agent="case:${kept.id}"] [data-testid="work-face"]`).catch(() => '')) ?? ''
+  check('the work card says the case, not "Idle"', !!workFace && !/\bIdle\b/.test(workFace) && workFace.includes('answer-2.md'), workFace.slice(0, 200))
+  // A case written elsewhere (here: straight through IPC) shows at once, not on the next poll.
+  const quick = await win.evaluate(() => window.workspace.cases.create({ title: 'Written elsewhere', type: 'task' }))
+  await win.waitForSelector(`[data-agent="case:${quick.id}"]`, { timeout: 4000 }).catch(() => {})
+  check('a case written elsewhere appears in the row right away', !!(await win.$(`[data-agent="case:${quick.id}"]`)))
+  await win.evaluate((id) => window.workspace.cases.delete(id), quick.id)
   await win.evaluate((id) => document.querySelector(`[data-agent="case:${id}"] [data-testid="agent-face"]`)?.click(), kept.id)
   await win.waitForSelector('[data-testid="work-focus"]', { timeout: 6000 }).catch(() => {})
   const wf = (await win.textContent('[data-testid="work-focus"]').catch(() => '')) ?? ''

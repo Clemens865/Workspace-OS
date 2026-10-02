@@ -5,6 +5,8 @@ import { ago } from './agentPresence'
 import { useGlass } from './backdrop/useBackdrop'
 import { clock, useResultPreview, useWorkingPreview } from './usePreview'
 import { lastLines } from './previewStore'
+import { sessionStore } from '../../lib/sessions/sessionStore'
+import { useSessions } from './session/SessionPane'
 import styles from './LandscapeWorld.module.css'
 
 interface Props {
@@ -19,8 +21,91 @@ interface Props {
 }
 
 /** The small face of a screen: what the agent is doing, at a glance, honestly. */
+/**
+ * A work card's face: what the case is, at a glance (workCardModel). Status in
+ * the case's own words with how far along it is, the title, what it is about,
+ * what happened last or what is next, its files and who worked on it.
+ */
+function WorkFace({ a }: { a: AgentPresence }): JSX.Element {
+  const k = a.card!
+  return (
+    <div className={styles.wFace} data-testid="work-face" data-tone={k.tone}>
+      <div className={styles.wHead}>
+        <span className={styles.wStatus} data-tone={k.tone}>
+          <span className={styles.dot} data-tone={k.tone} /> {k.status}
+        </span>
+        {k.stage && (
+          <span className={styles.wStage} title={`Stage ${k.stage.index} of ${k.stage.count}`} aria-label={`Stage ${k.stage.index} of ${k.stage.count}`}>
+            {Array.from({ length: k.stage.count }, (_, i) => (
+              <i key={i} data-on={i < k.stage!.index ? 'true' : 'false'} />
+            ))}
+          </span>
+        )}
+        <span className={styles.wWhen}>{a.since ? ago(a.since) : ''}</span>
+      </div>
+      <div className={styles.wTitle}>{a.name}</div>
+      {(k.host || k.about) && (
+        <div className={styles.wAbout}>
+          {k.host && <b>{k.host}</b>}
+          {k.host && k.about ? ' · ' : ''}
+          {k.about}
+        </div>
+      )}
+      <div className={styles.wLine} data-kind={k.next ? 'next' : 'last'}>
+        {k.next ? (
+          <>
+            <span className={styles.wKey}>Next</span> {k.next}
+          </>
+        ) : k.last ? (
+          <>
+            <span className={styles.wKey}>{k.last.who}</span> {k.last.text}
+          </>
+        ) : (
+          <span className={styles.wKey}>{k.tone === 'grey' || k.tone === 'done' ? 'Closed' : 'Nothing noted yet'}</span>
+        )}
+      </div>
+      <div className={styles.wFoot}>
+        {k.fileCount > 0 && (
+          <span className={styles.wFiles}>
+            <FileText size={12} /> {k.fileCount} file{k.fileCount === 1 ? '' : 's'}
+          </span>
+        )}
+        <span className={styles.flexGap} />
+        {k.agents.slice(0, 3).map((n) => (
+          <span key={n} className={styles.wAgent} title={n}>
+            {n.slice(0, 1).toUpperCase()}
+          </span>
+        ))}
+      </div>
+    </div>
+  )
+}
+
+/** An agent with nothing running: who it is, the last thing it did, how much work it carries. */
+function ReadyFace({ a }: { a: AgentPresence }): JSX.Element {
+  useSessions()
+  const mine = sessionStore.list().filter((s) => s.agentName === a.id && s.turns > 0)
+  const last = mine.sort((x, y) => y.lastAt - x.lastAt)[0]
+  const cases = new Set(mine.map((s) => s.caseId).filter(Boolean)).size
+  return (
+    <div className={styles.mCenter}>
+      <div className={styles.mono}>{a.name.slice(0, 1).toUpperCase()}</div>
+      <div className={styles.mState}>{STATUS_LABEL[a.status]}</div>
+      <div className={styles.mSub}>{a.role || 'Ready when you are'}</div>
+      {last ? (
+        <div className={styles.mLast} data-testid="agent-last">
+          Last: {last.title} · {ago(last.lastAt)}
+          {cases > 0 ? ` · ${cases} case${cases === 1 ? '' : 's'}` : ''}
+        </div>
+      ) : null}
+    </div>
+  )
+}
+
 function Mini({ a }: { a: AgentPresence }): JSX.Element {
   const when = a.since ? ago(a.since) : null
+  // A work card shows its case, not an agent's state, unless something is happening now.
+  if (a.kind === 'work' && a.card && a.status !== 'working' && a.status !== 'question') return <WorkFace a={a} />
   switch (a.status) {
     case 'working':
       return <WorkingMini a={a} when={when} />
@@ -67,13 +152,7 @@ function Mini({ a }: { a: AgentPresence }): JSX.Element {
         </>
       )
     default:
-      return (
-        <div className={styles.mCenter}>
-          <div className={styles.mono}>{a.name.slice(0, 1).toUpperCase()}</div>
-          <div className={styles.mState}>{STATUS_LABEL[a.status]}</div>
-          <div className={styles.mSub}>{a.role || 'Ready when you are'}</div>
-        </div>
-      )
+      return <ReadyFace a={a} />
   }
 }
 
@@ -187,17 +266,19 @@ export function AgentScreen({ agent: a, focused, side, depth, onOpen, children }
         </div>
         <div className={styles.full}>{children}</div>
       </div>
-      <button ref={grip} type="button" className={`${styles.grip} ${a.kind === 'work' ? styles.gripWork : ''}`} tabIndex={-1} onClick={onOpen} title={a.name}>
-        <span className={styles.dot} />
-        {a.kind === 'work' ? (
-          <span className={styles.gripTitle}>{a.name}</span>
-        ) : (
-          <span>
-            {a.name}
-            <span className={styles.pv}> / {PROVIDER_LABEL[a.provider]}</span>
-          </span>
-        )}
-      </button>
+      {!(a.kind === 'work' && !a.card?.agents.length) && (
+        <button ref={grip} type="button" className={`${styles.grip} ${a.kind === 'work' ? styles.gripWork : ''}`} tabIndex={-1} onClick={onOpen} title={a.name}>
+          <span className={styles.dot} />
+          {a.kind === 'work' ? (
+            <span className={styles.gripTitle}>{a.card?.agents.join(', ') ?? a.name}</span>
+          ) : (
+            <span>
+              {a.name}
+              <span className={styles.pv}> / {PROVIDER_LABEL[a.provider]}</span>
+            </span>
+          )}
+        </button>
+      )}
       {a.caseTitle && a.kind !== 'work' && (
         <div ref={tab} className={styles.casetab}>
           {a.caseTitle}

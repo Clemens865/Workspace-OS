@@ -7,12 +7,19 @@ import type { ReviewRun } from '../Review/reviewModel'
 import type { WorkItem } from '../../lib/sessions/sessionModel'
 import type { AgentPresence, PresenceStatus } from './presenceTypes'
 import { splitName } from './agentPresence'
+import { caseCard, sessionCard, type CaseLike } from './workCardModel'
 
-export interface CaseBrief {
+export interface CaseBrief extends CaseLike {
   id: string
-  status: string
-  lastNote: string
-  artifacts: string[]
+  type: string
+}
+
+/** What the cards need to know about the case vocabularies. */
+export interface CardContext {
+  flows: Map<string, string[]>
+  terminal: ReadonlySet<string>
+  /** Whether the app offers to keep this session as a case. */
+  suggests: (sessionId: string) => boolean
 }
 
 export function workPresence(
@@ -20,6 +27,7 @@ export function workPresence(
   runs: ReviewRun[],
   running: (sessionId: string) => boolean,
   cases: Map<string, CaseBrief>,
+  ctx: CardContext = { flows: new Map(), terminal: new Set(), suggests: () => false },
 ): AgentPresence[] {
   const runById = new Map(runs.map((r) => [r.runId, r]))
   return items.map((it) => {
@@ -39,7 +47,7 @@ export function workPresence(
       name: it.title,
       provider: 'claude',
       role: agents.length ? `with ${agents.join(', ')}` : it.kind === 'case' ? 'Case' : 'Session',
-      about: c?.lastNote ?? '',
+      about: c?.notes[c.notes.length - 1]?.text ?? '',
       status,
       task: lastAsk,
       activity: null,
@@ -50,6 +58,11 @@ export function workPresence(
       question: null,
       outputs: latest?.files.slice().reverse() ?? [],
       kind: 'work',
+      card: c
+        ? caseCard(c, ctx.flows.get(c.type) ?? [], ctx.terminal, sessions.map((x) => x.agentName).filter((n): n is string => !!n))
+        : latest
+          ? sessionCard(latest, ctx.suggests(latest.id))
+          : undefined,
     }
   })
 }
