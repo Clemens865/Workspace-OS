@@ -28,6 +28,11 @@ export interface Settings {
    */
   landscapeShell: boolean
   /**
+   * Landscape graphics (docs/landscape/PLAN.md §3a). 'auto' = Full on mains
+   * power, Light on battery or with reduced motion; 'off' = flat CSS, no WebGL.
+   */
+  landscapeQuality: 'auto' | 'full' | 'light' | 'off'
+  /**
    * Integrated Terminal Dock (new shell only). Where the dock sits when open —
    * a bottom strip under the stage, or a right-hand column. Default 'bottom'.
    */
@@ -70,6 +75,7 @@ const DEFAULTS: Settings = {
   autoApproveReversible: false,
   newShell: true,
   landscapeShell: false,
+  landscapeQuality: 'auto',
   terminalPlacement: 'bottom',
   terminalOpen: false,
   terminalMinimized: false,

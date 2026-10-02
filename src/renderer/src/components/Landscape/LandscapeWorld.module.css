@@ -405,3 +405,32 @@
   font-size: 20px;
   color: var(--wl-muted);
 }
+
+/* ── With the Liquid Glass backdrop (the approved look): the glass draws the
+   silhouette as light; the DOM keeps only a veil for legibility. No shadows. ── */
+.glassOn .sheet:not(.focused) .face {
+  background: linear-gradient(170deg, rgba(255, 255, 255, 0.1), rgba(255, 255, 255, 0.02) 60%, rgba(255, 255, 255, 0.06));
+  border-color: transparent;
+  box-shadow: none;
+  -webkit-backdrop-filter: none;
+  backdrop-filter: none;
+}
+
+.glassOn .sheet[data-status='question']:not(.focused) .face {
+  box-shadow: 0 0 34px -8px rgba(227, 163, 59, 0.5);
+}
+
+.glassOn .grip {
+  background: rgba(255, 255, 255, 0.18);
+  box-shadow: none;
+}
+
+.glassOn .casetab {
+  background: rgba(255, 255, 255, 0.1);
+}
+
+/* The focused screen is solid paper (its glass steps aside), so is its name. */
+.glassOn .focused .grip {
+  background: linear-gradient(#fff, #f1f4f6);
+  box-shadow: 0 8px 18px -8px rgba(30, 55, 70, 0.4), 0 1px 0 #fff inset;
+}

@@ -1,7 +1,8 @@
-import type { ReactNode } from 'react'
+import { useRef, type ReactNode } from 'react'
 import { FileText, AlertTriangle } from 'lucide-react'
 import { PROVIDER_LABEL, STATUS_LABEL, type AgentPresence } from './presenceTypes'
 import { ago } from './agentPresence'
+import { useGlass } from './backdrop/useBackdrop'
 import styles from './LandscapeWorld.module.css'
 
 interface Props {
@@ -80,17 +81,45 @@ function Mini({ a }: { a: AgentPresence }): JSX.Element {
   }
 }
 
-/** One agent's screen in the landscape: face, name grip, and its case tab. */
+const PROVIDER_HEX = { claude: '#D97757', codex: '#2D9D8F' } as const
+
+/** How present a screen's glass is: its slot's opacity; none while focused (it is solid paper then). */
+function presence(el: HTMLElement): number {
+  const sheet = el.closest<HTMLElement>('[data-depth]')
+  if (!sheet || sheet.dataset.focused === 'true') return 0
+  return Number(el.closest<HTMLElement>('[data-agent]')?.style.opacity || 1)
+}
+
+/** One agent's screen in the landscape: face, name grip, and its case tab, each on Liquid Glass. */
 export function AgentScreen({ agent: a, focused, side, depth, onOpen, children }: Props): JSX.Element {
   const label = `${a.name}, ${PROVIDER_LABEL[a.provider]}, ${STATUS_LABEL[a.status]}`
+  const face = useRef<HTMLDivElement>(null)
+  const grip = useRef<HTMLButtonElement>(null)
+  const tab = useRef<HTMLDivElement>(null)
+  useGlass(face, {
+    radius: 22,
+    bezel: 22,
+    thickness: 56,
+    color: PROVIDER_HEX[a.provider],
+    alpha: presence,
+    frost: (el) => {
+      const d = el.closest<HTMLElement>('[data-depth]')?.dataset.depth
+      return d === '2' ? 0.34 : d === '1' ? 0.22 : 0.12
+    },
+  })
+  useGlass(grip, { radius: 12, bezel: 7, thickness: 14, frost: 0.35, alpha: presence })
+  useGlass(tab, a.caseTitle ? { radius: 10, bezel: 6, thickness: 12, frost: 0.22, alpha: (el) => (el.closest('[data-side="true"]') ? 0 : presence(el)) } : null)
   return (
     <div
       className={`${styles.sheet} ${focused ? styles.focused : ''} ${side ? styles.side : ''}`}
       data-provider={a.provider}
       data-status={a.status}
       data-depth={depth}
+      data-focused={focused}
+      data-side={side}
     >
       <div
+        ref={face}
         className={styles.face}
         role={focused ? undefined : 'button'}
         tabIndex={focused ? -1 : 0}
@@ -106,14 +135,18 @@ export function AgentScreen({ agent: a, focused, side, depth, onOpen, children }
         </div>
         <div className={styles.full}>{children}</div>
       </div>
-      <button type="button" className={styles.grip} tabIndex={-1} onClick={onOpen}>
+      <button ref={grip} type="button" className={styles.grip} tabIndex={-1} onClick={onOpen}>
         <span className={styles.dot} />
         <span>
           {a.name}
           <span className={styles.pv}> / {PROVIDER_LABEL[a.provider]}</span>
         </span>
       </button>
-      {a.caseTitle && <div className={styles.casetab}>{a.caseTitle}</div>}
+      {a.caseTitle && (
+        <div ref={tab} className={styles.casetab}>
+          {a.caseTitle}
+        </div>
+      )}
     </div>
   )
 }

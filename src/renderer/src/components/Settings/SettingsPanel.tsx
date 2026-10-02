@@ -155,6 +155,29 @@ export function SettingsPanel({ onClose }: SettingsPanelProps): JSX.Element {
             </div>
           </section>
 
+          {settings.landscapeShell && (
+            <section className={styles.section}>
+              <h3 className={styles.sectionTitle}>Landscape graphics</h3>
+              <p className={styles.hint}>
+                The mist landscape and Liquid Glass draw only when something changes and stop while you work on
+                the stage. Auto uses Full on power and Light on battery or with reduced motion; Light freezes the
+                mist; Off is flat, with no GPU use.
+              </p>
+              <div className={styles.segmented}>
+                {(['auto', 'full', 'light', 'off'] as const).map((q) => (
+                  <button
+                    key={q}
+                    className={settings.landscapeQuality === q ? styles.segOn : styles.segOff}
+                    onClick={() => settings.set('landscapeQuality', q)}
+                    data-testid={`landscape-quality-${q}`}
+                  >
+                    {q[0].toUpperCase() + q.slice(1)}
+                  </button>
+                ))}
+              </div>
+            </section>
+          )}
+
           {settings.newShell && (
             <section className={styles.section}>
               <h3 className={styles.sectionTitle}>Terminal dock</h3>

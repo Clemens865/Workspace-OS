@@ -15,6 +15,7 @@ import { AgentFocus } from './AgentFocus'
 import { useAgentPresence } from './useAgentPresence'
 import { arrangeRows, teamSummary } from './agentPresence'
 import { createAgent } from './agentActions'
+import { BackdropContext, useBackdrop } from './backdrop/useBackdrop'
 import styles from './LandscapeShell.module.css'
 
 /** How long the landscape takes to step aside or return (matches the CSS). */
@@ -48,6 +49,24 @@ export function LandscapeShell(): JSX.Element {
     // The "Add agent" ghost closes the last row.
     return r.back.length ? { front: r.front, back: [...r.back, ADD_ID] } : { front: [...r.front, ADD_ID], back: [] }
   }, [agents])
+
+  // The WebGL backdrop runs only while the landscape is on screen (PLAN.md §3a).
+  const canvas = useRef<HTMLCanvasElement>(null)
+  const { backdrop, quality } = useBackdrop(canvas, {
+    setting: settings.landscapeQuality ?? 'auto',
+    visible: !(view === 'stage' && stageShown),
+    reduced,
+  })
+  const exitBtn = useRef<HTMLButtonElement>(null)
+  const backBtn = useRef<HTMLButtonElement>(null)
+  // The header's two buttons are small glass pills (the shell renders the
+  // backdrop's provider, so it attaches them directly).
+  useEffect(() => {
+    const els = [exitBtn.current, backBtn.current].filter((e): e is HTMLButtonElement => !!e)
+    if (!backdrop) return
+    els.forEach((el) => backdrop.addGlass(el, { radius: 21, bezel: 12, thickness: 24, frost: 0.16 }))
+    return () => els.forEach((el) => backdrop.removeGlass(el))
+  }, [backdrop, view])
 
   const showStage = useCallback(() => setView('stage'), [])
   const showLandscape = useCallback((v?: LandscapeOnly) => setView(v ?? lastLandscape.current), [])
@@ -92,10 +111,32 @@ export function LandscapeShell(): JSX.Element {
     termWasOpen.current = settings.terminalOpen
   }, [settings.terminalOpen, showStage])
 
-  const openAgent = useCallback((id: string) => {
-    setAgentId(id)
-    setView('agent')
-  }, [])
+  const openAgent = useCallback(
+    (id: string) => {
+      // A ripple spreads on the lake from under the chosen screen.
+      const face = document.querySelector<HTMLElement>(`[data-agent="${CSS.escape(id)}"] [data-testid="agent-face"]`)
+      if (face && backdrop) {
+        const r = face.getBoundingClientRect()
+        backdrop.ripple(r.left + r.width / 2, Math.max(r.bottom, window.innerHeight * 0.52))
+      }
+      setAgentId(id)
+      setView('agent')
+    },
+    [backdrop],
+  )
+
+  // The mist recedes for a focused agent and takes its provider's tint; it breathes on every view change.
+  const focusedAgent = view === 'agent' ? agents.find((a) => a.id === agentId) : undefined
+  const tintHex = focusedAgent ? (focusedAgent.provider === 'codex' ? '#2D9D8F' : '#D97757') : null
+  const lastView = useRef(view)
+  useEffect(() => {
+    if (!backdrop) return
+    backdrop.setFocus(view === 'agent' ? 1 : view === 'overview' ? 0 : 0.7)
+    backdrop.setLight(view === 'agent' ? 0.5 : 0.56)
+    backdrop.setTint(tintHex)
+    if (lastView.current !== view) backdrop.breathe()
+    lastView.current = view
+  }, [backdrop, view, tintHex])
 
   // Esc steps back out: agent → overview, menu → overview.
   useEffect(() => {
@@ -127,8 +168,10 @@ export function LandscapeShell(): JSX.Element {
     <div className={`wl ${styles.root}`} data-shell="landscape" data-view={view}>
       <WorkspaceShell stage={{ hidden: !stageShown, onLandscape: () => showLandscape(), onSurface: showStage }} />
 
-      <div className={`${styles.landscape} ${onStage ? styles.away : ''}`} aria-hidden={onStage} data-testid="landscape-layer">
+      <div className={`${styles.landscape} ${onStage ? styles.away : ''} ${backdrop ? styles.glassOn : ''}`} aria-hidden={onStage} data-testid="landscape-layer" data-quality={quality}>
         <div className={styles.horizon} aria-hidden />
+        <canvas ref={canvas} className={`${styles.canvas} ${backdrop ? styles.canvasOn : ''}`} aria-hidden data-testid="landscape-canvas" />
+        <BackdropContext.Provider value={backdrop}>
 
         <LandscapeWorld
           agents={agents}
@@ -147,7 +190,7 @@ export function LandscapeShell(): JSX.Element {
           <div>
             <div className={styles.eyebrow}>Workspace OS</div>
             {view === 'agent' ? (
-              <button className={styles.backLink} onClick={() => setView('overview')} data-testid="agent-back">
+              <button ref={backBtn} className={styles.backLink} onClick={() => setView('overview')} data-testid="agent-back">
                 <ArrowLeft size={16} /> Team overview
               </button>
             ) : (
@@ -159,7 +202,7 @@ export function LandscapeShell(): JSX.Element {
               </>
             )}
           </div>
-          <button className={styles.back} onClick={() => settings.set('landscapeShell', false)} data-testid="landscape-exit">
+          <button ref={exitBtn} className={styles.back} onClick={() => settings.set('landscapeShell', false)} data-testid="landscape-exit">
             Back to the current shell
           </button>
         </header>
@@ -177,6 +220,7 @@ export function LandscapeShell(): JSX.Element {
         )}
 
         <LandscapeDock active={activeDock} onSelect={onDock} />
+        </BackdropContext.Provider>
       </div>
     </div>
   )

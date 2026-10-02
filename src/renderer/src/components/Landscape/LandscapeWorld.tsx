@@ -1,8 +1,10 @@
-import { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react'
+import { useContext, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react'
 import { Carousel } from './carousel'
 import { STAGE_H, STAGE_W, overviewLayout, focusLayout, awayLayout, stageScale, transformOf, type Layout } from './layoutModel'
 import type { AgentPresence } from './presenceTypes'
 import { AgentScreen } from './AgentScreen'
+import { BackdropContext } from './backdrop/useBackdrop'
+import type { SheetFootprint } from './backdrop/Backdrop'
 import styles from './LandscapeWorld.module.css'
 
 export type WorldMode = 'overview' | 'focus' | 'away'
@@ -32,6 +34,26 @@ interface Props {
  * (PLAN.md §3): focusing one shows its summary, and opening the real work
  * hands off to the flat stage.
  */
+const PROVIDER_RGB = { codex: [0.18, 0.62, 0.56], claude: [0.85, 0.47, 0.34] } as const
+
+/** Footprints of the screens standing over the lake, nearest first (for reflections and contact shadows). */
+function footprints(host: HTMLElement | null, byId: Map<string, AgentPresence>): SheetFootprint[] {
+  if (!host) return []
+  const horizon = window.innerHeight * (1 - 0.505)
+  const out: (SheetFootprint & { z: number })[] = []
+  host.querySelectorAll<HTMLElement>('[data-agent]').forEach((slot) => {
+    const op = Number(slot.style.opacity || 1)
+    const a = byId.get(slot.dataset.agent ?? '')
+    const face = slot.querySelector<HTMLElement>('[data-testid="agent-face"]')
+    if (op < 0.25 || !a || !face) return
+    const r = face.getBoundingClientRect()
+    if (r.bottom < horizon || r.width < 20) return
+    const glass = slot.querySelector<HTMLElement>('[data-depth="1"]')
+    out.push({ left: r.left, right: r.right, bottom: r.bottom, alpha: op * (glass ? 0.55 : 1), color: [...PROVIDER_RGB[a.provider]] as [number, number, number], z: r.width })
+  })
+  return out.sort((a, b) => b.z - a.z).slice(0, 8)
+}
+
 export function LandscapeWorld({ agents, front, back, mode, focusId, onOpen, onStep, renderFocus, onAdd, reduced }: Props): JSX.Element {
   const host = useRef<HTMLDivElement>(null)
   const [scale, setScale] = useState(1)
@@ -159,8 +181,31 @@ export function LandscapeWorld({ agents, front, back, mode, focusId, onOpen, onS
 
   const byId = useMemo(() => new Map(agents.map((a) => [a.id, a])), [agents])
 
+  // The lake reflects the standing screens; their glass follows them while they move.
+  const backdrop = useContext(BackdropContext)
+  const byIdRef = useRef(byId)
+  byIdRef.current = byId
+  // Wake the backdrop only when placements really change: the presence model
+  // refreshes every 30 s with new objects, which must not cost a single frame.
+  const layoutKey = useMemo(
+    () => all.map((id) => { const p = layout[id]; return p ? `${id}:${Math.round(p.x)},${Math.round(p.y)},${Math.round(p.z)},${Math.round(p.w)},${p.op.toFixed(2)}` : id }).join('|'),
+    [all, layout],
+  )
+  useEffect(() => {
+    if (!backdrop) return
+    const source = (): SheetFootprint[] => footprints(host.current, byIdRef.current)
+    backdrop.trackSheets(source, scrolling ? 250 : 1500)
+  }, [backdrop, layoutKey, scrolling])
+
   return (
-    <div ref={host} className={styles.host} onPointerDown={onPointerDown} data-testid="landscape-world" data-mode={mode}>
+    <div
+      ref={host}
+      className={`${styles.host} ${backdrop ? styles.glassOn : ''}`}
+      onPointerDown={onPointerDown}
+      onPointerOver={() => backdrop?.followGlass(700)}
+      data-testid="landscape-world"
+      data-mode={mode}
+    >
       <div
         className={styles.stage}
         style={{ width: STAGE_W, height: STAGE_H, transform: `translate(-50%, -50%) scale(${scale})` }}

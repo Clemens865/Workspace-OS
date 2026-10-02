@@ -10,13 +10,50 @@ Legend: ✅ done · 🟡 in progress · ⬜ not started
 | 0 Setup | ✅ 2 Oct 2026 |
 | 1 Shell skeleton | ✅ 2 Oct 2026 |
 | 2 Agent presence + Team overview | ✅ 2 Oct 2026 |
-| 3 Visual layer (WebGL, Liquid Glass) | ⬜ |
+| 3 Visual layer (WebGL, Liquid Glass) | ✅ 2 Oct 2026 |
 | 4 Previews | ⬜ |
 | 5 Inbox + Cases + files, pause/resume | ⬜ |
 | 6 Optional new domain | ⬜ |
 | 7 Landscape only (backup tag, remove old shells) | ⬜ |
 
 ---
+
+## 2 Oct 2026: phase 3, the visual layer ✅
+
+**Built** (`Landscape/backdrop/`)
+- `shaders.ts`: the approved GLSL, verbatim (mist landscape with lake, ripples
+  and screen reflections; Liquid Glass lens; motes). Bloom removed.
+- `glassPanes.ts`: glass behind DOM elements, bent to their four projected
+  corners (CSS 3D matched exactly).
+- `scheduler.ts` (+ 11 tests): draw only when something changes. Idle → no
+  frame and the loop stops; mist drift at 10 fps in Full only while someone
+  is around (20 s); a hover lift redraws only the glass; a pointer move only
+  re-composites (cursor light); nothing at all while the stage covers it or
+  the window is hidden.
+- `Backdrop.ts`, `gpuTimer.ts` (EXT_disjoint_timer_query_webgl2),
+  `useBackdrop.ts` (quality, input, context loss → Off, `useGlass`).
+- Glass on screens, name pills, case tabs, dock, header buttons and Menu
+  items; ripples on choosing a screen; the mist recedes and takes the provider
+  tint for a focused agent; breathes on view changes.
+- Setting `landscapeQuality`: Auto (Full on power, Light on battery or with
+  reduced motion) · Full · Light · Off. Settings → Design shows it while the
+  landscape is on.
+
+**Measured on this Mac** (`e2e/landscape/perf.mjs`, real GPU, timer queries)
+- Scrolling the team: **2.7–2.9 ms GPU per frame** (max 4.3–4.8 ms); budget 4 ms.
+- Idle: **0 frames** in 3 s. Stage open (with input): **0 backdrop frames**.
+- Off: no WebGL. Reduced motion: Light.
+
+**Fixed while measuring**
+- First run: 5.3 ms while scrolling. The landscape texture was 1.24 device px
+  per CSS px; at 0.75 (Full) / 0.6 (Light) it costs a third, invisible in the
+  soft mist.
+- First run: 88 frames "idle". The presence model refreshes every 30 s with
+  new objects and the world took that as movement; it now wakes the backdrop
+  only when placements change.
+
+**Verified**: `npm test` 244 files, 2961 passed; typecheck clean;
+`npm run e2e:landscape` shells 6/6, stage 31/31, presence 18/18, perf 7/7.
 
 ## 2 Oct 2026: phase 2, agent presence and the team overview ✅
 

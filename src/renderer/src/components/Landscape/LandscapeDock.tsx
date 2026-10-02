@@ -1,6 +1,7 @@
 import { useLayoutEffect, useRef, useState } from 'react'
 import { BookOpen, FolderOpen, Home, Inbox, MoreHorizontal } from 'lucide-react'
 import { DOCK, type DockId } from './landscapeModel'
+import { useGlass } from './backdrop/useBackdrop'
 import styles from './LandscapeShell.module.css'
 
 const ICONS: Record<DockId, typeof Home> = {
@@ -20,6 +21,7 @@ interface Props {
 export function LandscapeDock({ active, onSelect }: Props): JSX.Element {
   const nav = useRef<HTMLElement>(null)
   const [glow, setGlow] = useState<{ left: number; width: number } | null>(null)
+  useGlass(nav, { radius: 32, bezel: 26, thickness: 46, frost: 0.1 })
 
   useLayoutEffect(() => {
     const btn = active ? nav.current?.querySelector<HTMLElement>(`[data-dock="${active}"]`) : null

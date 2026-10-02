@@ -246,3 +246,46 @@
 .on {
   color: var(--wl-ink);
 }
+
+/* ── The WebGL backdrop (mist landscape + Liquid Glass) ── */
+.canvas {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  display: block;
+  opacity: 0;
+  transition: opacity 1.2s var(--wl-ease-soft);
+  pointer-events: none;
+}
+
+.canvasOn {
+  opacity: 1;
+}
+
+/* With glass, the DOM draws no frames or blurs of its own: the glass does. */
+.glassOn .dock {
+  background: transparent;
+  border-color: transparent;
+  -webkit-backdrop-filter: none;
+  backdrop-filter: none;
+}
+
+.glassOn .dockGlow {
+  background: rgba(255, 255, 255, 0.5);
+}
+
+.glassOn .back,
+.glassOn .backLink {
+  background: transparent;
+  border-color: transparent;
+}
+
+.glassOn .menuItem {
+  background: rgba(255, 255, 255, 0.12);
+  border-color: transparent;
+}
+
+.glassOn .menuItem:hover {
+  background: rgba(255, 255, 255, 0.3);
+}

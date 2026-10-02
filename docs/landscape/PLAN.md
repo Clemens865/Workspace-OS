@@ -131,7 +131,8 @@ measured on hardware):
 | Glass panes (3 texture reads each) | ~1.5 M | ~40 panes, a third of the screen |
 | Bloom (2 blur passes at 1/3 size) + composite | ~5.3 M | now nearly unused |
 
-Roughly 3–6 ms of GPU per frame. At a constant 60 fps that keeps the GPU busy
+Roughly 3–6 ms of GPU per frame (measured in phase 3 at 5.3 ms while
+scrolling, before the fixes below; 2.7–2.9 ms after). At a constant 60 fps that keeps the GPU busy
 20–35% of the time: noticeable battery drain on a laptop, similar to or above
 video playback. The CPU side (reading ~4 corner positions per pane while things
 move) is small.
@@ -252,9 +253,9 @@ stores read with `useSyncExternalStore`, files under ~500 lines):
 | # | Phase | Size | Exit criterion |
 |---|---|---|---|
 | 0 ✅ | Setup: branch from `master` in the existing checkout, `landscapeShell` flag, `three` + Newsreader/Inter via npm, `.wl` tokens | S | App boots in all three shells; the setting switches; typecheck ratchet green. |
-| 1 | **Shell skeleton**: landscape layer (static CSS backdrop), glass dock, Menu, flat stage hosting all existing surfaces | M | Every rail surface reachable in ≤2 actions; ⌘K/⌘P/⌘J/⌘B work; `WOS_E2E_SHELL=landscape` smoke + shell-layout variant pass. |
-| 2 | **Agent presence + Team overview**: P0 data items, screens with honest status, carousel, focus → stage hand-off (LiveAgentZoom / terminal session) | M–L | Presence model unit-tested against real store fixtures; no hardcoded statuses; a blocked agent can be found, answered and left without getting lost (the design's own usability check). |
-| 3 | **Visual layer**: bundled WebGL backdrop, Liquid Glass lens shader, render-on-demand and pause rules, quality tiers | M | Section 3a budget met on a real Mac; reduced motion respected. |
+| 1 ✅ | **Shell skeleton**: landscape layer (static CSS backdrop), glass dock, Menu, flat stage hosting all existing surfaces | M | Every rail surface reachable in ≤2 actions; ⌘K/⌘P/⌘J/⌘B work; `WOS_E2E_SHELL=landscape` smoke + shell-layout variant pass. |
+| 2 ✅ | **Agent presence + Team overview**: P0 data items, screens with honest status, carousel, focus → stage hand-off (LiveAgentZoom / terminal session) | M–L | Presence model unit-tested against real store fixtures; no hardcoded statuses; a blocked agent can be found, answered and left without getting lost (the design's own usability check). |
+| 3 ✅ | **Visual layer**: bundled WebGL backdrop, Liquid Glass lens shader, render-on-demand and pause rules, quality tiers | M | Section 3a budget met on a real Mac; reduced motion respected. |
 | 4 | **Previews**: tab ownership, browser thumbnails, doc thumbnails, terminal tails | M | Every non-idle screen shows a real or timestamped capture; nothing stale looks live. |
 | 5 | **Inbox + Cases + files**: unified needs-you queue, Revise, case folders (5a), sub-projects, pause/resume | L | Review → accept/revise → case history works end to end; outputs land in the case folder; pause → resume continues the same session. |
 | 6 | Optional new domain: handoff, projects, company memory | L | Only after phases 1–5 are used daily. |
