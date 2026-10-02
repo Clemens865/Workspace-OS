@@ -218,3 +218,11 @@
   opacity: 0.5;
   cursor: default;
 }
+
+/* The run's size: turns, cost, tokens (ADOPTION.md B3). */
+.stakes {
+  margin: 6px 0 0;
+  font-size: 12px;
+  letter-spacing: 0.02em;
+  color: var(--wl-muted);
+}

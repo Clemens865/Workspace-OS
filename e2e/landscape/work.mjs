@@ -32,6 +32,8 @@ const app = await electron.launch({ args: [path.join(root, 'out/main/index.js')]
 const win = await app.firstWindow({ timeout: 20000 })
 win.on('pageerror', (err) => console.log(`  [pageerror] ${err.message}`))
 await win.waitForSelector('#root', { timeout: 20000 })
+// The review store lives in localStorage: save the user's, restore it after.
+const saved = await win.evaluate(() => JSON.stringify({ ...localStorage }))
 await win.evaluate(() => {
   const K = 'workspace-os:settings'
   let c = {}
@@ -92,6 +94,47 @@ try {
   const after = await win.evaluate((id) => window.workspace.cases.get(id), c.id)
   check('…and the case points at its new place', after.artifacts.includes(`Work/${c.id}/outputs/findings.md`), JSON.stringify(after.artifacts))
 
+  // ── B3: the Cockpit's case tools in the landscape (ADOPTION.md) ──
+  fs.writeFileSync(path.join(folder, 'outputs', 'budget.csv'), 'item,amount\nseats,1200\nhosting,300\ntravel,450\n')
+  await win.evaluate(({ id, rel }) => window.workspace.cases.addArtifact(id, rel), { id: c.id, rel: `Work/${c.id}/outputs/budget.csv` })
+  await win.click('[data-dock="overview"]')
+  await settle(400)
+  await win.click('[data-dock="cases"]')
+  await settle(1200)
+  await win.click('[data-tab="data"]')
+  await win.waitForSelector('[data-testid="case-data"]', { timeout: 8000 }).catch(() => {})
+  const dataText = (await win.textContent('[data-testid="case-data"]').catch(() => '')) ?? ''
+  check('the Data tab reads the case’s numbers', dataText.includes('budget.csv') && /1[.,]?200|seats/.test(dataText), dataText.slice(0, 120))
+
+  await win.click('[data-tab="overview"]')
+  await settle(500)
+  check('Overview offers to hand the case to an agent', !!(await win.$('[data-testid="case-actions"] textarea')))
+  await win.click('[data-scope="global"]')
+  await settle(900)
+  check('Lives in → Everywhere writes the scope', (await win.evaluate((id) => window.workspace.cases.get(id), c.id))?.scope === 'global')
+  await win.click('[data-scope="workspace"]')
+  await settle(900)
+  check('…and back to this workspace', ((await win.evaluate((id) => window.workspace.cases.get(id), c.id))?.scope ?? 'workspace') === 'workspace')
+
+  await win.click('[data-testid="case-new"]')
+  await win.fill('input[placeholder="e.g. Steuer 2025"]', 'Pilot rollout')
+  await win.keyboard.press('Enter')
+  await settle(1200)
+  const made = (await win.evaluate(() => window.workspace.cases.list())).find((x) => x.title === 'Pilot rollout')
+  check('New case creates a case', !!made)
+  check('…and opens it on the shelf', !!made && (await win.getAttribute('[data-testid="case-open"]', 'data-case')) === made.id)
+
+  await win.click('[data-mode="map"]')
+  await settle(1500)
+  const mapText = (await win.textContent('[data-testid="cases-view"]')) ?? ''
+  check('Map shows the cases as territories', (await win.getAttribute('[data-testid="cases-view"]', 'data-mode')) === 'map' && mapText.includes('Onboarding research'), mapText.slice(0, 120))
+  await win.click('[data-mode="board"]')
+  await settle(1500)
+  const boardText = (await win.textContent('[data-testid="cases-view"]')) ?? ''
+  check('Board shows the cases by stage', (await win.getAttribute('[data-testid="cases-view"]', 'data-mode')) === 'board' && boardText.includes('Pilot rollout'), boardText.slice(0, 160))
+  await win.click('[data-mode="shelf"]')
+  await settle(600)
+
   // ── sub-projects ──
   await win.click('[data-dock="overview"]')
   await settle(400)
@@ -124,6 +167,11 @@ try {
     await settle()
     await win.evaluate((A) => document.querySelector(`[data-agent="${CSS.escape(A)}"] [data-testid="agent-face"]`)?.click(), A)
     await settle(1500)
+    // B3: the focused agent shows what its run has cost so far.
+    await win.evaluate(() => window.__reviewStore.patchRun('e2e-pause', { turns: 3, costUsd: 0.42 }))
+    await settle(400)
+    const stakes = (await win.textContent('[data-testid="agent-stakes"]').catch(() => '')) ?? ''
+    check('the focused agent shows turns and cost', stakes.includes('3 turns') && stakes.includes('$0.42'), stakes)
     await win.click('[data-testid="agent-pause"]')
     await win.waitForTimeout(5000) // no real process: the pause lands on its 4 s fallback
     const st = await win.evaluate(() => window.__reviewStore.getSnapshot().runs.find((r) => r.runId === 'e2e-pause')?.status)
@@ -141,14 +189,12 @@ try {
     check('Resume refuses honestly when there is no session to continue', /no longer available|not available|conversation/i.test(msg), msg.slice(-160))
   } else console.log('  SKIP  pause/resume: no agents')
 } finally {
-  await win.evaluate(() => {
-    window.__reviewStore.reset()
-    const K = 'workspace-os:settings'
-    let c = {}
-    try { c = JSON.parse(localStorage.getItem(K) || '{}') } catch { /* ignore */ }
-    localStorage.setItem(K, JSON.stringify({ ...c }))
-    localStorage.removeItem('workspace-os:project-home')
-  }).catch(() => {})
+  await win
+    .evaluate((saved) => {
+      localStorage.clear()
+      for (const [k, v] of Object.entries(JSON.parse(saved))) localStorage.setItem(k, v)
+    }, saved)
+    .catch(() => {})
   await app.close()
   fs.rmSync(ws, { recursive: true, force: true })
 }

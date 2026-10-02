@@ -1,18 +1,36 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
-import { ArrowUpRight, Check, FileText, FolderOpen, Search, Send } from 'lucide-react'
+import { ArrowUpRight, Check, FolderOpen, Plus, Search, Send } from 'lucide-react'
 import type { WorkCase } from '../../types/workspace-api'
 import { useGlass } from './backdrop/useBackdrop'
 import { ago } from './agentPresence'
 import { openFile } from './agentActions'
+import { FileThumb } from '../FilePanel/FileThumb'
+import { NewCaseDialog } from '../CalmCockpit/NewCaseDialog'
+import { MapView } from '../CalmCockpit/MapView'
+import { AltitudeHeadOf } from '../CalmCockpit/AltitudeHeadOf'
+import { CaseActions } from './CaseActions'
+import { CaseData } from './CaseData'
 import styles from './CasesView.module.css'
+import extra from './CaseActions.module.css'
 
-type Tab = 'overview' | 'files' | 'notes' | 'history'
+type Tab = 'overview' | 'files' | 'notes' | 'history' | 'data'
 const TABS: { id: Tab; label: string }[] = [
   { id: 'overview', label: 'Overview' },
   { id: 'files', label: 'Files' },
   { id: 'notes', label: 'Notes' },
   { id: 'history', label: 'History' },
+  { id: 'data', label: 'Data' },
 ]
+
+/** Shelf (one case open), Map (cases as territories), Board (cases by stage): ADOPTION.md B3. */
+type Mode = 'shelf' | 'map' | 'board'
+const MODES: { id: Mode; label: string }[] = [
+  { id: 'shelf', label: 'Shelf' },
+  { id: 'map', label: 'Map' },
+  { id: 'board', label: 'Board' },
+]
+
+const thumbEntry = (p: string) => ({ name: p.split('/').pop() ?? p, path: p, isDirectory: p.endsWith('/') })
 
 const when = (iso: string): number => {
   const t = Date.parse(iso)
@@ -63,7 +81,11 @@ export function CasesView({ initialCase = null }: { initialCase?: string | null 
   const [statuses, setStatuses] = useState<string[]>([])
   const [note, setNote] = useState('')
   const [busy, setBusy] = useState(false)
+  const [mode, setMode] = useState<Mode>('shelf')
+  const [creating, setCreating] = useState(false)
   const main = useRef<HTMLDivElement>(null)
+  const board = useRef<HTMLDivElement>(null)
+  useGlass(board, mode !== 'shelf' ? { radius: 26, bezel: 24, thickness: 46, frost: 0.82 } : null)
 
   const load = useCallback(async () => {
     try {
@@ -105,11 +127,57 @@ export function CasesView({ initialCase = null }: { initialCase?: string | null 
     }
   }
 
+  const newCase = creating && (
+    <NewCaseDialog
+      onClose={() => setCreating(false)}
+      onCreated={(made) => {
+        setCreating(false)
+        setPick(made.id)
+        setMode('shelf')
+        void load()
+      }}
+    />
+  )
+  const openCase = (id: string): void => {
+    setPick(id)
+    setMode('shelf')
+  }
+  const modeSwitch = (
+    <div className={extra.seg} role="tablist" aria-label="Cases view" data-testid="cases-mode">
+      {MODES.map((m) => (
+        <button key={m.id} type="button" role="tab" aria-selected={mode === m.id} className={mode === m.id ? extra.segOn : ''} onClick={() => setMode(m.id)} data-mode={m.id}>
+          {m.label}
+        </button>
+      ))}
+    </div>
+  )
+
   if (cases && !cases.length) {
     return (
       <div className={styles.empty} data-testid="cases-view" data-count={0}>
         <div className={styles.emptyTitle}>No cases yet</div>
         <p className={styles.emptyText}>A case keeps one thread of work together: its documents, notes and status. Agents and you create them as work starts.</p>
+        <button type="button" className={extra.newBtn} onClick={() => setCreating(true)} data-testid="case-new">
+          <Plus size={14} /> New case
+        </button>
+        {newCase}
+      </div>
+    )
+  }
+
+  if (mode !== 'shelf') {
+    return (
+      <div className={extra.boardWrap} data-testid="cases-view" data-count={cases?.length ?? 0} data-mode={mode}>
+        <div className={extra.boardTop}>
+          {modeSwitch}
+          <button type="button" className={extra.newBtn} onClick={() => setCreating(true)} data-testid="case-new">
+            <Plus size={14} /> New case
+          </button>
+        </div>
+        <div ref={board} className={extra.board}>
+          {mode === 'map' ? <MapView onOpenFile={openFile} onOpenCase={openCase} /> : <AltitudeHeadOf onOpenCase={openCase} />}
+        </div>
+        {newCase}
       </div>
     )
   }
@@ -117,6 +185,12 @@ export function CasesView({ initialCase = null }: { initialCase?: string | null 
   return (
     <div className={styles.cases} data-testid="cases-view" data-count={cases?.length ?? 0}>
       <div className={styles.shelf}>
+        <div className={extra.shelfTop}>
+          {modeSwitch}
+          <button type="button" className={extra.newBtn} onClick={() => setCreating(true)} data-testid="case-new">
+            <Plus size={14} /> New
+          </button>
+        </div>
         <label className={styles.search}>
           <Search size={15} />
           <input value={q} onChange={(e) => setQ(e.target.value)} placeholder="Search cases…" aria-label="Search cases" data-testid="cases-search" />
@@ -188,7 +262,7 @@ export function CasesView({ initialCase = null }: { initialCase?: string | null 
                     <div className={styles.cards}>
                       {c.artifacts.slice(0, 6).map((p) => (
                         <button key={p} className={styles.fcard} onClick={() => openFile(p)}>
-                          <FileText size={16} />
+                          <FileThumb entry={thumbEntry(p)} size={22} />
                           <span>{p.split('/').pop()}</span>
                         </button>
                       ))}
@@ -214,14 +288,17 @@ export function CasesView({ initialCase = null }: { initialCase?: string | null 
                     <p className={styles.muted}>Nothing noted yet.</p>
                   )}
                 </section>
+                <CaseActions c={c} onChanged={() => void load()} />
               </div>
             )}
+
+            {tab === 'data' && <CaseData caseId={c.id} />}
 
             {tab === 'files' && (
               <ul className={styles.flist}>
                 {c.artifacts.map((p) => (
                   <li key={p}>
-                    <FileText size={16} />
+                    <FileThumb entry={thumbEntry(p)} size={22} />
                     <span className={styles.fname}>{p}</span>
                     {isDraftOf(c.id, p) && (
                       <button className={styles.btn} disabled={busy} onClick={() => void act(() => window.workspace.cases.promote(c.id, p))} data-testid="case-accept">
@@ -288,6 +365,7 @@ export function CasesView({ initialCase = null }: { initialCase?: string | null 
           </div>
         </div>
       )}
+      {newCase}
     </div>
   )
 }

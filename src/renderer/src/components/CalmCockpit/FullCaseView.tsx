@@ -247,7 +247,7 @@ export function FullCaseView({
 }
 
 /** The KPI grid — shared by the curated view and the auto-derived cards. */
-function Kpis({ kpis }: { kpis: CaseViewResult['kpis'] }): JSX.Element {
+export function Kpis({ kpis }: { kpis: CaseViewResult['kpis'] }): JSX.Element {
   return (
     <div className={styles.kpis}>
       {kpis.map((k, i) => (
@@ -261,7 +261,7 @@ function Kpis({ kpis }: { kpis: CaseViewResult['kpis'] }): JSX.Element {
 }
 
 /** The mini bar chart — one amount column grouped by a category. */
-function Chart({ chart }: { chart: NonNullable<ArtifactInsight['chart']> }): JSX.Element {
+export function Chart({ chart }: { chart: NonNullable<ArtifactInsight['chart']> }): JSX.Element {
   const max = Math.max(...chart.bars.map((b) => Math.abs(b.value)), 1)
   return (
     <>
@@ -280,7 +280,7 @@ function Chart({ chart }: { chart: NonNullable<ArtifactInsight['chart']> }): JSX
 }
 
 /** A capped table preview of a CSV. */
-function Preview({ preview }: { preview: string[][] }): JSX.Element {
+export function Preview({ preview }: { preview: string[][] }): JSX.Element {
   return (
     <div className={styles.tableWrap}>
       <table className={styles.table}>

@@ -1,0 +1,162 @@
+/* Case actions and data in the landscape (ADOPTION.md B3). */
+.actions {
+  grid-column: 1 / -1;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.h {
+  margin: 8px 0 0;
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--wl-muted);
+}
+
+.prompt {
+  min-width: 0;
+}
+
+.chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.offer {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  height: 32px;
+  padding: 0 13px;
+  border: 1px solid var(--wl-amber-soft);
+  border-radius: 16px;
+  background: var(--wl-amber-soft);
+  font: inherit;
+  font-size: 13px;
+  color: #6b4a12;
+  cursor: pointer;
+}
+
+.offer:disabled {
+  opacity: 0.5;
+  cursor: default;
+}
+
+.seg {
+  display: inline-flex;
+  align-self: flex-start;
+  gap: 2px;
+  padding: 3px;
+  border-radius: 999px;
+  background: rgba(27, 39, 48, 0.05);
+}
+
+.seg button {
+  height: 28px;
+  padding: 0 12px;
+  border: 0;
+  border-radius: 14px;
+  background: none;
+  font: inherit;
+  font-size: 12.5px;
+  color: var(--wl-ink-2);
+  cursor: pointer;
+}
+
+.seg button:disabled {
+  cursor: default;
+}
+
+.seg .segOn {
+  background: #fff;
+  color: var(--wl-ink);
+  box-shadow: 0 0 0 1px rgba(27, 39, 48, 0.06);
+}
+
+.error {
+  margin: 0;
+  padding: 8px 12px;
+  border-radius: 12px;
+  background: var(--wl-claude-soft);
+  font-size: 13px;
+  color: #8a3b22;
+}
+
+/* ── the Data tab ── */
+.data {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.dcard {
+  padding: 14px 16px;
+  border: 1px solid rgba(255, 255, 255, 0.9);
+  border-radius: 18px;
+  background: rgba(255, 255, 255, 0.7);
+}
+
+.dhead {
+  margin-bottom: 8px;
+  font-family: var(--wl-serif);
+  font-size: 18px;
+  color: var(--wl-ink);
+}
+
+.muted {
+  margin: 0;
+  font-size: 13.5px;
+  color: var(--wl-muted);
+}
+
+/* ── Cases: Shelf · Map · Board, and New case ── */
+.shelfTop,
+.boardTop {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.newBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  height: 32px;
+  padding: 0 13px;
+  border: 0;
+  border-radius: 16px;
+  background: var(--wl-ink);
+  font: inherit;
+  font-size: 13px;
+  color: #fff;
+  cursor: pointer;
+}
+
+.newBtn:hover {
+  background: #2c3b46;
+}
+
+.boardWrap {
+  position: absolute;
+  top: 168px;
+  bottom: 140px;
+  left: 48px;
+  right: 48px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.board {
+  flex: 1;
+  min-height: 0;
+  overflow: auto;
+  padding: 20px 24px;
+  border-radius: 26px;
+  border: 1px solid rgba(255, 255, 255, 0.85);
+  background: rgba(251, 252, 253, 0.9);
+}

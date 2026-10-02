@@ -2,6 +2,8 @@ import { useState, useSyncExternalStore } from 'react'
 import { ArrowUpRight, FileText, Play, Pause, Square, Check, X, RotateCcw } from 'lucide-react'
 import { AgentAvatar } from '../Agents/AgentAvatar'
 import { activityStore } from '../Review/activityStore'
+import { reviewStore } from '../Review/reviewStore'
+import { costLabel } from '../CalmCockpit/streamModel'
 import { PROVIDER_LABEL, STATUS_LABEL, type AgentPresence } from './presenceTypes'
 import { ago } from './agentPresence'
 import * as act from './agentActions'
@@ -17,6 +19,10 @@ import styles from './AgentFocus.module.css'
 export function AgentFocus({ a }: { a: AgentPresence }): JSX.Element {
   const acts = useSyncExternalStore(activityStore.subscribe, activityStore.getSnapshot, activityStore.getSnapshot)
   const trail = a.runId ? (acts.trails.get(a.runId) ?? []).slice(-6).reverse() : []
+  // What the run has cost so far, as the Cockpit's live zoom showed it (ADOPTION.md B3).
+  const review = useSyncExternalStore(reviewStore.subscribe, reviewStore.getSnapshot, reviewStore.getSnapshot)
+  const runInfo = a.runId ? review.runs.find((r) => r.runId === a.runId) : undefined
+  const stakes = runInfo ? runStakes(runInfo) : null
   const [busy, setBusy] = useState(false)
   const [note, setNote] = useState<string | null>(null)
 
@@ -56,6 +62,11 @@ export function AgentFocus({ a }: { a: AgentPresence }): JSX.Element {
           <section>
             <h3 className={styles.label}>Task</h3>
             <p className={styles.task}>{a.task}</p>
+            {stakes && (
+              <p className={styles.stakes} data-testid="agent-stakes">
+                {stakes}
+              </p>
+            )}
           </section>
         )}
 
@@ -171,4 +182,16 @@ export function AgentFocus({ a }: { a: AgentPresence }): JSX.Element {
       </footer>
     </div>
   )
+}
+
+/** "4 turns · $0.12 · 18k tokens": the run's size, quietly. Empty parts are left out. */
+export function runStakes(r: { turns: number; costUsd: number; costKnown?: boolean; inputTokens?: number; outputTokens?: number }): string | null {
+  const parts: string[] = []
+  if (r.turns > 0) parts.push(`${r.turns} turn${r.turns === 1 ? '' : 's'}`)
+  const cost = costLabel(r.costUsd)
+  if (cost) parts.push(cost)
+  else if (r.costKnown === false && r.turns > 0) parts.push('cost not reported')
+  const tokens = (r.inputTokens ?? 0) + (r.outputTokens ?? 0)
+  if (tokens > 0) parts.push(tokens >= 1000 ? `${Math.round(tokens / 1000)}k tokens` : `${tokens} tokens`)
+  return parts.length ? parts.join(' · ') : null
 }
