@@ -25,6 +25,15 @@ const check = (n, c, d) => {
   }
 }
 
+/** The startup splash waits for Enter; until it is dismissed it covers the
+ *  window and every click lands on its canvas. Every reload brings it back. */
+async function dismissSplash() {
+  for (let i = 0; i < 40 && (await win.$('[class*="_splash_"]')); i++) {
+    await win.keyboard.press('Enter').catch(() => {})
+    await win.waitForTimeout(400)
+  }
+}
+
 await killAll()
 const app = await electron.launch({ args: [path.join(root, 'out/main/index.js')], cwd: root })
 const win = await app.firstWindow({ timeout: 20000 })
@@ -45,6 +54,7 @@ await win.evaluate(() => {
 await win.reload()
 await win.waitForSelector('#root', { timeout: 20000 })
 await win.waitForTimeout(1400)
+await dismissSplash()
 
 /** Width of the rail — the grid's first column, measured, not inferred. */
 const railWidth = () =>
@@ -141,6 +151,7 @@ check('the collapsed choice is persisted', /"open":false/.test(stored ?? ''), St
 await win.reload()
 await win.waitForSelector('#root', { timeout: 20000 })
 await win.waitForTimeout(1400)
+await dismissSplash()
 await win.evaluate(() => {
   const h = [...document.querySelectorAll('button,[role=tab],a,[role=button]')].find(
     (e) => /browser/i.test(e.textContent || '') || /browser/i.test(e.getAttribute('aria-label') || ''),

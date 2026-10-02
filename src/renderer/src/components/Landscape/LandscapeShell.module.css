@@ -1,10 +1,35 @@
-/* Phase 0 scaffold: static CSS mist, header, glass-style dock. The WebGL
-   backdrop and Liquid Glass panes arrive in phase 3 (docs/landscape/PLAN.md). */
+/* Screen Landscape shell. The stage (WorkspaceShell) fills the window; the
+   landscape layer fades over it. z-index 70 sits above the stage's own fixed
+   chrome (60) and below every modal (CommandBar/QuickOpen 200, Settings 210). */
 .root {
   position: fixed;
   inset: 0;
   overflow: hidden;
+}
+
+.landscape {
+  position: fixed;
+  inset: 0;
+  z-index: 70;
+  overflow: hidden;
   background: radial-gradient(120% 70% at 50% 38%, #f6f8fa 0%, var(--wl-mist-1) 40%, var(--wl-mist-2) 70%, var(--wl-mist-3) 100%);
+  opacity: 1;
+  transition: opacity 0.45s var(--wl-ease-soft), visibility 0s linear 0s;
+}
+
+/* Stepping aside: fade, then leave the hit-test and the tab order entirely. */
+.away {
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+  transition: opacity 0.45s var(--wl-ease-soft), visibility 0s linear 0.45s;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .landscape,
+  .away {
+    transition: none;
+  }
 }
 
 .horizon {
@@ -54,7 +79,7 @@
   left: 50%;
   top: 46%;
   transform: translate(-50%, -50%);
-  max-width: 460px;
+  max-width: 480px;
   padding: 22px 26px;
   border-radius: 22px;
   background: var(--wl-paper);
@@ -77,6 +102,69 @@
   cursor: pointer;
 }
 
+/* ── Menu ── */
+.menu {
+  position: absolute;
+  top: 180px;
+  bottom: 150px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: min(1100px, calc(100% - 96px));
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 18px;
+  overflow-y: auto;
+  align-content: start;
+}
+
+.menuGroup {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.menuGroupTitle {
+  margin: 0 0 4px 6px;
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--wl-muted);
+}
+
+.menuItem {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 4px;
+  padding: 14px 16px;
+  border: 1px solid rgba(255, 255, 255, 0.85);
+  border-radius: 18px;
+  background: rgba(255, 255, 255, 0.55);
+  font: inherit;
+  text-align: left;
+  color: var(--wl-ink);
+  cursor: pointer;
+  transition: background 0.25s, transform 0.35s var(--wl-ease);
+}
+
+.menuItem:hover {
+  background: rgba(255, 255, 255, 0.85);
+  transform: translateY(-2px);
+}
+
+.menuLabel {
+  font-family: var(--wl-serif);
+  font-size: 19px;
+}
+
+.menuHint {
+  font-size: 12.5px;
+  line-height: 1.4;
+  color: var(--wl-muted);
+}
+
+/* ── Dock ── */
 .dock {
   position: absolute;
   left: 50%;
@@ -92,7 +180,19 @@
   backdrop-filter: blur(14px) saturate(1.4);
 }
 
+.dockGlow {
+  position: absolute;
+  top: 6px;
+  bottom: 6px;
+  border-radius: 26px;
+  background: #fff;
+  transition: left 0.6s var(--wl-ease), width 0.6s var(--wl-ease), opacity 0.3s;
+  pointer-events: none;
+}
+
 .dockItem {
+  position: relative;
+  z-index: 1;
   display: flex;
   align-items: center;
   gap: 9px;
@@ -104,19 +204,10 @@
   font-size: 15px;
   color: var(--wl-ink-2);
   cursor: pointer;
-  transition: color 0.3s, background 0.3s;
+  transition: color 0.3s;
 }
 
-.dockItem:hover {
-  color: var(--wl-ink);
-}
-
-.dockItem:disabled {
-  cursor: default;
-  opacity: 0.5;
-}
-
+.dockItem:hover,
 .on {
   color: var(--wl-ink);
-  background: #fff;
 }

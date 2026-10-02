@@ -739,3 +739,32 @@
   overflow-y: auto;
 }
 .homeSolo .peekHost { flex: 1; position: relative; min-height: 0; overflow: hidden; }
+
+/* ── Hosted by the Screen Landscape shell (docs/landscape/PLAN.md §3) ──
+   While the landscape shows, the rail and the surfaces are hidden but keep their
+   layout (xterm and LibreOffice re-fit on size, not on visibility). Modals and
+   overlays are siblings of these two, so ⌘K, ⌘P and Settings still open. */
+.stageHidden > nav,
+.stageHidden > .stage {
+  visibility: hidden;
+}
+
+.landscapeBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  flex: none;
+  margin-right: 8px;
+  padding: 5px 11px;
+  border: 0.5px solid var(--wos-hair);
+  border-radius: 999px;
+  background: var(--wos-card);
+  color: var(--wos-ink);
+  font: inherit;
+  font-size: 12.5px;
+  cursor: pointer;
+}
+
+.landscapeBtn:hover {
+  background: var(--wos-sunk);
+}

@@ -12,6 +12,15 @@ import { killAll } from '../office/_harness.mjs'
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
 const root = path.resolve(__dirname, '../..')
 
+/** The startup splash waits for Enter (or its button); dismiss it as a user would. */
+async function dismissSplash(win) {
+  for (let i = 0; i < 40; i++) {
+    if (!(await win.$('[class*="_splash_"]'))) return
+    await win.keyboard.press('Enter').catch(() => {})
+    await win.waitForTimeout(400)
+  }
+}
+
 let fails = 0
 let total = 0
 const check = (n, c, d) => {
@@ -63,10 +72,16 @@ try {
   check('Newsreader and Inter are bundled and load', fonts.serif && fonts.sans, JSON.stringify(fonts))
 
   // Menu opens Settings, and Settings → Design offers the landscape option.
-  await win.click('[data-testid="landscape-menu"]')
+  await dismissSplash(win)
+  await win.click('[data-dock="menu"]')
+  await win.waitForTimeout(600)
+  await win.click('[data-menu="settings"]')
   const option = await win.waitForSelector('[data-testid="shell-landscape"]', { timeout: 5000 }).catch(() => null)
-  check('Menu opens Settings with the shell switch', !!option)
+  check('Menu → Settings shows the shell switch', !!option)
   await win.keyboard.press('Escape')
+  await win.waitForTimeout(400)
+  await win.click('[data-testid="stage-landscape"]')
+  await win.waitForTimeout(600)
 
   // 2. Back to the current shell from inside the landscape.
   await win.click('[data-testid="landscape-exit"]')

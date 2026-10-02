@@ -8,7 +8,7 @@ Legend: ✅ done · 🟡 in progress · ⬜ not started
 | Phase | Status |
 |---|---|
 | 0 Setup | ✅ 2 Oct 2026 |
-| 1 Shell skeleton | ⬜ |
+| 1 Shell skeleton | ✅ 2 Oct 2026 |
 | 2 Agent presence + Team overview | ⬜ |
 | 3 Visual layer (WebGL, Liquid Glass) | ⬜ |
 | 4 Previews | ⬜ |
@@ -17,6 +17,43 @@ Legend: ✅ done · 🟡 in progress · ⬜ not started
 | 7 Landscape only (backup tag, remove old shells) | ⬜ |
 
 ---
+
+## 2 Oct 2026: phase 1, shell skeleton ✅
+
+**Design.** The landscape does not rebuild the 15 surfaces. It hosts the
+current shell as its flat **stage**: `WorkspaceShell` gained an optional
+`stage` prop (`hidden`, `onLandscape`, `onSurface`). Hosted, its rail starts
+hidden (⌘B shows it), a Landscape button sits first in the top bar, and every
+change of surface or tab is reported so the landscape steps aside. While the
+landscape shows, only the rail and the surface area are hidden
+(`visibility: hidden`, layout kept for xterm/LibreOffice re-fit); the modals are
+their siblings, so ⌘K, ⌘P and Settings open over the landscape. The landscape
+fades over the stage; the stage itself is never transformed (WOS-011).
+
+**Built**
+- `Landscape/landscapeModel.ts` (+ tests): dock (Overview · Inbox · Cases ·
+  Library · Menu) and Menu groups; a parity check that the Menu reaches every
+  real rail surface.
+- `LandscapeShell`: views overview / menu / stage; events that bring the stage
+  forward even when its rail does not change (browser tab opened, browser
+  navigate, reveal path, backlinks, focus/launch agent, agent artifact, ⌘J).
+- `LandscapeDock` with the gliding pill, `LandscapeMenu` (Work, Agents,
+  Knowledge, Workspace).
+- Until their landscape views exist, the dock's Inbox, Cases and Library open
+  Agents, Cockpit and Knowledge on the stage.
+
+**Verified**
+- `npm test`: 240 files, 2905 passed, 2 skipped. Typecheck: no new errors.
+- `npm run e2e:landscape`: shells 6/6, stage 31/31 (Menu → each of the 11
+  surfaces opens it on the stage and the Landscape button returns; the dock
+  stand-ins; ⌘K and ⌘P over the landscape; ⌘J brings the stage with the
+  terminal; ⌘B shows the rail).
+- `e2e/browser/layout.mjs` (current shell, regression): 20/20 after teaching it
+  to dismiss the splash (it failed on `master` for that reason alone).
+
+**Learned**
+- The startup Splash waits for Enter or its button; every e2e that reloads has
+  to dismiss it, or clicks land on its canvas.
 
 ## 2 Oct 2026: phase 0, setup ✅
 
@@ -50,13 +87,9 @@ this checkout so the git-ignored local files (LibreOffice in `scripts/lok/`,
 
 **Found, not caused by this work**
 - `npm run e2e:shell-layout` fails on unchanged `master` too: the startup Splash
-  still covers the window when the test clicks (`_splash_… intercepts pointer
-  events`). Needs the test to wait for the splash to finish.
+  still covers the window when the test clicks. Fixed in phase 1.
 - `npm run lint` cannot run: ESLint 10 is installed but the repo has no
   `eslint.config.*`.
 - `npm install` needs `--legacy-peer-deps`: `@vitejs/plugin-react@4` does not
   accept the installed `vite@8`.
 
-**Next: phase 1, shell skeleton.** Landscape layer with static backdrop, glass
-dock, Menu, and the flat stage hosting every existing surface; exit test: every
-rail surface reachable in ≤ 2 actions, ⌘K/⌘P/⌘J/⌘B work.

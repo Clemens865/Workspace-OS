@@ -1,5 +1,5 @@
-import { useState, useCallback, useMemo, useEffect } from 'react'
-import { Search, ArrowUpRight, ArrowLeft, SquareTerminal, Maximize2, Minimize2, ChevronUp, ChevronDown, X } from 'lucide-react'
+import { useState, useCallback, useMemo, useEffect, useRef } from 'react'
+import { Search, ArrowUpRight, ArrowLeft, SquareTerminal, Maximize2, Minimize2, ChevronUp, ChevronDown, X, Mountain } from 'lucide-react'
 import { Rail } from './Rail'
 import { Home } from './Home'
 import type { RailId, StageTab } from './shellModel'
@@ -48,8 +48,22 @@ import { actionManifest, ALL_ACTIONS, type SurfaceActionContext } from '../Termi
  *
  * The default shell (newShell, on by default); Settings → Design → Classic switches back.
  * When OFF, App renders the legacy WorkspaceLayout unchanged.
+ *
+ * With `stage` set, the Screen Landscape shell hosts this one as its flat stage
+ * (docs/landscape/PLAN.md §3): every surface, shortcut and modal stays exactly
+ * as here, the rail starts hidden (⌘B shows it), a Landscape button leads back,
+ * and every surface change is reported so the landscape can step aside.
  */
-export function WorkspaceShell(): JSX.Element {
+export interface StageHost {
+  /** The landscape is showing: hide the rail and surfaces, keep modals usable. */
+  hidden: boolean
+  /** The user asked to go back to the landscape. */
+  onLandscape: () => void
+  /** A surface or document was brought forward (by the user, an event or an agent). */
+  onSurface: (rail: RailId) => void
+}
+
+export function WorkspaceShell({ stage }: { stage?: StageHost } = {}): JSX.Element {
   const root = useWorkspaceRoot()
   const library = useWorkspaceLibrary(root)
 
@@ -76,7 +90,7 @@ export function WorkspaceShell(): JSX.Element {
    * you are in it.
    */
   const [expanded, setExpanded] = useState(false)
-  const [railHidden, setRailHidden] = useState(false)
+  const [railHidden, setRailHidden] = useState(!!stage)
 
   /**
    * WOS-013: the folder the Files browser is showing. Set when the tree reveals
@@ -411,6 +425,18 @@ export function WorkspaceShell(): JSX.Element {
     })
   }, [surfaceCtx])
 
+  // Landscape host: any change of surface or tab means "show the stage". The
+  // first run is the initial mount, which must not pull the stage forward.
+  const mounted = useRef(false)
+  const onSurface = stage?.onSurface
+  useEffect(() => {
+    if (!mounted.current) {
+      mounted.current = true
+      return
+    }
+    onSurface?.(rail)
+  }, [rail, activeTab, onSurface])
+
   const peekFilePath = peekTabs.activeFilePath
   const onHome = rail === 'home' && activeTab === HOME_TAB.key
   const railLabel = (id: RailId): string => RAIL_ITEMS.find((r) => r.id === id)?.label ?? id
@@ -512,7 +538,7 @@ export function WorkspaceShell(): JSX.Element {
 
   return (
     <div
-      className={`wos ${styles.root} ${railOut ? styles.railOut : ''} ${expanded ? styles.expanded : ''}`}
+      className={`wos ${styles.root} ${railOut ? styles.railOut : ''} ${expanded ? styles.expanded : ''} ${stage?.hidden ? styles.stageHidden : ''}`}
       data-expanded={expanded ? 'true' : 'false'}
     >
       <Rail active={rail} onSelect={selectRail} />
@@ -536,6 +562,18 @@ export function WorkspaceShell(): JSX.Element {
 
       <div className={styles.stage}>
         <div className={styles.topbar}>
+          {stage && (
+            <button
+              type="button"
+              className={styles.landscapeBtn}
+              onClick={stage.onLandscape}
+              title="Back to the landscape"
+              data-testid="stage-landscape"
+            >
+              <Mountain size={14} strokeWidth={1.9} />
+              <span>Landscape</span>
+            </button>
+          )}
           <div className={styles.tabs}>
             {tabs.map((t) => (
               <div
