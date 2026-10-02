@@ -1,0 +1,152 @@
+/* The agent's settings on its card: the words on the left, the switches on the right. */
+.settings {
+  flex: 1;
+  min-height: 0;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 300px;
+  gap: 26px;
+  margin-top: 14px;
+}
+
+.main {
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.grow {
+  flex: 1;
+  min-height: 0;
+}
+
+.about,
+.persona,
+.select {
+  width: 100%;
+  box-sizing: border-box;
+  padding: 10px 12px;
+  border: 1px solid var(--wl-line);
+  border-radius: 12px;
+  background: rgba(var(--wl-paper-rgb), 0.6);
+  color: var(--wl-ink);
+  font: inherit;
+  font-size: 14px;
+  line-height: 1.5;
+  resize: none;
+  outline: none;
+}
+
+.about:focus,
+.persona:focus,
+.select:focus {
+  border-color: rgba(var(--wl-ink-rgb), 0.35);
+}
+
+.persona {
+  flex: 1;
+  min-height: 120px;
+  font-size: 13.5px;
+}
+
+.select {
+  height: 36px;
+  padding: 0 10px;
+  cursor: pointer;
+}
+
+.help {
+  margin: 6px 0 0;
+  font-size: 12px;
+  line-height: 1.45;
+  color: var(--wl-muted);
+}
+
+.seg {
+  display: inline-flex;
+  padding: 3px;
+  border-radius: 18px;
+  border: 1px solid var(--wl-line);
+  background: rgba(var(--wl-paper-rgb), 0.6);
+}
+
+.seg button {
+  height: 28px;
+  padding: 0 13px;
+  border: 0;
+  border-radius: 14px;
+  background: none;
+  font: inherit;
+  font-size: 12.5px;
+  color: var(--wl-ink-2);
+  cursor: pointer;
+}
+
+.seg .segOn {
+  background: var(--wl-ink);
+  color: var(--wl-on-ink);
+}
+
+.caps {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.cap,
+.capOn {
+  height: 28px;
+  padding: 0 11px;
+  border-radius: 14px;
+  font: inherit;
+  font-size: 12.5px;
+  cursor: pointer;
+}
+
+.cap {
+  border: 1px dashed var(--wl-line);
+  background: none;
+  color: var(--wl-muted);
+}
+
+.capOn {
+  border: 1px solid rgba(var(--wl-ink-rgb), 0.25);
+  background: rgba(var(--wl-ink-rgb), 0.08);
+  color: var(--wl-ink);
+}
+
+/* The switches scroll; Save and Delete stay in reach at the bottom. */
+.side {
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding-left: 22px;
+  border-left: 1px solid var(--wl-line);
+}
+
+.scroll {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+.foot {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  padding-top: 10px;
+  border-top: 1px solid var(--wl-line);
+  font-size: 12.5px;
+  color: var(--wl-muted);
+}

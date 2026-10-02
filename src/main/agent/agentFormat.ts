@@ -50,6 +50,29 @@ export function parseAgentMd(md: string, fallbackName: string): ParsedAgent {
   return { name, description, mode, skills, capabilities, surface, model, persona: body.trim() }
 }
 
+const OWN_KEYS = /^(name|description|wos_mode|wos_skills|wos_capabilities|wos_surface|wos_model):/
+
+/**
+ * The frontmatter lines this app does not own (Claude Code's own `tools:`,
+ * `model:`, `color:`…, with their indented continuation lines), so a save from
+ * the app keeps what another editor put there.
+ */
+export function foreignFrontmatter(md: string): string[] {
+  const fm = /^---\s*\n([\s\S]*?)\n---/.exec(md)
+  if (!fm) return []
+  const out: string[] = []
+  let keep = false
+  for (const line of fm[1].split('\n')) {
+    if (/^\s/.test(line) || line === '') {
+      if (keep && line !== '') out.push(line)
+      continue
+    }
+    keep = !OWN_KEYS.test(line)
+    if (keep) out.push(line)
+  }
+  return out
+}
+
 export interface SerializeInput {
   name: string
   description?: string
@@ -60,6 +83,8 @@ export interface SerializeInput {
   surface?: unknown
   /** Model alias the agent prefers ('fable' | 'opus' | 'sonnet' | 'haiku'); unset = the app default. */
   model?: unknown
+  /** Frontmatter lines owned by someone else, written back as they were (see foreignFrontmatter). */
+  extra?: string[]
 }
 
 /** Serializes an agent into its `.md` text. Clamps caps/surface to the catalog. */
@@ -79,6 +104,7 @@ export function serializeAgentMd(a: SerializeInput): string {
     (capabilities.length ? `wos_capabilities: ${capabilities.join(', ')}\n` : '') +
     (isValidModelAlias(a.model) ? `wos_model: ${a.model}\n` : '') +
     (surface ? `wos_surface: ${surface}\n` : '') +
+    (a.extra?.length ? a.extra.join('\n') + '\n' : '') +
     `---\n\n` +
     `${(a.persona ?? '').trim()}\n`
   )
