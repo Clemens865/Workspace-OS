@@ -9,7 +9,7 @@ Legend: ✅ done · 🟡 in progress · ⬜ not started
 |---|---|
 | 0 Setup | ✅ 2 Oct 2026 |
 | 1 Shell skeleton | ✅ 2 Oct 2026 |
-| 2 Agent presence + Team overview | ⬜ |
+| 2 Agent presence + Team overview | ✅ 2 Oct 2026 |
 | 3 Visual layer (WebGL, Liquid Glass) | ⬜ |
 | 4 Previews | ⬜ |
 | 5 Inbox + Cases + files, pause/resume | ⬜ |
@@ -17,6 +17,46 @@ Legend: ✅ done · 🟡 in progress · ⬜ not started
 | 7 Landscape only (backup tag, remove old shells) | ⬜ |
 
 ---
+
+## 2 Oct 2026: phase 2, agent presence and the team overview ✅
+
+**Built**
+- `agentPresence.ts` (+ 25 tests): one honest state per roster agent, joined by
+  name and run id across the review feed (runs + PTY approvals), the activity
+  trail, background jobs and Codex requests. Precedence: needs your answer →
+  working → the latest settled run (review / error / interrupted / idle). An
+  interrupted background job shows as Interrupted even though the feed mirror
+  folds it into "error". "Paused" is never produced (it waits for phase 5).
+  Agent files named "Elias — Application Tailor" show as Elias, role
+  Application Tailor.
+- `useAgentPresence`: live roster (`agents.list`, re-read on
+  `wos:agents-changed` and workspace switch), stores, jobs, Codex requests, a
+  30 s clock for "8 min ago".
+- `layoutModel.ts` (+ 14 tests): the prototype's arc, overview, flank, focus and
+  away layouts, generalised to any team size; a small team's single row stands
+  nearer the middle.
+- `carousel.ts` (+ 9 tests): wheel (notched vs trackpad), drag with flick,
+  arrow keys, snap; frame-rate independent easing; reduced motion jumps.
+- `LandscapeWorld`, `AgentScreen`, `AgentFocus`: the screens in 3D, the
+  focused agent with its task, question, recent steps and results, and actions
+  through the existing paths: Allow once / for the session / Deny
+  (`respondHitl`), Keep / Revert (`resolveRun`, checkpoint rollback), Stop
+  (`runs.cancel` / `agent.cancel`), Start a session (`launchAgent`, opens the
+  dock on the stage), results open on the stage (new `wos:open-file` event in
+  WorkspaceShell), Add agent (Foundry on the Agents surface).
+- ← → and horizontal swipes turn the ring while focused, digits open front
+  screens, Esc steps back.
+
+**Verified**
+- `npm test`: 243 files, 2950 passed, 2 skipped. Typecheck: no new errors.
+- `npm run e2e:landscape`: shells 6/6, stage 31/31, presence 18/18. The
+  presence test drives the first real roster agent through working → needs
+  your answer → Allow once (the decision reaches the asking session) → working
+  → ready for review → Keep (recorded as kept) → idle, checks the header count
+  and the front-row move, turns the ring, Esc, and the wheel. It saves and
+  restores the user's own review history.
+- Design check on the real roster (7 Claude Code agents): screenshots via
+  `node e2e/landscape/shot.mjs <dir>`.
 
 ## 2 Oct 2026: phase 1, shell skeleton ✅
 

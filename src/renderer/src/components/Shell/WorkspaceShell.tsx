@@ -263,6 +263,17 @@ export function WorkspaceShell({ stage }: { stage?: StageHost } = {}): JSX.Eleme
     return window.workspace.browserTabs.onOpenTab(() => setRail('browser'))
   }, [])
 
+  // Anything can open a document on the Stage by path (the landscape's agent
+  // screens use it for a run's outputs).
+  useEffect(() => {
+    const onOpen = (e: Event): void => {
+      const path = (e as CustomEvent<{ path?: string }>).detail?.path
+      if (path) openInStage(path)
+    }
+    window.addEventListener('wos:open-file', onOpen)
+    return () => window.removeEventListener('wos:open-file', onOpen)
+  }, [openInStage])
+
   // The dock's "Search workspace" quick-action opens the QuickOpen palette.
   useEffect(() => {
     const open = (): void => setQuickOpenOpen(true)

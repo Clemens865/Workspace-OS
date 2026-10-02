@@ -5,8 +5,8 @@
  */
 import { RAIL_ITEMS, type RailId } from '../Shell/shellModel'
 
-/** Landscape-level views. `stage` is the flat stage hosting the classic surfaces. */
-export type LandscapeView = 'overview' | 'menu' | 'stage'
+/** Landscape-level views. `agent` is one screen in focus; `stage` is the flat stage hosting the classic surfaces. */
+export type LandscapeView = 'overview' | 'agent' | 'menu' | 'stage'
 
 export type DockId = 'overview' | 'inbox' | 'cases' | 'library' | 'menu'
 

@@ -44,6 +44,8 @@
 
 .header {
   position: absolute;
+  z-index: 2;
+  pointer-events: none;
   top: 36px;
   left: 48px;
   right: 48px;
@@ -74,6 +76,33 @@
   color: var(--wl-muted);
 }
 
+.hint {
+  position: absolute;
+  left: 50%;
+  bottom: 22px;
+  transform: translateX(-50%);
+  font-size: 13px;
+  letter-spacing: 0.12em;
+  color: var(--wl-muted);
+  white-space: nowrap;
+  pointer-events: none;
+}
+
+.backLink {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 12px;
+  padding: 8px 14px 8px 10px;
+  border: 1px solid var(--wl-line);
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.6);
+  font: inherit;
+  font-size: 14px;
+  color: var(--wl-ink);
+  cursor: pointer;
+}
+
 .note {
   position: absolute;
   left: 50%;
@@ -88,6 +117,11 @@
   font-size: 14px;
   line-height: 1.55;
   color: var(--wl-ink-2);
+}
+
+.header > *,
+.header button {
+  pointer-events: auto;
 }
 
 .back {
@@ -166,6 +200,7 @@
 
 /* ── Dock ── */
 .dock {
+  z-index: 2;
   position: absolute;
   left: 50%;
   bottom: 56px;
