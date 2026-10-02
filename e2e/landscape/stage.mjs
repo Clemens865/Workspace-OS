@@ -149,6 +149,36 @@ try {
   await win.keyboard.press(`${mod}+j`)
   await win.waitForTimeout(300)
 
+  // ── The landscape's navigation in the stage topbar (ADOPTION.md A2) ──
+  const navBox = await win.evaluate(() => {
+    const r = document.querySelector('[data-testid="stage-nav"]')?.getBoundingClientRect()
+    return r ? Math.round(r.width) : 0
+  })
+  check('the stage topbar offers the landscape navigation', navBox > 100, `width ${navBox}`)
+  const badges = await win.evaluate(() => ({
+    stage: document.querySelector('[data-stage-dock="inbox"] b')?.textContent ?? '',
+    dock: document.querySelector('[data-dock="inbox"] b, [data-dock="inbox"] [class*="badge"]')?.textContent ?? '',
+  }))
+  check('stage Inbox badge matches the dock', badges.stage === badges.dock, JSON.stringify(badges))
+  for (const [id, want] of [['inbox', 'inbox'], ['cases', 'cases'], ['menu', 'menu']]) {
+    await win.keyboard.press(`${mod}+j`) // any way onto the stage
+    await settle()
+    await win.keyboard.press(`${mod}+j`)
+    await win.waitForTimeout(300)
+    await win.click(`[data-stage-dock="${id}"]`)
+    await settle()
+    s = await state()
+    check(`stage topbar ${id} opens the landscape ${want}`, s.view === want && s.landscapeVisible, JSON.stringify(s))
+  }
+  await win.keyboard.press(`${mod}+j`)
+  await settle()
+  await win.keyboard.press(`${mod}+j`)
+  await win.waitForTimeout(300)
+  await win.click('[data-stage-dock="library"]')
+  await settle()
+  s = await state()
+  check('stage topbar library opens Knowledge on the stage', s.view === 'stage' && s.rail === 'Knowledge', JSON.stringify(s))
+
   // ── ⌘B on the stage shows its rail ──
   const railWidth = () =>
     win.evaluate(() => {

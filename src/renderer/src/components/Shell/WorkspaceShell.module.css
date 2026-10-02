@@ -96,10 +96,10 @@
   align-items: center;
   gap: 10px;
   padding: 10px 16px;
-  border-bottom: 0.5px solid var(--wos-hair);
-  background: rgba(245, 245, 247, 0.8);
-  backdrop-filter: saturate(180%) blur(20px);
-  -webkit-backdrop-filter: saturate(180%) blur(20px);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.7);
+  background: rgba(238, 242, 245, 0.82);
+  backdrop-filter: saturate(140%) blur(18px);
+  -webkit-backdrop-filter: saturate(140%) blur(18px);
   -webkit-app-region: drag;
 }
 
@@ -117,22 +117,29 @@
   display: flex;
   align-items: center;
   gap: 7px;
-  padding: 7px 12px;
-  border-radius: 10px;
+  padding: 7px 13px;
+  border-radius: 999px;
+  border: 1px solid transparent;
   color: var(--wos-ink-2);
   font-size: 13px;
   font-weight: 500;
   cursor: pointer;
   white-space: nowrap;
-  border: 0;
   background: transparent;
   font-family: inherit;
+  transition: background 0.15s ease, color 0.15s ease;
+}
+
+.tab:hover {
+  background: rgba(255, 255, 255, 0.55);
+  color: var(--wos-ink);
 }
 
 .tabOn {
-  background: var(--wos-card);
+  background: rgba(255, 255, 255, 0.9);
+  border-color: rgba(255, 255, 255, 0.95);
   color: var(--wos-ink);
-  box-shadow: var(--wos-sh-raised);
+  box-shadow: 0 0 0 1px rgba(27, 39, 48, 0.06);
 }
 
 .tabClose {
@@ -151,10 +158,10 @@
   display: flex;
   align-items: center;
   gap: 8px;
-  background: var(--wos-card);
-  border: 0.5px solid var(--wos-hair);
+  background: rgba(255, 255, 255, 0.8);
+  border: 1px solid rgba(255, 255, 255, 0.9);
   border-radius: var(--wos-r-pill);
-  padding: 7px 12px;
+  padding: 7px 13px;
   color: var(--wos-ink-3);
   font-size: 13px;
   cursor: pointer;
@@ -176,8 +183,8 @@
   display: flex;
   align-items: center;
   gap: 7px;
-  background: var(--wos-card);
-  border: 0.5px solid var(--wos-hair);
+  background: rgba(255, 255, 255, 0.8);
+  border: 1px solid rgba(255, 255, 255, 0.9);
   border-radius: var(--wos-r-pill);
   padding: 7px 12px;
   color: var(--wos-ink-2);
@@ -764,13 +771,60 @@
   flex: none;
   margin-right: 8px;
   padding: 5px 11px;
-  border: 0.5px solid var(--wos-hair);
+  border: 1px solid rgba(255, 255, 255, 0.9);
   border-radius: 999px;
-  background: var(--wos-card);
+  background: rgba(255, 255, 255, 0.8);
   color: var(--wos-ink);
   font: inherit;
-  font-size: 12.5px;
+  font-size: 13px;
+  font-weight: 500;
   cursor: pointer;
+  -webkit-app-region: no-drag;
+}
+
+/* The landscape dock's items, offered on the stage (ADOPTION.md A2). */
+.stageNav {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  flex: none;
+  margin-right: 6px;
+  padding-right: 10px;
+  border-right: 1px solid var(--wos-hair);
+  -webkit-app-region: no-drag;
+}
+
+.stageNavBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 11px;
+  border: 0;
+  border-radius: 999px;
+  background: transparent;
+  color: var(--wos-ink-2);
+  font: inherit;
+  font-size: 13px;
+  cursor: pointer;
+  transition: background 0.15s ease, color 0.15s ease;
+}
+
+.stageNavBtn:hover {
+  background: rgba(255, 255, 255, 0.6);
+  color: var(--wos-ink);
+}
+
+.stageNavBadge {
+  min-width: 18px;
+  height: 18px;
+  padding: 0 5px;
+  border-radius: 9px;
+  background: var(--wl-claude, #d97757);
+  color: #fff;
+  font-size: 11px;
+  font-weight: 600;
+  line-height: 18px;
+  text-align: center;
 }
 
 .landscapeBtn:hover {

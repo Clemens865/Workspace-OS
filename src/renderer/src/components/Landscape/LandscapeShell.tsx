@@ -221,7 +221,7 @@ export function LandscapeShell(): JSX.Element {
 
   return (
     <div className={`wl ${styles.root}`} data-shell="landscape" data-view={view}>
-      <WorkspaceShell stage={{ hidden: !stageShown, onLandscape: () => showLandscape(), onSurface: onStageSurface, railOpen: openedOnStage }} />
+      <WorkspaceShell stage={{ hidden: !stageShown, onLandscape: () => showLandscape(), onSurface: onStageSurface, railOpen: openedOnStage, nav: { waiting: inbox.length, onDock } }} />
 
       <div className={`${styles.landscape} ${onStage ? styles.away : ''} ${backdrop ? styles.glassOn : ''}`} aria-hidden={onStage} data-testid="landscape-layer" data-quality={quality}>
         <div className={styles.horizon} aria-hidden />

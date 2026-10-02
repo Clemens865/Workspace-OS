@@ -1,5 +1,5 @@
 import { useState, useCallback, useMemo, useEffect, useRef } from 'react'
-import { Search, ArrowUpRight, ArrowLeft, SquareTerminal, Maximize2, Minimize2, ChevronUp, ChevronDown, X, Mountain } from 'lucide-react'
+import { Search, ArrowUpRight, ArrowLeft, SquareTerminal, Maximize2, Minimize2, ChevronUp, ChevronDown, X, Mountain, Inbox, FolderOpen, BookOpen, MoreHorizontal } from 'lucide-react'
 import { Rail } from './Rail'
 import { Home } from './Home'
 import type { RailId, StageTab } from './shellModel'
@@ -52,6 +52,16 @@ import { actionManifest, ALL_ACTIONS, type SurfaceActionContext } from '../Termi
  * as here, the rail starts hidden (⌘B shows it), a Landscape button leads back,
  * and every surface change is reported so the landscape can step aside.
  */
+/** The landscape dock items the stage's topbar offers (Overview is the Landscape button). */
+export type StageDockId = 'inbox' | 'cases' | 'library' | 'menu'
+
+const STAGE_DOCK: { id: StageDockId; label: string; Icon: typeof Inbox }[] = [
+  { id: 'inbox', label: 'Inbox', Icon: Inbox },
+  { id: 'cases', label: 'Cases', Icon: FolderOpen },
+  { id: 'library', label: 'Library', Icon: BookOpen },
+  { id: 'menu', label: 'Menu', Icon: MoreHorizontal },
+]
+
 export interface StageHost {
   /** The landscape is showing: hide the rail and surfaces, keep modals usable. */
   hidden: boolean
@@ -65,6 +75,11 @@ export interface StageHost {
    * tucked away (the landscape's dock is the navigation); ⌘B toggles it.
    */
   railOpen?: boolean
+  /**
+   * The landscape's own navigation, offered in the stage's topbar so there is
+   * one way to move around (docs/landscape/ADOPTION.md, A2).
+   */
+  nav?: { waiting: number; onDock: (id: StageDockId) => void }
 }
 
 export function WorkspaceShell({ stage }: { stage?: StageHost } = {}): JSX.Element {
@@ -593,6 +608,17 @@ export function WorkspaceShell({ stage }: { stage?: StageHost } = {}): JSX.Eleme
               <span>Landscape</span>
             </button>
           )}
+          {stage?.nav && (
+            <nav className={styles.stageNav} aria-label="Landscape" data-testid="stage-nav">
+              {STAGE_DOCK.map(({ id, label, Icon }) => (
+                <button key={id} type="button" className={styles.stageNavBtn} onClick={() => stage.nav?.onDock(id)} data-stage-dock={id}>
+                  <Icon size={14} strokeWidth={1.8} />
+                  <span>{label}</span>
+                  {id === 'inbox' && stage.nav!.waiting > 0 && <b className={styles.stageNavBadge}>{stage.nav!.waiting}</b>}
+                </button>
+              ))}
+            </nav>
+          )}
           <div className={styles.tabs}>
             {tabs.map((t) => (
               <div
@@ -614,6 +640,13 @@ export function WorkspaceShell({ stage }: { stage?: StageHost } = {}): JSX.Eleme
                 )}
               </div>
             ))}
+            {/* A rail surface (Mail, Calendar …) is not a tab of its own; name it
+                anyway, so the topbar always says where you are. */}
+            {!tabs.some((t) => t.key === activeTab) && (
+              <div className={`${styles.tab} ${styles.tabOn}`} data-testid="stage-surface-tab">
+                {RAIL_ITEMS.find((r) => r.id === rail)?.label ?? 'Workspace'}
+              </div>
+            )}
           </div>
           <button className={styles.cmdk} onClick={() => setCommandOpen(true)}>
             <Search size={13} /> Search or run…
