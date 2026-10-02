@@ -77,7 +77,7 @@ export function WorkFocus({ w }: { w: AgentPresence }): JSX.Element {
         </div>
         <span className={styles.chip} data-status={w.status}>
           <span className={styles.chipDot} />
-          {STATUS_LABEL[w.status]}
+          {w.status === 'idle' && w.card ? w.card.status : STATUS_LABEL[w.status]}
           {w.since ? ` · ${ago(w.since)}` : ''}
         </span>
       </header>

@@ -15,7 +15,7 @@ describe('workPresence', () => {
 
   it('a case carries its last note and its agents', () => {
     const items: WorkItem[] = [{ kind: 'case', id: 'case:c1', caseId: 'c1', title: 'Pilot', lastAt: 9, sessions: [sess({ caseId: 'c1' })] }]
-    const p = workPresence(items, [], () => false, new Map([['c1', { id: 'c1', status: 'open', lastNote: 'Budget approved', artifacts: [] }]]))[0]
+    const p = workPresence(items, [], () => false, new Map([['c1', { id: 'c1', type: 'task', status: 'open', notes: [{ at: '2026-10-01T00:00:00Z', author: 'you', text: 'Budget approved' }], artifacts: [] }]]))[0]
     expect(p).toMatchObject({ caseId: 'c1', about: 'Budget approved', role: 'with Felix', status: 'idle' })
   })
 })

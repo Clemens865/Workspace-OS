@@ -542,3 +542,162 @@
   text-overflow: ellipsis;
   white-space: nowrap;
 }
+
+/* ── A work card's face: what the case is, at a glance ── */
+.wFace {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+  padding: 14px 14px 12px;
+  text-align: left;
+}
+
+.wHead {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 11px;
+}
+
+.wStatus {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-weight: 500;
+  color: var(--wl-ink);
+}
+
+.wStatus .dot {
+  width: 8px;
+  height: 8px;
+  box-shadow: none;
+}
+
+.dot[data-tone='warm'] {
+  --c: var(--wl-claude);
+}
+
+.dot[data-tone='go'] {
+  --c: var(--wl-codex);
+}
+
+.dot[data-tone='done'] {
+  --c: var(--wl-codex);
+}
+
+.wStage {
+  display: inline-flex;
+  gap: 3px;
+}
+
+.wStage i {
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: rgba(var(--wl-ink-rgb), 0.16);
+}
+
+.wStage i[data-on='true'] {
+  background: var(--wl-ink-2);
+}
+
+.wWhen {
+  margin-left: auto;
+  color: var(--wl-faint);
+}
+
+.wTitle {
+  font-family: var(--wl-serif);
+  font-size: 16px;
+  line-height: 1.22;
+  color: var(--wl-ink);
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.wAbout {
+  font-size: 11px;
+  line-height: 1.4;
+  color: var(--wl-muted);
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.wAbout b {
+  font-weight: 500;
+  color: var(--wl-ink-2);
+}
+
+.wLine {
+  margin-top: auto;
+  padding-top: 7px;
+  border-top: 1px solid var(--wl-line);
+  font-size: 11px;
+  line-height: 1.4;
+  color: var(--wl-ink-2);
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.wLine[data-kind='next'] {
+  color: var(--wl-claude-ink);
+}
+
+.wKey {
+  font-weight: 500;
+  color: var(--wl-ink);
+}
+
+.wLine[data-kind='next'] .wKey {
+  color: var(--wl-claude);
+}
+
+.wFoot {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 10.5px;
+  color: var(--wl-muted);
+}
+
+.wFiles {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.flexGap {
+  flex: 1;
+}
+
+.wAgent {
+  display: grid;
+  place-items: center;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: var(--wl-claude-soft);
+  color: var(--wl-claude-ink);
+  font-family: var(--wl-serif);
+  font-size: 10.5px;
+}
+
+.mLast {
+  margin-top: 6px;
+  max-width: 100%;
+  font-size: 10.5px;
+  line-height: 1.35;
+  color: var(--wl-ink-2);
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}

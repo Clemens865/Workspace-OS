@@ -3,6 +3,8 @@
  * The landscape screens only ever show these; nothing is invented (PLAN.md §5:
  * "Paused" appears only once real pause/resume exists).
  */
+import type { WorkCard } from './workCardModel'
+
 export type PresenceStatus = 'working' | 'question' | 'review' | 'error' | 'interrupted' | 'paused' | 'idle'
 
 export type Provider = 'claude' | 'codex'
@@ -34,6 +36,8 @@ export interface AgentPresence {
   outputs: string[]
   /** A work card (a case or a session, SESSIONS.md) rather than a roster agent. */
   kind?: 'agent' | 'work'
+  /** What a work card says about its case or session (workCardModel). */
+  card?: WorkCard
 }
 
 /** Status words, as the design writes them. */
@@ -44,7 +48,7 @@ export const STATUS_LABEL: Record<PresenceStatus, string> = {
   error: 'Needs attention',
   interrupted: 'Interrupted',
   paused: 'Paused',
-  idle: 'Idle',
+  idle: 'Ready',
 }
 
 export const PROVIDER_LABEL: Record<Provider, string> = { claude: 'Claude Code', codex: 'Codex' }
