@@ -80,7 +80,8 @@
 }
 
 .dot[data-kind='error'],
-.dot[data-kind='interrupted'] {
+.dot[data-kind='interrupted'],
+.dot[data-kind='paused'] {
   background: var(--wl-grey);
 }
 

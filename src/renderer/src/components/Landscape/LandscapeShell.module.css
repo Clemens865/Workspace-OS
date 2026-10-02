@@ -302,3 +302,104 @@
   font-size: 11px;
   font-weight: 600;
 }
+
+/* ── Header right: projects + the way back ── */
+.headerRight {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+}
+
+.projects {
+  position: relative;
+}
+
+.projectPill {
+  display: inline-flex;
+  align-items: center;
+  gap: 18px;
+  height: 42px;
+  padding: 0 18px 0 20px;
+  border-radius: 21px;
+  border: 1px solid var(--wl-line);
+  background: rgba(255, 255, 255, 0.55);
+  font: inherit;
+  font-size: 14px;
+  color: var(--wl-ink);
+  cursor: pointer;
+}
+
+.glassOn .projectPill {
+  background: rgba(255, 255, 255, 0.3);
+}
+
+.projectMenu {
+  position: absolute;
+  right: 0;
+  top: 50px;
+  z-index: 5;
+  min-width: 280px;
+  max-height: 60vh;
+  overflow-y: auto;
+  padding: 8px;
+  border-radius: 18px;
+  border: 1px solid rgba(255, 255, 255, 0.9);
+  background: rgba(251, 252, 253, 0.96);
+  box-shadow: 0 20px 50px -20px rgba(30, 55, 70, 0.35);
+}
+
+.projectItem {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  padding: 9px 10px;
+  border: 0;
+  border-radius: 10px;
+  background: none;
+  font: inherit;
+  font-size: 14px;
+  color: var(--wl-ink);
+  text-align: left;
+  cursor: pointer;
+}
+
+.projectItem:hover,
+.projectOn {
+  background: rgba(27, 39, 48, 0.06);
+}
+
+.projectDot {
+  width: 9px;
+  height: 9px;
+  flex: none;
+  border-radius: 50%;
+  background: var(--wl-grey);
+}
+
+.projectNew {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 6px;
+  padding: 8px 10px;
+  border-top: 1px solid var(--wl-line);
+  color: var(--wl-muted);
+}
+
+.projectNew input {
+  flex: 1;
+  min-width: 0;
+  border: 0;
+  outline: none;
+  background: none;
+  font: inherit;
+  font-size: 14px;
+  color: var(--wl-ink);
+}
+
+.projectError {
+  padding: 4px 10px 6px;
+  font-size: 12.5px;
+  color: #b0503a;
+}

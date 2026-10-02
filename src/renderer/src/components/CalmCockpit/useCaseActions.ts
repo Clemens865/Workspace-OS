@@ -14,6 +14,16 @@ import { caseAgentRuns, useCaseAgentRun } from './useCaseAgentRun'
  * `expanded` gates the status-vocabulary fetch: the row only needs it once open;
  * the fullscreen view passes `true`.
  */
+/**
+ * Every case run gets the case's own folder (Work/<id>/{sources,drafts,outputs})
+ * and is told to write into it, so what an agent makes for a case lands with
+ * the case instead of scattering over the workspace (docs/landscape/PLAN.md §5a).
+ */
+async function withWorkFolder(caseId: string, prompt: string): Promise<string> {
+  const work = await window.workspace.cases.workFolder?.(caseId).catch(() => null)
+  return work ? `${prompt}\n\n${work.guidance}` : prompt
+}
+
 export function useCaseActions(c: WorkCase, onChanged: () => void, expanded: boolean) {
   const [note, setNote] = useState('')
   const [pickCalendar, setPickCalendar] = useState<{ signal: NoteSignal; options: CalendarWriteTarget[] } | null>(null)
@@ -100,7 +110,7 @@ export function useCaseActions(c: WorkCase, onChanged: () => void, expanded: boo
       }
       const task = buildCaseTask(signal, c.id, '')
       const started = await caseAgentRuns.start(c, key, task.label, async () => ({
-        prompt: buildCaseTask(signal, c.id, await window.workspace.cases.asContext(c.id)).prompt,
+        prompt: await withWorkFolder(c.id, buildCaseTask(signal, c.id, await window.workspace.cases.asContext(c.id)).prompt),
         mentions: [],
       }))
       if (!started) return
@@ -129,7 +139,7 @@ export function useCaseActions(c: WorkCase, onChanged: () => void, expanded: boo
         const markdown = await window.workspace.cases.asContext(c.id)
         const ctx = await Promise.all(refs.map((id) => window.workspace.cases.asContext(id)))
         const extra = ctx.filter(Boolean).map((m) => `\n\n--- Referenced case ---\n${m}`).join('')
-        return { prompt: buildAskTask(instruction + extra, c.id, markdown).prompt, mentions }
+        return { prompt: await withWorkFolder(c.id, buildAskTask(instruction + extra, c.id, markdown).prompt), mentions }
       })
       if (!started) return
       const tag = refs.length ? ` (with ${refs.length} referenced case${refs.length > 1 ? 's' : ''})` : ''

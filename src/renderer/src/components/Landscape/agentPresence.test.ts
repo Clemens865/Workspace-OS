@@ -110,9 +110,19 @@ describe('derivePresence', () => {
     expect(of(derivePresence(inputs({ jobs })), 'Ada').status).toBe('idle')
   })
 
-  it('never invents a paused state', () => {
+  it('never invents a paused state: an error stays an error', () => {
     const all = derivePresence(inputs({ runs: [run({ status: 'error' })] }))
     expect(all.some((a) => a.status === 'paused')).toBe(false)
+  })
+
+  it('a run the person paused shows as paused, with its task', () => {
+    const ada = of(derivePresence(inputs({ runs: [run({ status: 'paused', resolvedAt: T + 5 })] })), 'Ada')
+    expect(ada).toMatchObject({ status: 'paused', task: 'Compare onboarding flows', runId: 'r1' })
+  })
+
+  it('a paused background job shows as paused', () => {
+    const jobs = [{ id: 'j1', label: 'Digest', prompt: 'p', agentName: 'Ada', status: 'paused' as const, enqueuedAt: T, startedAt: T, finishedAt: T + 5 }]
+    expect(of(derivePresence(inputs({ jobs })), 'Ada').status).toBe('paused')
   })
 })
 

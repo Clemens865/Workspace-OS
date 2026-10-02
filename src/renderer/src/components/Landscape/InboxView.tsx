@@ -6,6 +6,7 @@ import { useGlass } from './backdrop/useBackdrop'
 import { ago } from './agentPresence'
 import { KIND_LABEL, revisionPrompt, type InboxItem } from './inboxModel'
 import * as act from './agentActions'
+import { resumeRun } from './pauseResume'
 import styles from './InboxView.module.css'
 
 const TEXT_EXT = /\.(md|markdown|txt|csv|tsv|json|ya?ml|html?|xml|log|ts|tsx|js|py)$/i
@@ -204,6 +205,17 @@ export function InboxView({ items, onDismiss }: { items: InboxItem[]; onDismiss:
                     <Send size={14} />
                   </button>
                 </label>
+              </>
+            )}
+
+            {item.kind === 'paused' && (
+              <>
+                <button className={styles.primary} disabled={busy} onClick={() => run(() => resumeRun(item.runId), `Resumed — ${item.who} continues where it stopped.`)} data-testid="inbox-resume">
+                  <Play size={14} /> Resume
+                </button>
+                <button className={styles.btn} disabled={busy} onClick={() => run(() => act.stopPaused(item.runId), 'Stopped.')} data-testid="inbox-stop">
+                  Stop
+                </button>
               </>
             )}
 

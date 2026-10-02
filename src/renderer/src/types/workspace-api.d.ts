@@ -139,7 +139,7 @@ export interface Routine {
 }
 
 /* ── Background runs. Mirrors src/main/runs/queue.ts. ── */
-export type BackgroundJobStatus = 'queued' | 'running' | 'pending' | 'error' | 'interrupted' | 'cancelled'
+export type BackgroundJobStatus = 'queued' | 'running' | 'pending' | 'error' | 'interrupted' | 'cancelled' | 'paused'
 export interface BackgroundJob {
   id: string
   label: string
@@ -167,6 +167,9 @@ export interface BackgroundJob {
   turns: number
   artifacts: { path: string; name: string; type: string }[]
   tail: string
+  /** The provider session, once seen (what a paused job resumes). */
+  sessionId?: string
+  resume?: boolean
 }
 
 /* ── Connections — the roster the Connectors page shows. Mirrors src/main/connections/registry.ts. ── */
@@ -961,6 +964,9 @@ export interface WorkspaceApi {
     enqueue: (input: { prompt: string; label?: string; agentName?: string | null; origin?: 'routine' | 'background'; contextFiles?: string[] }) => Promise<BackgroundJob>
     list: () => Promise<BackgroundJob[]>
     cancel: (id: string) => Promise<{ ok: boolean }>
+    /** Stop a running job but keep its session; resume continues the same conversation. */
+    pause: (id: string) => Promise<{ ok: boolean }>
+    resume: (id: string) => Promise<{ ok: boolean }>
     onUpdated: (callback: (job: BackgroundJob) => void) => () => void
   }
   /** One roster over every store, status computed (probes cached 10 min; `force` re-probes). */
@@ -1129,9 +1135,18 @@ export interface WorkspaceApi {
     close: () => Promise<void>
   }
   /** Cases — the thread of work that binds a subject, its documents and its notes. */
+  /** Sub-projects: subfolders marked with .workspace-os/project.json; home = the workspace or a parent. */
+  projects: {
+    list: (home?: string) => Promise<{ path: string; name: string; color: string | null; home: boolean }[]>
+    create: (home: string | undefined, name: string, color?: string) => Promise<{ path: string; name: string; color: string | null; home: boolean }>
+  }
   cases: {
     list: () => Promise<WorkCase[]>
     get: (id: string) => Promise<WorkCase | null>
+    /** The case's own folder, Work/<id>/{sources,drafts,outputs}, created on demand. */
+    workFolder: (id: string) => Promise<{ folder: string; guidance: string }>
+    /** Accept a draft: move it from drafts/ to outputs/ and update the case. */
+    promote: (id: string, filePath: string) => Promise<WorkCase>
     statuses: (type?: string) => Promise<string[]>
     create: (payload: { title: string; type?: string; description?: string; subject?: string; artifacts?: string[] }) => Promise<WorkCase>
     setStatus: (id: string, status: string) => Promise<WorkCase>

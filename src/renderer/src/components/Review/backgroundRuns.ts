@@ -20,6 +20,8 @@ import { workspaceScope } from '../../lib/workspaceScope'
 function feedStatus(job: BackgroundJob): RunStatus {
   if (job.status === 'running') return 'running'
   if (job.status === 'pending') return 'pending'
+  // Paused is a choice, not a failure: the feed must not call it one.
+  if (job.status === 'paused') return 'paused'
   return 'error'
 }
 

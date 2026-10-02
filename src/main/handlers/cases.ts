@@ -1,3 +1,4 @@
+import { WORK_PARTS, promotedPath, workFolderFor, workFolderGuidance } from '../cases-work'
 import { IpcMain } from 'electron'
 import fs from 'fs'
 import os from 'os'
@@ -310,6 +311,38 @@ export function registerCaseHandlers(ipcMain: IpcMain): void {
     const c = load(str(id, 120))
     if (!c) throw new Error('No such case.')
     return write({ ...c, description: str(description, 1000) })
+  })
+
+  /** The case's own folder (Work/<id>/{sources,drafts,outputs}), created on demand. */
+  ipcHandle(ipcMain, 'cases:work-folder', (_e, id: unknown) => {
+    const c = load(str(id, 120))
+    if (!c) throw new Error('No such case.')
+    const root = getWorkspaceRoot()
+    const base = c.scope === 'global' || !root ? path.join(os.homedir(), 'Workspace-OS') : root
+    const folder = workFolderFor(base, c.id)
+    for (const part of WORK_PARTS) fs.mkdirSync(path.join(folder, part), { recursive: true })
+    return { folder, guidance: workFolderGuidance(folder, root) }
+  })
+
+  /** Accept a draft: move it to outputs/ and point the case at its new place. */
+  ipcHandle(ipcMain, 'cases:promote', (_e, id: unknown, filePath: unknown) => {
+    const c = load(str(id, 120))
+    if (!c) throw new Error('No such case.')
+    const root = getWorkspaceRoot()
+    const base = c.scope === 'global' || !root ? path.join(os.homedir(), 'Workspace-OS') : root
+    const folder = workFolderFor(base, c.id)
+    const raw = str(filePath, 1000).trim()
+    const abs = path.isAbsolute(raw) ? raw : path.join(base, raw)
+    const dest = promotedPath(folder, abs)
+    if (!dest) throw new Error('Only a draft of this case can be accepted into its outputs.')
+    if (!fs.existsSync(abs)) throw new Error('That draft is no longer there.')
+    fs.mkdirSync(path.dirname(dest), { recursive: true })
+    fs.renameSync(abs, dest)
+    const rel = (p: string): string => (root && p.startsWith(root + path.sep) ? path.relative(root, p) : p)
+    const artifacts = c.artifacts.map((a) => (a === raw || a === abs || a === rel(abs) ? rel(dest) : a))
+    if (!artifacts.includes(rel(dest))) artifacts.push(rel(dest))
+    const notes = [...c.notes, { at: new Date().toISOString(), author: 'you' as const, text: `Accepted ${path.basename(dest)} — moved to outputs.` }]
+    return write({ ...c, artifacts, notes })
   })
 
   ipcHandle(ipcMain, 'cases:add-artifact', (_e, id: unknown, filePath: unknown) => {

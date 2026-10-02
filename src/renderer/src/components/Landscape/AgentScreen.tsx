@@ -39,6 +39,19 @@ function Mini({ a }: { a: AgentPresence }): JSX.Element {
       )
     case 'review':
       return <ReviewMini a={a} />
+    case 'paused':
+      return (
+        <>
+          <div className={styles.mCenter}>
+            <div className={styles.pIco}>II</div>
+            <div className={styles.mState}>Paused</div>
+            <div className={styles.mSub}>{a.task ?? 'Task on hold'}</div>
+          </div>
+          <div className={styles.mFoot}>
+            <span className={styles.dot} data-tone="grey" /> Paused{when ? ` · ${when}` : ''}
+          </div>
+        </>
+      )
     case 'error':
     case 'interrupted':
       return (

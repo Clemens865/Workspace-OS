@@ -83,20 +83,35 @@ export function LandscapeWorld({ agents, front, back, mode, focusId, onOpen, onS
     return overviewLayout(front, back, cur, scrolling)
   }, [mode, focusId, front, back, all, cur, scrolling])
 
+  // The input handlers bind once and read the current props from here, so a
+  // scrolling row (one render per frame) does not re-subscribe every frame.
+  const live = useRef({ mode, focusId, front, back, onOpen, onStep })
+  live.current = { mode, focusId, front, back, onOpen, onStep }
+  const stepFrom = (id: string, dir: number): void => {
+    const { front: f, back: b, onStep: step } = live.current
+    const ring = b.includes(id) ? b : f
+    const i = ring.indexOf(id)
+    if (i < 0 || ring.length < 2) return
+    step(ring[(i + dir + ring.length) % ring.length])
+  }
+  const stepRef = useRef(stepFrom)
+  stepRef.current = stepFrom
+
   // Wheel / trackpad on the overview; a horizontal swipe turns the ring when focused.
   const swipe = useRef({ acc: 0, lock: false, t: 0 })
   useEffect(() => {
     const el = host.current
     if (!el) return
     const onWheel = (e: WheelEvent): void => {
-      if (mode === 'overview') {
+      const { mode: m, focusId: f } = live.current
+      if (m === 'overview') {
         if (carousel.wheel(e)) e.preventDefault()
-      } else if (mode === 'focus' && focusId && Math.abs(e.deltaX) > Math.abs(e.deltaY) * 1.5) {
+      } else if (m === 'focus' && f && Math.abs(e.deltaX) > Math.abs(e.deltaY) * 1.5) {
         e.preventDefault()
         const s = swipe.current
         s.acc += e.deltaX
         if (Math.abs(s.acc) > 90 && !s.lock) {
-          stepFrom(focusId, Math.sign(s.acc))
+          stepRef.current(f, Math.sign(s.acc))
           s.acc = 0
           s.lock = true
           window.setTimeout(() => (s.lock = false), 650)
@@ -107,14 +122,7 @@ export function LandscapeWorld({ agents, front, back, mode, focusId, onOpen, onS
     }
     el.addEventListener('wheel', onWheel, { passive: false })
     return () => el.removeEventListener('wheel', onWheel)
-  })
-
-  const stepFrom = (id: string, dir: number): void => {
-    const ring = back.includes(id) ? back : front
-    const i = ring.indexOf(id)
-    if (i < 0 || ring.length < 2) return
-    onStep(ring[(i + dir + ring.length) % ring.length])
-  }
+  }, [carousel])
 
   // Arrow keys: scroll the row, or turn the ring while focused. Digits open front screens.
   useEffect(() => {
@@ -123,22 +131,23 @@ export function LandscapeWorld({ agents, front, back, mode, focusId, onOpen, onS
       if (t && (/INPUT|TEXTAREA|SELECT/.test(t.tagName) || t.isContentEditable)) return
       if (e.metaKey || e.ctrlKey || e.altKey) return
       if (e.key !== 'ArrowLeft' && e.key !== 'ArrowRight' && !/^[1-9]$/.test(e.key)) return
-      if (mode === 'overview') {
+      const { mode: m, focusId: f, front: fr, onOpen: open } = live.current
+      if (m === 'overview') {
         if (/^[1-9]$/.test(e.key)) {
-          const id = front[Number(e.key) - 1]
-          if (id) onOpen(id)
+          const id = fr[Number(e.key) - 1]
+          if (id && id !== ADD_ID) open(id)
           return
         }
         e.preventDefault()
         carousel.step(e.key === 'ArrowRight' ? 1 : -1)
-      } else if (mode === 'focus' && focusId && (e.key === 'ArrowLeft' || e.key === 'ArrowRight')) {
+      } else if (m === 'focus' && f && (e.key === 'ArrowLeft' || e.key === 'ArrowRight')) {
         e.preventDefault()
-        stepFrom(focusId, e.key === 'ArrowRight' ? 1 : -1)
+        stepRef.current(f, e.key === 'ArrowRight' ? 1 : -1)
       }
     }
     window.addEventListener('keydown', onKey)
     return () => window.removeEventListener('keydown', onKey)
-  })
+  }, [carousel])
 
   // Drag anywhere on the overview; a drag never counts as a click.
   const drag = useRef<{ x: number; t0: number; moved: boolean; v: number; lx: number; lt: number } | null>(null)

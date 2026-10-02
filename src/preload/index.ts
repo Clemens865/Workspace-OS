@@ -748,6 +748,8 @@ contextBridge.exposeInMainWorld('workspace', {
       ipcRenderer.invoke(IPC.RUNS_ENQUEUE, input),
     list: () => ipcRenderer.invoke(IPC.RUNS_LIST),
     cancel: (id: string) => ipcRenderer.invoke(IPC.RUNS_CANCEL, id),
+    pause: (id: string) => ipcRenderer.invoke(IPC.RUNS_PAUSE, id),
+    resume: (id: string) => ipcRenderer.invoke(IPC.RUNS_RESUME, id),
     onUpdated: (callback: (job: unknown) => void) => {
       const handler = (_e: Electron.IpcRendererEvent, job: unknown) => callback(job)
       ipcRenderer.on(IPC.RUNS_UPDATED, handler)
@@ -927,9 +929,16 @@ contextBridge.exposeInMainWorld('workspace', {
    * Cases — a thread of work that outlives any one agent run: the subject, the
    * documents produced for it, the status, and the notes.
    */
+  /** Sub-projects: marked subfolders of the workspace (docs/landscape/PLAN.md §5a). */
+  projects: {
+    list: (home?: string) => ipcRenderer.invoke('projects:list', home),
+    create: (home: string | undefined, name: string, color?: string) => ipcRenderer.invoke('projects:create', home, name, color),
+  },
   cases: {
     list: () => ipcRenderer.invoke('cases:list'),
     get: (id: string) => ipcRenderer.invoke('cases:get', id),
+    workFolder: (id: string) => ipcRenderer.invoke('cases:work-folder', id),
+    promote: (id: string, filePath: string) => ipcRenderer.invoke('cases:promote', id, filePath),
     statuses: (type?: string) => ipcRenderer.invoke('cases:statuses', type),
     create: (payload: { title: string; type?: string; description?: string; subject?: string; artifacts?: string[] }) =>
       ipcRenderer.invoke('cases:create', payload),

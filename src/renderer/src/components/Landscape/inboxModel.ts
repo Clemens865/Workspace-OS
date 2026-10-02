@@ -6,13 +6,14 @@
  *   question    a PTY approval on a live run, or a Codex request
  *   error       a run that failed (recent, latest per agent), until dismissed
  *   interrupted a background job cut off (quit, crash), until restarted or dismissed
+ *   paused      a run the person paused, until resumed or stopped
  *   review      a finished run awaiting Keep / Revert / Revise
  */
 import type { ReviewRun, HitlItem } from '../Review/reviewModel'
 import type { CodexAsk, JobLite } from './agentPresence'
 import { shorten, splitName } from './agentPresence'
 
-export type InboxKind = 'question' | 'error' | 'interrupted' | 'review'
+export type InboxKind = 'question' | 'error' | 'interrupted' | 'paused' | 'review'
 
 export interface InboxItem {
   key: string
@@ -37,7 +38,7 @@ export interface InboxItem {
 /** Errors older than this stop asking for attention (they stay in the feed). */
 export const ERROR_WINDOW_MS = 24 * 3_600_000
 
-const ORDER: Record<InboxKind, number> = { question: 0, error: 1, interrupted: 2, review: 3 }
+const ORDER: Record<InboxKind, number> = { question: 0, error: 1, interrupted: 2, paused: 3, review: 4 }
 
 export function deriveInbox(
   inp: { runs: ReviewRun[]; hitl: HitlItem[]; jobs: JobLite[]; codex: CodexAsk[]; dismissed: Set<string> },
@@ -86,6 +87,23 @@ export function deriveInbox(
   }
 
   for (const r of inp.runs) {
+    if (r.status === 'paused') {
+      items.push({
+        key: `paused:${r.runId}`,
+        kind: 'paused',
+        agentName: r.agentName,
+        who: who(r.agentName, r.sessionName || 'Agent'),
+        title: 'Paused',
+        text: shorten(r.prompt, 120),
+        at: r.resolvedAt ?? r.createdAt,
+        runId: r.runId,
+        sessionId: r.sessionId,
+        requestId: null,
+        files: r.artifacts.map((a) => a.path),
+        revertible: !!r.checkpointId,
+        prompt: r.prompt,
+      })
+    }
     if (r.status === 'pending') {
       items.push({
         key: `review:${r.runId}`,
@@ -163,5 +181,6 @@ export const KIND_LABEL: Record<InboxKind, string> = {
   question: 'Needs your answer',
   error: 'Needs attention',
   interrupted: 'Interrupted',
+  paused: 'Paused',
   review: 'Ready for review',
 }

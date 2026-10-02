@@ -517,3 +517,16 @@
   -webkit-mask-image: linear-gradient(#000 70%, transparent);
   mask-image: linear-gradient(#000 70%, transparent);
 }
+
+.pIco {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  background: rgba(154, 166, 175, 0.18);
+  color: var(--wl-ink-2);
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: 0.05em;
+}

@@ -17,7 +17,7 @@
  */
 
 export type RunFamily = 'edit' | 'action'
-export type RunStatus = 'running' | 'pending' | 'kept' | 'reverted' | 'error'
+export type RunStatus = 'running' | 'pending' | 'kept' | 'reverted' | 'error' | 'paused'
 
 /** A generated/touched file surfaced with the run (mirrors main's Artifact). */
 export interface RunArtifactLite {

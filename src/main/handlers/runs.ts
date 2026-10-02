@@ -1,3 +1,4 @@
+import { pausedResumePrompt } from '../../shared/agentRun'
 import { app, type IpcMain } from 'electron'
 import path from 'path'
 import { IPC } from '../ipc-channels'
@@ -54,9 +55,12 @@ function getQueue(): RunQueue {
 async function launcher(job: BackgroundJob, sink: JobSink): Promise<{ kill: () => void }> {
   const agent = job.agentName ? readAgentForRun(job.agentName) : null
   const routinePick = parseModelPick(agent?.model && isValidModelAlias(agent.model) ? agent.model : getDefaultAgentModel())
+  // A resumed job continues its own provider session instead of starting over.
+  const resumeId = job.resume && job.sessionId ? job.sessionId : undefined
   const { child } = await launchRun({
     runId: job.id,
-    prompt: job.prompt,
+    prompt: resumeId ? pausedResumePrompt(job.tail) : job.prompt,
+    resumeId,
     contextFiles: sanitizeContextFiles(job.contextFiles),
     activeFile: null,
     safeMode: true,
@@ -69,6 +73,7 @@ async function launcher(job: BackgroundJob, sink: JobSink): Promise<{ kill: () =
     capabilities: job.capabilities,
     sink: {
       output: (t) => sink.output(t),
+      sessionId: (sid) => sink.session?.(sid),
       meta: (m) => {
         sink.meta(m)
         sendToWindow(IPC.AGENT_RUN_META, job.id, m)
@@ -138,6 +143,18 @@ export function registerRunsHandlers(ipcMain: IpcMain): void {
   ipcHandle(ipcMain, IPC.RUNS_LIST, (event) => {
     assertMainFrame(event)
     return getQueue().list()
+  })
+
+  ipcHandle(ipcMain, IPC.RUNS_PAUSE, (event, id: unknown) => {
+    assertMainFrame(event)
+    if (typeof id !== 'string' || !/^bg-[a-z0-9-]{3,40}$/.test(id)) throw new IpcValidationError('Invalid run id')
+    return { ok: getQueue().pause(id) }
+  })
+
+  ipcHandle(ipcMain, IPC.RUNS_RESUME, (event, id: unknown) => {
+    assertMainFrame(event)
+    if (typeof id !== 'string' || !/^bg-[a-z0-9-]{3,40}$/.test(id)) throw new IpcValidationError('Invalid run id')
+    return { ok: getQueue().resume(id) }
   })
 
   ipcHandle(ipcMain, IPC.RUNS_CANCEL, (event, id: unknown) => {

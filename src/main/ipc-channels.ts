@@ -309,6 +309,8 @@ export const IPC = {
   // agent:* channels keyed by job id; UPDATED carries the persisted job record.
   RUNS_ENQUEUE: 'runs:enqueue',
   RUNS_LIST: 'runs:list',
+  RUNS_PAUSE: 'runs:pause',
+  RUNS_RESUME: 'runs:resume',
   RUNS_CANCEL: 'runs:cancel',
   RUNS_UPDATED: 'runs:updated',
 

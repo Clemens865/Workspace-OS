@@ -21,7 +21,7 @@ import path from 'path'
  * never spawns a process in tests.
  */
 
-export type JobStatus = 'queued' | 'running' | 'pending' | 'error' | 'interrupted' | 'cancelled'
+export type JobStatus = 'queued' | 'running' | 'pending' | 'error' | 'interrupted' | 'cancelled' | 'paused'
 export type JobOrigin = 'routine' | 'background'
 
 export interface JobArtifact {
@@ -60,6 +60,10 @@ export interface BackgroundJob {
   artifacts: JobArtifact[]
   /** The last few KB of output, for the card and for debugging a silent run. */
   tail: string
+  /** The provider session, once seen: what a paused job resumes. */
+  sessionId?: string
+  /** Set when a paused job is resumed: the next launch continues the session. */
+  resume?: boolean
 }
 
 export interface JobInput {
@@ -73,9 +77,11 @@ export interface JobInput {
   root?: string | null
 }
 
-/** What the launcher reports back. Mirrors the agent RunSink, minus session ids. */
+/** What the launcher reports back. Mirrors the agent RunSink. */
 export interface JobSink {
   output(text: string): void
+  /** The provider session id, once seen (what pause/resume continues). */
+  session?(sessionId: string): void
   meta(meta: { costUsd: number; turns: number; provider?: string; costKnown?: boolean; inputTokens?: number; outputTokens?: number; cachedInputTokens?: number }): void
   artifacts(list: JobArtifact[]): void
   done(code: number, checkpointId: string | null): void
@@ -184,11 +190,41 @@ export class RunQueue {
     return job
   }
 
+  /**
+   * Pauses a job: a running one is stopped but keeps its provider session, so
+   * resume continues the same conversation; a queued one simply waits. A
+   * paused job survives a restart (it is not "running", so load leaves it).
+   */
+  pause(id: string): boolean {
+    const job = this.get(id)
+    if (!job) return false
+    if (job.status === 'queued') {
+      this.patch(id, { status: 'paused' })
+      return true
+    }
+    if (job.status === 'running') {
+      // Mark first: the launcher's done() lands after the kill and must keep it.
+      this.patch(id, { status: 'paused', finishedAt: this.now() })
+      this.live.get(id)?.kill()
+      return true
+    }
+    return false
+  }
+
+  /** Resumes a paused job: back in the queue, continuing its session when it has one. */
+  resume(id: string): boolean {
+    const job = this.get(id)
+    if (!job || job.status !== 'paused') return false
+    this.patch(id, { status: 'queued', resume: !!job.sessionId, finishedAt: null, code: null })
+    void this.pump()
+    return true
+  }
+
   /** Ends a queued or running job. */
   cancel(id: string): boolean {
     const job = this.get(id)
     if (!job) return false
-    if (job.status === 'queued') {
+    if (job.status === 'queued' || job.status === 'paused') {
       this.patch(id, { status: 'cancelled', finishedAt: this.now() })
       return true
     }
@@ -247,6 +283,9 @@ export class RunQueue {
         this.save()
         this.emit('output', this.get(id)!, text)
       },
+      session: (sessionId) => {
+        if (sessionId && this.get(id)?.sessionId !== sessionId) this.patch(id, { sessionId })
+      },
       meta: (m) => void this.patch(id, m),
       artifacts: (list) => void this.patch(id, { artifacts: list }),
       done: (code, checkpointId) => this.finish(id, code, checkpointId),
@@ -257,10 +296,11 @@ export class RunQueue {
     this.live.delete(id)
     const job = this.get(id)
     if (!job) return
-    // A cancelled job keeps its status; everything else lands by exit code.
-    const status: JobStatus = job.status === 'cancelled' ? 'cancelled' : code === 0 ? 'pending' : 'error'
+    // A cancelled or paused job keeps its status; everything else lands by exit code.
+    const status: JobStatus = job.status === 'cancelled' || job.status === 'paused' ? job.status : code === 0 ? 'pending' : 'error'
     this.patch(id, {
       status,
+      resume: false,
       code,
       checkpointId: checkpointId ?? job.checkpointId,
       finishedAt: this.now(),

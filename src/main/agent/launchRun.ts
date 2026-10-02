@@ -185,6 +185,10 @@ export async function launchRun(o: LaunchRunOptions): Promise<{ child: ChildProc
       // refuses any action outside this run's grant. Minted here, never logged.
       [AGENT_TOKEN_ENV]: grants.issue(id, o.capabilities, agent?.name ?? id, provider === 'codex' ? getWorkspaceRoot() ?? undefined : undefined),
     } as Record<string, string>
+    // The open workspace, as the shells already get it: the `wos-case` CLI (and
+    // any script the agent writes) needs it to find Cases/ and Work/.
+    const wsRoot = getWorkspaceRoot()
+    if (wsRoot) childEnv['WOS_WORKSPACE'] = wsRoot
 
     // MCP connectors: for every enabled connector whose secret(s) are present,
     // decrypt them into childEnv, add `--mcp-config <path> --strict-mcp-config`,

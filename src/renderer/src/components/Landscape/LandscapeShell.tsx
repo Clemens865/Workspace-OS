@@ -16,6 +16,8 @@ import { useAgentPresence } from './useAgentPresence'
 import { arrangeRows, teamSummary } from './agentPresence'
 import { createAgent } from './agentActions'
 import { InboxView } from './InboxView'
+import { CasesView } from './CasesView'
+import { ProjectSwitcher } from './ProjectSwitcher'
 import { deriveInbox } from './inboxModel'
 import { PreviewLive } from './usePreview'
 import { BackdropContext, useBackdrop } from './backdrop/useBackdrop'
@@ -187,7 +189,7 @@ export function LandscapeShell(): JSX.Element {
       if (e.key !== 'Escape' || e.defaultPrevented) return
       const t = e.target as HTMLElement | null
       if (t && (/INPUT|TEXTAREA|SELECT/.test(t.tagName) || t.isContentEditable)) return
-      if (view === 'agent' || view === 'menu' || view === 'inbox') setView('overview')
+      if (view === 'agent' || view === 'menu' || view === 'inbox' || view === 'cases') setView('overview')
     }
     window.addEventListener('keydown', onKey)
     return () => window.removeEventListener('keydown', onKey)
@@ -201,9 +203,10 @@ export function LandscapeShell(): JSX.Element {
   const onDock = (id: DockId): void => {
     const item = DOCK.find((d) => d.id === id)
     if (item?.stage) openSurface(item.stage)
-    else showLandscape(id === 'menu' ? 'menu' : id === 'inbox' ? 'inbox' : 'overview')
+    else showLandscape(id === 'menu' ? 'menu' : id === 'inbox' ? 'inbox' : id === 'cases' ? 'cases' : 'overview')
   }
-  const activeDock: DockId | null = view === 'menu' ? 'menu' : view === 'inbox' ? 'inbox' : view === 'overview' || view === 'agent' ? 'overview' : null
+  const activeDock: DockId | null =
+    view === 'menu' ? 'menu' : view === 'inbox' ? 'inbox' : view === 'cases' ? 'cases' : view === 'overview' || view === 'agent' ? 'overview' : null
   const onStage = view === 'stage'
   const worldMode: WorldMode = view === 'agent' ? 'focus' : view === 'overview' ? 'overview' : 'away'
 
@@ -239,12 +242,16 @@ export function LandscapeShell(): JSX.Element {
               </button>
             ) : (
               <>
-                <h1 className={styles.heading}>{view === 'menu' ? 'Menu' : view === 'inbox' ? `Inbox${inbox.length ? ` · ${inbox.length} waiting` : ''}` : 'Your team'}</h1>
+                <h1 className={styles.heading}>
+                  {view === 'menu' ? 'Menu' : view === 'inbox' ? `Inbox${inbox.length ? ` · ${inbox.length} waiting` : ''}` : view === 'cases' ? 'Your cases' : 'Your team'}
+                </h1>
                 <div className={styles.sub} data-testid="team-summary">
                   {view === 'menu'
                     ? 'Every part of the workspace, one click away'
                     : view === 'inbox'
                       ? 'Questions, results to review, and anything that went wrong'
+                      : view === 'cases'
+                        ? 'Each thread of work with its documents, notes and status'
                       : agents.length
                         ? teamSummary(agents)
                         : 'No agents yet'}
@@ -252,13 +259,17 @@ export function LandscapeShell(): JSX.Element {
               </>
             )}
           </div>
-          <button ref={exitBtn} className={styles.back} onClick={() => settings.set('landscapeShell', false)} data-testid="landscape-exit">
-            Back to the current shell
-          </button>
+          <div className={styles.headerRight}>
+            <ProjectSwitcher />
+            <button ref={exitBtn} className={styles.back} onClick={() => settings.set('landscapeShell', false)} data-testid="landscape-exit">
+              Back to the current shell
+            </button>
+          </div>
         </header>
 
         {view === 'menu' && <LandscapeMenu onOpen={openSurface} />}
         {view === 'inbox' && <InboxView items={inbox} onDismiss={dismiss} />}
+        {view === 'cases' && <CasesView />}
 
         {(view === 'overview' || view === 'agent') && (
           <div className={styles.hint} aria-hidden>

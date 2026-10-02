@@ -73,6 +73,18 @@ describe('deriveInbox', () => {
   })
 })
 
+describe('paused runs', () => {
+  it('wait in the Inbox after failures and before reviews', () => {
+    const runs = [
+      run({ runId: 'p', status: 'paused', resolvedAt: T + 2 }),
+      run({ runId: 'r', status: 'pending', resolvedAt: T + 3, agentName: 'Other' }),
+    ]
+    const items = deriveInbox({ ...empty, runs }, T + 10)
+    expect(items.map((i) => i.kind)).toEqual(['paused', 'review'])
+    expect(items[0]).toMatchObject({ key: 'paused:p', title: 'Paused', who: 'Lena' })
+  })
+})
+
 describe('revisionPrompt', () => {
   it('gives the agent the task, its files and the requested change', () => {
     const p = revisionPrompt('Draft the launch plan', ['/w/Plan.md'], 'Shorter, and add week numbers')

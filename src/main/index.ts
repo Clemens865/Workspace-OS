@@ -27,6 +27,7 @@ import { registerDownloads } from './browser/downloads'
 import { registerMetricHandlers } from './handlers/metrics'
 import { registerRangeHandlers } from './handlers/ranges'
 import { registerCaseHandlers } from './handlers/cases'
+import { registerProjectHandlers } from './handlers/projects'
 import { registerCollectionHandlers } from './handlers/collections'
 import { registerCanvasHandlers } from './handlers/canvas'
 import { registerMailHandlers } from './handlers/mail'
@@ -194,6 +195,7 @@ app.whenReady().then(() => {
   registerComponentsHandlers(ipcMain)
   registerHistoryHandlers()
   registerCaseHandlers(ipcMain)
+  registerProjectHandlers(ipcMain)
   // Downloads from the in-app browser land in the workspace's Downloads folder,
   // so a file you just fetched shows up in Files beside everything else rather
   // than in a hidden application directory.

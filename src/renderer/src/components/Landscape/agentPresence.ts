@@ -24,7 +24,7 @@ export interface JobLite {
   label: string
   prompt: string
   agentName: string | null
-  status: 'queued' | 'running' | 'pending' | 'error' | 'interrupted' | 'cancelled'
+  status: 'queued' | 'running' | 'pending' | 'error' | 'interrupted' | 'cancelled' | 'paused'
   enqueuedAt: number
   startedAt: number | null
   finishedAt: number | null
@@ -108,7 +108,7 @@ function blank(agent: RosterAgent): AgentPresence {
  * most to what needs them least:
  *   question  (a PTY approval or a Codex request on one of its live runs)
  *   working   (any run or background job running)
- *   the latest settled run: pending → review · error → error ·
+ *   the latest settled run: pending → review · error → error · paused → paused ·
  *              interrupted job → interrupted · kept/reverted/cancelled → idle
  */
 export function derivePresence(inp: PresenceInputs): AgentPresence[] {
@@ -159,7 +159,8 @@ export function derivePresence(inp: PresenceInputs): AgentPresence[] {
     if (lastJob && lastJobAt >= lastRunAt) {
       // Background runs mirror into the feed with interrupted/cancelled folded
       // into 'error'; the job itself still knows which it was.
-      const status: PresenceStatus = lastJob.status === 'interrupted' ? 'interrupted' : lastJob.status === 'error' ? 'error' : lastJob.status === 'pending' ? 'review' : 'idle'
+      const status: PresenceStatus =
+        lastJob.status === 'interrupted' ? 'interrupted' : lastJob.status === 'error' ? 'error' : lastJob.status === 'pending' ? 'review' : lastJob.status === 'paused' ? 'paused' : 'idle'
       if (status !== 'idle') {
         const mirrored = runs.find((r) => r.runId === lastJob.id)
         return {
@@ -174,7 +175,7 @@ export function derivePresence(inp: PresenceInputs): AgentPresence[] {
       return { ...out, since: lastJobAt }
     }
     if (latest) {
-      const status: PresenceStatus = latest.status === 'pending' ? 'review' : latest.status === 'error' ? 'error' : 'idle'
+      const status: PresenceStatus = latest.status === 'pending' ? 'review' : latest.status === 'error' ? 'error' : latest.status === 'paused' ? 'paused' : 'idle'
       return {
         ...out,
         status,

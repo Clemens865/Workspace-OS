@@ -71,3 +71,11 @@ export function createAgent(): void {
   openRail('agents')
   window.setTimeout(() => window.dispatchEvent(new CustomEvent('wos:new-agent', { detail: {} })), 350)
 }
+
+/** End a paused run for good: a background job is cancelled; a dock run is closed as kept. */
+export async function stopPaused(runId: string | null): Promise<void> {
+  if (!runId) return
+  const jobs = (await window.workspace.runs?.list?.().catch(() => [])) ?? []
+  if (jobs.some((j) => j.id === runId)) await window.workspace.runs.cancel(runId)
+  else reviewStore.resolveRun(runId, 'kept')
+}

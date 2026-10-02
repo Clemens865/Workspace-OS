@@ -12,11 +12,58 @@ Legend: ✅ done · 🟡 in progress · ⬜ not started
 | 2 Agent presence + Team overview | ✅ 2 Oct 2026 |
 | 3 Visual layer (WebGL, Liquid Glass) | ✅ 2 Oct 2026 |
 | 4 Previews | ✅ 2 Oct 2026 |
-| 5 Inbox + Cases + files, pause/resume | 🟡 Inbox done |
+| 5 Inbox + Cases + files, pause/resume | ✅ 2 Oct 2026 |
 | 6 Optional new domain | ⬜ |
 | 7 Landscape only (backup tag, remove old shells) | ⬜ |
 
 ---
+
+## 2 Oct 2026: phase 5, cases, case folders, sub-projects, pause/resume ✅
+
+**Pause / resume** (P2 item 9, the user's decision: build it)
+- Background jobs (`main/runs/queue.ts`, + 4 tests): `paused` status; pause
+  stops the process but keeps the provider session (`sessionId`, now captured
+  from the run); resume re-queues and the launcher continues the session
+  (`resumeId`); a job paused before its session existed restarts fresh; paused
+  jobs survive a restart and can be cancelled. IPC `runs:pause` / `runs:resume`.
+- Dock runs (`Landscape/pauseResume.ts`): pause = `agent.cancel` (main keeps the
+  conversation mapping), then the run is marked `paused` after the dock's own
+  exit handling; resume = `agent.run` on the same conversation with
+  `resumeOnly`, so main refuses rather than silently starting over.
+- `RunStatus` and the presence model gained `paused` (only ever set by Pause).
+  The Inbox lists paused runs (Resume / Stop); screens show a paused face.
+- **Verified live against Claude** (scratch probe, not in the suite: it costs
+  tokens): pausing a real counting run (exit 143) and resuming with
+  `--resume` worked, but the model restarted from "One". A provider session
+  keeps only finished turns, so the text of the interrupted turn is lost to it.
+  Fix: `pausedResumePrompt(tail)` hands the last words back ("the task is NOT
+  finished… this is exactly how far you got"); the app has them (output tail /
+  job tail). Re-run: paused at "Forty-One", resumed at "Forty-Two" through
+  "Sixty". (+ 3 tests)
+
+**Cases** (`CasesView` + tests): shelf with search, the open case with
+Overview / Files / Notes / History, status from the case's own flow, notes
+written to the case file. Dock Cases opens it in the landscape.
+
+**Case folders** (§5a; `main/cases-work.ts` + 5 tests)
+- `cases:work-folder` creates `Work/<case-id>/{sources,drafts,outputs}` (global
+  cases under `~/Workspace-OS/Work`); case runs get the folder and are told to
+  write drafts and sources there; "Case folder" opens it in Files.
+- `cases:promote`: Accept on a draft moves it to `outputs/`, updates the case's
+  artifact path and notes it.
+- Fixed on the way: agent runs never had `WOS_WORKSPACE` (only shells did), so
+  the `wos-case` CLI could not find the workspace inside a run.
+
+**Sub-projects** (§5a; `main/projects.ts` + 6 tests, `ProjectSwitcher` + tests)
+- A subfolder marked `.workspace-os/project.json`. "All projects ▾" in the
+  header lists the workspace and its sub-projects (depth ≤ 2) and creates new
+  ones (`Cases/`, `Work/`, marker). Choosing one opens it as the workspace,
+  so runs, cases and memory are its own; the parent stays in the list.
+  Listing and creating only under the open workspace or its ancestors.
+
+**Verified**: `npm test` 251 files, 3000 passed; typecheck clean;
+`npm run e2e:landscape` shells 6, stage 31, presence 18, inbox 16, work 18,
+perf 7 (scrolling 3.02 ms); `e2e:shell-layout` 20/20.
 
 ## 2 Oct 2026: phase 4 (previews) ✅ and the Inbox (phase 5, part 1)
 

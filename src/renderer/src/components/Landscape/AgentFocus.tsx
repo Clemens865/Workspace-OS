@@ -1,10 +1,11 @@
 import { useState, useSyncExternalStore } from 'react'
-import { ArrowUpRight, FileText, Play, Square, Check, X, RotateCcw } from 'lucide-react'
+import { ArrowUpRight, FileText, Play, Pause, Square, Check, X, RotateCcw } from 'lucide-react'
 import { AgentAvatar } from '../Agents/AgentAvatar'
 import { activityStore } from '../Review/activityStore'
 import { PROVIDER_LABEL, STATUS_LABEL, type AgentPresence } from './presenceTypes'
 import { ago } from './agentPresence'
 import * as act from './agentActions'
+import { pauseRun, resumeRun } from './pauseResume'
 import styles from './AgentFocus.module.css'
 
 /**
@@ -137,9 +138,24 @@ export function AgentFocus({ a }: { a: AgentPresence }): JSX.Element {
           </>
         )}
         {a.status === 'working' && (
-          <button className={styles.btn} disabled={busy} onClick={() => run(() => act.stop(a.runId), 'Stopping…')}>
-            <Square size={13} /> Stop
-          </button>
+          <>
+            <button className={styles.btn} disabled={busy} onClick={() => run(() => pauseRun(a.runId), 'Paused. Resume continues the same conversation.')} data-testid="agent-pause">
+              <Pause size={13} /> Pause
+            </button>
+            <button className={styles.btn} disabled={busy} onClick={() => run(() => act.stop(a.runId), 'Stopping…')}>
+              <Square size={13} /> Stop
+            </button>
+          </>
+        )}
+        {a.status === 'paused' && (
+          <>
+            <button className={styles.primary} disabled={busy} onClick={() => run(() => resumeRun(a.runId), 'Resumed.')} data-testid="agent-resume">
+              <Play size={14} /> Resume
+            </button>
+            <button className={styles.btn} disabled={busy} onClick={() => run(() => act.stopPaused(a.runId), 'Stopped.')}>
+              <Square size={13} /> Stop
+            </button>
+          </>
         )}
         {(a.status === 'idle' || a.status === 'error' || a.status === 'interrupted') && (
           <button className={styles.primary} onClick={() => act.startWith(a.name)} data-testid="agent-start">

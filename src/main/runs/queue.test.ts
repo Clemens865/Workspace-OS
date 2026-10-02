@@ -84,6 +84,66 @@ describe('RunQueue', () => {
     expect(q.cancel(a.id)).toBe(false)
   })
 
+  it('pause: a running job is stopped, keeps its session, and stays paused after done()', async () => {
+    const f = fakeLauncher()
+    const q = new RunQueue(file, f.launch)
+    const a = q.enqueue({ prompt: 'write the report' })
+    await tick()
+    f.sinks.get(a.id)!.session?.('sess-123')
+    expect(q.pause(a.id)).toBe(true)
+    expect(f.killed).toEqual([a.id])
+    f.sinks.get(a.id)!.done(1, null)
+    await tick()
+    expect(q.get(a.id)).toMatchObject({ status: 'paused', sessionId: 'sess-123' })
+  })
+
+  it('resume: a paused job runs again, continuing its session', async () => {
+    const f = fakeLauncher()
+    const launched: BackgroundJob[] = []
+    const q = new RunQueue(file, async (job, sink) => {
+      launched.push(job)
+      return f.launch(job, sink)
+    })
+    const a = q.enqueue({ prompt: 'p' })
+    await tick()
+    f.sinks.get(a.id)!.session?.('sess-9')
+    q.pause(a.id)
+    f.sinks.get(a.id)!.done(1, null)
+    await tick()
+    expect(q.resume(a.id)).toBe(true)
+    await tick()
+    expect(q.get(a.id)?.status).toBe('running')
+    expect(launched[1]).toMatchObject({ id: a.id, resume: true, sessionId: 'sess-9' })
+    f.sinks.get(a.id)!.done(0, 'cp')
+    await tick()
+    expect(q.get(a.id)).toMatchObject({ status: 'pending', resume: false })
+  })
+
+  it('a job paused before its session existed resumes as a fresh start', async () => {
+    const f = fakeLauncher()
+    const q = new RunQueue(file, f.launch, { concurrency: 1 })
+    q.enqueue({ prompt: 'first' })
+    const b = q.enqueue({ prompt: 'second' })
+    expect(q.pause(b.id)).toBe(true) // still queued
+    expect(q.get(b.id)?.status).toBe('paused')
+    expect(q.resume(b.id)).toBe(true)
+    expect(q.get(b.id)).toMatchObject({ status: 'queued', resume: false })
+  })
+
+  it('paused jobs survive a restart, and can be cancelled', async () => {
+    const f = fakeLauncher()
+    const q = new RunQueue(file, f.launch)
+    const a = q.enqueue({ prompt: 'p' })
+    await tick()
+    q.pause(a.id)
+    q.flush()
+    const q2 = new RunQueue(file, fakeLauncher().launch)
+    expect(q2.get(a.id)?.status).toBe('paused')
+    expect(q2.cancel(a.id)).toBe(true)
+    expect(q2.get(a.id)?.status).toBe('cancelled')
+    expect(q2.resume(a.id)).toBe(false)
+  })
+
   it('persists, and a run in flight at load is marked interrupted', async () => {
     const f = fakeLauncher()
     const q = new RunQueue(file, f.launch)
