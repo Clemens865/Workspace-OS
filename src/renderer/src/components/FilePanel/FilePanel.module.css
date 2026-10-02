@@ -58,7 +58,7 @@
 
 .iconBtn:hover {
   color: var(--wl-ink, var(--color-text));
-  background: rgba(27, 39, 48, 0.05);
+  background: rgba(var(--wl-ink-rgb), 0.05);
 }
 
 .searchBar {
@@ -78,7 +78,7 @@
   align-self: flex-start;
   font-size: 11.5px;
   color: var(--wl-muted, var(--color-text-muted));
-  background: rgba(27, 39, 48, 0.05);
+  background: rgba(var(--wl-ink-rgb), 0.05);
   border-radius: 999px;
   flex-shrink: 0;
 }
@@ -97,7 +97,7 @@
 .searchInput {
   width: 100%;
   height: 34px;
-  background: rgba(255, 255, 255, 0.85);
+  background: rgba(var(--wl-paper-rgb), 0.85);
   border: 1px solid var(--wl-line, var(--color-border));
   border-radius: 18px;
   color: var(--wl-ink, var(--color-text));
@@ -111,8 +111,8 @@
 .searchInput::placeholder { color: var(--wl-faint, var(--color-text-subtle)); }
 
 .searchInput:focus {
-  border-color: rgba(27, 39, 48, 0.25);
-  box-shadow: 0 0 0 3px rgba(27, 39, 48, 0.07);
+  border-color: rgba(var(--wl-ink-rgb), 0.25);
+  box-shadow: 0 0 0 3px rgba(var(--wl-ink-rgb), 0.07);
 }
 
 .clearSearch {
@@ -131,7 +131,7 @@
   border-radius: 999px;
 }
 
-.clearSearch:hover { color: var(--wl-ink, var(--color-text)); background: rgba(27, 39, 48, 0.05); }
+.clearSearch:hover { color: var(--wl-ink, var(--color-text)); background: rgba(var(--wl-ink-rgb), 0.05); }
 
 .body {
   flex: 1;
@@ -174,7 +174,7 @@
   background: var(--wl-ink, var(--color-accent));
   border: 0;
   border-radius: 18px;
-  color: #fff;
+  color: var(--wl-on-ink);
   cursor: pointer;
   font: inherit;
   font-size: 13px;
@@ -182,7 +182,7 @@
   transition: background 0.15s var(--wl-ease-soft, ease);
 }
 
-.openFolderBtn:hover { background: #2c3b46; }
+.openFolderBtn:hover { background: var(--wl-ink-hover); }
 
 /* ── library sections ── */
 .section {
@@ -212,7 +212,7 @@
   transition: background 0.15s var(--wl-ease-soft, ease);
 }
 
-.libRow:hover { background: rgba(27, 39, 48, 0.05); color: var(--wl-ink, var(--color-text)); }
+.libRow:hover { background: rgba(var(--wl-ink-rgb), 0.05); color: var(--wl-ink, var(--color-text)); }
 
 .libName {
   flex: 1;
@@ -242,7 +242,7 @@
   flex: none;
 }
 
-.starBtn:hover { background: rgba(27, 39, 48, 0.08); }
+.starBtn:hover { background: rgba(var(--wl-ink-rgb), 0.08); }
 
 /* ── "new document" popover ── */
 .newWrap {
@@ -265,7 +265,7 @@
   background: var(--wl-paper-solid, #fbfcfd);
   border: 0;
   border-radius: 14px;
-  box-shadow: 0 0 0 1px rgba(27, 39, 48, 0.07), 0 20px 50px -20px rgba(30, 55, 70, 0.35);
+  box-shadow: 0 0 0 1px rgba(var(--wl-ink-rgb), 0.07), 0 20px 50px -20px rgba(var(--wl-shadow-rgb), 0.35);
   padding: 6px;
   display: flex;
   flex-direction: column;
@@ -285,7 +285,7 @@
 }
 
 .newMenu button:hover {
-  background: rgba(27, 39, 48, 0.05);
+  background: rgba(var(--wl-ink-rgb), 0.05);
 }
 
 .newDivider {
@@ -322,7 +322,7 @@
 
 .recentWsRow:hover {
   color: var(--wl-ink, var(--color-text));
-  background: rgba(27, 39, 48, 0.05);
+  background: rgba(var(--wl-ink-rgb), 0.05);
 }
 
 .recentWsName {

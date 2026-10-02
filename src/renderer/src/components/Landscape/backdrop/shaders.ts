@@ -8,7 +8,7 @@
 /** The mist landscape: sky, sun haze, god rays, four mountain layers, fog, the lake with ripples and screen reflections. */
 export const LANDSCAPE_FRAG = /* glsl */ `
   precision highp float;
-  uniform float uTime, uFocus, uTintAmt, uLight, uBreath, uDebug; uniform vec2 uRes, uMouse; uniform vec3 uTint;
+  uniform float uTime, uFocus, uTintAmt, uLight, uBreath, uDebug, uNight; uniform vec2 uRes, uMouse; uniform vec3 uTint;
   uniform vec4 uRip[4];   // xy origin (uv), z age (s), w amplitude
   uniform vec4 uSh[8];    // sheet footprints in uv: x0, x1, foot y, alpha
   uniform vec3 uShC[8];   // reflection tint per sheet
@@ -105,6 +105,15 @@ export const LANDSCAPE_FRAG = /* glsl */ `
     // focus: world recedes into mist and takes a faint provider tint
     col = mix(col, vec3(.935,.948,.958), uFocus*.12 + uBreath*.16);
     col = mix(col, col*(.9 + .1*uTint), uTintAmt*.6);
+    // night (the dark theme): the same landscape by moonlight. Brightness is kept as
+    // shape, not as light: the bright mist becomes a pale night sky and haze over the
+    // lake, mountains darker silhouettes against it, the lake a dark mirror.
+    if (uNight > .001) {
+      float nl = dot(col, vec3(.299, .587, .114));
+      vec3 night = mix(vec3(.04, .055, .07), vec3(.19, .235, .28), smoothstep(.5, 1., nl));
+      night += vec3(.015, .025, .04) * smoothstep(.92, 1., nl);
+      col = mix(col, night, uNight);
+    }
     // vignette + grain
     vec2 q = uv - .5; col *= 1. - .10*dot(q*vec2(1.,1.25), q*vec2(1.,1.25));
     col += (hash(gl_FragCoord.xy + fract(uTime*7.)*91.) - .5) * .018;
@@ -131,7 +140,7 @@ export const GLASS_VERT = `attribute vec2 aLocal; varying vec2 vLocal; varying v
 export const GLASS_FRAG = /* glsl */ `
       precision highp float;
       uniform sampler2D tLand; uniform vec2 uOut, uHalf, uLight, uPointer; uniform vec3 uColor;
-      uniform float uPR, uTime, uRadius, uBezel, uThick, uScale, uAlpha, uFrost, uTinted;
+      uniform float uPR, uTime, uRadius, uBezel, uThick, uScale, uAlpha, uFrost, uTinted, uNight;
       uniform vec4 uClip;                                              // CSS px: left, top, right, bottom of the scroll box
       varying vec2 vLocal; varying vec2 vScreen;
       float sdRR(vec2 p, vec2 b, float r){ vec2 q = abs(p) - b + r; return length(max(q, 0.)) + min(max(q.x, q.y), 0.) - r; }
@@ -164,7 +173,8 @@ export const GLASS_FRAG = /* glsl */ `
         // clear body: barely lifted from what is behind it
         float l = dot(col, vec3(.299, .587, .114));
         col = mix(vec3(l), col, 1.12) * 1.02;
-        col = mix(col, vec3(1.), uFrost);
+        // frost: milk glass by day, smoked glass by night (the bright hairline stays)
+        col = mix(col, mix(vec3(1.), vec3(.15, .19, .23), uNight), uFrost);
         // coloured glass: the provider hue lives in the rim's thickness, like the green pill
         float w = 1.2 * max(uScale, .5);
         col = mix(col, col * mix(vec3(1.), uColor * 1.25, .7), uTinted * pow(s, 3.) * .18 * inside);

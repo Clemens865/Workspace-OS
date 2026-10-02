@@ -5,7 +5,7 @@
   inset: 0;
   /* Landscape veil. No backdrop-filter: this layer spans the whole window, so
      it lies over the browser <webview> rectangle whenever the Browser is open. */
-  background: rgba(226, 233, 238, 0.62);
+  background: rgba(var(--wl-veil-rgb), 0.62);
   z-index: 200;
   display: flex;
   align-items: flex-start;
@@ -20,7 +20,7 @@
   border: 0;
   border-radius: 22px;
   overflow: hidden;
-  box-shadow: 0 0 0 1px rgba(27, 39, 48, 0.07), 0 20px 50px -20px rgba(30, 55, 70, 0.35);
+  box-shadow: 0 0 0 1px rgba(var(--wl-ink-rgb), 0.07), 0 20px 50px -20px rgba(var(--wl-shadow-rgb), 0.35);
   font-family: var(--wl-sans);
   color: var(--wl-ink);
 }
@@ -79,8 +79,8 @@
   transition: background 0.15s var(--wl-ease-soft);
 }
 
-.result:hover { background: rgba(27, 39, 48, 0.05); }
-.result.active { background: rgba(27, 39, 48, 0.08); }
+.result:hover { background: rgba(var(--wl-ink-rgb), 0.05); }
+.result.active { background: rgba(var(--wl-ink-rgb), 0.08); }
 
 .resultIcon {
   flex-shrink: 0;
@@ -100,7 +100,7 @@
   font-size: 11px;
   font-weight: 500;
   color: var(--wl-muted);
-  background: rgba(27, 39, 48, 0.06);
+  background: rgba(var(--wl-ink-rgb), 0.06);
   border: 0;
   border-radius: 999px;
   padding: 1px 8px;
@@ -143,7 +143,7 @@
 .kbd {
   font-family: var(--wl-mono);
   color: var(--wl-muted);
-  background: rgba(27, 39, 48, 0.06);
+  background: rgba(var(--wl-ink-rgb), 0.06);
   border: 0;
   border-radius: 999px;
   padding: 1px 7px;

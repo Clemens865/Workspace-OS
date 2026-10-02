@@ -8,15 +8,15 @@
   gap: 9px;
   padding: 16px 18px;
   border-radius: 20px;
-  border: 1px solid rgba(255, 255, 255, 0.85);
-  background: rgba(251, 252, 253, 0.9);
-  box-shadow: 0 0 0 1px rgba(27, 39, 48, 0.05);
+  border: 1px solid rgba(var(--wl-paper-rgb), 0.85);
+  background: rgba(var(--wl-paper-rgb), 0.9);
+  box-shadow: 0 0 0 1px rgba(var(--wl-ink-rgb), 0.05);
   transition: background 0.15s var(--wl-ease-soft), box-shadow 0.15s var(--wl-ease-soft);
 }
 
 .item:hover {
-  background: #fff;
-  box-shadow: 0 0 0 1px rgba(27, 39, 48, 0.08);
+  background: rgb(var(--wl-paper-rgb));
+  box-shadow: 0 0 0 1px rgba(var(--wl-ink-rgb), 0.08);
 }
 
 .top {
@@ -66,7 +66,7 @@
   border: 0;
   border-radius: 18px;
   background: var(--wl-ink);
-  color: #fff;
+  color: var(--wl-on-ink);
   font: inherit;
   font-size: 13px;
   font-weight: 500;
@@ -75,7 +75,7 @@
 }
 
 .primary:hover {
-  background: #2c3b46;
+  background: var(--wl-ink-hover);
 }
 
 /* Secondaries — hairline pills; they defer to the ink. */
@@ -84,7 +84,7 @@
   padding: 0 14px;
   border: 1px solid var(--wl-line);
   border-radius: 18px;
-  background: rgba(255, 255, 255, 0.8);
+  background: rgba(var(--wl-paper-rgb), 0.8);
   color: var(--wl-ink);
   font: inherit;
   font-size: 13px;
@@ -94,7 +94,7 @@
 }
 
 .secondary:hover {
-  background: #fff;
+  background: rgb(var(--wl-paper-rgb));
 }
 
 .secondary:disabled {

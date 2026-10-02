@@ -84,4 +84,4 @@
 }
 
 .activeSuggestion .suggestionName,
-.activeSuggestion .suggestionDesc { color: #fff; }
+.activeSuggestion .suggestionDesc { color: var(--wl-on-ink); }

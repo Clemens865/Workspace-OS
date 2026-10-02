@@ -2,6 +2,7 @@ import { createContext, useContext, useEffect, useRef, useState, type RefObject 
 import { Backdrop } from './Backdrop'
 import type { GlassOpts } from './glassPanes'
 import type { Quality } from './scheduler'
+import { currentTheme, onThemeChange } from '../../../hooks/useTheme'
 
 export const BackdropContext = createContext<Backdrop | null>(null)
 
@@ -112,6 +113,12 @@ export function useBackdrop(canvas: RefObject<HTMLCanvasElement>, opts: { settin
   }, [off, canvas])
 
   useEffect(() => backdrop?.setQuality(quality), [backdrop, quality])
+  // The dark theme is night in the landscape: set at once on creation, eased on a switch.
+  useEffect(() => {
+    if (!backdrop) return
+    backdrop.setNight(currentTheme() === 'dark', true)
+    return onThemeChange((t) => backdrop.setNight(t === 'dark'))
+  }, [backdrop])
   useEffect(() => backdrop?.setVisible(opts.visible), [backdrop, opts.visible])
 
   return { backdrop, quality: off ? 'off' : quality }

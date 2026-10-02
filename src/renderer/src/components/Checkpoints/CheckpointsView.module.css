@@ -3,7 +3,7 @@
   inset: 0;
   /* Solid-ish veil, no backdrop-filter: it can lie over the browser <webview>
      or the office canvas. */
-  background: rgba(226, 233, 238, 0.72);
+  background: rgba(var(--wl-veil-rgb), 0.72);
   z-index: 150;
   display: flex;
   align-items: center;
@@ -20,7 +20,7 @@
   border: 0;
   border-radius: 22px;
   overflow: hidden;
-  box-shadow: 0 0 0 1px rgba(27, 39, 48, 0.07), 0 20px 50px -20px rgba(30, 55, 70, 0.35);
+  box-shadow: 0 0 0 1px rgba(var(--wl-ink-rgb), 0.07), 0 20px 50px -20px rgba(var(--wl-shadow-rgb), 0.35);
 }
 
 .header {
@@ -55,7 +55,7 @@
   padding: 0;
   transition: background 0.15s var(--wl-ease-soft), color 0.15s var(--wl-ease-soft);
 }
-.closeBtn:hover { background: rgba(27, 39, 48, 0.05); color: var(--wl-ink); }
+.closeBtn:hover { background: rgba(var(--wl-ink-rgb), 0.05); color: var(--wl-ink); }
 
 .body { flex: 1; overflow-y: auto; padding: 6px; }
 
@@ -75,7 +75,7 @@
   border-radius: 10px;
   transition: background 0.15s var(--wl-ease-soft);
 }
-.row:hover { background: rgba(27, 39, 48, 0.05); }
+.row:hover { background: rgba(var(--wl-ink-rgb), 0.05); }
 
 .info { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
 
@@ -98,7 +98,7 @@
 .diffBtn,
 .restoreBtn {
   height: 30px;
-  background: rgba(255, 255, 255, 0.8);
+  background: rgba(var(--wl-paper-rgb), 0.8);
   border: 1px solid var(--wl-line);
   border-radius: 18px;
   cursor: pointer;
@@ -109,8 +109,8 @@
   color: var(--wl-ink);
   transition: background 0.15s var(--wl-ease-soft), color 0.15s var(--wl-ease-soft);
 }
-.diffBtn:hover { background: #fff; }
+.diffBtn:hover { background: rgb(var(--wl-paper-rgb)); }
 
 /* Destructive: muted red text, never a big red fill. */
-.restoreBtn { color: #b84a3a; }
+.restoreBtn { color: var(--wl-danger); }
 .restoreBtn:hover { background: var(--wl-claude-soft); }

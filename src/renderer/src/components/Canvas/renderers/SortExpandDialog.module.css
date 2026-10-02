@@ -1,19 +1,19 @@
-.backdrop { position: absolute; inset: 0; z-index: 30; background: rgba(226, 233, 238, 0.72); display: flex; align-items: center; justify-content: center; }
+.backdrop { position: absolute; inset: 0; z-index: 30; background: rgba(var(--wl-veil-rgb), 0.72); display: flex; align-items: center; justify-content: center; }
 .dialog {
   width: 420px; max-width: calc(100% - 32px); padding: 18px 20px 16px;
   background: var(--wl-paper-solid, #fbfcfd); color: var(--wl-ink, #1b2730);
   border: 1px solid transparent; border-radius: 22px;
-  box-shadow: 0 0 0 1px rgba(27, 39, 48, 0.07), 0 20px 50px -20px rgba(30, 55, 70, 0.35); font-size: 13px;
+  box-shadow: 0 0 0 1px rgba(var(--wl-ink-rgb), 0.07), 0 20px 50px -20px rgba(var(--wl-shadow-rgb), 0.35); font-size: 13px;
 }
 .title { font-weight: 600; font-size: 14px; margin-bottom: 8px; }
 .text { margin: 0 0 14px; line-height: 1.45; color: var(--wl-ink-2, #3b4a55); }
 .actions { display: flex; flex-direction: column; gap: 6px; }
 .primary, .secondary {
   font: inherit; font-size: 13px; padding: 7px 12px; border-radius: 12px; cursor: pointer; text-align: left;
-  border: 1px solid var(--wl-line, rgba(27, 39, 48, 0.09)); background: rgba(255, 255, 255, 0.8); color: inherit;
+  border: 1px solid var(--wl-line, rgba(27, 39, 48, 0.09)); background: rgba(var(--wl-paper-rgb), 0.8); color: inherit;
   transition: background .15s var(--wl-ease-soft, ease);
 }
-.primary { background: var(--wl-ink, #1b2730); color: #fff; border-color: transparent; font-weight: 500; }
-.primary:hover { background: #2c3b46; }
-.primary:focus, .secondary:focus { outline: none; box-shadow: 0 0 0 3px rgba(27, 39, 48, 0.12); }
-.secondary:hover { background: #fff; }
+.primary { background: var(--wl-ink, #1b2730); color: var(--wl-on-ink); border-color: transparent; font-weight: 500; }
+.primary:hover { background: var(--wl-ink-hover); }
+.primary:focus, .secondary:focus { outline: none; box-shadow: 0 0 0 3px rgba(var(--wl-ink-rgb), 0.12); }
+.secondary:hover { background: rgb(var(--wl-paper-rgb)); }

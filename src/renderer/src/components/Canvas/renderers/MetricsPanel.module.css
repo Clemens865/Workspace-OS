@@ -38,7 +38,7 @@
 }
 .x:hover {
   color: var(--wl-ink, #1b2730);
-  background: rgba(27, 39, 48, 0.05);
+  background: rgba(var(--wl-ink-rgb), 0.05);
 }
 
 .section {
@@ -68,7 +68,7 @@
   padding: 5px 7px;
   border: 1px solid var(--wl-line, rgba(27, 39, 48, 0.09));
   border-radius: 8px;
-  background: rgba(255, 255, 255, 0.85);
+  background: rgba(var(--wl-paper-rgb), 0.85);
   color: var(--wl-ink, #1b2730);
   font-size: 12px;
   margin-bottom: 6px;
@@ -78,8 +78,8 @@
 .nameEdit:focus,
 .valueEdit:focus {
   outline: none;
-  border-color: rgba(27, 39, 48, 0.25);
-  box-shadow: 0 0 0 3px rgba(27, 39, 48, 0.07);
+  border-color: rgba(var(--wl-ink-rgb), 0.25);
+  box-shadow: 0 0 0 3px rgba(var(--wl-ink-rgb), 0.07);
 }
 .valueEdit {
   width: 82px;
@@ -92,7 +92,7 @@
   border: 1px solid var(--wl-ink, #1b2730);
   border-radius: 999px;
   background: var(--wl-ink, #1b2730);
-  color: #fff;
+  color: var(--wl-on-ink);
   font-weight: 500;
   transition: background 0.15s var(--wl-ease-soft, ease);
   cursor: pointer;
@@ -107,7 +107,7 @@
 }
 .btn:hover:not(:disabled),
 .insertBtn:hover:not(:disabled) {
-  background: #2c3b46;
+  background: var(--wl-ink-hover);
 }
 .insertBtn {
   flex: 1 1 auto;
@@ -127,7 +127,7 @@
 }
 
 .del {
-  background: rgba(255, 255, 255, 0.8);
+  background: rgba(var(--wl-paper-rgb), 0.8);
   border: 1px solid var(--wl-line, rgba(27, 39, 48, 0.09));
   border-radius: 999px;
   color: var(--wl-ink-2, #3b4a55);
@@ -137,7 +137,7 @@
   flex: 0 0 auto;
 }
 .del:hover {
-  color: #b84a3a;
+  color: var(--wl-danger);
   border-color: rgba(184, 74, 58, 0.35);
 }
 
@@ -167,7 +167,7 @@
   padding: 3px 7px;
   border: 1px solid var(--wl-line, rgba(27, 39, 48, 0.09));
   border-radius: 8px;
-  background: rgba(27, 39, 48, 0.04);
+  background: rgba(var(--wl-ink-rgb), 0.04);
   color: var(--wl-ink, #1b2730);
   font-family: var(--wl-mono, ui-monospace, monospace);
   font-variant-numeric: tabular-nums;
@@ -175,7 +175,7 @@
 .staleTag {
   flex: 0 0 auto;
   font-size: 10px;
-  color: #8a5a12;
+  color: var(--wl-warn-ink);
   background: var(--wl-amber-soft, #fbefd9);
   border: 1px solid transparent;
   border-radius: 999px;
@@ -189,7 +189,7 @@
   padding: 5px 9px;
   border: 1px solid var(--wl-line, rgba(27, 39, 48, 0.09));
   border-radius: 999px;
-  background: rgba(255, 255, 255, 0.8);
+  background: rgba(var(--wl-paper-rgb), 0.8);
   color: var(--wl-ink, #1b2730);
   cursor: pointer;
   font-size: 11.5px;
@@ -198,7 +198,7 @@
   margin-top: 6px;
 }
 .refreshAllBtn:hover:not(:disabled) {
-  background: #fff;
+  background: rgb(var(--wl-paper-rgb));
 }
 .refreshAllBtn:disabled {
   opacity: 0.45;
@@ -214,7 +214,7 @@
   padding: 5px 9px;
   border: 1px solid var(--wl-line, rgba(27, 39, 48, 0.09));
   border-radius: 999px;
-  background: rgba(255, 255, 255, 0.8);
+  background: rgba(var(--wl-paper-rgb), 0.8);
   color: var(--wl-ink, #1b2730);
   cursor: pointer;
   font-size: 11.5px;
@@ -225,7 +225,7 @@
   margin-bottom: 2px;
 }
 .syncBtn:hover:not(:disabled) {
-  background: #fff;
+  background: rgb(var(--wl-paper-rgb));
 }
 .syncBtn:disabled {
   opacity: 0.45;
@@ -235,10 +235,10 @@
 .confirm {
   margin: 4px 0 2px;
   padding: 8px;
-  border: 1px solid rgba(255, 255, 255, 0.85);
+  border: 1px solid rgba(var(--wl-paper-rgb), 0.85);
   border-radius: 12px;
-  background: rgba(251, 252, 253, 0.9);
-  box-shadow: 0 0 0 1px rgba(27, 39, 48, 0.05);
+  background: rgba(var(--wl-paper-rgb), 0.9);
+  box-shadow: 0 0 0 1px rgba(var(--wl-ink-rgb), 0.05);
 }
 .confirmTitle {
   font-size: 11.5px;
@@ -285,7 +285,7 @@
   padding: 3px 8px;
   border: 1px solid transparent;
   border-radius: 999px;
-  background: rgba(27, 39, 48, 0.06);
+  background: rgba(var(--wl-ink-rgb), 0.06);
   color: var(--wl-ink, #1b2730);
   cursor: pointer;
   font-size: 11px;
@@ -293,7 +293,7 @@
   margin-bottom: 6px;
 }
 .linkBadge:hover {
-  background: rgba(27, 39, 48, 0.1);
+  background: rgba(var(--wl-ink-rgb), 0.1);
 }
 .linkBadgeEmpty {
   color: var(--wl-muted, #7a8893);
@@ -331,7 +331,7 @@
   justify-content: space-between;
   gap: 6px;
   padding: 4px 8px;
-  background: rgba(27, 39, 48, 0.03);
+  background: rgba(var(--wl-ink-rgb), 0.03);
 }
 .linkFileName {
   font-size: 11px;
@@ -384,7 +384,7 @@
   flex: 0 0 auto;
 }
 .linkRemove:hover {
-  color: #b84a3a;
+  color: var(--wl-danger);
 }
 
 .footNote {

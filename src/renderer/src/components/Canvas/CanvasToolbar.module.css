@@ -39,7 +39,7 @@
   transition: background 0.15s var(--wl-ease-soft, ease), color 0.15s var(--wl-ease-soft, ease);
 }
 
-.crumb:hover { color: var(--wl-ink, var(--fg)); background: rgba(27, 39, 48, 0.05); }
+.crumb:hover { color: var(--wl-ink, var(--fg)); background: rgba(var(--wl-ink-rgb), 0.05); }
 
 .sep { color: var(--wl-faint, var(--fg-subtle)); flex: none; }
 
@@ -96,7 +96,7 @@
   transition: background 0.15s var(--wl-ease-soft, ease), color 0.15s var(--wl-ease-soft, ease);
 }
 
-.iconBtn:hover { background: rgba(27, 39, 48, 0.05); color: var(--wl-ink, var(--fg)); }
+.iconBtn:hover { background: rgba(var(--wl-ink-rgb), 0.05); color: var(--wl-ink, var(--fg)); }
 
 .saveBtn {
   display: inline-flex;
@@ -108,7 +108,7 @@
   background: var(--wl-ink, var(--accent));
   border: none;
   border-radius: 18px;
-  color: #fff;
+  color: var(--wl-on-ink);
   cursor: pointer;
   font-family: inherit;
   font-size: 12.5px;
@@ -116,7 +116,7 @@
   transition: background 0.15s var(--wl-ease-soft, ease), color 0.15s var(--wl-ease-soft, ease);
 }
 
-.saveBtn:hover { background: #2c3b46; }
+.saveBtn:hover { background: var(--wl-ink-hover); }
 .saveBtn:disabled {
   background: transparent;
   color: var(--wl-faint, var(--fg-muted));

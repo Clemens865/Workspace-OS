@@ -11,7 +11,7 @@
 .spacer { flex: 1; }
 .zoom { display: flex; align-items: center; gap: 4px; }
 .zoomBtn { border: 0; background: transparent; color: inherit; cursor: pointer; width: 18px; height: 18px; border-radius: 999px; font-size: 13px; line-height: 1; transition: background .15s var(--wl-ease-soft, ease); }
-.zoomBtn:hover { background: rgba(27, 39, 48, 0.05); color: var(--wl-ink, #1b2730); }
+.zoomBtn:hover { background: rgba(var(--wl-ink-rgb), 0.05); color: var(--wl-ink, #1b2730); }
 .slider { width: 110px; height: 14px; accent-color: var(--wl-ink, #1b2730); }
 .pct { border: 0; background: transparent; color: inherit; cursor: pointer; width: 44px; text-align: right; font: inherit; }
 .pct:hover { color: var(--wl-ink, #1b2730); }

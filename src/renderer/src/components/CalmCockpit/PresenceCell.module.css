@@ -7,16 +7,16 @@
   gap: 10px;
   padding: 9px 12px;
   border-radius: 12px;
-  background: rgba(255, 255, 255, 0.35);
+  background: rgba(var(--wl-paper-rgb), 0.35);
   /* barely-there hairline; healthy work recedes into the page */
-  box-shadow: 0 0 0 1px rgba(27, 39, 48, 0.04);
+  box-shadow: 0 0 0 1px rgba(var(--wl-ink-rgb), 0.04);
   min-width: 0;
   transition: background 0.15s var(--wl-ease-soft), box-shadow 0.15s var(--wl-ease-soft);
 }
 
 .cell:hover {
-  background: rgba(251, 252, 253, 0.9);
-  box-shadow: 0 0 0 1px rgba(27, 39, 48, 0.07);
+  background: rgba(var(--wl-paper-rgb), 0.9);
+  box-shadow: 0 0 0 1px rgba(var(--wl-ink-rgb), 0.07);
 }
 
 /* ── Breathing glyph — the presence "pulse". Reuses the TerminalDock

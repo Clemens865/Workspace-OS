@@ -3,7 +3,7 @@
   inset: 0;
   /* Solid-ish veil, no backdrop-filter: it can lie over the browser <webview>
      or the office canvas. */
-  background: rgba(226, 233, 238, 0.72);
+  background: rgba(var(--wl-veil-rgb), 0.72);
   z-index: 160; /* above the Checkpoints list (150) so preview stacks on it */
   display: flex;
   align-items: center;
@@ -20,7 +20,7 @@
   border: 0;
   border-radius: 22px;
   overflow: hidden;
-  box-shadow: 0 0 0 1px rgba(27, 39, 48, 0.07), 0 20px 50px -20px rgba(30, 55, 70, 0.35);
+  box-shadow: 0 0 0 1px rgba(var(--wl-ink-rgb), 0.07), 0 20px 50px -20px rgba(var(--wl-shadow-rgb), 0.35);
 }
 
 .header {
@@ -46,7 +46,7 @@
 
 .stats { font-size: 12px; color: var(--wl-muted); white-space: nowrap; }
 .statAdd { color: var(--wl-codex); }
-.statDel { color: #b84a3a; }
+.statDel { color: var(--wl-danger); }
 
 .closeBtn {
   display: grid;
@@ -63,7 +63,7 @@
   padding: 0;
   transition: background 0.15s var(--wl-ease-soft), color 0.15s var(--wl-ease-soft);
 }
-.closeBtn:hover { background: rgba(27, 39, 48, 0.05); color: var(--wl-ink); }
+.closeBtn:hover { background: rgba(var(--wl-ink-rgb), 0.05); color: var(--wl-ink); }
 
 .body { flex: 1; overflow: auto; padding: 10px 14px; }
 
@@ -76,9 +76,9 @@
 
 .file {
   margin-bottom: 14px;
-  background: rgba(251, 252, 253, 0.9);
-  border: 1px solid rgba(255, 255, 255, 0.85);
-  box-shadow: 0 0 0 1px rgba(27, 39, 48, 0.05);
+  background: rgba(var(--wl-paper-rgb), 0.9);
+  border: 1px solid rgba(var(--wl-paper-rgb), 0.85);
+  box-shadow: 0 0 0 1px rgba(var(--wl-ink-rgb), 0.05);
   border-radius: 12px;
   overflow: hidden;
 }
@@ -89,7 +89,7 @@
   justify-content: space-between;
   gap: 8px;
   padding: 7px 12px;
-  background: rgba(27, 39, 48, 0.03);
+  background: rgba(var(--wl-ink-rgb), 0.03);
   border-bottom: 1px solid var(--wl-line);
 }
 
@@ -122,7 +122,7 @@
 .add { background: var(--wl-codex-soft); color: var(--wl-ink); }
 .del { background: var(--wl-claude-soft); color: var(--wl-ink); }
 .ctx { color: var(--wl-muted); }
-.hunk { color: var(--wl-muted); background: rgba(27, 39, 48, 0.04); padding-top: 2px; padding-bottom: 2px; }
+.hunk { color: var(--wl-muted); background: rgba(var(--wl-ink-rgb), 0.04); padding-top: 2px; padding-bottom: 2px; }
 
 .footer {
   display: flex;
@@ -135,10 +135,10 @@
 /* Destructive secondary: muted red text, never a big red fill. */
 .revertBtn {
   height: 32px;
-  background: rgba(255, 255, 255, 0.8);
+  background: rgba(var(--wl-paper-rgb), 0.8);
   border: 1px solid var(--wl-line);
   border-radius: 18px;
-  color: #b84a3a;
+  color: var(--wl-danger);
   cursor: pointer;
   font-family: inherit;
   font-size: 13px;
@@ -154,7 +154,7 @@
   background: var(--wl-ink);
   border: 0;
   border-radius: 18px;
-  color: #fff;
+  color: var(--wl-on-ink);
   cursor: pointer;
   font-family: inherit;
   font-size: 13px;
@@ -162,4 +162,4 @@
   padding: 0 16px;
   transition: background 0.15s var(--wl-ease-soft);
 }
-.keepBtn:hover { background: #2c3b46; }
+.keepBtn:hover { background: var(--wl-ink-hover); }

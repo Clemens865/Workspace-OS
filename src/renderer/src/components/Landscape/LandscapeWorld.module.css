@@ -61,9 +61,9 @@
   border-radius: 22px;
   overflow: hidden;
   cursor: pointer;
-  background: linear-gradient(160deg, rgba(255, 255, 255, 0.93), rgba(246, 249, 250, 0.84) 60%, color-mix(in srgb, var(--cs) 55%, rgba(246, 249, 250, 0.84)));
+  background: linear-gradient(160deg, rgba(var(--wl-paper-rgb), 0.93), rgba(var(--wl-paper-rgb), 0.84) 60%, color-mix(in srgb, var(--cs) 55%, rgba(var(--wl-paper-rgb), 0.84)));
   border: 1.5px solid color-mix(in srgb, var(--c) 70%, white);
-  box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.7) inset;
+  box-shadow: 0 0 0 1px rgba(var(--wl-paper-rgb), 0.7) inset;
   transition: border-color 0.5s, background 0.6s, transform 0.55s var(--wl-ease);
 }
 
@@ -72,26 +72,26 @@
 }
 
 .sheet[data-status='question'] .face {
-  box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.7) inset, 0 0 30px -6px rgba(227, 163, 59, 0.55);
+  box-shadow: 0 0 0 1px rgba(var(--wl-paper-rgb), 0.7) inset, 0 0 30px -6px rgba(227, 163, 59, 0.55);
 }
 
 /* Depth: the back row and the flanks are glass, a little out of focus. */
 .sheet[data-depth='1'] .face {
-  background: linear-gradient(158deg, rgba(255, 255, 255, 0.42), rgba(255, 255, 255, 0.14) 55%, color-mix(in srgb, var(--cs) 30%, rgba(255, 255, 255, 0.12)));
+  background: linear-gradient(158deg, rgba(var(--wl-paper-rgb), 0.42), rgba(var(--wl-paper-rgb), 0.14) 55%, color-mix(in srgb, var(--cs) 30%, rgba(var(--wl-paper-rgb), 0.12)));
   -webkit-backdrop-filter: blur(12px) saturate(1.5);
   backdrop-filter: blur(12px) saturate(1.5);
-  border-color: color-mix(in srgb, var(--c) 45%, rgba(255, 255, 255, 0.75));
+  border-color: color-mix(in srgb, var(--c) 45%, rgba(var(--wl-paper-rgb), 0.75));
 }
 
 .sheet[data-depth='2'] .face {
-  background: rgba(255, 255, 255, 0.32);
+  background: rgba(var(--wl-paper-rgb), 0.32);
   -webkit-backdrop-filter: blur(14px) saturate(1.4);
   backdrop-filter: blur(14px) saturate(1.4);
 }
 
 .focused .face {
   cursor: default;
-  background: rgba(251, 252, 253, 0.97);
+  background: rgba(var(--wl-paper-rgb), 0.97);
 }
 
 .mini,
@@ -226,7 +226,7 @@
   padding: 6px 8px;
   border-radius: 7px;
   border: 1px solid var(--wl-line);
-  background: #fff;
+  background: rgb(var(--wl-paper-rgb));
   font-size: 10px;
   color: var(--wl-faint);
   text-align: left;
@@ -326,8 +326,8 @@
   padding: 8px 18px;
   border: 0;
   border-radius: 12px;
-  background: linear-gradient(#fff, #f1f4f6);
-  box-shadow: 0 8px 18px -8px rgba(30, 55, 70, 0.4), 0 1px 0 #fff inset;
+  background: linear-gradient(rgb(var(--wl-paper-rgb)), #f1f4f6);
+  box-shadow: 0 8px 18px -8px rgba(var(--wl-shadow-rgb), 0.4), 0 1px 0 rgb(var(--wl-paper-rgb)) inset;
   font: inherit;
   font-size: 13px;
   color: var(--wl-ink);
@@ -363,7 +363,7 @@
   transform: translateX(-50%);
   padding: 6px 14px;
   border-radius: 0 0 10px 10px;
-  background: rgba(248, 250, 251, 0.92);
+  background: rgba(var(--wl-paper-rgb), 0.92);
   font-size: 11.5px;
   color: var(--wl-ink-2);
   white-space: nowrap;
@@ -388,7 +388,7 @@
   gap: 8px;
   border-radius: 22px;
   border: 1.5px dashed #b9c4cc;
-  background: rgba(255, 255, 255, 0.25);
+  background: rgba(var(--wl-paper-rgb), 0.25);
   font: inherit;
   font-size: 15px;
   color: var(--wl-ink-2);
@@ -409,7 +409,7 @@
 /* ── With the Liquid Glass backdrop (the approved look): the glass draws the
    silhouette as light; the DOM keeps only a veil for legibility. No shadows. ── */
 .glassOn .sheet:not(.focused) .face {
-  background: linear-gradient(170deg, rgba(255, 255, 255, 0.1), rgba(255, 255, 255, 0.02) 60%, rgba(255, 255, 255, 0.06));
+  background: linear-gradient(170deg, rgba(var(--wl-paper-rgb), 0.1), rgba(var(--wl-paper-rgb), 0.02) 60%, rgba(var(--wl-paper-rgb), 0.06));
   border-color: transparent;
   box-shadow: none;
   -webkit-backdrop-filter: none;
@@ -421,18 +421,18 @@
 }
 
 .glassOn .grip {
-  background: rgba(255, 255, 255, 0.18);
+  background: rgba(var(--wl-paper-rgb), 0.18);
   box-shadow: none;
 }
 
 .glassOn .casetab {
-  background: rgba(255, 255, 255, 0.1);
+  background: rgba(var(--wl-paper-rgb), 0.1);
 }
 
 /* The focused screen is solid paper (its glass steps aside), so is its name. */
 .glassOn .focused .grip {
-  background: linear-gradient(#fff, #f1f4f6);
-  box-shadow: 0 8px 18px -8px rgba(30, 55, 70, 0.4), 0 1px 0 #fff inset;
+  background: linear-gradient(rgb(var(--wl-paper-rgb)), #f1f4f6);
+  box-shadow: 0 8px 18px -8px rgba(var(--wl-shadow-rgb), 0.4), 0 1px 0 rgb(var(--wl-paper-rgb)) inset;
 }
 
 /* ── Previews: always with their own time ── */
@@ -444,7 +444,7 @@
   bottom: 34px;
   border-radius: 12px;
   overflow: hidden;
-  background: #fff;
+  background: rgb(var(--wl-paper-rgb));
   border: 1px solid var(--wl-line);
 }
 

@@ -16,7 +16,7 @@
 .headerRight { display: flex; align-items: center; gap: 6px; }
 
 /* List ↔ Graph segmented control. */
-.modeToggle { display: flex; gap: 2px; padding: 3px; border-radius: 999px; background: rgba(27, 39, 48, 0.05); }
+.modeToggle { display: flex; gap: 2px; padding: 3px; border-radius: 999px; background: rgba(var(--wl-ink-rgb), 0.05); }
 .modeBtn {
   display: flex; align-items: center; justify-content: center;
   background: transparent; border: none; border-radius: 999px;
@@ -24,7 +24,7 @@
   transition: background 0.15s var(--wl-ease-soft), color 0.15s var(--wl-ease-soft);
 }
 .modeBtn:hover { color: var(--wl-ink); }
-.modeActive, .modeActive:hover { background: #fff; color: var(--wl-ink); box-shadow: 0 0 0 1px rgba(27, 39, 48, 0.06); }
+.modeActive, .modeActive:hover { background: rgb(var(--wl-paper-rgb)); color: var(--wl-ink); box-shadow: 0 0 0 1px rgba(var(--wl-ink-rgb), 0.06); }
 
 .refresh {
   display: flex; align-items: center; justify-content: center;
@@ -32,7 +32,7 @@
   color: var(--wl-muted); cursor: pointer; padding: 0;
   transition: background 0.15s var(--wl-ease-soft), color 0.15s var(--wl-ease-soft);
 }
-.refresh:hover { background: rgba(27, 39, 48, 0.05); color: var(--wl-ink); }
+.refresh:hover { background: rgba(var(--wl-ink-rgb), 0.05); color: var(--wl-ink); }
 .refresh:disabled { opacity: 0.5; cursor: default; }
 
 .spin { animation: spin 0.8s linear infinite; }
@@ -62,15 +62,15 @@
 .card {
   display: block; width: 100%; box-sizing: border-box; text-align: left;
   border-radius: 12px; padding: 10px 12px; margin-bottom: 6px;
-  border: 1px solid rgba(255, 255, 255, 0.85);
-  box-shadow: 0 0 0 1px rgba(27, 39, 48, 0.05);
-  background: rgba(251, 252, 253, 0.9);
+  border: 1px solid rgba(var(--wl-paper-rgb), 0.85);
+  box-shadow: 0 0 0 1px rgba(var(--wl-ink-rgb), 0.05);
+  background: rgba(var(--wl-paper-rgb), 0.9);
   font: inherit; color: inherit; cursor: pointer;
   transition: background 0.15s var(--wl-ease-soft);
 }
-.card:hover { background: #fff; }
-.stub { cursor: default; background: rgba(27, 39, 48, 0.03); box-shadow: none; border-color: transparent; }
-.stub:hover { background: rgba(27, 39, 48, 0.03); }
+.card:hover { background: rgb(var(--wl-paper-rgb)); }
+.stub { cursor: default; background: rgba(var(--wl-ink-rgb), 0.03); box-shadow: none; border-color: transparent; }
+.stub:hover { background: rgba(var(--wl-ink-rgb), 0.03); }
 
 .cardName {
   display: flex; align-items: center; gap: 5px;
@@ -84,7 +84,7 @@
   margin-left: auto; flex-shrink: 0;
   font-size: 11px; font-weight: 500;
   padding: 1px 8px; border-radius: 999px;
-  background: rgba(27, 39, 48, 0.06); color: var(--wl-ink-2);
+  background: rgba(var(--wl-ink-rgb), 0.06); color: var(--wl-ink-2);
 }
 .badgeAmbiguous { background: var(--wl-amber-soft); }
 .badgeRelated { background: var(--wl-codex-soft); }
@@ -95,10 +95,10 @@
 }
 
 .stubRow { display: flex; align-items: center; gap: 8px; padding: 6px 6px; border-radius: 10px; }
-.stubRow:hover { background: rgba(27, 39, 48, 0.05); }
+.stubRow:hover { background: rgba(var(--wl-ink-rgb), 0.05); }
 .stubName { color: var(--wl-ink-2); font-size: 12.5px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .stubCount {
   margin-left: auto; flex-shrink: 0; font-size: 11px; color: var(--wl-muted);
-  background: rgba(27, 39, 48, 0.06); border-radius: 999px; padding: 1px 8px;
+  background: rgba(var(--wl-ink-rgb), 0.06); border-radius: 999px; padding: 1px 8px;
   font-family: var(--wl-mono);
 }

@@ -1,7 +1,7 @@
 .backdrop {
   position: fixed;
   inset: 0;
-  background: rgba(226, 233, 238, 0.55);
+  background: rgba(var(--wl-veil-rgb), 0.55);
   backdrop-filter: blur(6px);
   -webkit-backdrop-filter: blur(6px);
   z-index: 220;
@@ -20,7 +20,7 @@
   background: var(--wl-paper-solid);
   border: 0;
   border-radius: 22px;
-  box-shadow: 0 0 0 1px rgba(27, 39, 48, 0.07), 0 20px 50px -20px rgba(30, 55, 70, 0.35);
+  box-shadow: 0 0 0 1px rgba(var(--wl-ink-rgb), 0.07), 0 20px 50px -20px rgba(var(--wl-shadow-rgb), 0.35);
   color: var(--wl-ink);
   overflow: hidden;
 }
@@ -42,7 +42,7 @@
 /* Serif dialog heading (class name avoids the tokens.css "title" override). */
 .heading { font-family: var(--wl-serif); font-size: 22px; font-weight: 400; letter-spacing: -0.01em; color: var(--wl-ink); }
 .close { background: none; border: none; cursor: pointer; color: var(--wl-muted); display: flex; align-items: center; justify-content: center; width: 30px; height: 30px; border-radius: 999px; }
-.close:hover { color: var(--wl-ink); background: rgba(27, 39, 48, 0.05); }
+.close:hover { color: var(--wl-ink); background: rgba(var(--wl-ink-rgb), 0.05); }
 
 .body { padding: 4px 22px 14px; overflow-y: auto; display: flex; flex-direction: column; gap: 0; flex: 1; min-height: 0; }
 
@@ -74,7 +74,7 @@
   height: calc(94vh - 200px);
   border: 1px solid var(--wl-line);
   border-radius: 10px;
-  background: #fff;
+  background: rgb(var(--wl-paper-rgb));
   box-sizing: border-box;
 }
 
@@ -118,10 +118,10 @@
 .attachments { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 10px; }
 .attachment {
   display: inline-flex; align-items: center; gap: 6px; font-size: 12px; color: var(--wl-ink);
-  background: rgba(27, 39, 48, 0.05); border: none; border-radius: 999px; padding: 4px 8px 4px 12px;
+  background: rgba(var(--wl-ink-rgb), 0.05); border: none; border-radius: 999px; padding: 4px 8px 4px 12px;
 }
 .attRemove { background: none; border: none; cursor: pointer; color: var(--wl-faint); display: flex; padding: 1px; }
-.attRemove:hover { color: #b84a3a; }
+.attRemove:hover { color: var(--wl-danger); }
 
 .errorMsg {
   display: flex; align-items: center; gap: 8px; font-size: 12.5px; font-weight: 500; margin-top: 10px;
@@ -143,7 +143,7 @@
   color: var(--wl-faint); cursor: pointer; padding: 8px; border-radius: 999px;
   border: none; background: transparent;
 }
-.attachBtn:hover { color: var(--wl-ink); background: rgba(27, 39, 48, 0.05); }
+.attachBtn:hover { color: var(--wl-ink); background: rgba(var(--wl-ink-rgb), 0.05); }
 
 .primary, .ghost {
   display: inline-flex; align-items: center; gap: 7px;
@@ -151,11 +151,11 @@
   border: none; transition: background 0.15s var(--wl-ease-soft);
 }
 /* The one ink fill in the whole surface — the Send that actually sends. */
-.primary { background: var(--wl-ink); color: #fff; }
-.primary:hover:not(:disabled) { background: #2c3b46; }
+.primary { background: var(--wl-ink); color: var(--wl-on-ink); }
+.primary:hover:not(:disabled) { background: var(--wl-ink-hover); }
 .primary:disabled { opacity: 0.45; cursor: default; }
 .ghost { background: transparent; color: var(--wl-muted); }
-.ghost:hover { color: var(--wl-ink); background: rgba(27, 39, 48, 0.05); }
+.ghost:hover { color: var(--wl-ink); background: rgba(var(--wl-ink-rgb), 0.05); }
 
 .spin { animation: mailspin 0.9s linear infinite; }
 @keyframes mailspin { to { transform: rotate(360deg); } }
@@ -165,7 +165,7 @@
 /* Plain / Rich as a calm segmented control — sits quietly under the body. */
 .modeRow {
   display: inline-flex; gap: 2px; margin-top: 12px; padding: 3px;
-  background: rgba(27, 39, 48, 0.05); border-radius: 999px; align-self: flex-start;
+  background: rgba(var(--wl-ink-rgb), 0.05); border-radius: 999px; align-self: flex-start;
 }
 .modeToggle {
   display: inline-flex; align-items: center; gap: 5px;
@@ -174,8 +174,8 @@
 }
 .modeToggle:hover { color: var(--wl-ink); }
 .modeToggleActive {
-  background: #fff; color: var(--wl-ink);
-  box-shadow: 0 0 0 1px rgba(27, 39, 48, 0.06);
+  background: rgb(var(--wl-paper-rgb)); color: var(--wl-ink);
+  box-shadow: 0 0 0 1px rgba(var(--wl-ink-rgb), 0.06);
 }
 
 .rich { display: flex; flex-direction: column; gap: 10px; margin-top: 12px; }
@@ -190,33 +190,33 @@
 .themeChip, .assistChip {
   display: inline-flex; align-items: center; gap: 5px;
   font: inherit; font-size: 12px; font-weight: 500; padding: 5px 12px; border-radius: 999px; cursor: pointer;
-  border: none; background: rgba(27, 39, 48, 0.05); color: var(--wl-ink);
+  border: none; background: rgba(var(--wl-ink-rgb), 0.05); color: var(--wl-ink);
 }
-.themeChip:hover, .assistChip:hover { background: rgba(27, 39, 48, 0.09); color: var(--wl-ink); }
+.themeChip:hover, .assistChip:hover { background: rgba(var(--wl-ink-rgb), 0.09); color: var(--wl-ink); }
 .assistChip:disabled { opacity: 0.5; cursor: default; }
 .themeChipActive {
-  background: #fff; color: var(--wl-ink);
-  box-shadow: 0 0 0 1px rgba(27, 39, 48, 0.08);
+  background: rgb(var(--wl-paper-rgb)); color: var(--wl-ink);
+  box-shadow: 0 0 0 1px rgba(var(--wl-ink-rgb), 0.08);
 }
 
 .extras { display: flex; flex-wrap: wrap; gap: 6px; }
 .extraChip {
   display: inline-flex; align-items: center; gap: 6px; font-size: 12px; color: var(--wl-ink);
-  background: rgba(27, 39, 48, 0.05); border: none; border-radius: 999px; padding: 4px 8px 4px 12px;
+  background: rgba(var(--wl-ink-rgb), 0.05); border: none; border-radius: 999px; padding: 4px 8px 4px 12px;
 }
 
 /* The block list — the message's parts as an arrangeable stack. Each card is
    one block of the outgoing email, in order; drag (or the arrows) to move. */
 .blockList { display: flex; flex-direction: column; gap: 5px; }
 .blockCard {
-  border: 1px solid rgba(255, 255, 255, 0.85);
-  box-shadow: 0 0 0 1px rgba(27, 39, 48, 0.05);
+  border: 1px solid rgba(var(--wl-paper-rgb), 0.85);
+  box-shadow: 0 0 0 1px rgba(var(--wl-ink-rgb), 0.05);
   border-radius: 12px;
-  background: rgba(251, 252, 253, 0.9);
+  background: rgba(var(--wl-paper-rgb), 0.9);
   padding: 0;
 }
 .blockCard[draggable='true'] { cursor: grab; }
-.blockCardOver { box-shadow: inset 0 2px 0 var(--wl-ink), 0 0 0 1px rgba(27, 39, 48, 0.05); }
+.blockCardOver { box-shadow: inset 0 2px 0 var(--wl-ink), 0 0 0 1px rgba(var(--wl-ink-rgb), 0.05); }
 .blockRow { display: flex; align-items: center; gap: 7px; padding: 6px 8px 6px 6px; }
 .blockGrip { display: flex; color: var(--wl-faint); }
 .blockName {
@@ -229,26 +229,26 @@
   width: 24px; height: 24px; border: none; border-radius: 999px;
   background: none; color: var(--wl-muted); cursor: pointer; font-size: 12px;
 }
-.blockBtn:hover { background: rgba(27, 39, 48, 0.05); color: var(--wl-ink); }
+.blockBtn:hover { background: rgba(var(--wl-ink-rgb), 0.05); color: var(--wl-ink); }
 .blockBtn:disabled { opacity: 0.35; cursor: default; }
-.blockBtnActive { background: rgba(27, 39, 48, 0.08); color: var(--wl-ink); }
+.blockBtnActive { background: rgba(var(--wl-ink-rgb), 0.08); color: var(--wl-ink); }
 
 .blockEdit {
   display: flex; flex-direction: column; gap: 7px;
   padding: 8px 10px 10px; border-top: 1px solid var(--wl-line);
 }
 .blockEditInput {
-  border: 1px solid var(--wl-line); border-radius: 18px; background: rgba(255, 255, 255, 0.85);
+  border: 1px solid var(--wl-line); border-radius: 18px; background: rgba(var(--wl-paper-rgb), 0.85);
   color: var(--wl-ink); font: inherit; font-size: 12.5px; padding: 6px 12px; outline: none;
 }
-.blockEditInput:focus { border-color: rgba(27, 39, 48, 0.25); box-shadow: 0 0 0 3px rgba(27, 39, 48, 0.07); }
+.blockEditInput:focus { border-color: rgba(var(--wl-ink-rgb), 0.25); box-shadow: 0 0 0 3px rgba(var(--wl-ink-rgb), 0.07); }
 .blockEditText {
   min-height: 84px; resize: vertical;
-  border: 1px solid var(--wl-line); border-radius: 12px; background: rgba(255, 255, 255, 0.85);
+  border: 1px solid var(--wl-line); border-radius: 12px; background: rgba(var(--wl-paper-rgb), 0.85);
   color: var(--wl-ink); font-size: 13px; line-height: 1.55; padding: 8px 12px; outline: none;
   font-family: var(--wos-font, -apple-system, system-ui, sans-serif);
 }
-.blockEditText:focus { border-color: rgba(27, 39, 48, 0.25); box-shadow: 0 0 0 3px rgba(27, 39, 48, 0.07); }
+.blockEditText:focus { border-color: rgba(var(--wl-ink-rgb), 0.25); box-shadow: 0 0 0 3px rgba(var(--wl-ink-rgb), 0.07); }
 .blockEditImg {
   max-width: 220px;
   max-height: 140px;
@@ -256,7 +256,7 @@
   border: 1px solid var(--wl-line);
   border-radius: 7px;
   align-self: flex-start;
-  background: #fff;
+  background: rgb(var(--wl-paper-rgb));
 }
 
 .warnMsg {
@@ -267,13 +267,13 @@
 .previewLabel { font-size: 11px; font-weight: 500; text-transform: uppercase; letter-spacing: 0.18em; color: var(--wl-faint); margin-top: 2px; }
 .preview {
   width: 100%; height: 320px; border: 1px solid var(--wl-line); border-radius: 10px;
-  background: #fff; box-sizing: border-box;
+  background: rgb(var(--wl-paper-rgb)); box-sizing: border-box;
 }
 
 .pickerCard {
-  border: 1px solid rgba(255, 255, 255, 0.85); border-radius: 12px; overflow: hidden;
-  box-shadow: 0 0 0 1px rgba(27, 39, 48, 0.05);
-  background: rgba(251, 252, 253, 0.9);
+  border: 1px solid rgba(var(--wl-paper-rgb), 0.85); border-radius: 12px; overflow: hidden;
+  box-shadow: 0 0 0 1px rgba(var(--wl-ink-rgb), 0.05);
+  background: rgba(var(--wl-paper-rgb), 0.9);
 }
 .pickerHead {
   display: flex; align-items: center; justify-content: space-between;
@@ -286,7 +286,7 @@
   padding: 8px 12px; font-size: 12.5px; color: var(--wl-ink); background: none; border: none;
   cursor: pointer; text-align: left; border-bottom: 1px solid var(--wl-line);
 }
-.pickerRow:hover { background: rgba(27, 39, 48, 0.05); }
+.pickerRow:hover { background: rgba(var(--wl-ink-rgb), 0.05); }
 .pickerVal { font-variant-numeric: tabular-nums; color: var(--wl-muted); font-size: 12px; }
 .pickerForm { display: flex; flex-direction: column; gap: 8px; padding: 10px 12px; }
 
@@ -299,7 +299,7 @@
   max-height: 220px; overflow-y: auto;
   background: var(--wl-paper-solid);
   border: 0;
-  border-radius: 14px; box-shadow: 0 0 0 1px rgba(27, 39, 48, 0.07), 0 20px 50px -20px rgba(30, 55, 70, 0.35);
+  border-radius: 14px; box-shadow: 0 0 0 1px rgba(var(--wl-ink-rgb), 0.07), 0 20px 50px -20px rgba(var(--wl-shadow-rgb), 0.35);
   margin-top: 2px; padding: 4px;
 }
 .suggestion {
@@ -307,7 +307,7 @@
   width: 100%; text-align: left; padding: 6px 10px; border-radius: 8px; font: inherit;
   background: none; border: none; cursor: pointer;
 }
-.suggestion:hover { background: rgba(27, 39, 48, 0.05); }
+.suggestion:hover { background: rgba(var(--wl-ink-rgb), 0.05); }
 .suggestName { font-size: 12px; color: var(--wl-ink); }
 .suggestAddr { font-size: 11px; color: var(--wl-muted); }
 

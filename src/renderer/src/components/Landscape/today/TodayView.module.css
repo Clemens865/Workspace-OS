@@ -39,8 +39,8 @@
   flex: none;
   padding: 26px 30px 24px;
   border-radius: 26px;
-  border: 1px solid rgba(255, 255, 255, 0.85);
-  background: rgba(251, 252, 253, 0.9);
+  border: 1px solid rgba(var(--wl-paper-rgb), 0.85);
+  background: rgba(var(--wl-paper-rgb), 0.9);
 }
 
 .kicker,
@@ -110,22 +110,22 @@
 
 .btn {
   border: 1px solid var(--wl-line);
-  background: rgba(255, 255, 255, 0.8);
+  background: rgba(var(--wl-paper-rgb), 0.8);
   color: var(--wl-ink);
 }
 
 .btn:hover {
-  background: #fff;
+  background: rgb(var(--wl-paper-rgb));
 }
 
 .primary {
   border: 0;
   background: var(--wl-ink);
-  color: #fff;
+  color: var(--wl-on-ink);
 }
 
 .primary:hover {
-  background: #2c3b46;
+  background: var(--wl-ink-hover);
 }
 
 .quiet {
@@ -135,7 +135,7 @@
 }
 
 .quiet:hover {
-  background: rgba(27, 39, 48, 0.05);
+  background: rgba(var(--wl-ink-rgb), 0.05);
   color: var(--wl-ink);
 }
 
@@ -153,8 +153,8 @@
   min-width: 0;
   padding: 16px 18px;
   border-radius: 20px;
-  border: 1px solid rgba(255, 255, 255, 0.85);
-  background: rgba(255, 255, 255, 0.55);
+  border: 1px solid rgba(var(--wl-paper-rgb), 0.85);
+  background: rgba(var(--wl-paper-rgb), 0.55);
 }
 
 .wide,
@@ -188,7 +188,7 @@
 }
 
 .row:hover {
-  background: rgba(27, 39, 48, 0.05);
+  background: rgba(var(--wl-ink-rgb), 0.05);
 }
 
 .when {
@@ -282,9 +282,9 @@
   align-items: flex-start;
   gap: 4px;
   padding: 10px;
-  border: 1px solid rgba(255, 255, 255, 0.9);
+  border: 1px solid rgba(var(--wl-paper-rgb), 0.9);
   border-radius: 14px;
-  background: rgba(255, 255, 255, 0.7);
+  background: rgba(var(--wl-paper-rgb), 0.7);
   font: inherit;
   text-align: left;
   color: var(--wl-ink);
@@ -294,7 +294,7 @@
 
 .tile:hover,
 .page:hover {
-  background: #fff;
+  background: rgb(var(--wl-paper-rgb));
 }
 
 .thumb {
@@ -303,7 +303,7 @@
   width: 100%;
   height: 64px;
   border-radius: 10px;
-  background: rgba(27, 39, 48, 0.04);
+  background: rgba(var(--wl-ink-rgb), 0.04);
   overflow: hidden;
 }
 
@@ -322,9 +322,9 @@
   align-items: center;
   gap: 8px;
   padding: 9px 12px;
-  border: 1px solid rgba(255, 255, 255, 0.9);
+  border: 1px solid rgba(var(--wl-paper-rgb), 0.9);
   border-radius: 999px;
-  background: rgba(255, 255, 255, 0.7);
+  background: rgba(var(--wl-paper-rgb), 0.7);
   font: inherit;
   color: var(--wl-ink);
   cursor: pointer;
@@ -348,8 +348,8 @@
   gap: 12px;
   padding: 20px 20px 16px;
   border-radius: 26px;
-  border: 1px solid rgba(255, 255, 255, 0.85);
-  background: rgba(251, 252, 253, 0.9);
+  border: 1px solid rgba(var(--wl-paper-rgb), 0.85);
+  background: rgba(var(--wl-paper-rgb), 0.9);
 }
 
 .log {
@@ -375,12 +375,12 @@
 .you {
   align-self: flex-end;
   background: var(--wl-ink);
-  color: #fff;
+  color: var(--wl-on-ink);
 }
 
 .agent {
   align-self: flex-start;
-  background: rgba(27, 39, 48, 0.05);
+  background: rgba(var(--wl-ink-rgb), 0.05);
   color: var(--wl-ink);
 }
 
@@ -396,12 +396,12 @@
   padding: 4px 4px 4px 14px;
   border: 1px solid var(--wl-line);
   border-radius: 20px;
-  background: rgba(255, 255, 255, 0.85);
+  background: rgba(var(--wl-paper-rgb), 0.85);
 }
 
 .composer:focus-within {
-  border-color: rgba(27, 39, 48, 0.25);
-  box-shadow: 0 0 0 3px rgba(27, 39, 48, 0.07);
+  border-color: rgba(var(--wl-ink-rgb), 0.25);
+  box-shadow: 0 0 0 3px rgba(var(--wl-ink-rgb), 0.07);
 }
 
 .composer input {
@@ -424,7 +424,7 @@
   border: 0;
   border-radius: 50%;
   background: var(--wl-ink);
-  color: #fff;
+  color: var(--wl-on-ink);
   cursor: pointer;
 }
 

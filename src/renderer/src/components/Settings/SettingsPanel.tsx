@@ -1,6 +1,6 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { useAgentModels, refreshCodexModels } from '../../lib/agentModels'
-import { X, Check, AlertCircle, Sun, Moon } from 'lucide-react'
+import { X, Check, AlertCircle, Sun, Moon, Monitor } from 'lucide-react'
 import { useSettings } from '../../hooks/useSettings'
 import { useTheme } from '../../hooks/useTheme'
 import { BrandPanel } from './BrandPanel'
@@ -45,7 +45,7 @@ function NotificationsSection(): JSX.Element {
   }
   return (
     <section className={styles.section} data-testid="settings-notifications">
-      <h3 className={styles.sectionTitle}>Notifications</h3>
+      <h3 className={styles.sectionTitle}>Needs you</h3>
       <p className={styles.hint}>
         A knock on the door when something needs you and you are not looking. One per thing per ten minutes, never more.
       </p>
@@ -72,6 +72,23 @@ function NotificationsSection(): JSX.Element {
   )
 }
 
+/** The groups, in order: what the left column lists and the page scrolls to. */
+const GROUPS = [
+  { id: 'appearance', label: 'Appearance' },
+  { id: 'workspace', label: 'Workspace' },
+  { id: 'agents', label: 'Agents' },
+  { id: 'notifications', label: 'Notifications' },
+  { id: 'brand', label: 'Brand' },
+  { id: 'system', label: 'System' },
+] as const
+
+/** Quick background work (sorting and summarising mail): three plain choices. */
+const LIGHT_MODELS: { value: string; label: string }[] = [
+  { value: 'haiku', label: 'Fast (Claude Haiku)' },
+  { value: 'sonnet', label: 'Balanced (Claude Sonnet)' },
+  { value: '', label: 'Same as my agents' },
+]
+
 export function SettingsPanel({ onClose }: SettingsPanelProps): JSX.Element {
   const agentModels = useAgentModels()
   const [codexStatus, setCodexStatus] = useState('')
@@ -81,8 +98,10 @@ export function SettingsPanel({ onClose }: SettingsPanelProps): JSX.Element {
     setCodexStatus(status.error ?? `Codex: ${status.account}`)
   }
   const settings = useSettings()
-  const { theme, toggle } = useTheme()
+  const { pref, setPref } = useTheme()
   const [status, setStatus] = useState<Status | null>(null)
+  const [group, setGroup] = useState<string>('appearance')
+  const body = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
     window.workspace.system.status().then(setStatus).catch(() => {})
@@ -94,6 +113,28 @@ export function SettingsPanel({ onClose }: SettingsPanelProps): JSX.Element {
     return () => window.removeEventListener('keydown', onKey)
   }, [onClose])
 
+  // The left column follows the scroll: the group whose heading is nearest the top.
+  const onScroll = (): void => {
+    const el = body.current
+    if (!el) return
+    const top = el.getBoundingClientRect().top
+    let current: string = GROUPS[0].id
+    for (const g of GROUPS) {
+      const h = el.querySelector<HTMLElement>(`[data-group="${g.id}"]`)
+      if (h && h.getBoundingClientRect().top - top < 80) current = g.id
+    }
+    setGroup(current)
+  }
+  const goTo = (id: string): void => {
+    setGroup(id)
+    body.current?.querySelector<HTMLElement>(`[data-group="${id}"]`)?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+  }
+
+  const codexModels = agentModels.filter((m) => m.provider === 'Codex' && m.id !== 'codex:')
+  const selected = agentModels.find((m) => m.id === settings.agentModel)
+  const usingCodex = selected?.provider === 'Codex'
+  const lightOptions = [...LIGHT_MODELS, ...(LIGHT_MODELS.some((o) => o.value === settings.lightModel) ? [] : [{ value: settings.lightModel, label: settings.lightModel.replace(/^claude:/, 'Claude · ').replace(/^codex:/, 'Codex · ') }])]
+
   const StatusRow = ({ label, ok, detail }: { label: string; ok: boolean; detail?: string }): JSX.Element => (
     <div className={styles.statusRow}>
       {ok ? <Check size={15} className={styles.ok} /> : <AlertCircle size={15} className={styles.bad} />}
@@ -101,215 +142,175 @@ export function SettingsPanel({ onClose }: SettingsPanelProps): JSX.Element {
       <span className={styles.statusDetail}>{detail ?? (ok ? 'Ready' : 'Not found')}</span>
     </div>
   )
+  const GroupHead = ({ id, label }: { id: string; label: string }): JSX.Element => (
+    <h2 className={styles.groupHead} data-group={id}>
+      {label}
+    </h2>
+  )
 
   return (
     <div className={styles.backdrop} onClick={onClose}>
-      <div className={styles.panel} onClick={(e) => e.stopPropagation()}>
+      <div className={styles.panel} onClick={(e) => e.stopPropagation()} data-testid="settings-panel">
         <div className={styles.header}>
           <span className={styles.heading}>Settings</span>
           <button className={styles.close} onClick={onClose} title="Close"><X size={16} /></button>
         </div>
 
-        <div className={styles.body}>
-          <section className={styles.section}>
-            <h3 className={styles.sectionTitle}>Appearance</h3>
-            <div className={styles.segmented}>
-              <button className={theme === 'light' ? styles.segOn : styles.segOff} onClick={() => theme !== 'light' && toggle()}>
-                <Sun size={14} /> Light
+        <div className={styles.columns}>
+          <nav className={styles.groups} aria-label="Settings groups">
+            {GROUPS.map((g) => (
+              <button key={g.id} type="button" className={group === g.id ? styles.groupOn : styles.groupBtn} onClick={() => goTo(g.id)} data-settings-group={g.id}>
+                {g.label}
               </button>
-              <button className={theme === 'dark' ? styles.segOn : styles.segOff} onClick={() => theme !== 'dark' && toggle()}>
-                <Moon size={14} /> Dark
-              </button>
-            </div>
-          </section>
+            ))}
+          </nav>
 
-          <section className={styles.section}>
-            <h3 className={styles.sectionTitle}>Open on</h3>
-            <p className={styles.hint}>
-              Where Workspace OS opens: the landscape (your team, the Inbox, your cases) or straight on the stage
-              with your documents and apps. The Landscape button on the stage always leads back.
-            </p>
-            <div className={styles.segmented}>
-              <button className={settings.startOn !== 'stage' ? styles.segOn : styles.segOff} onClick={() => settings.set('startOn', 'landscape')} data-testid="start-landscape">
-                Landscape
-              </button>
-              <button className={settings.startOn === 'stage' ? styles.segOn : styles.segOff} onClick={() => settings.set('startOn', 'stage')} data-testid="start-stage">
-                Stage
-              </button>
-            </div>
-          </section>
+          <div ref={body} className={styles.body} onScroll={onScroll}>
+            <GroupHead id="appearance" label="Appearance" />
+            <section className={styles.section}>
+              <h3 className={styles.sectionTitle}>Theme</h3>
+              <p className={styles.hint}>Light, dark, or whatever macOS is showing. Documents and web pages keep their own colours.</p>
+              <div className={styles.segmented}>
+                <button className={pref === 'light' ? styles.segOn : styles.segOff} onClick={() => setPref('light')} data-testid="theme-light">
+                  <Sun size={14} /> Light
+                </button>
+                <button className={pref === 'dark' ? styles.segOn : styles.segOff} onClick={() => setPref('dark')} data-testid="theme-dark">
+                  <Moon size={14} /> Dark
+                </button>
+                <button className={pref === 'system' ? styles.segOn : styles.segOff} onClick={() => setPref('system')} data-testid="theme-system">
+                  <Monitor size={14} /> Match macOS
+                </button>
+              </div>
+            </section>
 
-          <section className={styles.section}>
+            <section className={styles.section}>
               <h3 className={styles.sectionTitle}>Landscape graphics</h3>
               <p className={styles.hint}>
-                The mist landscape and Liquid Glass draw only when something changes and stop while you work on
-                the stage. Auto uses Full on power and Light on battery or with reduced motion; Light freezes the
-                mist; Off is flat, with no GPU use.
+                The mist landscape and Liquid Glass draw only when something changes and stop while you work on the stage.
+                Auto uses Full on power and Light on battery or with reduced motion; Light freezes the mist; Off is flat,
+                with no GPU use.
               </p>
               <div className={styles.segmented}>
                 {(['auto', 'full', 'light', 'off'] as const).map((q) => (
-                  <button
-                    key={q}
-                    className={settings.landscapeQuality === q ? styles.segOn : styles.segOff}
-                    onClick={() => settings.set('landscapeQuality', q)}
-                    data-testid={`landscape-quality-${q}`}
-                  >
+                  <button key={q} className={settings.landscapeQuality === q ? styles.segOn : styles.segOff} onClick={() => settings.set('landscapeQuality', q)} data-testid={`landscape-quality-${q}`}>
                     {q[0].toUpperCase() + q.slice(1)}
                   </button>
                 ))}
               </div>
             </section>
 
-          <section className={styles.section}>
-              <h3 className={styles.sectionTitle}>Terminal dock</h3>
+            <section className={styles.section}>
+              <h3 className={styles.sectionTitle}>Open on</h3>
               <p className={styles.hint}>
-                The integrated terminal + agent dock (toggle any time with ⌘J). Choose where it sits: docked at the bottom or right, or floating as a window you can move and resize, over the landscape too.
+                Where Workspace OS opens: the landscape (your team, the Inbox, your cases) or straight on the stage with your
+                documents and apps. Overview in the dock always leads to the landscape.
               </p>
               <div className={styles.segmented}>
-                <button
-                  className={settings.terminalPlacement === 'bottom' ? styles.segOn : styles.segOff}
-                  onClick={() => settings.set('terminalPlacement', 'bottom')}
-                >
-                  Bottom
-                </button>
-                <button
-                  className={settings.terminalPlacement === 'right' ? styles.segOn : styles.segOff}
-                  onClick={() => settings.set('terminalPlacement', 'right')}
-                >
-                  Right
-                </button>
-                <button
-                  className={settings.terminalPlacement === 'float' ? styles.segOn : styles.segOff}
-                  onClick={() => settings.set('terminalPlacement', 'float')}
-                >
-                  Float
-                </button>
+                <button className={settings.startOn !== 'stage' ? styles.segOn : styles.segOff} onClick={() => settings.set('startOn', 'landscape')} data-testid="start-landscape">Landscape</button>
+                <button className={settings.startOn === 'stage' ? styles.segOn : styles.segOff} onClick={() => settings.set('startOn', 'stage')} data-testid="start-stage">Stage</button>
               </div>
             </section>
 
-          <section className={styles.section}>
-            <h3 className={styles.sectionTitle}>Default agent mode</h3>
-            <p className={styles.hint}>Applied to new agent sessions. Full allows edits + shell (destructive commands blocked); Safe is read + generate only.</p>
-            <div className={styles.segmented}>
-              <button className={settings.agentMode === 'full' ? styles.segOn : styles.segOff} onClick={() => settings.set('agentMode', 'full')}>⚡ Full</button>
-              <button className={settings.agentMode === 'safe' ? styles.segOn : styles.segOff} onClick={() => settings.set('agentMode', 'safe')}>🛡 Safe</button>
-            </div>
-          </section>
-
-          <section className={styles.section}>
-            <h3 className={styles.sectionTitle}>Auto-approve reversible actions</h3>
-            <p className={styles.hint}>
-              When on, reversible requests (a checkpointed edit, a read-only web fetch) are approved automatically across
-              all agent lanes — and always logged as a resolved card so it stays auditable. Irreversible or outbound
-              actions (shell commands, network connections) still always ask you. Off by default.
-            </p>
-            <div className={styles.segmented}>
-              <button
-                className={settings.autoApproveReversible ? styles.segOn : styles.segOff}
-                onClick={() => settings.set('autoApproveReversible', true)}
-              >
-                On
-              </button>
-              <button
-                className={!settings.autoApproveReversible ? styles.segOn : styles.segOff}
-                onClick={() => settings.set('autoApproveReversible', false)}
-              >
-                Off
-              </button>
-            </div>
-          </section>
-
-          <section className={styles.section}>
-            <h3 className={styles.sectionTitle}>Default new-file format</h3>
-            <select className={styles.select} value={settings.newFileFormat} onChange={(e) => settings.set('newFileFormat', e.target.value as typeof settings.newFileFormat)}>
-              {FORMATS.map((f) => <option key={f.value} value={f.value}>{f.label}</option>)}
-            </select>
-          </section>
-
-          <section className={styles.section}>
-            <h3 className={styles.sectionTitle}>Models</h3>
-            <p className={styles.hint}>
-              The model — and the provider — agents run on: in the dock, on Home, in cases, routines
-              and the interactive session. Claude names are aliases that follow the latest generation,
-              so a choice never goes stale; Codex runs through its own CLI (sign in with <code>codex login</code>). A specialist's own <code>wos_model</code> and the model chip in the dock override it
-              for that agent or session.
-            </p>
-            <select
-              className={styles.select}
-              value={settings.agentModel}
-              onChange={(e) => settings.set('agentModel', e.target.value)}
-              title="Model for agent runs: the dock, the Home assistant, cases, routines and the interactive session. An agent's own wos_model and a per-session pick in the dock override it."
-              data-testid="agent-model"
-            >
-              {agentModels.map((m) => <option key={m.id} value={m.id}>{`${m.label} — ${m.hint}`}</option>)}
-            </select>
-            <p className={styles.hint} style={{ marginTop: 10 }}>
-              Quick background tasks — sorting and summarizing new mail — run on a cheaper model; if an
-              alias is ever retired, Claude falls back to its default automatically. With Codex selected above,
-              legacy light-model choices follow Codex; select an explicit provider below to pin these tasks.
-            </p>
-            <select
-              className={styles.select}
-              value={settings.lightModel}
-              onChange={(e) => settings.set('lightModel', e.target.value)}
-            >
-              <option value="haiku">Light model (haiku) — fastest, cheapest</option>
-              <option value="sonnet">Mid model (sonnet)</option>
-              <option value="">My default model</option>
-              <option value="claude:haiku">Claude · Haiku (always Claude)</option>
-              <option value="claude:sonnet">Claude · Sonnet (always Claude)</option>
-              {agentModels.filter((m) => m.provider === 'Codex').map((m) => <option key={m.id} value={m.id}>{m.label}</option>)}
-            </select>
-          </section>
-
-          <section className={styles.section}>
-            <h3 className={styles.sectionTitle}>Codex</h3>
-            <button onClick={() => void checkCodex().catch((e) => setCodexStatus(e.message))}>Check account and refresh models</button>
-            {codexStatus && <p className={styles.hint} role="status">{codexStatus}</p>}
-            <p className={styles.hint}>Sign in using <code>codex login</code>. Your Claude account and settings remain separate.</p>
-            <label>Reasoning effort
-              <select className={styles.select} value={settings.codexEffort} onChange={(e) => settings.set('codexEffort', e.target.value)}>
-                <option value="">Codex default</option>
-                {(agentModels.find((m) => m.id === settings.agentModel)?.efforts ?? []).map((effort) => <option key={effort} value={effort}>{effort}</option>)}
-              </select>
-            </label>
-          </section>
-
-          <NotificationsSection />
-
-          <BrandPanel />
-
-          {/* Connections have their own page (Menu → Connectors). */}
-          <section className={styles.section}>
-            <h3 className={styles.sectionTitle}>Connectors</h3>
-            <p className={styles.hint}>
-              Everything the workspace is signed into — MCP connectors, mail, calendar, Drive and the
-              sites your agents work on — lives on the Connectors page, with a status that says when a
-              sign-in needs renewing.
-            </p>
-            <button
-              className={styles.btn}
-              onClick={() => {
-                onClose()
-                window.dispatchEvent(new CustomEvent('wos:open-rail', { detail: { rail: 'connectors' } }))
-              }}
-            >
-              Open Connectors
-            </button>
-          </section>
-
-          <section className={styles.section}>
-            <h3 className={styles.sectionTitle}>Engine &amp; tools</h3>
-            {status ? (
-              <div className={styles.statusList}>
-                <StatusRow label="Office engine (LibreOffice)" ok={status.engine} />
-                <StatusRow label="Document generator (Python)" ok={status.python} detail={status.python ? 'Ready' : 'Sets up on first use'} />
-                <StatusRow label="Agent (Claude CLI)" ok={status.claude.ok} detail={status.claude.path ?? 'Not found — install Claude Code'} />
+            <GroupHead id="workspace" label="Workspace" />
+            <section className={styles.section}>
+              <h3 className={styles.sectionTitle}>Terminal</h3>
+              <p className={styles.hint}>
+                Where the terminal sits (⌘J or Terminal in the dock): docked at the bottom or right, or floating as a window
+                you can move and resize, over the landscape too.
+              </p>
+              <div className={styles.segmented}>
+                {(['bottom', 'right', 'float'] as const).map((p) => (
+                  <button key={p} className={settings.terminalPlacement === p ? styles.segOn : styles.segOff} onClick={() => settings.set('terminalPlacement', p)} data-testid={`terminal-place-${p}`}>
+                    {p === 'float' ? 'Floating' : p[0].toUpperCase() + p.slice(1)}
+                  </button>
+                ))}
               </div>
-            ) : (
-              <p className={styles.hint}>Checking…</p>
+            </section>
+
+            <section className={styles.section}>
+              <h3 className={styles.sectionTitle}>⌘N in Files creates</h3>
+              <select className={styles.select} value={settings.newFileFormat} onChange={(e) => settings.set('newFileFormat', e.target.value as typeof settings.newFileFormat)}>
+                {FORMATS.map((f) => <option key={f.value} value={f.value}>{f.label}</option>)}
+              </select>
+            </section>
+
+            <GroupHead id="agents" label="Agents" />
+            <section className={styles.section}>
+              <h3 className={styles.sectionTitle}>New sessions start in</h3>
+              <p className={styles.hint}>Full may edit files and run commands (destructive ones are blocked); Safe only reads and generates.</p>
+              <div className={styles.segmented}>
+                <button className={settings.agentMode === 'full' ? styles.segOn : styles.segOff} onClick={() => settings.set('agentMode', 'full')}>Full</button>
+                <button className={settings.agentMode === 'safe' ? styles.segOn : styles.segOff} onClick={() => settings.set('agentMode', 'safe')}>Safe</button>
+              </div>
+            </section>
+
+            <section className={styles.section}>
+              <h3 className={styles.sectionTitle}>Approve undoable steps automatically</h3>
+              <p className={styles.hint}>
+                Steps that can be undone (a checkpointed edit, a read-only web fetch) are approved for you and still logged.
+                Commands and outbound connections always ask.
+              </p>
+              <div className={styles.segmented}>
+                <button className={settings.autoApproveReversible ? styles.segOn : styles.segOff} onClick={() => settings.set('autoApproveReversible', true)}>On</button>
+                <button className={!settings.autoApproveReversible ? styles.segOn : styles.segOff} onClick={() => settings.set('autoApproveReversible', false)}>Off</button>
+              </div>
+            </section>
+
+            <section className={styles.section}>
+              <h3 className={styles.sectionTitle}>Model</h3>
+              <p className={styles.hint}>
+                What your agents run on. Claude names follow the latest generation. An agent's own model, or the model chip
+                in the terminal, overrides this for that agent or session.
+              </p>
+              <select className={styles.select} value={settings.agentModel} onChange={(e) => settings.set('agentModel', e.target.value)} data-testid="agent-model">
+                {agentModels.map((m) => <option key={m.id} value={m.id}>{`${m.label} — ${m.hint}`}</option>)}
+              </select>
+              <h3 className={styles.sectionTitle} style={{ marginTop: 14 }}>Background tasks</h3>
+              <p className={styles.hint}>Sorting and summarising new mail. A faster model keeps it cheap.</p>
+              <select className={styles.select} value={settings.lightModel} onChange={(e) => settings.set('lightModel', e.target.value)} data-testid="light-model">
+                {lightOptions.map((o) => <option key={o.value} value={o.value}>{o.label}</option>)}
+              </select>
+            </section>
+
+            {(codexModels.length > 0 || usingCodex) && (
+              <section className={styles.section} data-testid="settings-codex">
+                <h3 className={styles.sectionTitle}>Codex</h3>
+                <p className={styles.hint}>Codex signs in on its own (<code>codex login</code>); your Claude account stays separate.</p>
+                <button className={styles.btn} onClick={() => void checkCodex().catch((e) => setCodexStatus(e.message))}>Check account and refresh models</button>
+                {codexStatus && <p className={styles.hint} role="status">{codexStatus}</p>}
+                {usingCodex && (selected?.efforts?.length ?? 0) > 0 && (
+                  <label className={styles.field}>
+                    Reasoning effort
+                    <select className={styles.select} value={settings.codexEffort} onChange={(e) => settings.set('codexEffort', e.target.value)}>
+                      <option value="">Codex default</option>
+                      {selected!.efforts!.map((effort) => <option key={effort} value={effort}>{effort}</option>)}
+                    </select>
+                  </label>
+                )}
+              </section>
             )}
-          </section>
+
+            <GroupHead id="notifications" label="Notifications" />
+            <NotificationsSection />
+
+            <GroupHead id="brand" label="Brand" />
+            <BrandPanel />
+
+            <GroupHead id="system" label="System" />
+            <section className={styles.section}>
+              <h3 className={styles.sectionTitle}>Engine &amp; tools</h3>
+              {status ? (
+                <div className={styles.statusList}>
+                  <StatusRow label="Office engine (LibreOffice)" ok={status.engine} />
+                  <StatusRow label="Document generator (Python)" ok={status.python} detail={status.python ? 'Ready' : 'Sets up on first use'} />
+                  <StatusRow label="Agent (Claude CLI)" ok={status.claude.ok} detail={status.claude.path ?? 'Not found — install Claude Code'} />
+                </div>
+              ) : (
+                <p className={styles.hint}>Checking…</p>
+              )}
+              <p className={styles.hint} style={{ marginTop: 10 }}>Accounts, mail, calendars and MCP connectors: Menu → Connectors.</p>
+            </section>
+          </div>
         </div>
       </div>
     </div>

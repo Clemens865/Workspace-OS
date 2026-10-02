@@ -11,7 +11,33 @@ export type CodeEditor = Parameters<OnMount>[0]
 /** The landscape's light editor theme: paper ground, ink text, quiet chrome. */
 export const LANDSCAPE_THEME = 'wl'
 
+/** …and its night: the landscape's dark paper, moonlight ink. */
+export const LANDSCAPE_DARK_THEME = 'wl-dark'
+
 const defineLandscapeTheme: BeforeMount = (monaco) => {
+  monaco.editor.defineTheme(LANDSCAPE_DARK_THEME, {
+    base: 'vs-dark',
+    inherit: true,
+    rules: [],
+    colors: {
+      'editor.background': '#182129',
+      'editor.foreground': '#e6ecf0',
+      'editorLineNumber.foreground': '#5f6d78',
+      'editorLineNumber.activeForeground': '#b9c5cd',
+      'editor.lineHighlightBackground': '#e6ecf00a',
+      'editor.lineHighlightBorder': '#00000000',
+      'editor.selectionBackground': '#e6ecf026',
+      'editor.inactiveSelectionBackground': '#e6ecf014',
+      'editorCursor.foreground': '#e6ecf0',
+      'editorGutter.background': '#182129',
+      'editorIndentGuide.background1': '#e6ecf014',
+      'editorWidget.background': '#182129',
+      'editorWidget.border': '#e6ecf01a',
+      'scrollbarSlider.background': '#e6ecf01f',
+      'scrollbarSlider.hoverBackground': '#e6ecf033',
+      'scrollbarSlider.activeBackground': '#e6ecf047',
+    },
+  })
   monaco.editor.defineTheme(LANDSCAPE_THEME, {
     base: 'vs',
     inherit: true,
@@ -122,7 +148,7 @@ export function MonacoRenderer({ filePath, onDirty, onEditorMount, onSaveRegiste
       onChange={handleChange}
       beforeMount={defineLandscapeTheme}
       onMount={handleMount}
-      theme={theme === 'dark' ? 'vs-dark' : LANDSCAPE_THEME}
+      theme={theme === 'dark' ? LANDSCAPE_DARK_THEME : LANDSCAPE_THEME}
       options={{
         fontSize: 13,
         fontFamily: "'JetBrains Mono', 'SF Mono', 'Fira Code', 'Cascadia Code', monospace",

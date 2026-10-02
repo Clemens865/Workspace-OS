@@ -26,7 +26,7 @@
   gap: 2px;
   padding: 3px;
   border-radius: 999px;
-  background: rgba(27, 39, 48, 0.05);
+  background: rgba(var(--wl-ink-rgb), 0.05);
 }
 
 .view {
@@ -48,8 +48,8 @@
 
 .viewOn {
   color: var(--wl-ink);
-  background: #fff;
-  box-shadow: 0 0 0 1px rgba(27, 39, 48, 0.06);
+  background: rgb(var(--wl-paper-rgb));
+  box-shadow: 0 0 0 1px rgba(var(--wl-ink-rgb), 0.06);
 }
 
 .controls {
@@ -66,13 +66,13 @@
   padding: 0 12px 0 11px;
   border-radius: 999px;
   border: 1px solid var(--wl-line);
-  background: rgba(255, 255, 255, 0.8);
+  background: rgba(var(--wl-paper-rgb), 0.8);
   cursor: pointer;
   transition: background 0.15s var(--wl-ease-soft);
 }
 
 .selectWrap:hover {
-  background: #fff;
+  background: rgb(var(--wl-paper-rgb));
 }
 
 .selectIcon {
@@ -99,7 +99,7 @@
   gap: 2px;
   padding: 3px;
   border-radius: 999px;
-  background: rgba(27, 39, 48, 0.05);
+  background: rgba(var(--wl-ink-rgb), 0.05);
 }
 
 .alt {
@@ -129,7 +129,7 @@
   align-items: center;
   padding: 1px 7px;
   border-radius: 999px;
-  background: rgba(27, 39, 48, 0.06);
+  background: rgba(var(--wl-ink-rgb), 0.06);
   color: var(--wl-muted);
   font-size: 9.5px;
   font-weight: 500;
@@ -144,10 +144,10 @@
 }
 
 .altOn {
-  background: #fff;
+  background: rgb(var(--wl-paper-rgb));
   color: var(--wl-ink);
   opacity: 1;
-  box-shadow: 0 0 0 1px rgba(27, 39, 48, 0.06);
+  box-shadow: 0 0 0 1px rgba(var(--wl-ink-rgb), 0.06);
 }
 
 .search {
@@ -155,7 +155,7 @@
   height: 32px;
   border: 1px solid var(--wl-line);
   border-radius: 50%;
-  background: rgba(255, 255, 255, 0.8);
+  background: rgba(var(--wl-paper-rgb), 0.8);
   color: var(--wl-ink-2);
   font-size: 15px;
   cursor: pointer;
@@ -163,7 +163,7 @@
 }
 
 .search:hover {
-  background: #fff;
+  background: rgb(var(--wl-paper-rgb));
   color: var(--wl-ink);
 }
 
@@ -435,7 +435,7 @@
 }
 
 .result:hover {
-  background: rgba(27, 39, 48, 0.05);
+  background: rgba(var(--wl-ink-rgb), 0.05);
 }
 
 .kind {
@@ -481,5 +481,5 @@
 
 .settled:hover {
   color: var(--wl-ink);
-  background: rgba(27, 39, 48, 0.05);
+  background: rgba(var(--wl-ink-rgb), 0.05);
 }

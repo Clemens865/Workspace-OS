@@ -17,9 +17,10 @@ import './styles/global.css'
 // existing (see styles/tokens.css). Only the new shell opts in via `.wos`.
 import './styles/tokens.css'
 
-// Light is the default theme for the office/executive audience; persisted choice wins.
-const savedTheme = localStorage.getItem('workspace-os:theme') ?? 'light'
-document.documentElement.setAttribute('data-theme', savedTheme)
+// Light is the default theme for the office/executive audience; persisted choice
+// wins ('system' follows macOS). Set before the first paint, so nothing flashes.
+import { currentTheme } from './hooks/useTheme'
+document.documentElement.setAttribute('data-theme', currentTheme())
 
 const root = document.getElementById('root')
 if (!root) throw new Error('Root element not found')

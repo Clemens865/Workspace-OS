@@ -29,6 +29,8 @@ export interface SharedGlass {
   uTime: { value: number }
   uLight: { value: THREE.Vector2 }
   uPointer: { value: THREE.Vector2 }
+  /** 0 = day, 1 = night (the dark theme). */
+  uNight: { value: number }
 }
 
 interface Pane {

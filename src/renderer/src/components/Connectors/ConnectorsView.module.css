@@ -65,15 +65,15 @@
   gap: 10px;
   padding: 0 10px 0 0;
   border-radius: 18px;
-  background: rgba(251, 252, 253, 0.9);
-  border: 1px solid rgba(255, 255, 255, 0.85);
-  box-shadow: 0 0 0 1px rgba(27, 39, 48, 0.05);
+  background: rgba(var(--wl-paper-rgb), 0.9);
+  border: 1px solid rgba(var(--wl-paper-rgb), 0.85);
+  box-shadow: 0 0 0 1px rgba(var(--wl-ink-rgb), 0.05);
   margin: 0 0 8px;
   transition: background 0.15s var(--wl-ease-soft);
 }
 
 .s_needs_signin {
-  background: linear-gradient(90deg, var(--wl-claude-soft) 0%, rgba(251, 252, 253, 0.9) 55%);
+  background: linear-gradient(90deg, var(--wl-claude-soft) 0%, rgba(var(--wl-paper-rgb), 0.9) 55%);
   box-shadow: 0 0 0 1px rgba(217, 119, 87, 0.18);
 }
 
@@ -161,7 +161,7 @@
   padding: 0 14px;
   border: 1px solid var(--wl-line);
   border-radius: 18px;
-  background: rgba(255, 255, 255, 0.8);
+  background: rgba(var(--wl-paper-rgb), 0.8);
   font: inherit;
   font-size: 12.5px;
   font-weight: 500;
@@ -173,7 +173,7 @@
 
 .action:hover {
   color: var(--wl-ink);
-  background: #fff;
+  background: rgb(var(--wl-paper-rgb));
 }
 
 .action:disabled {
@@ -184,12 +184,12 @@
 .actionWarm {
   background: var(--wl-ink);
   border-color: transparent;
-  color: #fff;
+  color: var(--wl-on-ink);
 }
 
 .actionWarm:hover {
-  background: #2c3b46;
-  color: #fff;
+  background: var(--wl-ink-hover);
+  color: var(--wl-on-ink);
 }
 
 .panel {
@@ -248,7 +248,7 @@
   padding: 0 14px;
   border: 1px solid var(--wl-line);
   border-radius: 18px;
-  background: rgba(255, 255, 255, 0.85);
+  background: rgba(var(--wl-paper-rgb), 0.85);
   font: inherit;
   font-size: 13px;
   color: var(--wl-ink);
@@ -257,8 +257,8 @@
 
 .input:focus {
   outline: none;
-  border-color: rgba(27, 39, 48, 0.25);
-  box-shadow: 0 0 0 3px rgba(27, 39, 48, 0.07);
+  border-color: rgba(var(--wl-ink-rgb), 0.25);
+  box-shadow: 0 0 0 3px rgba(var(--wl-ink-rgb), 0.07);
 }
 
 .quiet {
@@ -266,7 +266,7 @@
   padding: 0 14px;
   border: 1px solid var(--wl-line);
   border-radius: 18px;
-  background: rgba(255, 255, 255, 0.8);
+  background: rgba(var(--wl-paper-rgb), 0.8);
   font: inherit;
   font-size: 12.5px;
   font-weight: 500;
@@ -277,7 +277,7 @@
 }
 
 .quiet:hover {
-  background: #fff;
+  background: rgb(var(--wl-paper-rgb));
 }
 
 .quiet:disabled {
@@ -287,7 +287,7 @@
 
 .danger {
   align-self: flex-start;
-  color: #b84a3a;
+  color: var(--wl-danger);
 }
 
 .hint {
@@ -303,5 +303,5 @@
   margin: 0;
   padding: 0 12px 10px 38px;
   font-size: 12.5px;
-  color: #b84a3a;
+  color: var(--wl-danger);
 }

@@ -7,7 +7,7 @@
   background: var(--wl-paper-solid, var(--elevated));
   border: 0;
   border-radius: 14px;
-  box-shadow: 0 0 0 1px rgba(27, 39, 48, 0.07), 0 20px 50px -20px rgba(30, 55, 70, 0.35);
+  box-shadow: 0 0 0 1px rgba(var(--wl-ink-rgb), 0.07), 0 20px 50px -20px rgba(var(--wl-shadow-rgb), 0.35);
   padding: 6px;
 }
 
@@ -28,12 +28,12 @@
   transition: background 0.15s var(--wl-ease-soft, ease);
 }
 
-.item:hover { background: rgba(27, 39, 48, 0.05); }
+.item:hover { background: rgba(var(--wl-ink-rgb), 0.05); }
 
 .icon { color: var(--wl-muted, var(--fg-muted)); flex: none; }
 
-.danger { color: #b84a3a; }
-.danger .icon { color: #b84a3a; }
+.danger { color: var(--wl-danger); }
+.danger .icon { color: var(--wl-danger); }
 .danger:hover { background: var(--wl-claude-soft, rgba(217, 119, 87, 0.12)); }
 
 .separator {

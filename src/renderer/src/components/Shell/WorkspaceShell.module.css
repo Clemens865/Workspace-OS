@@ -31,7 +31,7 @@
   background: var(--wos-dark);
   display: grid;
   place-items: center;
-  color: #fff;
+  color: var(--wl-on-ink);
   margin-bottom: 10px;
   font-weight: 700;
   font-size: 15px;
@@ -96,8 +96,8 @@
   align-items: center;
   gap: 10px;
   padding: 10px 16px;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.7);
-  background: rgba(238, 242, 245, 0.82);
+  border-bottom: 1px solid rgba(var(--wl-paper-rgb), 0.7);
+  background: rgba(var(--wl-paper-rgb), 0.82);
   backdrop-filter: saturate(140%) blur(18px);
   -webkit-backdrop-filter: saturate(140%) blur(18px);
   -webkit-app-region: drag;
@@ -131,15 +131,15 @@
 }
 
 .tab:hover {
-  background: rgba(255, 255, 255, 0.55);
+  background: rgba(var(--wl-paper-rgb), 0.55);
   color: var(--wos-ink);
 }
 
 .tabOn {
-  background: rgba(255, 255, 255, 0.9);
-  border-color: rgba(255, 255, 255, 0.95);
+  background: rgba(var(--wl-paper-rgb), 0.9);
+  border-color: rgba(var(--wl-paper-rgb), 0.95);
   color: var(--wos-ink);
-  box-shadow: 0 0 0 1px rgba(27, 39, 48, 0.06);
+  box-shadow: 0 0 0 1px rgba(var(--wl-ink-rgb), 0.06);
 }
 
 .tabClose {
@@ -158,8 +158,8 @@
   display: flex;
   align-items: center;
   gap: 8px;
-  background: rgba(255, 255, 255, 0.8);
-  border: 1px solid rgba(255, 255, 255, 0.9);
+  background: rgba(var(--wl-paper-rgb), 0.8);
+  border: 1px solid rgba(var(--wl-paper-rgb), 0.9);
   border-radius: var(--wos-r-pill);
   padding: 7px 13px;
   color: var(--wos-ink-3);
@@ -183,8 +183,8 @@
   display: flex;
   align-items: center;
   gap: 7px;
-  background: rgba(255, 255, 255, 0.8);
-  border: 1px solid rgba(255, 255, 255, 0.9);
+  background: rgba(var(--wl-paper-rgb), 0.8);
+  border: 1px solid rgba(var(--wl-paper-rgb), 0.9);
   border-radius: var(--wos-r-pill);
   padding: 7px 12px;
   color: var(--wos-ink-2);
@@ -471,7 +471,7 @@
   color: var(--wl-ink, var(--wos-ink-2));
   font-size: 13px;
   font-weight: 500;
-  background: rgba(255, 255, 255, 0.8);
+  background: rgba(var(--wl-paper-rgb), 0.8);
   border: 1px solid var(--wl-line, var(--wos-hair));
   border-radius: 18px;
   cursor: pointer;
@@ -480,7 +480,7 @@
 }
 
 .peekAct:hover {
-  background: #fff;
+  background: rgb(var(--wl-paper-rgb));
 }
 
 /* The first action pushes the group to the right edge. */
@@ -499,7 +499,7 @@
   min-width: 0;
   overflow: hidden;
   border-right: 1px solid var(--wl-line, var(--wos-hair));
-  background: rgba(251, 252, 253, 0.55);
+  background: rgba(var(--wl-paper-rgb), 0.55);
   display: flex;
 }
 .filesTree > * { flex: 1; min-width: 0; }
@@ -625,7 +625,7 @@
   padding: 6px 11px;
   border: 0.5px solid var(--wos-hair);
   border-radius: 999px;
-  background: rgba(245, 245, 247, 0.82);
+  background: rgba(var(--wl-paper-rgb), 0.82);
   backdrop-filter: saturate(180%) blur(20px);
   -webkit-backdrop-filter: saturate(180%) blur(20px);
   color: var(--wos-ink);
@@ -698,7 +698,7 @@
   height: 28px;
   padding: 0 6px 0 10px;
   border-top: 0.5px solid var(--wos-hair);
-  background: rgba(245, 245, 247, 0.8);
+  background: rgba(var(--wl-paper-rgb), 0.8);
   backdrop-filter: saturate(180%) blur(20px);
   -webkit-backdrop-filter: saturate(180%) blur(20px);
 }
@@ -814,9 +814,9 @@
   flex: none;
   margin-right: 8px;
   padding: 5px 11px;
-  border: 1px solid rgba(255, 255, 255, 0.9);
+  border: 1px solid rgba(var(--wl-paper-rgb), 0.9);
   border-radius: 999px;
-  background: rgba(255, 255, 255, 0.8);
+  background: rgba(var(--wl-paper-rgb), 0.8);
   color: var(--wos-ink);
   font: inherit;
   font-size: 13px;
@@ -853,7 +853,7 @@
 }
 
 .stageNavBtn:hover {
-  background: rgba(255, 255, 255, 0.6);
+  background: rgba(var(--wl-paper-rgb), 0.6);
   color: var(--wos-ink);
 }
 
@@ -863,7 +863,7 @@
   padding: 0 5px;
   border-radius: 9px;
   background: var(--wl-claude, #d97757);
-  color: #fff;
+  color: var(--wl-on-ink);
   font-size: 11px;
   font-weight: 600;
   line-height: 18px;

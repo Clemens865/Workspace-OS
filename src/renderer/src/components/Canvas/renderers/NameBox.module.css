@@ -2,7 +2,7 @@
   width: 86px; height: 24px; padding: 0 8px;
   font: inherit; font-size: 12.5px; font-variant-numeric: tabular-nums;
   border: 1px solid var(--wl-line, rgba(27, 39, 48, 0.09)); border-radius: 999px;
-  background: rgba(255, 255, 255, 0.85); color: var(--wl-ink, #1b2730);
+  background: rgba(var(--wl-paper-rgb), 0.85); color: var(--wl-ink, #1b2730);
   transition: border-color .15s var(--wl-ease-soft, ease), box-shadow .15s var(--wl-ease-soft, ease);
 }
-.box:focus { outline: none; border-color: rgba(27, 39, 48, 0.25); box-shadow: 0 0 0 3px rgba(27, 39, 48, 0.07); }
+.box:focus { outline: none; border-color: rgba(var(--wl-ink-rgb), 0.25); box-shadow: 0 0 0 3px rgba(var(--wl-ink-rgb), 0.07); }

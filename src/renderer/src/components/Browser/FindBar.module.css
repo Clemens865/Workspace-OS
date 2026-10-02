@@ -14,7 +14,7 @@
   /* Over the page: opaque paper, never glass. */
   background: var(--wl-paper-solid);
   border: 0;
-  box-shadow: 0 0 0 1px rgba(27, 39, 48, 0.07), 0 20px 50px -20px rgba(30, 55, 70, 0.35);
+  box-shadow: 0 0 0 1px rgba(var(--wl-ink-rgb), 0.07), 0 20px 50px -20px rgba(var(--wl-shadow-rgb), 0.35);
 }
 
 .input {
@@ -53,6 +53,6 @@
 }
 
 .btn:hover {
-  background: rgba(27, 39, 48, 0.05);
+  background: rgba(var(--wl-ink-rgb), 0.05);
   color: var(--wl-ink);
 }

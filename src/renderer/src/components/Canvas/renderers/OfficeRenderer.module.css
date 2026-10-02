@@ -12,7 +12,7 @@
   align-items: center;
   justify-content: space-between;
   padding: 0 12px;
-  background: rgba(27, 39, 48, 0.04);
+  background: rgba(var(--wl-ink-rgb), 0.04);
   border-bottom: 1px solid var(--wl-line, var(--border));
 }
 
@@ -29,7 +29,7 @@
   display: inline-flex;
   align-items: center;
   gap: 5px;
-  background: rgba(255, 255, 255, 0.8);
+  background: rgba(var(--wl-paper-rgb), 0.8);
   border: 1px solid var(--wl-line, var(--border-strong));
   border-radius: 999px;
   color: var(--wl-ink, var(--fg));
@@ -41,4 +41,4 @@
 }
 
 .editBtn { margin-right: 10px; }
-.editBtn:hover, .viewBtn:hover { background: #fff; }
+.editBtn:hover, .viewBtn:hover { background: rgb(var(--wl-paper-rgb)); }

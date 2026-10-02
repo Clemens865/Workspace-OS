@@ -1,14 +1,18 @@
 /*
- * Design tokens for the Screen Landscape shell (feat/landscape-shell).
+ * Design tokens for the Screen Landscape shell, light and dark.
  *
- * Scoped to `.wl`, which LandscapeShell mounts OUTSIDE `.wos`: tokens.css forces
- * `!important` styles on any class containing "title", and the landscape needs
- * its own type. Loaded only with the landscape chunk. Light only for now, like
- * `.wos`. Source: the approved prototype (UI-Design-Concepts/worklive-screen-
- * landscape/prototype/styles.css).
+ * Defined on :root as well as .wl, so a component portaled to <body> (a
+ * dialog, a full-screen case) reads the same palette. Component CSS uses the
+ * tokens only, including the *-rgb triplets for tints:
+ *   rgba(var(--wl-ink-rgb), .05)   a hover or a hairline, in the ink colour
+ *   rgba(var(--wl-paper-rgb), .55) a translucent card (glass in the dark)
+ * so the dark theme below re-colours every surface at once.
+ * Source: the approved prototype (UI-Design-Concepts/worklive-screen-landscape).
  */
+:root,
 .wl {
   /* Mist */
+  --wl-mist-0: #f6f8fa;
   --wl-mist-1: #eef2f5;
   --wl-mist-2: #e2e9ee;
   --wl-mist-3: #d5dee5;
@@ -18,19 +22,31 @@
   --wl-ink-2: #3b4a55;
   --wl-muted: #7a8893;
   --wl-faint: #a9b4bc;
-  --wl-line: rgba(27, 39, 48, 0.09);
+  --wl-line: rgba(var(--wl-ink-rgb), 0.09);
+  --wl-ink-rgb: 27, 39, 48;
+  --wl-ink-hover: #2c3b46;
+  /* Text on an ink-filled button or a coloured badge. */
+  --wl-on-ink: #ffffff;
 
   /* Paper */
   --wl-paper: rgba(251, 252, 253, 0.86);
   --wl-paper-solid: #fbfcfd;
+  --wl-paper-rgb: 255, 255, 255;
+  /* Shadows, and the veil behind a dialog. */
+  --wl-shadow-rgb: 30, 55, 70;
+  --wl-veil-rgb: 226, 233, 238;
 
   /* Provider identity and states */
   --wl-codex: #2d9d8f;
   --wl-codex-soft: #d9efec;
   --wl-claude: #d97757;
   --wl-claude-soft: #f8e3da;
+  --wl-claude-ink: #8a3b22;
   --wl-amber: #e3a33b;
   --wl-amber-soft: #fbefd9;
+  --wl-amber-ink: #6b4a12;
+  --wl-warn-ink: #8a5a12;
+  --wl-danger: #b84a3a;
   --wl-grey: #9aa6af;
 
   /* Type */
@@ -43,6 +59,52 @@
   --wl-ease-soft: cubic-bezier(0.4, 0, 0.2, 1);
   --wl-t: 0.9s;
 
+  color-scheme: light;
+}
+
+/*
+ * Dark: a night landscape. Ink turns to moonlight, paper to smoked glass
+ * (translucent and a little lighter than the ground, so cards still read as
+ * panes with a rim), the provider colours brighten a step to keep contrast.
+ */
+:root[data-theme='dark'],
+[data-theme='dark'] .wl {
+  --wl-mist-0: #16202a;
+  --wl-mist-1: #0f151a;
+  --wl-mist-2: #131b21;
+  --wl-mist-3: #19232b;
+
+  --wl-ink: #e6ecf0;
+  --wl-ink-2: #b9c5cd;
+  --wl-muted: #8a98a3;
+  --wl-faint: #5f6d78;
+  --wl-line: rgba(230, 236, 240, 0.1);
+  --wl-ink-rgb: 230, 236, 240;
+  --wl-ink-hover: #ffffff;
+  --wl-on-ink: #10171c;
+
+  --wl-paper: rgba(26, 35, 42, 0.86);
+  --wl-paper-solid: #182129;
+  --wl-paper-rgb: 38, 50, 60;
+  --wl-shadow-rgb: 0, 0, 0;
+  --wl-veil-rgb: 6, 10, 13;
+
+  --wl-codex: #46b9a9;
+  --wl-codex-soft: rgba(70, 185, 169, 0.16);
+  --wl-claude: #e8906f;
+  --wl-claude-soft: rgba(232, 144, 111, 0.16);
+  --wl-claude-ink: #f2b39b;
+  --wl-amber: #eab55a;
+  --wl-amber-soft: rgba(234, 181, 90, 0.16);
+  --wl-amber-ink: #f0cd8c;
+  --wl-warn-ink: #f0c47a;
+  --wl-danger: #f08b7a;
+  --wl-grey: #7d8a94;
+
+  color-scheme: dark;
+}
+
+.wl {
   color: var(--wl-ink);
   font-family: var(--wl-sans);
   -webkit-font-smoothing: antialiased;
@@ -65,19 +127,19 @@
   /* tokens.css */
   --wos-bg: var(--wl-mist-1);
   --wos-card: var(--wl-paper-solid);
-  --wos-sunk: #e7edf1;
+  --wos-sunk: rgba(var(--wl-ink-rgb), 0.06);
   --wos-rail: var(--wl-mist-2);
   --wos-ink: var(--wl-ink);
-  --wos-ink-2: #5b6973;
-  --wos-ink-3: #8994a0;
+  --wos-ink-2: var(--wl-stage-ink-2, #5b6973);
+  --wos-ink-3: var(--wl-stage-ink-3, #8994a0);
   --wos-hair: var(--wl-line);
   --wos-blue: var(--wl-ink);
   --wos-dark: var(--wl-ink);
   --wos-ok: var(--wl-codex);
-  --wos-warn-ink: #8a5a12;
+  --wos-warn-ink: var(--wl-warn-ink);
   --wos-warn-bg: var(--wl-amber-soft);
-  --wos-sh-card: 0 0 0 1px rgba(27, 39, 48, 0.06);
-  --wos-sh-raised: 0 0 0 1px rgba(27, 39, 48, 0.08);
+  --wos-sh-card: 0 0 0 1px rgba(var(--wl-ink-rgb), 0.06);
+  --wos-sh-raised: 0 0 0 1px rgba(var(--wl-ink-rgb), 0.08);
   --wos-r: 18px;
   --wos-r-sm: 12px;
   --wos-font: var(--wl-sans);
@@ -85,19 +147,19 @@
 
   /* the --color-* bridge */
   --color-text: var(--wl-ink);
-  --color-text-muted: #5b6973;
-  --color-text-subtle: #8994a0;
+  --color-text-muted: var(--wl-stage-ink-2, #5b6973);
+  --color-text-subtle: var(--wl-stage-ink-3, #8994a0);
   --color-surface: var(--wl-paper-solid);
   --color-surface-raised: var(--wl-paper-solid);
   --color-canvas: var(--wl-mist-1);
   --color-bg: var(--wl-mist-1);
   --color-border: var(--wl-line);
-  --color-border-strong: rgba(27, 39, 48, 0.16);
-  --color-hover: rgba(27, 39, 48, 0.05);
-  --color-active: rgba(27, 39, 48, 0.08);
+  --color-border-strong: rgba(var(--wl-ink-rgb), 0.16);
+  --color-hover: rgba(var(--wl-ink-rgb), 0.05);
+  --color-active: rgba(var(--wl-ink-rgb), 0.08);
   --color-accent: var(--wl-ink);
-  --color-accent-hover: #2c3b46;
-  --color-accent-soft: rgba(27, 39, 48, 0.07);
+  --color-accent-hover: var(--wl-ink-hover);
+  --color-accent-soft: rgba(var(--wl-ink-rgb), 0.07);
   --color-success: var(--wl-codex);
 
   /* global.css (legacy) */
@@ -109,22 +171,34 @@
   --surface: var(--wl-paper-solid);
   --elevated: var(--wl-paper-solid);
   --border: var(--wl-line);
-  --border-strong: rgba(27, 39, 48, 0.16);
-  --hairline: rgba(27, 39, 48, 0.06);
+  --border-strong: rgba(var(--wl-ink-rgb), 0.16);
+  --hairline: rgba(var(--wl-ink-rgb), 0.06);
   --fg: var(--wl-ink);
-  --fg-muted: #5b6973;
-  --fg-subtle: #8994a0;
+  --fg-muted: var(--wl-stage-ink-2, #5b6973);
+  --fg-subtle: var(--wl-stage-ink-3, #8994a0);
   --accent: var(--wl-ink);
-  --accent-soft: rgba(27, 39, 48, 0.07);
-  --accent-border: rgba(27, 39, 48, 0.24);
-  --selection: rgba(27, 39, 48, 0.08);
-  --hover: rgba(27, 39, 48, 0.05);
-  --active: rgba(27, 39, 48, 0.08);
-  --shadow-1: 0 0 0 1px rgba(27, 39, 48, 0.06);
-  --shadow-2: 0 0 0 1px rgba(27, 39, 48, 0.07), 0 12px 28px -18px rgba(30, 55, 70, 0.3);
-  --shadow-3: 0 0 0 1px rgba(27, 39, 48, 0.08), 0 20px 50px -20px rgba(30, 55, 70, 0.35);
+  --accent-soft: rgba(var(--wl-ink-rgb), 0.07);
+  --accent-border: rgba(var(--wl-ink-rgb), 0.24);
+  --selection: rgba(var(--wl-ink-rgb), 0.08);
+  --hover: rgba(var(--wl-ink-rgb), 0.05);
+  --active: rgba(var(--wl-ink-rgb), 0.08);
+  --shadow-1: 0 0 0 1px rgba(var(--wl-ink-rgb), 0.06);
+  --shadow-2: 0 0 0 1px rgba(var(--wl-ink-rgb), 0.07), 0 12px 28px -18px rgba(var(--wl-shadow-rgb), 0.3);
+  --shadow-3: 0 0 0 1px rgba(var(--wl-ink-rgb), 0.08), 0 20px 50px -20px rgba(var(--wl-shadow-rgb), 0.35);
 
   background: radial-gradient(120% 90% at 50% 0%, var(--wl-mist-1) 0%, var(--wl-mist-2) 70%, var(--wl-mist-3) 100%);
   color: var(--wl-ink);
   font-family: var(--wl-sans);
+}
+
+/* The stage in the dark: its two muted inks, a deeper ground. */
+[data-theme='dark'] .wl .wos {
+  --wl-stage-ink-2: #a3b0ba;
+  --wl-stage-ink-3: #7c8a95;
+  --surround: #0b1014;
+  background: radial-gradient(120% 90% at 50% 0%, #131b21 0%, #0f151a 70%, #0b1014 100%);
+}
+
+[data-theme='dark'] body {
+  background: #0f151a;
 }

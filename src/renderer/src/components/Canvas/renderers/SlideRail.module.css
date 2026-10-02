@@ -24,7 +24,7 @@
   cursor: pointer;
   transition: background 0.15s var(--wl-ease-soft, ease);
 }
-.item:hover { background: rgba(27, 39, 48, 0.05); }
+.item:hover { background: rgba(var(--wl-ink-rgb), 0.05); }
 
 .num {
   flex: none;
@@ -37,14 +37,14 @@
 
 .thumb {
   flex: none;
-  border: 1px solid rgba(27, 39, 48, 0.08);
+  border: 1px solid rgba(var(--wl-ink-rgb), 0.08);
   border-radius: 4px;
-  background: #fff;
+  background: rgb(var(--wl-paper-rgb));
   box-shadow: none;
   display: block;
 }
 
-.active, .active:hover { background: rgba(27, 39, 48, 0.08); }
+.active, .active:hover { background: rgba(var(--wl-ink-rgb), 0.08); }
 .active .thumb { border-color: var(--wl-ink, #1b2730); box-shadow: 0 0 0 2px var(--wl-ink, #1b2730); }
 .active .num { color: var(--wl-ink, #1b2730); font-weight: 600; }
 
@@ -57,7 +57,7 @@
 .rename {
   position: absolute; left: 6px; right: 6px; bottom: 6px;
   font: inherit; font-size: 12px; padding: 3px 6px;
-  border: 1px solid rgba(27, 39, 48, 0.25); border-radius: 8px;
-  background: #fff; color: var(--wl-ink, #1b2730);
-  box-shadow: 0 0 0 3px rgba(27, 39, 48, 0.07);
+  border: 1px solid rgba(var(--wl-ink-rgb), 0.25); border-radius: 8px;
+  background: rgb(var(--wl-paper-rgb)); color: var(--wl-ink, #1b2730);
+  box-shadow: 0 0 0 3px rgba(var(--wl-ink-rgb), 0.07);
 }

@@ -45,7 +45,7 @@
 }
 
 .navbtn:hover:not(:disabled) {
-  background: rgba(27, 39, 48, 0.05);
+  background: rgba(var(--wl-ink-rgb), 0.05);
   color: var(--wl-ink);
 }
 
@@ -62,7 +62,7 @@
   height: 34px;
   box-sizing: border-box;
   border-radius: 18px;
-  background: rgba(255, 255, 255, 0.85);
+  background: rgba(var(--wl-paper-rgb), 0.85);
   border: 1px solid var(--wl-line);
   padding: 0 14px;
 }
@@ -158,7 +158,7 @@
   font-weight: 500;
   font-variant-numeric: tabular-nums;
   cursor: pointer;
-  box-shadow: 0 0 0 1px rgba(27, 39, 48, 0.07), 0 20px 50px -20px rgba(30, 55, 70, 0.35);
+  box-shadow: 0 0 0 1px rgba(var(--wl-ink-rgb), 0.07), 0 20px 50px -20px rgba(var(--wl-shadow-rgb), 0.35);
   transition: color 0.15s var(--wl-ease-soft);
 }
 
@@ -200,7 +200,7 @@
 .assistantHandle:hover,
 .assistantHandle:active {
   opacity: 1;
-  background: rgba(27, 39, 48, 0.25);
+  background: rgba(var(--wl-ink-rgb), 0.25);
 }
 
 /* Hide control, floating in the panel's top-right. Dims at rest so it does not
@@ -227,7 +227,7 @@
 
 .assistantHide:hover {
   opacity: 1;
-  background: rgba(27, 39, 48, 0.05);
+  background: rgba(var(--wl-ink-rgb), 0.05);
 }
 
 /* The way back once it is closed. Pinned to the right edge, mid-height — the
@@ -248,7 +248,7 @@
   border-radius: 12px 0 0 12px;
   /* It sits over the page rectangle: opaque, no backdrop-filter. */
   background: var(--wl-paper-solid);
-  box-shadow: 0 0 0 1px rgba(27, 39, 48, 0.07), 0 20px 50px -20px rgba(30, 55, 70, 0.35);
+  box-shadow: 0 0 0 1px rgba(var(--wl-ink-rgb), 0.07), 0 20px 50px -20px rgba(var(--wl-shadow-rgb), 0.35);
   color: var(--wl-ink);
   cursor: pointer;
   opacity: 0.5;
@@ -275,7 +275,7 @@
   padding: 9px 14px;
   border-bottom: 1px solid var(--wl-line);
   background: var(--wl-amber-soft);
-  color: #8a5a12;
+  color: var(--wl-warn-ink);
   font-size: 12.5px;
   line-height: 1.5;
 }

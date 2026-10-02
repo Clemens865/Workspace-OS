@@ -21,7 +21,7 @@
   font-size: 13px;
   border: 1px solid var(--wl-line);
   border-radius: 18px;
-  background: rgba(255, 255, 255, 0.85);
+  background: rgba(var(--wl-paper-rgb), 0.85);
   color: var(--wl-ink);
   font-family: inherit;
   outline: none;
@@ -30,8 +30,8 @@
 
 .text:focus,
 .textarea:focus {
-  border-color: rgba(27, 39, 48, 0.25);
-  box-shadow: 0 0 0 3px rgba(27, 39, 48, 0.07);
+  border-color: rgba(var(--wl-ink-rgb), 0.25);
+  box-shadow: 0 0 0 3px rgba(var(--wl-ink-rgb), 0.07);
 }
 
 .textarea {
@@ -92,7 +92,7 @@
   border: 1px solid var(--wl-line);
   border-radius: 10px;
   padding: 4px;
-  background: #fff;
+  background: rgb(var(--wl-paper-rgb));
 }
 
 .logoEmpty {
@@ -115,8 +115,8 @@
   margin-top: 14px;
   padding: 14px 16px;
   border-radius: 18px;
-  border: 1px solid rgba(255, 255, 255, 0.85);
-  box-shadow: 0 0 0 1px rgba(27, 39, 48, 0.05);
+  border: 1px solid rgba(var(--wl-paper-rgb), 0.85);
+  box-shadow: 0 0 0 1px rgba(var(--wl-ink-rgb), 0.05);
 }
 
 .previewName {
@@ -127,7 +127,7 @@
 .previewCta {
   font-size: 12px;
   font-weight: 600;
-  color: #fff;
+  color: var(--wl-on-ink);
   padding: 7px 14px;
   border-radius: 18px;
 }

@@ -11,7 +11,7 @@
  *     Per-category accents are local vars so the dot + tint stay in sync. */
 .tag {
   --cat: var(--wl-grey);
-  --cat-tint: rgba(27, 39, 48, 0.06);
+  --cat-tint: rgba(var(--wl-ink-rgb), 0.06);
   display: inline-flex;
   align-items: center;
   gap: 6px;
@@ -46,14 +46,14 @@
 /* SEND — an outbound draft. Neutral ink: "will leave the workspace". */
 .tag[data-category='SEND'] {
   --cat: var(--wl-ink-2);
-  --cat-tint: rgba(27, 39, 48, 0.06);
+  --cat-tint: rgba(var(--wl-ink-rgb), 0.06);
 }
 
 /* DECISION — a plain yes/no. Amber, the "your call" question temperature. */
 .tag[data-category='DECISION'] {
   --cat: var(--wl-amber);
   --cat-tint: var(--wl-amber-soft);
-  color: #8a5a12;
+  color: var(--wl-warn-ink);
 }
 
 /* ERROR — the run failed. Warm attention, never a shouting red. */

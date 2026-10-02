@@ -37,6 +37,7 @@ function makeUniforms() {
     uLight: { value: 0.56 },
     uBreath: { value: 0 },
     uDebug: { value: 0 },
+    uNight: { value: 0 },
     uRip: { value: Array.from({ length: 4 }, () => new THREE.Vector4()) },
     uSh: { value: Array.from({ length: 8 }, () => new THREE.Vector4()) },
     uShC: { value: Array.from({ length: 8 }, () => new THREE.Vector3(1, 1, 1)) },
@@ -62,8 +63,8 @@ export class Backdrop {
   private sheetSource: (() => SheetFootprint[]) | null = null
   private ripples: { x: number; y: number; age: number; amp: number }[] = []
   private breath = 0
-  private readonly target = { focus: 0, tint: 0, mx: 0, my: 0, light: 0.56 }
-  private readonly cur = { focus: 0, tint: 0, mx: 0, my: 0, light: 0.56 }
+  private readonly target = { focus: 0, tint: 0, mx: 0, my: 0, light: 0.56, night: 0 }
+  private readonly cur = { focus: 0, tint: 0, mx: 0, my: 0, light: 0.56, night: 0 }
   private readonly u = makeUniforms()
   private readonly reduced: boolean
   private readonly landRT = new THREE.WebGLRenderTarget(1, 1, { depthBuffer: false })
@@ -94,7 +95,7 @@ export class Backdrop {
     quad.frustumCulled = false
     quad.renderOrder = -1
     this.glassScene.add(quad)
-    this.glass = new GlassPanes(this.glassScene, { tLand: { value: this.landRT.texture }, uOut: this.uOut, uPR: this.uPR, uTime: this.u.uTime, uLight: this.uLight, uPointer: this.uPointer })
+    this.glass = new GlassPanes(this.glassScene, { tLand: { value: this.landRT.texture }, uOut: this.uOut, uPR: this.uPR, uTime: this.u.uTime, uLight: this.uLight, uPointer: this.uPointer, uNight: this.u.uNight })
 
     // Motes: a sparse drift of light specks in front of the far mist.
     const N = 260
@@ -133,6 +134,15 @@ export class Backdrop {
 
   setFocus(v: number): void {
     this.target.focus = v
+    this.wake()
+  }
+
+  /** Day or night (the dark theme); eases over, like a change of focus. `instant` skips the ease (first frame). */
+  setNight(on: boolean, instant = false): void {
+    this.target.night = on ? 1 : 0
+    if (instant) this.cur.night = this.target.night
+    this.u.uNight.value = this.cur.night
+    this.landDirty = true
     this.wake()
   }
 
@@ -257,7 +267,7 @@ export class Backdrop {
   private easing(): boolean {
     const t = this.target
     const c = this.cur
-    return Math.abs(t.focus - c.focus) + Math.abs(t.tint - c.tint) + Math.abs(t.mx - c.mx) + Math.abs(t.my - c.my) + Math.abs(t.light - c.light) > 0.002 || this.ripples.length > 0 || this.breath > 0
+    return Math.abs(t.focus - c.focus) + Math.abs(t.tint - c.tint) + Math.abs(t.mx - c.mx) + Math.abs(t.my - c.my) + Math.abs(t.light - c.light) + Math.abs(t.night - c.night) > 0.002 || this.ripples.length > 0 || this.breath > 0
   }
 
   private tick = (now: number): void => {
@@ -305,6 +315,7 @@ export class Backdrop {
     this.u.uFocus.value = c.focus
     this.u.uTintAmt.value = c.tint
     this.u.uLight.value = c.light
+    this.u.uNight.value = c.night
     this.u.uMouse.value.set(c.mx, c.my)
     for (let i = this.ripples.length - 1; i >= 0; i--) {
       this.ripples[i].age += dt

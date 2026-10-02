@@ -1,4 +1,4 @@
-.panel { min-width: 0; padding: 14px 16px; border: 1px solid rgba(255, 255, 255, 0.85); border-radius: 18px; background: rgba(251, 252, 253, 0.9); box-shadow: 0 0 0 1px rgba(27, 39, 48, 0.05); color: var(--wl-ink); font-size: 13px; }
+.panel { min-width: 0; padding: 14px 16px; border: 1px solid rgba(var(--wl-paper-rgb), 0.85); border-radius: 18px; background: rgba(var(--wl-paper-rgb), 0.9); box-shadow: 0 0 0 1px rgba(var(--wl-ink-rgb), 0.05); color: var(--wl-ink); font-size: 13px; }
 .heading { display: flex; align-items: center; gap: 7px; }
 .heading svg { flex: none; color: var(--wl-codex); }
 .heading strong { font-size: 13px; font-weight: 500; }
@@ -6,19 +6,19 @@
 .task, .live, .error { margin: 8px 0 0; line-height: 1.5; overflow-wrap: anywhere; }
 .task { color: var(--wl-ink-2); }
 .error, .panel[data-status='error'] .heading svg { color: var(--wl-claude); }
-.error { color: #b84a3a; }
+.error { color: var(--wl-danger); }
 .details { margin-top: 10px; }
 .details summary { cursor: pointer; color: var(--wl-muted); font-size: 12px; }
 .steps { padding-left: 18px; margin: 8px 0 0; max-height: 200px; overflow: auto; color: var(--wl-ink-2); }
 .steps li { padding: 3px 0; overflow-wrap: anywhere; }
 .detail { display: block; font: 11px var(--wl-mono); color: var(--wl-muted); }
-.output { max-height: 230px; overflow: auto; white-space: pre-wrap; overflow-wrap: anywhere; margin-top: 8px; padding: 10px 12px; border-radius: 12px; background: #fff; border: 1px solid var(--wl-line); line-height: 1.55; }
+.output { max-height: 230px; overflow: auto; white-space: pre-wrap; overflow-wrap: anywhere; margin-top: 8px; padding: 10px 12px; border-radius: 12px; background: rgb(var(--wl-paper-rgb)); border: 1px solid var(--wl-line); line-height: 1.55; }
 .files { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 10px; }
-.files button { max-width: 100%; border: 1px solid var(--wl-line); background: rgba(255, 255, 255, 0.85); color: var(--wl-ink); padding: 6px 11px; border-radius: 10px; font: inherit; font-size: 12.5px; cursor: pointer; overflow-wrap: anywhere; transition: background 0.15s var(--wl-ease-soft); }
-.files button:hover { background: #fff; }
+.files button { max-width: 100%; border: 1px solid var(--wl-line); background: rgba(var(--wl-paper-rgb), 0.85); color: var(--wl-ink); padding: 6px 11px; border-radius: 10px; font: inherit; font-size: 12.5px; cursor: pointer; overflow-wrap: anywhere; transition: background 0.15s var(--wl-ease-soft); }
+.files button:hover { background: rgb(var(--wl-paper-rgb)); }
 .spin { animation: caseAgentSpin 1.2s linear infinite; }
-.continue { margin-top: 12px; height: 32px; padding: 0 15px; border: 0; border-radius: 18px; background: var(--wl-ink); color: #fff; font: inherit; font-size: 13px; font-weight: 500; cursor: pointer; transition: background 0.15s var(--wl-ease-soft); }
-.continue:hover { background: #2c3b46; }
-.continue:focus-visible { outline: none; box-shadow: 0 0 0 3px rgba(27, 39, 48, 0.12); }
+.continue { margin-top: 12px; height: 32px; padding: 0 15px; border: 0; border-radius: 18px; background: var(--wl-ink); color: var(--wl-on-ink); font: inherit; font-size: 13px; font-weight: 500; cursor: pointer; transition: background 0.15s var(--wl-ease-soft); }
+.continue:hover { background: var(--wl-ink-hover); }
+.continue:focus-visible { outline: none; box-shadow: 0 0 0 3px rgba(var(--wl-ink-rgb), 0.12); }
 @keyframes caseAgentSpin { to { transform: rotate(360deg); } }
 @media (prefers-reduced-motion: reduce) { .spin { animation: none; } }

@@ -21,7 +21,7 @@
   margin: 0 0 26px;
   padding: 3px;
   border-radius: 999px;
-  background: rgba(27, 39, 48, 0.05);
+  background: rgba(var(--wl-ink-rgb), 0.05);
 }
 
 .lensChip {
@@ -42,9 +42,9 @@
 }
 
 .lensChipOn {
-  background: #fff;
+  background: rgb(var(--wl-paper-rgb));
   color: var(--wl-ink);
-  box-shadow: 0 0 0 1px rgba(27, 39, 48, 0.06);
+  box-shadow: 0 0 0 1px rgba(var(--wl-ink-rgb), 0.06);
 }
 
 .empty {
@@ -107,7 +107,7 @@
 }
 
 .row:hover {
-  background: rgba(27, 39, 48, 0.05);
+  background: rgba(var(--wl-ink-rgb), 0.05);
 }
 
 .row .open {

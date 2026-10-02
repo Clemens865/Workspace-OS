@@ -7,7 +7,7 @@
   display: grid;
   place-items: center;
   padding: 16px;
-  background: rgba(226, 233, 238, 0.72);
+  background: rgba(var(--wl-veil-rgb), 0.72);
 }
 
 .dialog {
@@ -15,7 +15,7 @@
   padding: 22px 22px 18px;
   border-radius: 22px;
   background: var(--wl-paper-solid, #fbfcfd);
-  box-shadow: 0 0 0 1px rgba(27, 39, 48, 0.07), 0 20px 50px -20px rgba(30, 55, 70, 0.35);
+  box-shadow: 0 0 0 1px rgba(var(--wl-ink-rgb), 0.07), 0 20px 50px -20px rgba(var(--wl-shadow-rgb), 0.35);
   color: var(--wl-ink, #1b2730);
   font-family: var(--wl-sans, inherit);
 }
@@ -49,7 +49,7 @@
   padding: 0 14px;
   border-radius: 18px;
   border: 1px solid var(--wl-line, rgba(27, 39, 48, 0.1));
-  background: rgba(255, 255, 255, 0.85);
+  background: rgba(var(--wl-paper-rgb), 0.85);
   color: var(--wl-ink, #1b2730);
   font: inherit;
   font-size: 13.5px;
@@ -58,8 +58,8 @@
 }
 
 .input:focus {
-  border-color: rgba(27, 39, 48, 0.25);
-  box-shadow: 0 0 0 3px rgba(27, 39, 48, 0.07);
+  border-color: rgba(var(--wl-ink-rgb), 0.25);
+  box-shadow: 0 0 0 3px rgba(var(--wl-ink-rgb), 0.07);
 }
 
 .message {
@@ -92,17 +92,17 @@
 .primary {
   border: 0;
   background: var(--wl-ink, #1b2730);
-  color: #fff;
+  color: var(--wl-on-ink);
 }
 
 .primary:hover:not(:disabled) {
-  background: #2c3b46;
+  background: var(--wl-ink-hover);
 }
 
 .danger {
   border: 0;
   background: var(--wl-claude-soft, rgba(217, 119, 87, 0.14));
-  color: #b84a3a;
+  color: var(--wl-danger);
 }
 
 .danger:hover {
@@ -116,17 +116,17 @@
 
 .secondary {
   border: 1px solid var(--wl-line, rgba(27, 39, 48, 0.1));
-  background: rgba(255, 255, 255, 0.8);
+  background: rgba(var(--wl-paper-rgb), 0.8);
   color: var(--wl-ink, #1b2730);
 }
 
 .secondary:hover {
-  background: #fff;
+  background: rgb(var(--wl-paper-rgb));
 }
 
 .primary:focus-visible,
 .secondary:focus-visible,
 .danger:focus-visible {
   outline: none;
-  box-shadow: 0 0 0 3px rgba(27, 39, 48, 0.12);
+  box-shadow: 0 0 0 3px rgba(var(--wl-ink-rgb), 0.12);
 }

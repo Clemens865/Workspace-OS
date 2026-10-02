@@ -10,12 +10,12 @@
   border-radius: 18px;
   /* The rim. Over the landscape the Liquid Glass pane shows through it; over
      the stage it is this frosted edge on its own. */
-  background: rgba(240, 244, 247, 0.62);
-  border: 1px solid rgba(255, 255, 255, 0.9);
+  background: rgba(var(--wl-paper-rgb), 0.62);
+  border: 1px solid rgba(var(--wl-paper-rgb), 0.9);
   box-shadow:
-    inset 0 1px 0 rgba(255, 255, 255, 0.95),
-    0 0 0 1px rgba(27, 39, 48, 0.08),
-    0 28px 60px -24px rgba(30, 55, 70, 0.45);
+    inset 0 1px 0 rgba(var(--wl-paper-rgb), 0.95),
+    0 0 0 1px rgba(var(--wl-ink-rgb), 0.08),
+    0 28px 60px -24px rgba(var(--wl-shadow-rgb), 0.45);
   animation: floatIn 0.45s var(--wl-ease) backwards;
 }
 
@@ -79,7 +79,7 @@
 }
 
 .btn:hover {
-  background: rgba(27, 39, 48, 0.06);
+  background: rgba(var(--wl-ink-rgb), 0.06);
   color: var(--wl-ink);
 }
 
@@ -91,7 +91,7 @@
   border-radius: 12px;
   overflow: hidden;
   background: var(--wl-paper-solid);
-  box-shadow: 0 0 0 1px rgba(27, 39, 48, 0.08);
+  box-shadow: 0 0 0 1px rgba(var(--wl-ink-rgb), 0.08);
 }
 
 .body > * {
@@ -185,8 +185,8 @@
   position: fixed;
   z-index: 119;
   border-radius: 18px;
-  background: rgba(27, 39, 48, 0.06);
-  border: 1.5px dashed rgba(27, 39, 48, 0.25);
+  background: rgba(var(--wl-ink-rgb), 0.06);
+  border: 1.5px dashed rgba(var(--wl-ink-rgb), 0.25);
   pointer-events: none;
 }
 

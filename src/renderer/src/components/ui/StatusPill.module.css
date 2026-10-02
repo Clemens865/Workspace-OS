@@ -8,11 +8,11 @@
   padding: 2px 8px; border-radius: 999px; white-space: nowrap;
 }
 
-.neutral { background: rgba(27, 39, 48, 0.06); color: var(--wl-ink-2, #3b4a55); }
+.neutral { background: rgba(var(--wl-ink-rgb), 0.06); color: var(--wl-ink-2, #3b4a55); }
 .good { background: var(--wl-codex-soft, #d9efec); color: #1f6f65; }
-.warn { background: var(--wl-amber-soft, #fbefd9); color: #8a5a12; }
+.warn { background: var(--wl-amber-soft, #fbefd9); color: var(--wl-warn-ink); }
 .gap { background: var(--wl-claude-soft, #f8e3da); color: #a24b2f; }
-.accent { background: rgba(27, 39, 48, 0.08); color: var(--wl-ink, #1b2730); }
+.accent { background: rgba(var(--wl-ink-rgb), 0.08); color: var(--wl-ink, #1b2730); }
 
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme='light']) .gap { background: #3a2018; color: #f0a98e; }

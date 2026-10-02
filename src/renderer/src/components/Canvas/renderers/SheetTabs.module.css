@@ -26,24 +26,24 @@
   transition: background 0.15s var(--wl-ease-soft, ease), color 0.15s var(--wl-ease-soft, ease);
 }
 .tab:hover {
-  background: rgba(27, 39, 48, 0.05);
+  background: rgba(var(--wl-ink-rgb), 0.05);
   color: var(--wl-ink, #1b2730);
 }
 /* Active sheet: a white pill with a hairline ring (same 1px border box). */
 .active {
-  background: #fff;
-  border-color: rgba(27, 39, 48, 0.08);
+  background: rgb(var(--wl-paper-rgb));
+  border-color: rgba(var(--wl-ink-rgb), 0.08);
   color: var(--wl-ink, #1b2730);
 }
 
 .edit {
   font-size: 12px;
   padding: 3px 8px;
-  border: 1px solid rgba(27, 39, 48, 0.25);
+  border: 1px solid rgba(var(--wl-ink-rgb), 0.25);
   border-radius: 999px;
-  background: #fff;
+  background: rgb(var(--wl-paper-rgb));
   color: var(--wl-ink, #1b2730);
-  box-shadow: 0 0 0 3px rgba(27, 39, 48, 0.07);
+  box-shadow: 0 0 0 3px rgba(var(--wl-ink-rgb), 0.07);
   width: 110px;
   outline: none;
 }
@@ -65,7 +65,7 @@
   transition: background 0.15s var(--wl-ease-soft, ease), color 0.15s var(--wl-ease-soft, ease);
 }
 .icon:hover:not(:disabled) {
-  background: rgba(27, 39, 48, 0.05);
+  background: rgba(var(--wl-ink-rgb), 0.05);
   color: var(--wl-ink, #1b2730);
 }
 .icon:disabled {

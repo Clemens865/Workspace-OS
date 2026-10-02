@@ -7,10 +7,10 @@
   margin: 12px auto 0;
   min-height: 96px;
   max-height: 200px;
-  background: rgba(251, 252, 253, 0.9);
-  border: 1px solid rgba(255, 255, 255, 0.85);
+  background: rgba(var(--wl-paper-rgb), 0.9);
+  border: 1px solid rgba(var(--wl-paper-rgb), 0.85);
   border-radius: 12px;
-  box-shadow: 0 0 0 1px rgba(27, 39, 48, 0.05);
+  box-shadow: 0 0 0 1px rgba(var(--wl-ink-rgb), 0.05);
   overflow: hidden;
 }
 
@@ -47,7 +47,7 @@
   line-height: 1;
   cursor: pointer;
 }
-.close:hover { background: rgba(27, 39, 48, 0.05); color: var(--wl-ink, #1b2730); }
+.close:hover { background: rgba(var(--wl-ink-rgb), 0.05); color: var(--wl-ink, #1b2730); }
 
 .area {
   flex: 1;

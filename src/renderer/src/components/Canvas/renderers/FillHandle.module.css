@@ -3,7 +3,7 @@
   z-index: 25;
   width: 8px; height: 8px;
   background: #1a73e8;
-  border: 1.5px solid #fff;
+  border: 1.5px solid rgb(var(--wl-paper-rgb));
   border-radius: 1px;
   cursor: crosshair;
   box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.15);

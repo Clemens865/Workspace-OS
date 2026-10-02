@@ -50,7 +50,7 @@
   border-radius: 10px;
 }
 
-.row:hover { background: rgba(27, 39, 48, 0.05); }
+.row:hover { background: rgba(var(--wl-ink-rgb), 0.05); }
 
 .main {
   flex: 1;
@@ -104,7 +104,7 @@
   cursor: pointer;
 }
 
-.icon:hover { background: rgba(27, 39, 48, 0.06); color: var(--wl-ink); }
+.icon:hover { background: rgba(var(--wl-ink-rgb), 0.06); color: var(--wl-ink); }
 
 /* ── Scope switch: everything vs bookmarks ────────────────────────────────
    A segmented control rather than a sidebar. Two lists, one surface, no
@@ -115,7 +115,7 @@
   gap: 2px;
   padding: 2px;
   border-radius: 999px;
-  background: rgba(27, 39, 48, 0.05);
+  background: rgba(var(--wl-ink-rgb), 0.05);
 }
 
 .scope {
@@ -134,9 +134,9 @@
 .scope:hover { color: var(--wl-ink); }
 
 .scopeOn {
-  background: #fff;
+  background: rgb(var(--wl-paper-rgb));
   color: var(--wl-ink);
-  box-shadow: 0 0 0 1px rgba(27, 39, 48, 0.06);
+  box-shadow: 0 0 0 1px rgba(var(--wl-ink-rgb), 0.06);
 }
 
 /* Unstarred rows in the bookmarks list: kept visible until the list reloads,

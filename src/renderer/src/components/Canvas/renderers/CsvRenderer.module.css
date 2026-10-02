@@ -21,7 +21,7 @@
   height: 30px;
   width: 220px;
   padding: 0 14px;
-  background: rgba(255, 255, 255, 0.85);
+  background: rgba(var(--wl-paper-rgb), 0.85);
   border: 1px solid var(--wl-line, var(--color-border));
   border-radius: 18px;
   color: var(--wl-ink, var(--color-text));
@@ -34,8 +34,8 @@
 .filter::placeholder { color: var(--wl-faint, var(--color-text-subtle)); }
 
 .filter:focus {
-  border-color: rgba(27, 39, 48, 0.25);
-  box-shadow: 0 0 0 3px rgba(27, 39, 48, 0.07);
+  border-color: rgba(var(--wl-ink-rgb), 0.25);
+  box-shadow: 0 0 0 3px rgba(var(--wl-ink-rgb), 0.07);
 }
 
 .count {
@@ -82,8 +82,8 @@
   min-width: 18px;
 }
 .cellEdit:focus {
-  background: rgba(255, 255, 255, 0.95);
-  box-shadow: 0 0 0 1px rgba(27, 39, 48, 0.25), 0 0 0 3px rgba(27, 39, 48, 0.07);
+  background: rgba(var(--wl-paper-rgb), 0.95);
+  box-shadow: 0 0 0 1px rgba(var(--wl-ink-rgb), 0.25), 0 0 0 3px rgba(var(--wl-ink-rgb), 0.07);
   border-radius: 4px;
 }
 
@@ -106,7 +106,7 @@
   gap: 5px;
   height: 30px;
   padding: 0 12px;
-  background: rgba(255, 255, 255, 0.8);
+  background: rgba(var(--wl-paper-rgb), 0.8);
   border: 1px solid var(--wl-line, var(--color-border));
   border-radius: 18px;
   color: var(--wl-ink, var(--color-text));
@@ -115,7 +115,7 @@
   cursor: pointer;
   transition: background 0.15s var(--wl-ease-soft, ease);
 }
-.opBtn:hover { background: #fff; }
+.opBtn:hover { background: rgb(var(--wl-paper-rgb)); }
 
 .actionTh {
   position: sticky;
@@ -142,10 +142,10 @@
   transition: opacity 0.15s var(--wl-ease-soft, ease), background 0.15s var(--wl-ease-soft, ease);
 }
 .table tbody tr:hover .delBtn { opacity: 0.7; }
-.delBtn:hover { color: #b84a3a; background: var(--wl-claude-soft, rgba(217, 119, 87, 0.12)); opacity: 1; }
+.delBtn:hover { color: var(--wl-danger); background: var(--wl-claude-soft, rgba(217, 119, 87, 0.12)); opacity: 1; }
 
 .table tbody tr { transition: background 0.15s var(--wl-ease-soft, ease); }
-.table tbody tr:hover { background: rgba(27, 39, 48, 0.04); }
+.table tbody tr:hover { background: rgba(var(--wl-ink-rgb), 0.04); }
 
 .empty {
   display: flex;
@@ -167,13 +167,13 @@
   white-space: nowrap;
 }
 
-.even { background: rgba(27, 39, 48, 0.015); }
+.even { background: rgba(var(--wl-ink-rgb), 0.015); }
 
 .error {
   margin: 20px;
   padding: 12px 16px;
   border-radius: 12px;
   background: var(--wl-claude-soft, rgba(217, 119, 87, 0.12));
-  color: #b84a3a;
+  color: var(--wl-danger);
   font-size: 13px;
 }

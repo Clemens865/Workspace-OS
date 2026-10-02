@@ -2,7 +2,7 @@
 .backdrop {
   position: absolute;
   inset: 0;
-  background: rgba(226, 233, 238, 0.55);
+  background: rgba(var(--wl-veil-rgb), 0.55);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -25,7 +25,7 @@
   overflow-y: auto;
   background: var(--wl-paper-solid);
   border-radius: 22px;
-  box-shadow: 0 0 0 1px rgba(27, 39, 48, 0.07), 0 20px 50px -20px rgba(30, 55, 70, 0.35);
+  box-shadow: 0 0 0 1px rgba(var(--wl-ink-rgb), 0.07), 0 20px 50px -20px rgba(var(--wl-shadow-rgb), 0.35);
   padding: 28px 30px 24px;
   animation: rise 0.2s ease;
   color: var(--wl-ink);
@@ -73,7 +73,7 @@
   font-size: 14px;
   line-height: 1.5;
   color: var(--wl-ink);
-  background: rgba(255, 255, 255, 0.85);
+  background: rgba(var(--wl-paper-rgb), 0.85);
   border: 1px solid var(--wl-line);
   border-radius: 12px;
   transition: border-color 0.15s var(--wl-ease-soft), box-shadow 0.15s var(--wl-ease-soft);
@@ -85,8 +85,8 @@
 
 .textarea:focus {
   outline: none;
-  border-color: rgba(27, 39, 48, 0.25);
-  box-shadow: 0 0 0 3px rgba(27, 39, 48, 0.07);
+  border-color: rgba(var(--wl-ink-rgb), 0.25);
+  box-shadow: 0 0 0 3px rgba(var(--wl-ink-rgb), 0.07);
 }
 
 .textarea:disabled {
@@ -106,7 +106,7 @@
   font-weight: 500;
   padding: 6px 13px;
   border-radius: 999px;
-  background: rgba(255, 255, 255, 0.8);
+  background: rgba(var(--wl-paper-rgb), 0.8);
   color: var(--wl-ink-2);
   border: 1px solid var(--wl-line);
   cursor: pointer;
@@ -115,7 +115,7 @@
 
 .exampleChip:hover:not(:disabled) {
   color: var(--wl-ink);
-  background: #fff;
+  background: rgb(var(--wl-paper-rgb));
 }
 
 .exampleChip:disabled {
@@ -131,7 +131,7 @@
   margin-top: 22px;
   padding: 16px 18px;
   border-radius: 12px;
-  background: rgba(27, 39, 48, 0.04);
+  background: rgba(var(--wl-ink-rgb), 0.04);
 }
 
 .buildingTitle {
@@ -220,7 +220,7 @@
   font: inherit;
   font-size: 13.5px;
   color: var(--wl-ink);
-  background: rgba(255, 255, 255, 0.85);
+  background: rgba(var(--wl-paper-rgb), 0.85);
   border: 1px solid var(--wl-line);
   border-radius: 12px;
   transition: border-color 0.15s var(--wl-ease-soft), box-shadow 0.15s var(--wl-ease-soft);
@@ -242,8 +242,8 @@
 .input:focus,
 .personaArea:focus {
   outline: none;
-  border-color: rgba(27, 39, 48, 0.25);
-  box-shadow: 0 0 0 3px rgba(27, 39, 48, 0.07);
+  border-color: rgba(var(--wl-ink-rgb), 0.25);
+  box-shadow: 0 0 0 3px rgba(var(--wl-ink-rgb), 0.07);
 }
 
 .capChips {
@@ -258,7 +258,7 @@
   font-weight: 500;
   padding: 6px 13px;
   border-radius: 999px;
-  background: rgba(27, 39, 48, 0.05);
+  background: rgba(var(--wl-ink-rgb), 0.05);
   color: var(--wl-ink-2);
   border: 1px solid transparent;
   cursor: pointer;
@@ -270,13 +270,13 @@
 }
 
 .capChipOn {
-  color: #fff;
+  color: var(--wl-on-ink);
   background: var(--wl-ink);
   border-color: var(--wl-ink);
 }
 
 .capChipOn:hover {
-  color: #fff;
+  color: var(--wl-on-ink);
 }
 
 .row {
@@ -289,7 +289,7 @@
 .segment {
   display: inline-flex;
   padding: 3px;
-  background: rgba(27, 39, 48, 0.05);
+  background: rgba(var(--wl-ink-rgb), 0.05);
   border-radius: 999px;
   gap: 2px;
 }
@@ -310,9 +310,9 @@
 }
 
 .segOn {
-  background: #fff;
+  background: rgb(var(--wl-paper-rgb));
   color: var(--wl-ink);
-  box-shadow: 0 0 0 1px rgba(27, 39, 48, 0.06);
+  box-shadow: 0 0 0 1px rgba(var(--wl-ink-rgb), 0.06);
 }
 
 /* ── Footer ── */
@@ -335,7 +335,7 @@
   border: 0;
   border-radius: 18px;
   background: var(--wl-ink);
-  color: #fff;
+  color: var(--wl-on-ink);
   font: inherit;
   font-size: 13.5px;
   font-weight: 500;
@@ -344,7 +344,7 @@
 }
 
 .primary:hover:not(:disabled) {
-  background: #2c3b46;
+  background: var(--wl-ink-hover);
 }
 
 .primary:disabled {
@@ -357,7 +357,7 @@
   padding: 0 16px;
   border: 1px solid var(--wl-line);
   border-radius: 18px;
-  background: rgba(255, 255, 255, 0.8);
+  background: rgba(var(--wl-paper-rgb), 0.8);
   color: var(--wl-ink);
   font: inherit;
   font-size: 13.5px;
@@ -367,7 +367,7 @@
 }
 
 .quiet:hover:not(:disabled) {
-  background: #fff;
+  background: rgb(var(--wl-paper-rgb));
 }
 
 .quiet:disabled {

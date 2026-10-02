@@ -1,10 +1,10 @@
 /* Approval card — the Beautiful-UI question grammar on wos tokens. */
 
 .card {
-  border: 1px solid rgba(255, 255, 255, 0.85);
+  border: 1px solid rgba(var(--wl-paper-rgb), 0.85);
   border-radius: 20px;
-  background: rgba(251, 252, 253, 0.9);
-  box-shadow: 0 0 0 1px rgba(27, 39, 48, 0.05);
+  background: rgba(var(--wl-paper-rgb), 0.9);
+  box-shadow: 0 0 0 1px rgba(var(--wl-ink-rgb), 0.05);
   padding: 14px 16px;
   max-width: 420px;
   animation: acFadeUp 350ms cubic-bezier(0.23, 1, 0.32, 1) both;
@@ -17,7 +17,7 @@
   width: 24px; height: 24px; border: 0; border-radius: 999px;
   background: transparent; color: var(--wl-muted, var(--color-text-subtle)); cursor: pointer;
 }
-.dismiss:hover { background: rgba(27, 39, 48, 0.05); color: var(--wl-ink, var(--color-text)); }
+.dismiss:hover { background: rgba(var(--wl-ink-rgb), 0.05); color: var(--wl-ink, var(--color-text)); }
 
 .options { display: flex; flex-direction: column; gap: 4px; margin-top: 10px; }
 .option {
@@ -26,7 +26,7 @@
   padding: 9px 10px; font: inherit; font-size: 13px; cursor: pointer;
   transition: background 0.15s var(--wl-ease-soft, ease);
 }
-.option:hover:not(:disabled) { background: rgba(27, 39, 48, 0.05); }
+.option:hover:not(:disabled) { background: rgba(var(--wl-ink-rgb), 0.05); }
 .option:disabled { opacity: 0.55; cursor: default; }
 .radio {
   width: 14px; height: 14px; flex-shrink: 0; border-radius: 50%;
@@ -35,7 +35,7 @@
 }
 .option:hover:not(:disabled) .radio {
   border-color: var(--wl-ink, #1b2730);
-  box-shadow: inset 0 0 0 3px rgba(27, 39, 48, 0.14);
+  box-shadow: inset 0 0 0 3px rgba(var(--wl-ink-rgb), 0.14);
 }
 .optionLabel { font-weight: 500; flex-shrink: 0; }
 .optionHint {
@@ -48,18 +48,18 @@
   flex: 1; min-width: 0;
   height: 32px;
   border: 1px solid var(--wl-line, var(--color-border)); border-radius: 18px;
-  background: rgba(255, 255, 255, 0.85); color: var(--wl-ink, inherit);
+  background: rgba(var(--wl-paper-rgb), 0.85); color: var(--wl-ink, inherit);
   font: inherit; font-size: 13px; padding: 0 13px; outline: none;
   transition: border-color 0.15s, box-shadow 0.15s;
 }
-.free:focus { border-color: rgba(27, 39, 48, 0.25); box-shadow: 0 0 0 3px rgba(27, 39, 48, 0.07); }
+.free:focus { border-color: rgba(var(--wl-ink-rgb), 0.25); box-shadow: 0 0 0 3px rgba(var(--wl-ink-rgb), 0.07); }
 .freeSend {
   display: inline-flex; align-items: center; justify-content: center;
   width: 32px; height: 32px; flex-shrink: 0;
   border: 0; border-radius: 50%;
-  background: var(--wl-ink, #1b2730); color: #fff; cursor: pointer;
+  background: var(--wl-ink, #1b2730); color: var(--wl-on-ink); cursor: pointer;
 }
-.freeSend:hover:not(:disabled) { background: #2c3b46; }
+.freeSend:hover:not(:disabled) { background: var(--wl-ink-hover); }
 .freeSend:disabled { opacity: 0.45; cursor: default; }
 
 /* Answered → the card fires off into a small confirmation badge. */
@@ -74,7 +74,7 @@
 .sentCheck {
   display: inline-flex; align-items: center; justify-content: center; flex-shrink: 0;
   width: 18px; height: 18px; border-radius: 50%;
-  background: var(--wl-codex, #2d9d8f); color: #fff;
+  background: var(--wl-codex, #2d9d8f); color: var(--wl-on-ink);
 }
 
 @keyframes acFadeUp { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: none; } }

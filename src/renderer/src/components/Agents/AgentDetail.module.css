@@ -1,7 +1,7 @@
 .backdrop {
   position: absolute;
   inset: 0;
-  background: rgba(226, 233, 238, 0.55);
+  background: rgba(var(--wl-veil-rgb), 0.55);
   display: flex;
   justify-content: flex-end;
   z-index: 40;
@@ -21,7 +21,7 @@
   height: 100%;
   background: var(--wl-paper-solid);
   border-radius: 24px 0 0 24px;
-  box-shadow: 0 0 0 1px rgba(27, 39, 48, 0.07), 0 20px 50px -20px rgba(30, 55, 70, 0.35);
+  box-shadow: 0 0 0 1px rgba(var(--wl-ink-rgb), 0.07), 0 20px 50px -20px rgba(var(--wl-shadow-rgb), 0.35);
   color: var(--wl-ink);
   padding: 28px 26px;
   overflow-y: auto;
@@ -51,7 +51,7 @@
 }
 
 .close:hover {
-  background: rgba(27, 39, 48, 0.05);
+  background: rgba(var(--wl-ink-rgb), 0.05);
   color: var(--wl-ink);
 }
 
@@ -115,7 +115,7 @@
   font-weight: 500;
   padding: 2px 8px;
   border-radius: 999px;
-  background: rgba(27, 39, 48, 0.06);
+  background: rgba(var(--wl-ink-rgb), 0.06);
   color: var(--wl-ink-2);
 }
 
@@ -124,7 +124,7 @@
   font-size: 12px;
   line-height: 1.55;
   color: var(--wl-ink);
-  background: #fff;
+  background: rgb(var(--wl-paper-rgb));
   border: 1px solid var(--wl-line);
   border-radius: 12px;
   padding: 14px;
@@ -155,7 +155,7 @@
   border: 0;
   border-radius: 18px;
   background: var(--wl-ink);
-  color: #fff;
+  color: var(--wl-on-ink);
   font: inherit;
   font-weight: 500;
   font-size: 13.5px;
@@ -164,7 +164,7 @@
 }
 
 .run:hover {
-  background: #2c3b46;
+  background: var(--wl-ink-hover);
 }
 
 .quiet {
@@ -172,7 +172,7 @@
   padding: 0 14px;
   border: 1px solid var(--wl-line);
   border-radius: 18px;
-  background: rgba(255, 255, 255, 0.8);
+  background: rgba(var(--wl-paper-rgb), 0.8);
   color: var(--wl-ink);
   font: inherit;
   font-size: 13px;
@@ -181,7 +181,7 @@
 }
 
 .quiet:hover {
-  background: #fff;
+  background: rgb(var(--wl-paper-rgb));
 }
 
 .dangerQuiet {
@@ -190,7 +190,7 @@
   border: 0;
   border-radius: 18px;
   background: transparent;
-  color: #b84a3a;
+  color: var(--wl-danger);
   font: inherit;
   font-size: 13px;
   cursor: pointer;
@@ -205,8 +205,8 @@
   padding: 0 16px;
   border: 0;
   border-radius: 18px;
-  background: #b84a3a;
-  color: #fff;
+  background: var(--wl-danger);
+  color: var(--wl-on-ink);
   font: inherit;
   font-weight: 500;
   font-size: 13px;

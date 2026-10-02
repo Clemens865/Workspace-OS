@@ -27,8 +27,8 @@
   gap: 4px;
   padding: 14px 16px;
   border-radius: 20px;
-  border: 1px solid rgba(255, 255, 255, 0.85);
-  background: rgba(255, 255, 255, 0.55);
+  border: 1px solid rgba(var(--wl-paper-rgb), 0.85);
+  background: rgba(var(--wl-paper-rgb), 0.55);
   font: inherit;
   text-align: left;
   color: var(--wl-ink);
@@ -52,12 +52,12 @@
 }
 
 .card:hover {
-  background: rgba(255, 255, 255, 0.75);
+  background: rgba(var(--wl-paper-rgb), 0.75);
 }
 
 .sel {
   transform: none !important;
-  background: rgba(255, 255, 255, 0.9);
+  background: rgba(var(--wl-paper-rgb), 0.9);
 }
 
 .cardTag {
@@ -112,8 +112,8 @@
   min-height: 0;
   padding: 28px 32px 22px;
   border-radius: 26px;
-  border: 1px solid rgba(255, 255, 255, 0.85);
-  background: rgba(251, 252, 253, 0.9);
+  border: 1px solid rgba(var(--wl-paper-rgb), 0.85);
+  background: rgba(var(--wl-paper-rgb), 0.9);
   animation: inboxMain 0.7s var(--wl-ease) backwards;
 }
 
@@ -169,7 +169,7 @@
   overflow: auto;
   padding: 16px 18px;
   border-radius: 14px;
-  background: #fff;
+  background: rgb(var(--wl-paper-rgb));
   border: 1px solid var(--wl-line);
   font-family: var(--wl-sans);
   font-size: 13.5px;
@@ -191,7 +191,7 @@
   padding: 8px 12px;
   border-radius: 10px;
   border: 1px solid var(--wl-line);
-  background: rgba(255, 255, 255, 0.85);
+  background: rgba(var(--wl-paper-rgb), 0.85);
   font: inherit;
   font-size: 13px;
   color: var(--wl-ink);
@@ -238,14 +238,14 @@
 
 .btn {
   border: 1px solid var(--wl-line);
-  background: rgba(255, 255, 255, 0.8);
+  background: rgba(var(--wl-paper-rgb), 0.8);
   color: var(--wl-ink);
 }
 
 .primary {
   border: 0;
   background: var(--wl-ink);
-  color: #fff;
+  color: var(--wl-on-ink);
 }
 
 .btn:disabled,
@@ -264,7 +264,7 @@
   padding: 0 4px 0 14px;
   border-radius: 18px;
   border: 1px solid var(--wl-line);
-  background: #fff;
+  background: rgb(var(--wl-paper-rgb));
 }
 
 .revise input {
@@ -286,7 +286,7 @@
   border: 0;
   border-radius: 50%;
   background: var(--wl-ink);
-  color: #fff;
+  color: var(--wl-on-ink);
   cursor: pointer;
 }
 

@@ -24,35 +24,35 @@
   display: inline-flex; align-items: center; gap: 6px;
   height: 30px; padding: 0 13px; border-radius: 18px;
   font: inherit; font-size: 12.5px; font-weight: 500;
-  border: 1px solid var(--wl-line); background: rgba(255, 255, 255, 0.8); color: var(--wl-ink);
+  border: 1px solid var(--wl-line); background: rgba(var(--wl-paper-rgb), 0.8); color: var(--wl-ink);
   cursor: pointer;
   transition: background 0.15s var(--wl-ease-soft);
 }
-.newCase:hover { background: #fff; }
+.newCase:hover { background: rgb(var(--wl-paper-rgb)); }
 
 /* The empty-state invitation — an entry point where there were zero cases. */
 .emptyStart {
   display: flex; align-items: center; gap: 9px; width: 100%;
   text-align: left; font: inherit; font-size: 13.5px; color: var(--wl-ink-2);
-  padding: 16px 18px; border: 1px dashed rgba(27, 39, 48, 0.14); border-radius: 18px;
-  background: rgba(255, 255, 255, 0.4); cursor: pointer;
+  padding: 16px 18px; border: 1px dashed rgba(var(--wl-ink-rgb), 0.14); border-radius: 18px;
+  background: rgba(var(--wl-paper-rgb), 0.4); cursor: pointer;
   transition: background 0.15s var(--wl-ease-soft), color 0.15s var(--wl-ease-soft);
 }
-.emptyStart:hover { background: rgba(251, 252, 253, 0.9); color: var(--wl-ink); }
+.emptyStart:hover { background: rgba(var(--wl-paper-rgb), 0.9); color: var(--wl-ink); }
 .emptyStart svg { flex: none; color: var(--wl-muted); }
 
 .list { display: flex; flex-direction: column; gap: 8px; }
 
 .row {
-  border: 1px solid rgba(255, 255, 255, 0.85);
+  border: 1px solid rgba(var(--wl-paper-rgb), 0.85);
   border-radius: 18px;
-  background: rgba(251, 252, 253, 0.9);
-  box-shadow: 0 0 0 1px rgba(27, 39, 48, 0.05);
+  background: rgba(var(--wl-paper-rgb), 0.9);
+  box-shadow: 0 0 0 1px rgba(var(--wl-ink-rgb), 0.05);
   overflow: hidden;
   transition: background 0.15s var(--wl-ease-soft);
 }
 
-.rowOpen { background: var(--wl-paper-solid); box-shadow: 0 0 0 1px rgba(27, 39, 48, 0.08); }
+.rowOpen { background: var(--wl-paper-solid); box-shadow: 0 0 0 1px rgba(var(--wl-ink-rgb), 0.08); }
 
 .headWrap { display: flex; align-items: center; }
 .head {
@@ -71,7 +71,7 @@
   transition: background 0.15s var(--wl-ease-soft);
 }
 
-.head:hover { background: rgba(27, 39, 48, 0.03); }
+.head:hover { background: rgba(var(--wl-ink-rgb), 0.03); }
 
 /* Open the case full screen — quiet until the row is hovered. */
 .expand {
@@ -90,7 +90,7 @@
   transition: opacity 0.15s var(--wl-ease-soft), background 0.15s var(--wl-ease-soft);
 }
 .headWrap:hover .expand { opacity: 1; }
-.expand:hover { background: rgba(27, 39, 48, 0.05); color: var(--wl-ink); }
+.expand:hover { background: rgba(var(--wl-ink-rgb), 0.05); color: var(--wl-ink); }
 
 .chev { flex: none; color: var(--wl-muted); transition: transform 0.15s var(--wl-ease-soft); }
 .chevOpen { transform: rotate(90deg); }
@@ -114,7 +114,7 @@
   font-weight: 400;
   padding: 2px 9px;
   border-radius: 999px;
-  background: rgba(27, 39, 48, 0.06);
+  background: rgba(var(--wl-ink-rgb), 0.06);
   color: var(--wl-ink-2);
 }
 
@@ -162,7 +162,7 @@
   gap: 6px;
   border: 1px solid var(--wl-line);
   border-radius: 10px;
-  background: rgba(255, 255, 255, 0.85);
+  background: rgba(var(--wl-paper-rgb), 0.85);
   color: var(--wl-ink);
   font: inherit;
   font-size: 12.5px;
@@ -171,7 +171,7 @@
   transition: background 0.15s var(--wl-ease-soft);
 }
 
-.file:hover { background: #fff; }
+.file:hover { background: rgb(var(--wl-paper-rgb)); }
 
 .notes { display: flex; flex-direction: column; gap: 6px; }
 
@@ -199,7 +199,7 @@
   height: 34px;
   border: 1px solid var(--wl-line);
   border-radius: 18px;
-  background: rgba(255, 255, 255, 0.85);
+  background: rgba(var(--wl-paper-rgb), 0.85);
   color: var(--wl-ink);
   font: inherit;
   font-size: 13px;
@@ -208,7 +208,7 @@
   transition: border-color 0.15s var(--wl-ease-soft), box-shadow 0.15s var(--wl-ease-soft);
 }
 
-.input:focus { border-color: rgba(27, 39, 48, 0.25); box-shadow: 0 0 0 3px rgba(27, 39, 48, 0.07); }
+.input:focus { border-color: rgba(var(--wl-ink-rgb), 0.25); box-shadow: 0 0 0 3px rgba(var(--wl-ink-rgb), 0.07); }
 
 .add, .signal, .chip {
   display: inline-flex;
@@ -216,7 +216,7 @@
   gap: 6px;
   border: 1px solid var(--wl-line);
   border-radius: 18px;
-  background: rgba(255, 255, 255, 0.8);
+  background: rgba(var(--wl-paper-rgb), 0.8);
   color: var(--wl-ink);
   font: inherit;
   font-size: 12.5px;
@@ -226,13 +226,13 @@
   transition: background 0.15s var(--wl-ease-soft);
 }
 
-.add:hover, .chip:hover { background: #fff; }
+.add:hover, .chip:hover { background: rgb(var(--wl-paper-rgb)); }
 .add:disabled, .chip:disabled { opacity: 0.5; cursor: default; }
 
 .signals { display: flex; flex-wrap: wrap; gap: 6px; }
 
 /* An offer that arose from a note. Warm, because it is an invitation. */
-.signal { background: var(--wl-amber-soft); color: #8a5a12; border-color: rgba(227, 163, 59, 0.35); }
+.signal { background: var(--wl-amber-soft); color: var(--wl-warn-ink); border-color: rgba(227, 163, 59, 0.35); }
 .signal:hover { border-color: rgba(227, 163, 59, 0.6); }
 
 /* A hand-off that failed. Said in the case, because a failure that looks
@@ -240,7 +240,7 @@
 .error {
   font-size: 12.5px;
   line-height: 1.45;
-  color: #b84a3a;
+  color: var(--wl-danger);
 }
 
 .statuses { display: flex; flex-wrap: wrap; gap: 5px; }
@@ -254,12 +254,12 @@
   font-weight: 400;
   padding: 2px 8px;
   border-radius: 999px;
-  background: rgba(27, 39, 48, 0.06);
+  background: rgba(var(--wl-ink-rgb), 0.06);
   color: var(--wl-ink-2);
 }
 
 .chip { font-size: 12px; padding: 3px 10px; }
-.chipOn, .chipOn:hover { background: var(--wl-ink); color: #fff; border-color: transparent; }
+.chipOn, .chipOn:hover { background: var(--wl-ink); color: var(--wl-on-ink); border-color: transparent; }
 
 /* What this case IS. A name says what it is called; a status says where it
    stands; neither says why it matters six weeks later. */

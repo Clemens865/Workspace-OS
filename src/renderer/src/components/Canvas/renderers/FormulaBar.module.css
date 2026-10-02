@@ -20,7 +20,7 @@
   font-size: 12px;
   font-weight: 500;
   color: var(--wl-ink, #1b2730);
-  background: rgba(27, 39, 48, 0.05);
+  background: rgba(var(--wl-ink-rgb), 0.05);
   border: 1px solid transparent;
   border-radius: 999px;
 }
@@ -68,7 +68,7 @@
   background: var(--wl-paper-solid, #fbfcfd);
   border: 1px solid transparent;
   border-radius: 14px;
-  box-shadow: 0 0 0 1px rgba(27, 39, 48, 0.07), 0 20px 50px -20px rgba(30, 55, 70, 0.35);
+  box-shadow: 0 0 0 1px rgba(var(--wl-ink-rgb), 0.07), 0 20px 50px -20px rgba(var(--wl-shadow-rgb), 0.35);
 }
 
 .suggestion {
@@ -82,10 +82,10 @@
   color: var(--wl-ink-2, #3b4a55);
   white-space: nowrap;
 }
-.suggestion:hover { background: rgba(27, 39, 48, 0.05); }
+.suggestion:hover { background: rgba(var(--wl-ink-rgb), 0.05); }
 
 .picked,
-.picked:hover { background: rgba(27, 39, 48, 0.08); color: var(--wl-ink, #1b2730); }
+.picked:hover { background: rgba(var(--wl-ink-rgb), 0.08); color: var(--wl-ink, #1b2730); }
 
 .sName { font-weight: 600; color: var(--wl-ink, #1b2730); font-family: var(--wl-mono, monospace); }
 .sArgs { color: var(--wl-faint, #a9b4bc); font-family: var(--wl-mono, monospace); font-size: 11px; }

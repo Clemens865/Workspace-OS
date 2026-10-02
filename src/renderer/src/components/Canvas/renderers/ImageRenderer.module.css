@@ -22,7 +22,7 @@
 
 .toolbar button {
   height: 26px;
-  background: rgba(255, 255, 255, 0.8);
+  background: rgba(var(--wl-paper-rgb), 0.8);
   border: 1px solid var(--wl-line, var(--color-border));
   border-radius: 18px;
   color: var(--wl-ink, var(--color-text));
@@ -33,7 +33,7 @@
   transition: background 0.15s var(--wl-ease-soft, ease);
 }
 
-.toolbar button:hover { background: #fff; }
+.toolbar button:hover { background: rgb(var(--wl-paper-rgb)); }
 
 .canvas {
   flex: 1;
@@ -57,4 +57,4 @@
   font-size: 13px;
 }
 
-.error { color: #b84a3a; }
+.error { color: var(--wl-danger); }

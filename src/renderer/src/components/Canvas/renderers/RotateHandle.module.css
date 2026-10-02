@@ -1,7 +1,7 @@
 .handle {
   position: absolute; z-index: 27;
   width: 14px; height: 14px; border-radius: 50%;
-  background: #fff; border: 2px solid #1a73e8;
+  background: rgb(var(--wl-paper-rgb)); border: 2px solid #1a73e8;
   cursor: grab; box-shadow: 0 1px 3px rgba(0,0,0,.2);
 }
 .handle:active { cursor: grabbing; }
@@ -11,4 +11,4 @@
   border: 1.5px dashed #1a73e8; transform-origin: center; border-radius: 2px;
   display: flex; align-items: center; justify-content: center;
 }
-.deg { background: #1a73e8; color: #fff; font-size: 11px; padding: 1px 6px; border-radius: 4px; }
+.deg { background: #1a73e8; color: var(--wl-on-ink); font-size: 11px; padding: 1px 6px; border-radius: 4px; }

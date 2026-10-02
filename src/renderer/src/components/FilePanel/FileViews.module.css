@@ -4,8 +4,8 @@
 .thumbImg {
   object-fit: cover;
   border-radius: 10px;
-  background: rgba(27, 39, 48, 0.05);
-  box-shadow: 0 0 0 1px rgba(27, 39, 48, 0.05);
+  background: rgba(var(--wl-ink-rgb), 0.05);
+  box-shadow: 0 0 0 1px rgba(var(--wl-ink-rgb), 0.05);
   flex-shrink: 0;
 }
 
@@ -14,7 +14,7 @@
   align-items: center;
   justify-content: center;
   border-radius: 10px;
-  background: rgba(27, 39, 48, 0.05);
+  background: rgba(var(--wl-ink-rgb), 0.05);
   flex-shrink: 0;
 }
 
@@ -49,12 +49,12 @@
 }
 
 .tile:hover {
-  background: rgba(27, 39, 48, 0.05);
+  background: rgba(var(--wl-ink-rgb), 0.05);
 }
 
 .tileOn,
 .tileOn:hover {
-  background: rgba(27, 39, 48, 0.08);
+  background: rgba(var(--wl-ink-rgb), 0.08);
   color: var(--wl-ink, var(--wos-ink));
 }
 
@@ -127,7 +127,7 @@
   border: 0;
   border-radius: 18px;
   background: var(--wl-ink, var(--wos-ink));
-  color: #fff;
+  color: var(--wl-on-ink);
   font-family: var(--wos-font);
   font-size: 13px;
   font-weight: 500;
@@ -136,7 +136,7 @@
 }
 
 .galleryOpen:hover {
-  background: #2c3b46;
+  background: var(--wl-ink-hover);
 }
 
 .strip {
@@ -167,12 +167,12 @@
 }
 
 .stripItem:hover {
-  background: rgba(27, 39, 48, 0.05);
+  background: rgba(var(--wl-ink-rgb), 0.05);
 }
 
 .stripItemOn,
 .stripItemOn:hover {
-  background: rgba(27, 39, 48, 0.08);
+  background: rgba(var(--wl-ink-rgb), 0.08);
   color: var(--wl-ink, var(--wos-ink));
 }
 
@@ -223,20 +223,20 @@
 }
 
 .colRow:hover {
-  background: rgba(27, 39, 48, 0.05);
+  background: rgba(var(--wl-ink-rgb), 0.05);
 }
 
 /* The folder whose contents are showing in the column to the right. Muted
    rather than full selection — it marks the PATH, not the cursor. */
 .colRowOpen {
-  background: rgba(27, 39, 48, 0.04);
+  background: rgba(var(--wl-ink-rgb), 0.04);
   color: var(--wl-ink, var(--wos-ink));
   font-weight: 500;
 }
 
 .colRowOn,
 .colRowOn:hover {
-  background: rgba(27, 39, 48, 0.08);
+  background: rgba(var(--wl-ink-rgb), 0.08);
   color: var(--wl-ink, var(--wos-ink));
 }
 

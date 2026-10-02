@@ -35,7 +35,7 @@
   color: var(--wl-muted, #7a8893);
   border-radius: 999px;
 }
-.x:hover { color: var(--wl-ink, #1b2730); background: rgba(27, 39, 48, 0.05); }
+.x:hover { color: var(--wl-ink, #1b2730); background: rgba(var(--wl-ink-rgb), 0.05); }
 
 .section {
   padding: 8px 10px;
@@ -70,7 +70,7 @@
   padding: 3px 6px;
   border: 1px solid var(--wl-line, rgba(27, 39, 48, 0.09));
   border-radius: 8px;
-  background: rgba(255, 255, 255, 0.85);
+  background: rgba(var(--wl-paper-rgb), 0.85);
   color: var(--wl-ink, #1b2730);
   font-size: 12px;
 }
@@ -91,7 +91,7 @@
   gap: 6px;
   padding: 3px 0;
 }
-.swatch { flex: none; width: 14px; height: 14px; border-radius: 4px; border: 1px solid rgba(27, 39, 48, 0.12); }
+.swatch { flex: none; width: 14px; height: 14px; border-radius: 4px; border: 1px solid rgba(var(--wl-ink-rgb), 0.12); }
 .thumb { flex: none; line-height: 0; }
 .preview { margin-bottom: 8px; display: flex; justify-content: center; }
 .libName { flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
@@ -99,36 +99,36 @@
   flex: none;
   padding: 2px 8px;
   border: 1px solid transparent;
-  background: rgba(27, 39, 48, 0.06);
+  background: rgba(var(--wl-ink-rgb), 0.06);
   color: var(--wl-ink, #1b2730);
   border-radius: 999px;
   cursor: pointer;
   font-size: 11px;
 }
 .del { flex: none; background: none; border: none; color: var(--wl-muted, #7a8893); cursor: pointer; font-size: 14px; }
-.del:hover { color: #b84a3a; }
-.ins:hover { background: rgba(27, 39, 48, 0.1); }
+.del:hover { color: var(--wl-danger); }
+.ins:hover { background: rgba(var(--wl-ink-rgb), 0.1); }
 
 .newBtn {
   width: 100%;
   padding: 6px;
-  border: 1px dashed rgba(27, 39, 48, 0.16);
+  border: 1px dashed rgba(var(--wl-ink-rgb), 0.16);
   background: none;
   color: var(--wl-ink, #1b2730);
   border-radius: 12px;
   cursor: pointer;
 }
-.newBtn:hover { background: rgba(27, 39, 48, 0.05); }
+.newBtn:hover { background: rgba(var(--wl-ink-rgb), 0.05); }
 
 .formBtns { display: flex; gap: 6px; margin-top: 6px; }
 .save {
   flex: 1; padding: 5px; border: none; border-radius: 999px; cursor: pointer;
-  background: var(--wl-ink, #1b2730); color: #fff; font-weight: 500;
+  background: var(--wl-ink, #1b2730); color: var(--wl-on-ink); font-weight: 500;
 }
 .cancel {
   flex: 1; padding: 5px; border: 1px solid var(--wl-line, rgba(27, 39, 48, 0.09)); border-radius: 999px; cursor: pointer;
-  background: rgba(255, 255, 255, 0.8); color: var(--wl-ink, #1b2730);
+  background: rgba(var(--wl-paper-rgb), 0.8); color: var(--wl-ink, #1b2730);
 }
 
-.save:hover { background: #2c3b46; }
-.cancel:hover { background: #fff; }
+.save:hover { background: var(--wl-ink-hover); }
+.cancel:hover { background: rgb(var(--wl-paper-rgb)); }

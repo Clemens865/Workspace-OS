@@ -42,8 +42,8 @@
   color: var(--wl-muted);
   padding: 4px 12px;
   border-radius: 999px;
-  background: rgba(251, 252, 253, 0.9);
-  box-shadow: 0 0 0 1px rgba(27, 39, 48, 0.05);
+  background: rgba(var(--wl-paper-rgb), 0.9);
+  box-shadow: 0 0 0 1px rgba(var(--wl-ink-rgb), 0.05);
 }
 
 .hoverLabel {

@@ -65,16 +65,16 @@
 }
 
 .tab:hover {
-  background: rgba(255, 255, 255, 0.55);
+  background: rgba(var(--wl-paper-rgb), 0.55);
   color: var(--wl-ink);
 }
 
 .tabOn,
 .tabOn:hover {
-  background: rgba(255, 255, 255, 0.9);
-  border-color: rgba(255, 255, 255, 0.95);
+  background: rgba(var(--wl-paper-rgb), 0.9);
+  border-color: rgba(var(--wl-paper-rgb), 0.95);
   color: var(--wl-ink);
-  box-shadow: 0 0 0 1px rgba(27, 39, 48, 0.06);
+  box-shadow: 0 0 0 1px rgba(var(--wl-ink-rgb), 0.06);
 }
 
 .tabLabel {
@@ -99,7 +99,7 @@
 }
 
 .tabClose:hover {
-  background: rgba(27, 39, 48, 0.07);
+  background: rgba(var(--wl-ink-rgb), 0.07);
   color: var(--wl-ink);
 }
 
@@ -121,7 +121,7 @@
 }
 
 .iconBtn:hover {
-  background: rgba(27, 39, 48, 0.05);
+  background: rgba(var(--wl-ink-rgb), 0.05);
   color: var(--wl-ink);
 }
 
@@ -140,7 +140,7 @@
   background: var(--wl-paper-solid);
   border: 0;
   border-radius: 14px;
-  box-shadow: 0 0 0 1px rgba(27, 39, 48, 0.07), 0 20px 50px -20px rgba(30, 55, 70, 0.35);
+  box-shadow: 0 0 0 1px rgba(var(--wl-ink-rgb), 0.07), 0 20px 50px -20px rgba(var(--wl-shadow-rgb), 0.35);
   padding: 4px;
   min-width: 150px;
   /* Opens downward into the dock body (within .root's overflow) so it's never
@@ -166,7 +166,7 @@
 }
 
 .menuItem:hover {
-  background: rgba(27, 39, 48, 0.05);
+  background: rgba(var(--wl-ink-rgb), 0.05);
 }
 
 /* Agent persona picker — a scrolling list when the workspace has many agents. */
@@ -187,7 +187,7 @@
   display: inline-flex;
   gap: 2px;
   padding: 2px;
-  background: rgba(27, 39, 48, 0.05);
+  background: rgba(var(--wl-ink-rgb), 0.05);
   border-radius: 999px;
 }
 
@@ -208,9 +208,9 @@
 }
 
 .segOn {
-  background: #fff;
+  background: rgb(var(--wl-paper-rgb));
   color: var(--wl-ink);
-  box-shadow: 0 0 0 1px rgba(27, 39, 48, 0.06);
+  box-shadow: 0 0 0 1px rgba(var(--wl-ink-rgb), 0.06);
 }
 
 /* ── Context chip (the live harness) ── */
@@ -267,7 +267,7 @@
   font-weight: 500;
   font-family: inherit;
   color: var(--wl-ink);
-  background: rgba(255, 255, 255, 0.8);
+  background: rgba(var(--wl-paper-rgb), 0.8);
   border: 1px solid var(--wl-line);
   border-radius: 999px;
   cursor: pointer;
@@ -276,7 +276,7 @@
 }
 
 .actionBtn:hover {
-  background: #fff;
+  background: rgb(var(--wl-paper-rgb));
 }
 
 .actionBtn:disabled {
@@ -286,13 +286,13 @@
 
 /* One ink pill = the primary action only; the rest stay quiet. */
 .actionPrimary {
-  color: #fff;
+  color: var(--wl-on-ink);
   background: var(--wl-ink);
   border-color: var(--wl-ink);
 }
 
 .actionPrimary:hover {
-  background: #2c3b46;
+  background: var(--wl-ink-hover);
 }
 
 /* ── Panes ── */
@@ -328,12 +328,12 @@
   position: absolute;
   inset: 0;
   padding: 10px 14px;
-  background: #fafafb;
+  background: var(--wl-paper-solid);
 }
 
 /* ── Drag-a-file-in affordance (shared by shell + agent panes) ── */
 .dropTarget {
-  outline: 1.5px dashed rgba(27, 39, 48, 0.35);
+  outline: 1.5px dashed rgba(var(--wl-ink-rgb), 0.35);
   outline-offset: -3px;
 }
 
@@ -347,7 +347,7 @@
   font-family: inherit;
   font-size: 11.5px;
   font-weight: 500;
-  color: #fff;
+  color: var(--wl-on-ink);
   background: var(--wl-ink);
   pointer-events: none;
   z-index: 5;
@@ -528,7 +528,7 @@
   padding: 8px 11px;
   font: inherit;
   font-size: 13px;
-  background: rgba(255, 255, 255, 0.85);
+  background: rgba(var(--wl-paper-rgb), 0.85);
   color: var(--wl-ink);
   resize: none;
   outline: none;
@@ -540,8 +540,8 @@
 }
 
 .input:focus {
-  border-color: rgba(27, 39, 48, 0.25);
-  box-shadow: 0 0 0 3px rgba(27, 39, 48, 0.07);
+  border-color: rgba(var(--wl-ink-rgb), 0.25);
+  box-shadow: 0 0 0 3px rgba(var(--wl-ink-rgb), 0.07);
 }
 
 .send {
@@ -549,7 +549,7 @@
   border-radius: 18px;
   border: 0;
   background: var(--wl-ink);
-  color: #fff;
+  color: var(--wl-on-ink);
   font: inherit;
   font-size: 13px;
   font-weight: 500;
@@ -558,7 +558,7 @@
 }
 
 .send:hover:not(:disabled) {
-  background: #2c3b46;
+  background: var(--wl-ink-hover);
 }
 
 .send:disabled {

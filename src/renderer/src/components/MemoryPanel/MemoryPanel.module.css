@@ -11,7 +11,7 @@
 .heading { font-family: var(--wl-serif); font-size: 26px; font-weight: 400; letter-spacing: -0.01em; color: var(--wl-ink); line-height: 1.1; }
 .headerIcon { color: var(--wl-muted); }
 .count {
-  font-size: 11px; color: var(--wl-ink-2); background: rgba(27, 39, 48, 0.06);
+  font-size: 11px; color: var(--wl-ink-2); background: rgba(var(--wl-ink-rgb), 0.06);
   border-radius: 999px; padding: 2px 8px; font-variant-numeric: tabular-nums;
 }
 
@@ -21,7 +21,7 @@
   color: var(--wl-muted); cursor: pointer; padding: 0;
   transition: background 0.15s var(--wl-ease-soft), color 0.15s var(--wl-ease-soft);
 }
-.refresh:hover { background: rgba(27, 39, 48, 0.05); color: var(--wl-ink); }
+.refresh:hover { background: rgba(var(--wl-ink-rgb), 0.05); color: var(--wl-ink); }
 .refresh:disabled { opacity: 0.5; cursor: default; }
 
 .spin { animation: spin 0.8s linear infinite; }
@@ -46,9 +46,9 @@
 .card {
   position: relative; display: block; width: 100%; box-sizing: border-box; text-align: left;
   border-radius: 12px; padding: 10px 12px 10px 16px; margin-bottom: 6px;
-  border: 1px solid rgba(255, 255, 255, 0.85);
-  box-shadow: 0 0 0 1px rgba(27, 39, 48, 0.05);
-  background: rgba(251, 252, 253, 0.9);
+  border: 1px solid rgba(var(--wl-paper-rgb), 0.85);
+  box-shadow: 0 0 0 1px rgba(var(--wl-ink-rgb), 0.05);
+  background: rgba(var(--wl-paper-rgb), 0.9);
   --spine: var(--wl-grey);
 }
 /* Category accents — a quiet colour spine per insight kind. */

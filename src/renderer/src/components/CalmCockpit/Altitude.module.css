@@ -84,22 +84,22 @@
   padding: 16px 18px 15px;
   text-align: left;
   font: inherit;
-  border: 1px solid rgba(255, 255, 255, 0.85);
+  border: 1px solid rgba(var(--wl-paper-rgb), 0.85);
   border-radius: 20px;
-  background: rgba(251, 252, 253, 0.9);
-  box-shadow: 0 0 0 1px rgba(27, 39, 48, 0.05);
+  background: rgba(var(--wl-paper-rgb), 0.9);
+  box-shadow: 0 0 0 1px rgba(var(--wl-ink-rgb), 0.05);
   cursor: pointer;
   transition: background 0.15s var(--wl-ease-soft), box-shadow 0.15s var(--wl-ease-soft);
 }
 
 .region:hover {
-  background: #fff;
-  box-shadow: 0 0 0 1px rgba(27, 39, 48, 0.08);
+  background: rgb(var(--wl-paper-rgb));
+  box-shadow: 0 0 0 1px rgba(var(--wl-ink-rgb), 0.08);
 }
 
 /* The single warm region — pale amber wash, ringed warm. */
 .regionWarm {
-  background: linear-gradient(180deg, var(--wl-amber-soft) 0%, rgba(251, 252, 253, 0.9) 78%);
+  background: linear-gradient(180deg, var(--wl-amber-soft) 0%, rgba(var(--wl-paper-rgb), 0.9) 78%);
   box-shadow: 0 0 0 1px rgba(227, 163, 59, 0.3);
 }
 
@@ -165,14 +165,14 @@
   gap: 10px;
   padding: 14px 12px;
   border-radius: 20px;
-  border: 1px solid rgba(255, 255, 255, 0.6);
-  background: rgba(255, 255, 255, 0.4);
-  box-shadow: 0 0 0 1px rgba(27, 39, 48, 0.04);
+  border: 1px solid rgba(var(--wl-paper-rgb), 0.6);
+  background: rgba(var(--wl-paper-rgb), 0.4);
+  box-shadow: 0 0 0 1px rgba(var(--wl-ink-rgb), 0.04);
 }
 
 /* The one warm "your-call" stage. */
 .stageWarm {
-  background: linear-gradient(180deg, var(--wl-amber-soft) 0%, rgba(251, 252, 253, 0.9) 82%);
+  background: linear-gradient(180deg, var(--wl-amber-soft) 0%, rgba(var(--wl-paper-rgb), 0.9) 82%);
   box-shadow: 0 0 0 1px rgba(227, 163, 59, 0.3);
 }
 
@@ -191,7 +191,7 @@
 }
 
 .stageWarm .stageTitle {
-  color: #8a5a12;
+  color: var(--wl-warn-ink);
 }
 
 .stageHint {
@@ -212,17 +212,17 @@
   padding: 9px 11px;
   text-align: left;
   font: inherit;
-  border: 1px solid rgba(255, 255, 255, 0.85);
+  border: 1px solid rgba(var(--wl-paper-rgb), 0.85);
   border-radius: 12px;
-  background: rgba(251, 252, 253, 0.9);
-  box-shadow: 0 0 0 1px rgba(27, 39, 48, 0.05);
+  background: rgba(var(--wl-paper-rgb), 0.9);
+  box-shadow: 0 0 0 1px rgba(var(--wl-ink-rgb), 0.05);
   cursor: pointer;
   transition: background 0.15s var(--wl-ease-soft), box-shadow 0.15s var(--wl-ease-soft);
 }
 
 .flowItem:hover {
-  background: #fff;
-  box-shadow: 0 0 0 1px rgba(27, 39, 48, 0.08);
+  background: rgb(var(--wl-paper-rgb));
+  box-shadow: 0 0 0 1px rgba(var(--wl-ink-rgb), 0.08);
 }
 
 .flowItemWarm {
@@ -350,7 +350,7 @@
 .confBar {
   height: 6px;
   border-radius: 99px;
-  background: rgba(27, 39, 48, 0.06);
+  background: rgba(var(--wl-ink-rgb), 0.06);
   overflow: hidden;
 }
 
@@ -367,9 +367,9 @@
   gap: 12px;
   padding: 16px;
   border-radius: 20px;
-  border: 1px solid rgba(255, 255, 255, 0.85);
-  background: rgba(251, 252, 253, 0.9);
-  box-shadow: 0 0 0 1px rgba(27, 39, 48, 0.05);
+  border: 1px solid rgba(var(--wl-paper-rgb), 0.85);
+  background: rgba(var(--wl-paper-rgb), 0.9);
+  box-shadow: 0 0 0 1px rgba(var(--wl-ink-rgb), 0.05);
 }
 
 .thumb {
@@ -379,7 +379,7 @@
   align-items: center;
   justify-content: center;
   border-radius: 12px;
-  background: #fff;
+  background: rgb(var(--wl-paper-rgb));
   border: 1px solid var(--wl-line);
   overflow: hidden;
 }
@@ -418,7 +418,7 @@
   padding: 0 14px;
   border: 1px solid var(--wl-line);
   border-radius: 18px;
-  background: rgba(255, 255, 255, 0.8);
+  background: rgba(var(--wl-paper-rgb), 0.8);
   color: var(--wl-ink);
   font: inherit;
   font-size: 12.5px;
@@ -427,7 +427,7 @@
 }
 
 .artifactOpen:hover {
-  background: #fff;
+  background: rgb(var(--wl-paper-rgb));
 }
 
 @media (max-width: 720px) {
@@ -450,7 +450,7 @@
   transform-origin: top left;
   border: 0;
   border-radius: 12px;
-  background: #fff;
+  background: rgb(var(--wl-paper-rgb));
   pointer-events: none;
 }
 
@@ -461,7 +461,7 @@
   margin-left: 10px;
   padding: 2px;
   border-radius: 999px;
-  background: rgba(27, 39, 48, 0.05);
+  background: rgba(var(--wl-ink-rgb), 0.05);
 }
 
 .areaChip {
@@ -484,9 +484,9 @@
 }
 
 .areaChipOn {
-  background: #fff;
+  background: rgb(var(--wl-paper-rgb));
   color: var(--wl-ink);
-  box-shadow: 0 0 0 1px rgba(27, 39, 48, 0.06);
+  box-shadow: 0 0 0 1px rgba(var(--wl-ink-rgb), 0.06);
 }
 
 /* Said once, calmly, when the river has no water in it yet. */

@@ -10,7 +10,7 @@
   background: var(--wl-paper-solid, #fbfcfd);
   border: 1px solid transparent;
   border-radius: 14px;
-  box-shadow: 0 0 0 1px rgba(27, 39, 48, 0.07), 0 20px 50px -20px rgba(30, 55, 70, 0.35);
+  box-shadow: 0 0 0 1px rgba(var(--wl-ink-rgb), 0.07), 0 20px 50px -20px rgba(var(--wl-shadow-rgb), 0.35);
   color: var(--wl-ink, #1b2730);
   font-size: 13px;
   min-width: 340px;
@@ -33,13 +33,13 @@
   padding: 5px 8px;
   border: 1px solid var(--wl-line, rgba(27, 39, 48, 0.09));
   border-radius: 999px;
-  background: rgba(255, 255, 255, 0.85);
+  background: rgba(var(--wl-paper-rgb), 0.85);
   color: var(--wl-ink, #1b2730);
   font-size: 13px;
   outline: none;
   transition: border-color .15s var(--wl-ease-soft, ease), box-shadow .15s var(--wl-ease-soft, ease);
 }
-.input:focus { border-color: rgba(27, 39, 48, 0.25); box-shadow: 0 0 0 3px rgba(27, 39, 48, 0.07); }
+.input:focus { border-color: rgba(var(--wl-ink-rgb), 0.25); box-shadow: 0 0 0 3px rgba(var(--wl-ink-rgb), 0.07); }
 
 .opts {
   display: flex;
@@ -62,10 +62,10 @@
   cursor: pointer;
   flex: 0 0 auto;
 }
-.opt:hover, .btn:hover, .close:hover { background: rgba(27, 39, 48, 0.05); color: var(--wl-ink, #1b2730); }
+.opt:hover, .btn:hover, .close:hover { background: rgba(var(--wl-ink-rgb), 0.05); color: var(--wl-ink, #1b2730); }
 
 .optOn {
-  background: rgba(27, 39, 48, 0.08);
+  background: rgba(var(--wl-ink-rgb), 0.08);
   border-color: transparent;
   color: var(--wl-ink, #1b2730);
 }

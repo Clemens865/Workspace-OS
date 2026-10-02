@@ -46,17 +46,17 @@
   border-radius: 18px;
   border: 0;
   background: var(--wl-ink);
-  color: #fff;
+  color: var(--wl-on-ink);
   cursor: pointer;
   transition: background 0.15s var(--wl-ease-soft);
 }
 .approveAll:hover,
-.batchBtn:hover { background: #2c3b46; }
+.batchBtn:hover { background: var(--wl-ink-hover); }
 .gatedNote,
 .batchNote {
   font-family: var(--rv-body, sans-serif);
   font-size: 12px;
-  color: #8a5a12;
+  color: var(--wl-warn-ink);
 }
 
 /* Launch-agent affordance. */
@@ -71,12 +71,12 @@
   padding: 0 14px;
   border-radius: 18px;
   border: 1px solid var(--wl-line);
-  background: rgba(255, 255, 255, 0.8);
+  background: rgba(var(--wl-paper-rgb), 0.8);
   color: var(--wl-ink);
   cursor: pointer;
   transition: background 0.15s var(--wl-ease-soft);
 }
-.launchBtn:hover { background: #fff; }
+.launchBtn:hover { background: rgb(var(--wl-paper-rgb)); }
 .launchMenu {
   position: absolute;
   right: 0;
@@ -88,7 +88,7 @@
   padding: 6px;
   border-radius: 14px;
   background: var(--wl-paper-solid);
-  box-shadow: 0 0 0 1px rgba(27, 39, 48, 0.07), 0 20px 50px -20px rgba(30, 55, 70, 0.35);
+  box-shadow: 0 0 0 1px rgba(var(--wl-ink-rgb), 0.07), 0 20px 50px -20px rgba(var(--wl-shadow-rgb), 0.35);
   display: flex;
   flex-direction: column;
   gap: 2px;
@@ -104,7 +104,7 @@
   color: var(--wl-ink);
   cursor: pointer;
 }
-.launchItem:hover { background: rgba(27, 39, 48, 0.05); }
+.launchItem:hover { background: rgba(var(--wl-ink-rgb), 0.05); }
 .launchEmpty {
   font-family: var(--rv-body, sans-serif);
   font-size: 12px;
@@ -128,9 +128,9 @@
 /* One lane — a paper card. */
 .lane {
   border-radius: 20px;
-  background: rgba(251, 252, 253, 0.9);
-  border: 1px solid rgba(255, 255, 255, 0.85);
-  box-shadow: 0 0 0 1px rgba(27, 39, 48, 0.05);
+  background: rgba(var(--wl-paper-rgb), 0.9);
+  border: 1px solid rgba(var(--wl-paper-rgb), 0.85);
+  box-shadow: 0 0 0 1px rgba(var(--wl-ink-rgb), 0.05);
   overflow: hidden;
 }
 .laneHeader {
@@ -147,7 +147,7 @@
   text-align: left;
   transition: background 0.15s var(--wl-ease-soft);
 }
-.laneHeader:hover { background: rgba(27, 39, 48, 0.03); }
+.laneHeader:hover { background: rgba(var(--wl-ink-rgb), 0.03); }
 .dot {
   width: 8px;
   height: 8px;

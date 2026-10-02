@@ -23,7 +23,7 @@
   transition: background 0.15s var(--wl-ease-soft, ease), color 0.15s var(--wl-ease-soft, ease);
 }
 
-.btn:hover { background: rgba(27, 39, 48, 0.05); color: var(--wl-ink, var(--fg)); }
+.btn:hover { background: rgba(var(--wl-ink-rgb), 0.05); color: var(--wl-ink, var(--fg)); }
 
 .divider {
   width: 1px;
@@ -44,7 +44,7 @@
   display: flex;
   gap: 2px;
   padding: 3px;
-  background: rgba(27, 39, 48, 0.05);
+  background: rgba(var(--wl-ink-rgb), 0.05);
   border-radius: 999px;
 }
 
@@ -66,7 +66,7 @@
 }
 .seg:hover { color: var(--wl-ink, var(--fg)); }
 .segActive {
-  background: #fff;
+  background: rgb(var(--wl-paper-rgb));
   color: var(--wl-ink, var(--fg));
-  box-shadow: 0 0 0 1px rgba(27, 39, 48, 0.06);
+  box-shadow: 0 0 0 1px rgba(var(--wl-ink-rgb), 0.06);
 }

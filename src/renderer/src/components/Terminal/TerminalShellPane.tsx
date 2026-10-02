@@ -3,6 +3,8 @@ import { Terminal } from 'xterm'
 import { FitAddon } from 'xterm-addon-fit'
 import 'xterm/css/xterm.css'
 import { shellQuote } from './shellQuote'
+import { xtermTheme } from './xtermThemes'
+import { currentTheme, onThemeChange } from '../../hooks/useTheme'
 import styles from './TerminalDock.module.css'
 
 /** Read the dropped workspace path(s) — our own MIME first, then a plain
@@ -72,32 +74,8 @@ export function TerminalShellPane({ sessionId, resizeSignal, active, context }: 
       fontSize: 13,
       lineHeight: 1.35,
       cursorBlink: true,
-      // Calm "paper" theme — ink on soft off-white with a muted, readable ANSI
-      // palette, so the shell reads as part of the app (like macOS Terminal's
-      // default) rather than a harsh hacker console. Matches the --wos-* tokens.
-      theme: {
-        background: '#FAFAFB',
-        foreground: '#2A2A2E',
-        cursor: '#0071E3',
-        cursorAccent: '#FAFAFB',
-        selectionBackground: 'rgba(0, 113, 227, 0.16)',
-        black: '#3A3A3E',
-        red: '#C0392B',
-        green: '#1E8E4E',
-        yellow: '#9A6A00',
-        blue: '#0071E3',
-        magenta: '#8E44AD',
-        cyan: '#00838F',
-        white: '#6E6E73',
-        brightBlack: '#8A8A8E',
-        brightRed: '#E03131',
-        brightGreen: '#2FA860',
-        brightYellow: '#B5820B',
-        brightBlue: '#3A93F0',
-        brightMagenta: '#A55EC7',
-        brightCyan: '#0FA0B0',
-        brightWhite: '#1D1D1F',
-      },
+      // The app's theme, live (see the effect below).
+      theme: xtermTheme(currentTheme()),
     })
     const fit = new FitAddon()
     term.loadAddon(fit)
@@ -143,6 +121,15 @@ export function TerminalShellPane({ sessionId, resizeSignal, active, context }: 
       fitRef.current = null
     }
   }, [sessionId])
+
+  // Light or dark, as the app switches.
+  useEffect(
+    () =>
+      onThemeChange((t) => {
+        if (termRef.current) termRef.current.options.theme = xtermTheme(t)
+      }),
+    [],
+  )
 
   // Re-fit when the dock geometry changes (resize / placement flip / reveal).
   useEffect(() => {

@@ -69,13 +69,13 @@
   gap: 10px;
   padding: 16px 16px 14px;
   border-radius: 20px;
-  border: 1px solid rgba(255, 255, 255, 0.85);
-  background: rgba(251, 252, 253, 0.9);
-  box-shadow: 0 0 0 1px rgba(27, 39, 48, 0.05);
+  border: 1px solid rgba(var(--wl-paper-rgb), 0.85);
+  background: rgba(var(--wl-paper-rgb), 0.9);
+  box-shadow: 0 0 0 1px rgba(var(--wl-ink-rgb), 0.05);
 }
 
 .territoryWarm {
-  background: linear-gradient(180deg, var(--wl-amber-soft) 0%, rgba(251, 252, 253, 0.9) 82%);
+  background: linear-gradient(180deg, var(--wl-amber-soft) 0%, rgba(var(--wl-paper-rgb), 0.9) 82%);
   box-shadow: 0 0 0 1px rgba(227, 163, 59, 0.3);
 }
 
@@ -149,7 +149,7 @@
   padding: 6px 11px 6px 10px;
   border: 1px solid var(--wl-line);
   border-radius: 10px;
-  background: rgba(255, 255, 255, 0.85);
+  background: rgba(var(--wl-paper-rgb), 0.85);
   font: inherit;
   font-size: 12.5px;
   color: var(--wl-ink);
@@ -158,8 +158,8 @@
 }
 
 .chip:hover {
-  background: #fff;
-  border-color: rgba(27, 39, 48, 0.16);
+  background: rgb(var(--wl-paper-rgb));
+  border-color: rgba(var(--wl-ink-rgb), 0.16);
 }
 
 .chipWarm {
@@ -213,9 +213,9 @@
   min-width: 150px;
   padding: 10px 14px;
   border-radius: 18px;
-  border: 1px solid rgba(255, 255, 255, 0.85);
-  background: rgba(251, 252, 253, 0.9);
-  box-shadow: 0 0 0 1px rgba(27, 39, 48, 0.05);
+  border: 1px solid rgba(var(--wl-paper-rgb), 0.85);
+  background: rgba(var(--wl-paper-rgb), 0.9);
+  box-shadow: 0 0 0 1px rgba(var(--wl-ink-rgb), 0.05);
 }
 
 .metricStale {

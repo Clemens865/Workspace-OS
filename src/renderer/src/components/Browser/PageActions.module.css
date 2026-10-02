@@ -49,7 +49,7 @@
 
 .row:hover,
 .rowDim:hover {
-  background: rgba(27, 39, 48, 0.05);
+  background: rgba(var(--wl-ink-rgb), 0.05);
   color: var(--wl-ink);
 }
 
@@ -78,7 +78,7 @@
   font-family: var(--wl-mono);
   font-size: 10.5px;
   color: var(--wl-muted);
-  background: rgba(27, 39, 48, 0.06);
+  background: rgba(var(--wl-ink-rgb), 0.06);
   border-radius: 999px;
   padding: 1px 7px;
 }

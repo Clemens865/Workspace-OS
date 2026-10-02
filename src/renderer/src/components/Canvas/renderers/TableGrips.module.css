@@ -16,7 +16,7 @@
 .colGrip:hover, .rowGrip:hover { opacity: 1; background: rgba(26,115,232,.3); }
 .plus {
   position: absolute; right: -7px; top: -7px; width: 14px; height: 14px; border-radius: 99px;
-  border: 1px solid #1a73e8; background: #fff; color: #1a73e8;
+  border: 1px solid #1a73e8; background: rgb(var(--wl-paper-rgb)); color: #1a73e8;
   font-size: 11px; line-height: 1; padding: 0; cursor: pointer; display: none; z-index: 1;
 }
 .rowGrip .plus { right: -7px; top: auto; bottom: -7px; }

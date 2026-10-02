@@ -41,4 +41,4 @@
   font-size: 11.5px;
 }
 
-.error { padding: 24px; color: #b84a3a; font-size: 13px; }
+.error { padding: 24px; color: var(--wl-danger); font-size: 13px; }

@@ -24,7 +24,7 @@
   padding: 0 14px;
   border-radius: 20px;
   border: 1px solid var(--wl-line);
-  background: rgba(255, 255, 255, 0.7);
+  background: rgba(var(--wl-paper-rgb), 0.7);
   color: var(--wl-muted);
 }
 
@@ -55,8 +55,8 @@
   gap: 4px;
   padding: 18px 16px 14px;
   border-radius: 18px;
-  border: 1px solid rgba(255, 255, 255, 0.85);
-  background: rgba(255, 255, 255, 0.55);
+  border: 1px solid rgba(var(--wl-paper-rgb), 0.85);
+  background: rgba(var(--wl-paper-rgb), 0.55);
   font: inherit;
   text-align: left;
   color: var(--wl-ink);
@@ -84,7 +84,7 @@
 }
 
 .sel {
-  background: rgba(255, 255, 255, 0.9);
+  background: rgba(var(--wl-paper-rgb), 0.9);
 }
 
 .ftab {
@@ -120,8 +120,8 @@
   min-height: 0;
   padding: 26px 32px 22px;
   border-radius: 26px;
-  border: 1px solid rgba(255, 255, 255, 0.85);
-  background: rgba(251, 252, 253, 0.9);
+  border: 1px solid rgba(var(--wl-paper-rgb), 0.85);
+  background: rgba(var(--wl-paper-rgb), 0.9);
   animation: openIn 0.7s var(--wl-ease) backwards;
 }
 
@@ -163,7 +163,7 @@
   padding: 0 10px;
   border-radius: 16px;
   border: 1px solid var(--wl-line);
-  background: #fff;
+  background: rgb(var(--wl-paper-rgb));
   font: inherit;
   font-size: 13px;
   color: var(--wl-ink);
@@ -247,7 +247,7 @@
   padding: 12px;
   border-radius: 12px;
   border: 1px solid var(--wl-line);
-  background: #fff;
+  background: rgb(var(--wl-paper-rgb));
   font: inherit;
   font-size: 12.5px;
   color: var(--wl-ink);
@@ -318,7 +318,7 @@
   gap: 10px;
   padding: 10px 12px;
   border-radius: 12px;
-  background: #fff;
+  background: rgb(var(--wl-paper-rgb));
   border: 1px solid var(--wl-line);
   font-size: 13px;
 }
@@ -339,7 +339,7 @@
   padding: 0 12px;
   border-radius: 15px;
   border: 1px solid var(--wl-line);
-  background: rgba(255, 255, 255, 0.8);
+  background: rgba(var(--wl-paper-rgb), 0.8);
   font: inherit;
   font-size: 12.5px;
   color: var(--wl-ink);
@@ -379,7 +379,7 @@
 
 .agent {
   align-self: flex-start;
-  background: #fff;
+  background: rgb(var(--wl-paper-rgb));
   border: 1px solid var(--wl-line);
 }
 
@@ -398,7 +398,7 @@
   padding: 0 5px 0 14px;
   border-radius: 20px;
   border: 1px solid var(--wl-line);
-  background: #fff;
+  background: rgb(var(--wl-paper-rgb));
 }
 
 .composer input {
@@ -419,7 +419,7 @@
   border: 0;
   border-radius: 50%;
   background: var(--wl-ink);
-  color: #fff;
+  color: var(--wl-on-ink);
   cursor: pointer;
 }
 

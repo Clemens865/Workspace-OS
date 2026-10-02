@@ -40,16 +40,16 @@
 }
 
 .tab:hover {
-  background: rgba(255, 255, 255, 0.55);
+  background: rgba(var(--wl-paper-rgb), 0.55);
   color: var(--wl-ink);
 }
 
 .tabOn,
 .tabOn:hover {
-  background: rgba(255, 255, 255, 0.9);
-  border-color: rgba(255, 255, 255, 0.95);
+  background: rgba(var(--wl-paper-rgb), 0.9);
+  border-color: rgba(var(--wl-paper-rgb), 0.95);
   color: var(--wl-ink);
-  box-shadow: 0 0 0 1px rgba(27, 39, 48, 0.06);
+  box-shadow: 0 0 0 1px rgba(var(--wl-ink-rgb), 0.06);
 }
 
 .favicon {
@@ -85,7 +85,7 @@
 }
 
 .tabClose:hover {
-  background: rgba(27, 39, 48, 0.07);
+  background: rgba(var(--wl-ink-rgb), 0.07);
   color: var(--wl-ink);
 }
 
@@ -105,7 +105,7 @@
 }
 
 .newBtn:hover {
-  background: rgba(27, 39, 48, 0.05);
+  background: rgba(var(--wl-ink-rgb), 0.05);
   color: var(--wl-ink);
 }
 
@@ -123,7 +123,7 @@
   padding: 0 6px 0 7px;
   margin-right: 2px;
   border-radius: 999px;
-  background: rgba(27, 39, 48, 0.05);
+  background: rgba(var(--wl-ink-rgb), 0.05);
 }
 
 .groupDot {
@@ -155,7 +155,7 @@
   margin-left: 5px;
   padding: 1px 5px;
   border-radius: 999px;
-  background: rgba(255, 255, 255, 0.85);
+  background: rgba(var(--wl-paper-rgb), 0.85);
   font-size: 10px;
   color: var(--wl-muted);
 }
@@ -164,7 +164,7 @@
   width: 110px;
   border: none;
   outline: none;
-  background: rgba(255, 255, 255, 0.85);
+  background: rgba(var(--wl-paper-rgb), 0.85);
   border-radius: 999px;
   padding: 1px 6px;
   font-family: inherit;
@@ -186,7 +186,7 @@
 }
 
 .groupHead:hover .groupX { opacity: 1; }
-.groupX:hover { color: var(--wl-ink); background: rgba(255, 255, 255, 0.85); }
+.groupX:hover { color: var(--wl-ink); background: rgba(var(--wl-paper-rgb), 0.85); }
 
 /* A grouped tab carries a thin colour stripe, so membership is visible without
  * boxing the tabs and eating horizontal space. Softened toward the landscape:
@@ -196,7 +196,7 @@
 }
 
 .tabGrouped.tabOn {
-  box-shadow: 0 0 0 1px rgba(27, 39, 48, 0.06), inset 0 -2px 0 0 var(--grp, transparent);
+  box-shadow: 0 0 0 1px rgba(var(--wl-ink-rgb), 0.06), inset 0 -2px 0 0 var(--grp, transparent);
 }
 
 .strip [data-color='0'] { --grp: #8fb3d6; }
@@ -217,7 +217,7 @@
   padding: 1px 7px;
   border-radius: 999px;
   background: var(--wl-claude-soft, #f8e3da);
-  color: #8a3b22;
+  color: var(--wl-claude-ink);
   font-size: 10.5px;
   line-height: 16px;
   overflow: hidden;

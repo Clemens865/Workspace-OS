@@ -6,14 +6,14 @@
   align-items: center;
   justify-content: center;
   /* Over the office canvas: a solid-ish mist, never a backdrop-filter. */
-  background: rgba(226, 233, 238, 0.72);
+  background: rgba(var(--wl-veil-rgb), 0.72);
 }
 
 .modal {
   background: var(--wl-paper-solid, #fbfcfd);
   border: 1px solid transparent;
   border-radius: 22px;
-  box-shadow: 0 0 0 1px rgba(27, 39, 48, 0.07), 0 20px 50px -20px rgba(30, 55, 70, 0.35);
+  box-shadow: 0 0 0 1px rgba(var(--wl-ink-rgb), 0.07), 0 20px 50px -20px rgba(var(--wl-shadow-rgb), 0.35);
   padding: 18px 20px 16px;
   width: 300px;
   color: var(--wl-ink, #1b2730);
@@ -48,7 +48,7 @@
   align-items: center;
   justify-content: center;
 }
-.close:hover { background: rgba(27, 39, 48, 0.05); color: var(--wl-ink, #1b2730); }
+.close:hover { background: rgba(var(--wl-ink-rgb), 0.05); color: var(--wl-ink, #1b2730); }
 
 .grid {
   display: flex;
@@ -56,7 +56,7 @@
   gap: 3px;
   padding: 4px;
   border-radius: 8px;
-  background: rgba(27, 39, 48, 0.04);
+  background: rgba(var(--wl-ink-rgb), 0.04);
   width: max-content;
   margin: 0 auto;
 }
@@ -66,15 +66,15 @@
 .cell {
   width: 20px;
   height: 18px;
-  border: 1px solid rgba(27, 39, 48, 0.12);
+  border: 1px solid rgba(var(--wl-ink-rgb), 0.12);
   border-radius: 3px;
-  background: #fff;
+  background: rgb(var(--wl-paper-rgb));
   cursor: pointer;
   transition: background 60ms ease, border-color 60ms ease;
 }
 
 .cellOn {
-  background: rgba(27, 39, 48, 0.08);
+  background: rgba(var(--wl-ink-rgb), 0.08);
   border-color: var(--wl-ink, #1b2730);
 }
 
@@ -109,15 +109,15 @@
   padding: 7px 9px;
   border: 1px solid var(--wl-line, rgba(27, 39, 48, 0.09));
   border-radius: 10px;
-  background: rgba(255, 255, 255, 0.85);
+  background: rgba(var(--wl-paper-rgb), 0.85);
   color: var(--wl-ink, #1b2730);
   font-size: 13px;
   font-variant-numeric: tabular-nums;
 }
 .field input:focus {
   outline: none;
-  border-color: rgba(27, 39, 48, 0.25);
-  box-shadow: 0 0 0 3px rgba(27, 39, 48, 0.07);
+  border-color: rgba(var(--wl-ink-rgb), 0.25);
+  box-shadow: 0 0 0 3px rgba(var(--wl-ink-rgb), 0.07);
 }
 
 .actions {
@@ -138,14 +138,14 @@
 
 .btnGhost {
   background: transparent;
-  background: rgba(255, 255, 255, 0.8);
+  background: rgba(var(--wl-paper-rgb), 0.8);
   border-color: var(--wl-line, rgba(27, 39, 48, 0.09));
   color: var(--wl-ink, #1b2730);
 }
-.btnGhost:hover { background: #fff; }
+.btnGhost:hover { background: rgb(var(--wl-paper-rgb)); }
 
 .btnPrimary {
   background: var(--wl-ink, #1b2730);
-  color: #fff;
+  color: var(--wl-on-ink);
 }
-.btnPrimary:hover { background: #2c3b46; }
+.btnPrimary:hover { background: var(--wl-ink-hover); }

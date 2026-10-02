@@ -9,7 +9,7 @@
   background: var(--wl-paper-solid, #fbfcfd);
   border: 1px solid transparent;
   border-radius: 14px;
-  box-shadow: 0 0 0 1px rgba(27, 39, 48, 0.07), 0 20px 50px -20px rgba(30, 55, 70, 0.35);
+  box-shadow: 0 0 0 1px rgba(var(--wl-ink-rgb), 0.07), 0 20px 50px -20px rgba(var(--wl-shadow-rgb), 0.35);
   font-size: 13px;
   color: var(--wl-ink, #1b2730);
   user-select: none;
@@ -23,7 +23,7 @@
   padding: 5px 9px 5px 6px;
   white-space: nowrap;
 }
-.item:hover, .item:focus-visible, .item:focus, .parentOpen > .item { background: rgba(27, 39, 48, 0.05); color: var(--wl-ink, #1b2730); outline: none; }
+.item:hover, .item:focus-visible, .item:focus, .parentOpen > .item { background: rgba(var(--wl-ink-rgb), 0.05); color: var(--wl-ink, #1b2730); outline: none; }
 .item:hover .shortcut, .item:focus .shortcut, .item:hover .chevron, .item:focus .chevron, .parentOpen > .item .chevron { color: var(--wl-muted, #7a8893); }
 .item:disabled { color: var(--wl-faint, #a9b4bc); cursor: default; }
 .item:disabled:hover { background: transparent; color: var(--wl-faint, #a9b4bc); }
@@ -42,7 +42,7 @@
   background: var(--wl-paper-solid, #fbfcfd);
   border: 1px solid transparent;
   border-radius: 14px;
-  box-shadow: 0 0 0 1px rgba(27, 39, 48, 0.07), 0 20px 50px -20px rgba(30, 55, 70, 0.35);
+  box-shadow: 0 0 0 1px rgba(var(--wl-ink-rgb), 0.07), 0 20px 50px -20px rgba(var(--wl-shadow-rgb), 0.35);
 }
 .submenuLeft { left: auto; right: calc(100% - 2px); }
 

@@ -61,7 +61,7 @@
   cursor: pointer;
   border: 1px solid var(--color-border);
 }
-.modeOn { background: var(--accent, #6e8ae0); color: #fff; border-color: transparent; }
+.modeOn { background: var(--accent, #6e8ae0); color: var(--wl-on-ink); border-color: transparent; }
 .modeOff { background: transparent; color: var(--color-text-muted); }
 
 .skills { display: flex; flex-wrap: wrap; gap: 6px; max-height: 130px; overflow-y: auto; }
@@ -72,7 +72,7 @@
   cursor: pointer;
   border: 1px solid var(--color-border);
 }
-.skillOn { background: var(--accent, #6e8ae0); color: #fff; border-color: transparent; }
+.skillOn { background: var(--accent, #6e8ae0); color: var(--wl-on-ink); border-color: transparent; }
 .skillOff { background: transparent; color: var(--color-text); }
 
 .footer {
@@ -95,7 +95,7 @@
   background: var(--accent, #6e8ae0);
   border: none;
   border-radius: 8px;
-  color: #fff;
+  color: var(--wl-on-ink);
   cursor: pointer;
   font-size: 13px;
   font-weight: 600;

@@ -118,7 +118,7 @@
   background: var(--color-danger);
   border: none;
   border-radius: 12px;
-  color: #fff;
+  color: var(--wl-on-ink);
   cursor: pointer;
   font-size: 11px;
   padding: 3px 10px;

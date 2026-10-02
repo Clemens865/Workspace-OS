@@ -36,7 +36,7 @@
   background: var(--wl-amber-soft);
   font: inherit;
   font-size: 13px;
-  color: #6b4a12;
+  color: var(--wl-amber-ink);
   cursor: pointer;
 }
 
@@ -51,7 +51,7 @@
   gap: 2px;
   padding: 3px;
   border-radius: 999px;
-  background: rgba(27, 39, 48, 0.05);
+  background: rgba(var(--wl-ink-rgb), 0.05);
 }
 
 .seg button {
@@ -71,9 +71,9 @@
 }
 
 .seg .segOn {
-  background: #fff;
+  background: rgb(var(--wl-paper-rgb));
   color: var(--wl-ink);
-  box-shadow: 0 0 0 1px rgba(27, 39, 48, 0.06);
+  box-shadow: 0 0 0 1px rgba(var(--wl-ink-rgb), 0.06);
 }
 
 .error {
@@ -82,7 +82,7 @@
   border-radius: 12px;
   background: var(--wl-claude-soft);
   font-size: 13px;
-  color: #8a3b22;
+  color: var(--wl-claude-ink);
 }
 
 /* ── the Data tab ── */
@@ -94,9 +94,9 @@
 
 .dcard {
   padding: 14px 16px;
-  border: 1px solid rgba(255, 255, 255, 0.9);
+  border: 1px solid rgba(var(--wl-paper-rgb), 0.9);
   border-radius: 18px;
-  background: rgba(255, 255, 255, 0.7);
+  background: rgba(var(--wl-paper-rgb), 0.7);
 }
 
 .dhead {
@@ -132,12 +132,12 @@
   background: var(--wl-ink);
   font: inherit;
   font-size: 13px;
-  color: #fff;
+  color: var(--wl-on-ink);
   cursor: pointer;
 }
 
 .newBtn:hover {
-  background: #2c3b46;
+  background: var(--wl-ink-hover);
 }
 
 .boardWrap {
@@ -157,6 +157,6 @@
   overflow: auto;
   padding: 20px 24px;
   border-radius: 26px;
-  border: 1px solid rgba(255, 255, 255, 0.85);
-  background: rgba(251, 252, 253, 0.9);
+  border: 1px solid rgba(var(--wl-paper-rgb), 0.85);
+  background: rgba(var(--wl-paper-rgb), 0.9);
 }

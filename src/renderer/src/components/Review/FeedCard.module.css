@@ -11,9 +11,9 @@
   position: relative;
   border-radius: 20px;
   overflow: hidden;
-  background: rgba(251, 252, 253, 0.9);
-  border: 1px solid rgba(255, 255, 255, 0.85);
-  box-shadow: 0 0 0 1px rgba(27, 39, 48, 0.05);
+  background: rgba(var(--wl-paper-rgb), 0.9);
+  border: 1px solid rgba(var(--wl-paper-rgb), 0.85);
+  box-shadow: 0 0 0 1px rgba(var(--wl-ink-rgb), 0.05);
   color: var(--wl-ink);
   animation: rv-arrive 0.5s var(--wl-ease, cubic-bezier(0.2, 0.8, 0.2, 1)) both;
 }
@@ -97,7 +97,7 @@
   margin: 0 0 14px;
   padding: 8px 12px;
   border-radius: 10px;
-  background: rgba(255, 255, 255, 0.85);
+  background: rgba(var(--wl-paper-rgb), 0.85);
   border: 1px solid var(--wl-line);
   color: var(--wl-ink);
   font-family: var(--rv-body);
@@ -105,7 +105,7 @@
   cursor: pointer;
   transition: background 0.15s var(--wl-ease-soft);
 }
-.deliverable:hover { background: #fff; }
+.deliverable:hover { background: rgb(var(--wl-paper-rgb)); }
 
 .stakes {
   display: flex;
@@ -120,7 +120,7 @@
   padding: 2px 8px;
   border-radius: 999px;
   font-size: 11.5px;
-  background: rgba(27, 39, 48, 0.06);
+  background: rgba(var(--wl-ink-rgb), 0.06);
   color: var(--wl-ink-2);
 }
 .chip { font-family: var(--rv-body); }
@@ -157,7 +157,7 @@
 
 /* Outbound / irreversible note: the amber "this sends…" pill. */
 .gateNote.willsend {
-  color: #8a5a12;
+  color: var(--wl-warn-ink);
   background: var(--wl-amber-soft);
   padding: 7px 12px;
   border-radius: 999px;
@@ -188,26 +188,26 @@
   cursor: pointer;
   transition: background 0.15s var(--wl-ease-soft);
   border: 1px solid var(--wl-line);
-  background: rgba(255, 255, 255, 0.8);
+  background: rgba(var(--wl-paper-rgb), 0.8);
   color: var(--wl-ink);
 }
-.act:hover:not(:disabled) { background: #fff; }
+.act:hover:not(:disabled) { background: rgb(var(--wl-paper-rgb)); }
 .act:disabled { opacity: 0.5; cursor: default; }
 
 /* The primary action = the first button in the row. */
 .actions .act:first-child {
   border-color: transparent;
   background: var(--wl-ink);
-  color: #fff;
+  color: var(--wl-on-ink);
 }
-.actions .act:first-child:hover:not(:disabled) { background: #2c3b46; }
+.actions .act:first-child:hover:not(:disabled) { background: var(--wl-ink-hover); }
 
 /* Armed = the deliberate second-tap confirm — warm, committing. */
 .actArmed,
 .actions .actArmed:first-child {
   border-color: transparent;
   background: var(--wl-claude);
-  color: #fff;
+  color: var(--wl-on-ink);
 }
 .actArmed:hover:not(:disabled),
 .actions .actArmed:first-child:hover:not(:disabled) { background: #c8684a; }
@@ -232,7 +232,7 @@
   color: var(--wl-muted);
   transition: background 0.15s var(--wl-ease-soft), color 0.15s var(--wl-ease-soft);
 }
-.discBtn:hover { color: var(--wl-ink); background: rgba(27, 39, 48, 0.05); }
+.discBtn:hover { color: var(--wl-ink); background: rgba(var(--wl-ink-rgb), 0.05); }
 
 /* ── Disclosure tiers (unfold inline; never a new page). */
 .tier {
@@ -263,7 +263,7 @@
   margin: 0;
   padding: 12px 14px;
   border-radius: 12px;
-  background: #fff;
+  background: rgb(var(--wl-paper-rgb));
   border: 1px solid var(--wl-line);
   font-family: var(--rv-mono);
   font-size: 12px;
@@ -277,7 +277,7 @@
 .artifactChip {
   padding: 6px 11px;
   border-radius: 10px;
-  background: rgba(255, 255, 255, 0.85);
+  background: rgba(var(--wl-paper-rgb), 0.85);
   border: 1px solid var(--wl-line);
   color: var(--wl-ink);
   font-family: var(--rv-body);
@@ -285,7 +285,7 @@
   cursor: pointer;
   transition: background 0.15s var(--wl-ease-soft);
 }
-.artifactChip:hover { background: #fff; }
+.artifactChip:hover { background: rgb(var(--wl-paper-rgb)); }
 
 .provRow {
   display: flex;
@@ -309,14 +309,14 @@
   border: 1px solid var(--wl-line);
   border-radius: 12px;
   overflow: hidden;
-  background: #fff;
+  background: rgb(var(--wl-paper-rgb));
 }
 .diffFileHeader {
   display: flex;
   align-items: center;
   gap: 10px;
   padding: 7px 11px;
-  background: rgba(27, 39, 48, 0.03);
+  background: rgba(var(--wl-ink-rgb), 0.03);
   border-bottom: 1px solid var(--wl-line);
 }
 .diffPath {
@@ -329,7 +329,7 @@
 }
 .diffFileStat { margin-left: auto; font-family: var(--rv-mono); font-size: 11px; }
 .add { color: #1f7a6f; }
-.del { color: #b84a3a; }
+.del { color: var(--wl-danger); }
 
 .hunks {
   margin: 0;
@@ -344,7 +344,7 @@
 .marker { width: 14px; flex-shrink: 0; color: var(--wl-faint); }
 .add { background: rgba(45, 157, 143, 0.1); }
 .del { background: rgba(217, 119, 87, 0.1); }
-.hunk { color: var(--wl-muted); background: rgba(27, 39, 48, 0.04); }
+.hunk { color: var(--wl-muted); background: rgba(var(--wl-ink-rgb), 0.04); }
 .ctx { color: var(--wl-ink-2); }
 
 /* ── Mail card: the editable drafted-reply textarea (draft tier). */
@@ -355,7 +355,7 @@
   resize: vertical;
   padding: 12px 14px;
   border-radius: 12px;
-  background: rgba(255, 255, 255, 0.85);
+  background: rgba(var(--wl-paper-rgb), 0.85);
   border: 1px solid var(--wl-line);
   color: var(--wl-ink);
   font-family: var(--rv-body);
@@ -365,8 +365,8 @@
 }
 .draftArea:focus {
   outline: none;
-  border-color: rgba(27, 39, 48, 0.25);
-  box-shadow: 0 0 0 3px rgba(27, 39, 48, 0.07);
+  border-color: rgba(var(--wl-ink-rgb), 0.25);
+  box-shadow: 0 0 0 3px rgba(var(--wl-ink-rgb), 0.07);
 }
 .replyToggle {
   display: inline-flex;
@@ -380,7 +380,7 @@
 }
 
 /* ── Resolved (memory) state — kept and reverted rendered with equal weight. */
-.card.resolved { animation: none; background: rgba(251, 252, 253, 0.6); }
+.card.resolved { animation: none; background: rgba(var(--wl-paper-rgb), 0.6); }
 .resolvedRow {
   display: flex;
   align-items: center;
@@ -391,7 +391,7 @@
   flex-shrink: 0;
   padding: 2px 8px;
   border-radius: 999px;
-  background: rgba(27, 39, 48, 0.06);
+  background: rgba(var(--wl-ink-rgb), 0.06);
   color: var(--wl-ink-2);
   font-family: var(--rv-body);
   font-size: 11px;

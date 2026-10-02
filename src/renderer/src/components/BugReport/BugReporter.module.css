@@ -161,6 +161,6 @@
   padding: 3px 11px; border-radius: 12px; cursor: pointer; font-size: 11px;
   border: 1px solid var(--color-border); background: none;
 }
-.kindOn { background: var(--color-accent, #2a6df4); border-color: transparent; color: #fff; }
+.kindOn { background: var(--color-accent, #2a6df4); border-color: transparent; color: var(--wl-on-ink); }
 .kindOff { color: var(--color-text-muted); }
 .kindOff:hover { background: var(--color-surface-hover, rgba(127,127,127,0.10)); }
