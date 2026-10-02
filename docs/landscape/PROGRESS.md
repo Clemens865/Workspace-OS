@@ -1,7 +1,7 @@
 # Screen Landscape shell: progress log
 
 Living log for the landscape shell. Plan and decisions: [PLAN.md](PLAN.md).
-**Status: implemented (phases 0–5 and 7) and tested; phase 6 deferred by the plan.**
+**Status: implemented (phases 0–5 and 7) and tested; phase 6 deferred by the plan. Adoption (ADOPTION.md) done.**
 Approved design reference: [prototype/](prototype/). Newest entries first.
 
 Legend: ✅ done · 🟡 in progress · ⬜ not started
@@ -18,6 +18,68 @@ Legend: ✅ done · 🟡 in progress · ⬜ not started
 | 7 Landscape only (backup tag, remove old shells) | ✅ 2 Oct 2026 |
 
 ---
+
+## 2 Oct 2026: adoption, everything in the landscape design ✅
+
+Goal and plan: [ADOPTION.md](ADOPTION.md). Branch `feat/landscape-adoption`.
+
+**A, one design everywhere**
+- A1: the stage's three variable generations remapped to landscape values
+  (`.wl .wos` in landscape-tokens.css): mist, paper, ink, Inter, hairlines.
+- A2: the stage topbar carries the dock's items (Inbox with badge, Cases,
+  Library, Menu); paper pill tabs; the current surface is named.
+- A3: every surface restyled (Files, viewers, Browser, ⌘K/⌘P, terminal
+  chrome, Mail, Calendar, Knowledge, Memory, Connectors, Settings, Agents,
+  Review, Cockpit, Home, office chrome and dialogs, Monaco theme). Native
+  prompt/confirm in the file tree → styled dialog; dead `Canvas/TabBar`
+  removed. Document affordances keep their blue.
+
+**B, old functions in their new homes**
+- B1 Today (Team | Today; Menu → Home): hero with Not now, Next, Mail,
+  While you were away, files, pages, desk assistant; recent workspaces and
+  Open folder in the project menu (also with no folder open).
+- B2 Inbox: mail waiting for a reply; Waiting | History (the Stream).
+- B3 Cases: hand to an agent, offers from notes, Lives in, New case,
+  Shelf · Map · Board, Data tab, thumbnails; AgentFocus shows turns/cost.
+- B4 Library = Files · Notes · Memory (dock + stage topbar).
+- B5 Browser: tabs know their agent (each agent's screen shows its own
+  tab; the tab bar names it); downloads list in the address bar. Hidden
+  guests are parked (sized) instead of display:none; only agent-owned
+  background tabs keep painting.
+- B6 Toasts; Menu → Routines and Create an agent.
+
+**Fixed on the way (found by the new tests)**
+- Search, links and the knowledge graph answered from every workspace
+  ever opened (one shared index): now scoped in SQL, before the limit, and
+  through symlinks. Cases search went from failing to passing.
+- Glass panes ignored scroll clipping (cards behind the dock).
+- Created files were only seen by views mounted before they appeared.
+- Asking for the stage's current rail did not bring the stage forward.
+- Files said "Reading this folder…" forever with no folder open.
+- Inbox/work/today/library e2e now save and restore the user's
+  localStorage (they used to reset the user's run feed).
+
+**Regression check** (real app; before = `master` v0.2.0 built and run the
+same day, after = this branch)
+
+| Suite | master (v0.2.0) | branch |
+|---|---|---|
+| landscape | 99/99 (6 suites) | 169/169 (10 suites: shells 9, stage 36, presence 18, inbox 26, work 27, adoption 14, today 15, library 11, browser-own 6, perf 7) |
+| browser layout, views-and-dock, history, address-sync, tab-groups, share-with-claude, double-load | pass (views-and-dock: splash) | pass (views-and-dock 24/24, now dismisses the splash) |
+| browser phase2 | failing | 7/7 |
+| browser phase3 | 4 failing | 2 failing |
+| cases | 10 passed, 6 failed | 11 passed, 5 failed |
+| created-assets | 5 passed, 4 failed | same |
+| smoke | 3 failing (classic panels) | same |
+| review, files-browser | fail (classic "Review" button; splash) | same |
+| office A-ribbon | 8/8 | 8/8 |
+| office B-writer, D-calc | timeout | same |
+| office C-export | ENOENT on a /tmp fixture | same |
+| office C-tail | 3/1 | 3/1 (print check is timing-flaky: 2/2 then 3/1) |
+
+No suite is worse than on master; three are better.
+
+**Verified**: `npm test` 257 files, 3025 passed; typecheck clean.
 
 ## 2 Oct 2026: phase 7, the landscape is the only shell ✅
 

@@ -1,6 +1,6 @@
 # Goal: everything in the landscape design
 
-Status: A1–A3 and B1–B5 done, B6 built, C (regression + ship) next. 2 Oct 2026.
+Status: done (A1–A3, B1–B6, C), 2 Oct 2026. Results and regression table in PROGRESS.md.
 Branch `feat/landscape-adoption` (from `master` at v0.2.0).
 Follows [PLAN.md](PLAN.md) (the shell) and [PROGRESS.md](PROGRESS.md); the log of
 this goal is the "Adoption" section at the top of PROGRESS.md.
