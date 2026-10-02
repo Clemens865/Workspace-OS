@@ -47,3 +47,84 @@
   font-family: var(--wl-sans);
   -webkit-font-smoothing: antialiased;
 }
+
+/*
+ * The stage in landscape materials (docs/landscape/ADOPTION.md, phase A1).
+ *
+ * The stage (WorkspaceShell, `.wos`) sits inside `.wl`. Its surfaces read three
+ * generations of variables: `--wos-*` (tokens.css), `--color-*` (the bridge in
+ * tokens.css) and the legacy `--fg/--accent/...` (global.css). Remapping all of
+ * them here re-skins every stage surface at once: mist instead of grey, paper
+ * instead of white cards, ink instead of blue, Inter instead of Hanken Grotesk,
+ * hairline rings instead of shadows. `.wl .wos` outranks the `.wos` bridge.
+ *
+ * Document-editing affordances (selection handles, grips, cell cursor) keep
+ * their own colours on purpose: they mark the document, not the chrome.
+ */
+.wl .wos {
+  /* tokens.css */
+  --wos-bg: var(--wl-mist-1);
+  --wos-card: var(--wl-paper-solid);
+  --wos-sunk: #e7edf1;
+  --wos-rail: var(--wl-mist-2);
+  --wos-ink: var(--wl-ink);
+  --wos-ink-2: #5b6973;
+  --wos-ink-3: #8994a0;
+  --wos-hair: var(--wl-line);
+  --wos-blue: var(--wl-ink);
+  --wos-dark: var(--wl-ink);
+  --wos-ok: var(--wl-codex);
+  --wos-warn-ink: #8a5a12;
+  --wos-warn-bg: var(--wl-amber-soft);
+  --wos-sh-card: 0 0 0 1px rgba(27, 39, 48, 0.06);
+  --wos-sh-raised: 0 0 0 1px rgba(27, 39, 48, 0.08);
+  --wos-r: 18px;
+  --wos-r-sm: 12px;
+  --wos-font: var(--wl-sans);
+  --wos-font-mono: var(--wl-mono);
+
+  /* the --color-* bridge */
+  --color-text: var(--wl-ink);
+  --color-text-muted: #5b6973;
+  --color-text-subtle: #8994a0;
+  --color-surface: var(--wl-paper-solid);
+  --color-surface-raised: var(--wl-paper-solid);
+  --color-canvas: var(--wl-mist-1);
+  --color-bg: var(--wl-mist-1);
+  --color-border: var(--wl-line);
+  --color-border-strong: rgba(27, 39, 48, 0.16);
+  --color-hover: rgba(27, 39, 48, 0.05);
+  --color-active: rgba(27, 39, 48, 0.08);
+  --color-accent: var(--wl-ink);
+  --color-accent-hover: #2c3b46;
+  --color-accent-soft: rgba(27, 39, 48, 0.07);
+  --color-success: var(--wl-codex);
+
+  /* global.css (legacy) */
+  --font: var(--wl-sans);
+  --serif: var(--wl-serif);
+  --app: var(--wl-mist-1);
+  --surround: var(--wl-mist-2);
+  --panel: var(--wl-paper-solid);
+  --surface: var(--wl-paper-solid);
+  --elevated: var(--wl-paper-solid);
+  --border: var(--wl-line);
+  --border-strong: rgba(27, 39, 48, 0.16);
+  --hairline: rgba(27, 39, 48, 0.06);
+  --fg: var(--wl-ink);
+  --fg-muted: #5b6973;
+  --fg-subtle: #8994a0;
+  --accent: var(--wl-ink);
+  --accent-soft: rgba(27, 39, 48, 0.07);
+  --accent-border: rgba(27, 39, 48, 0.24);
+  --selection: rgba(27, 39, 48, 0.08);
+  --hover: rgba(27, 39, 48, 0.05);
+  --active: rgba(27, 39, 48, 0.08);
+  --shadow-1: 0 0 0 1px rgba(27, 39, 48, 0.06);
+  --shadow-2: 0 0 0 1px rgba(27, 39, 48, 0.07), 0 12px 28px -18px rgba(30, 55, 70, 0.3);
+  --shadow-3: 0 0 0 1px rgba(27, 39, 48, 0.08), 0 20px 50px -20px rgba(30, 55, 70, 0.35);
+
+  background: radial-gradient(120% 90% at 50% 0%, var(--wl-mist-1) 0%, var(--wl-mist-2) 70%, var(--wl-mist-3) 100%);
+  color: var(--wl-ink);
+  font-family: var(--wl-sans);
+}
