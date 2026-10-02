@@ -1,0 +1,122 @@
+/* Phase 0 scaffold: static CSS mist, header, glass-style dock. The WebGL
+   backdrop and Liquid Glass panes arrive in phase 3 (docs/landscape/PLAN.md). */
+.root {
+  position: fixed;
+  inset: 0;
+  overflow: hidden;
+  background: radial-gradient(120% 70% at 50% 38%, #f6f8fa 0%, var(--wl-mist-1) 40%, var(--wl-mist-2) 70%, var(--wl-mist-3) 100%);
+}
+
+.horizon {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 46%;
+  bottom: 0;
+  background: linear-gradient(180deg, rgba(236, 241, 245, 0) 0%, rgba(236, 241, 245, 0.92) 9%, #e6ecf0 40%, #dce4ea 100%);
+  pointer-events: none;
+}
+
+.header {
+  position: absolute;
+  top: 36px;
+  left: 48px;
+  right: 48px;
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+}
+
+.eyebrow {
+  font-size: 12px;
+  letter-spacing: 0.32em;
+  text-transform: uppercase;
+  color: var(--wl-ink-2);
+}
+
+.heading {
+  margin: 8px 0 0;
+  font-family: var(--wl-serif);
+  font-weight: 400;
+  font-size: 44px;
+  letter-spacing: -0.01em;
+}
+
+.sub {
+  margin-top: 10px;
+  font-size: 14px;
+  letter-spacing: 0.04em;
+  color: var(--wl-muted);
+}
+
+.note {
+  position: absolute;
+  left: 50%;
+  top: 46%;
+  transform: translate(-50%, -50%);
+  max-width: 460px;
+  padding: 22px 26px;
+  border-radius: 22px;
+  background: var(--wl-paper);
+  border: 1px solid var(--wl-line);
+  text-align: center;
+  font-size: 14px;
+  line-height: 1.55;
+  color: var(--wl-ink-2);
+}
+
+.back {
+  height: 42px;
+  padding: 0 20px;
+  border-radius: 21px;
+  border: 1px solid var(--wl-line);
+  background: rgba(255, 255, 255, 0.55);
+  font: inherit;
+  font-size: 14px;
+  color: var(--wl-ink);
+  cursor: pointer;
+}
+
+.dock {
+  position: absolute;
+  left: 50%;
+  bottom: 56px;
+  transform: translateX(-50%);
+  display: flex;
+  gap: 4px;
+  padding: 6px;
+  border-radius: 32px;
+  background: rgba(255, 255, 255, 0.5);
+  border: 1px solid rgba(255, 255, 255, 0.8);
+  -webkit-backdrop-filter: blur(14px) saturate(1.4);
+  backdrop-filter: blur(14px) saturate(1.4);
+}
+
+.dockItem {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  padding: 11px 20px;
+  border: 0;
+  border-radius: 26px;
+  background: none;
+  font: inherit;
+  font-size: 15px;
+  color: var(--wl-ink-2);
+  cursor: pointer;
+  transition: color 0.3s, background 0.3s;
+}
+
+.dockItem:hover {
+  color: var(--wl-ink);
+}
+
+.dockItem:disabled {
+  cursor: default;
+  opacity: 0.5;
+}
+
+.on {
+  color: var(--wl-ink);
+  background: #fff;
+}

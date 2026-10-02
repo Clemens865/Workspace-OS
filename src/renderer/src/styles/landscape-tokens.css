@@ -1,0 +1,49 @@
+/*
+ * Design tokens for the Screen Landscape shell (feat/landscape-shell).
+ *
+ * Scoped to `.wl`, which LandscapeShell mounts OUTSIDE `.wos`: tokens.css forces
+ * `!important` styles on any class containing "title", and the landscape needs
+ * its own type. Loaded only with the landscape chunk. Light only for now, like
+ * `.wos`. Source: the approved prototype (UI-Design-Concepts/worklive-screen-
+ * landscape/prototype/styles.css).
+ */
+.wl {
+  /* Mist */
+  --wl-mist-1: #eef2f5;
+  --wl-mist-2: #e2e9ee;
+  --wl-mist-3: #d5dee5;
+
+  /* Ink */
+  --wl-ink: #1b2730;
+  --wl-ink-2: #3b4a55;
+  --wl-muted: #7a8893;
+  --wl-faint: #a9b4bc;
+  --wl-line: rgba(27, 39, 48, 0.09);
+
+  /* Paper */
+  --wl-paper: rgba(251, 252, 253, 0.86);
+  --wl-paper-solid: #fbfcfd;
+
+  /* Provider identity and states */
+  --wl-codex: #2d9d8f;
+  --wl-codex-soft: #d9efec;
+  --wl-claude: #d97757;
+  --wl-claude-soft: #f8e3da;
+  --wl-amber: #e3a33b;
+  --wl-amber-soft: #fbefd9;
+  --wl-grey: #9aa6af;
+
+  /* Type */
+  --wl-serif: 'Newsreader', Georgia, serif;
+  --wl-sans: 'Inter', system-ui, sans-serif;
+  --wl-mono: 'JetBrains Mono', ui-monospace, monospace;
+
+  /* Motion */
+  --wl-ease: cubic-bezier(0.22, 0.8, 0.18, 1);
+  --wl-ease-soft: cubic-bezier(0.4, 0, 0.2, 1);
+  --wl-t: 0.9s;
+
+  color: var(--wl-ink);
+  font-family: var(--wl-sans);
+  -webkit-font-smoothing: antialiased;
+}

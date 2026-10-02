@@ -129,18 +129,26 @@ export function SettingsPanel({ onClose }: SettingsPanelProps): JSX.Element {
             <h3 className={styles.sectionTitle}>Design</h3>
             <p className={styles.hint}>
               The new shell — a left rail, Stage tabs, and a Home that surfaces what needs you — is the
-              default. Classic brings back the previous layout; switch any time, nothing is lost.
+              default. Classic brings back the previous layout; Landscape is the Screen Landscape shell,
+              in progress. Switch any time, nothing is lost.
             </p>
             <div className={styles.segmented}>
               <button
-                className={settings.newShell ? styles.segOn : styles.segOff}
-                onClick={() => settings.set('newShell', true)}
+                className={settings.landscapeShell ? styles.segOn : styles.segOff}
+                onClick={() => settings.set('landscapeShell', true)}
+                data-testid="shell-landscape"
+              >
+                Landscape
+              </button>
+              <button
+                className={!settings.landscapeShell && settings.newShell ? styles.segOn : styles.segOff}
+                onClick={() => { settings.set('landscapeShell', false); settings.set('newShell', true) }}
               >
                 New
               </button>
               <button
-                className={!settings.newShell ? styles.segOn : styles.segOff}
-                onClick={() => settings.set('newShell', false)}
+                className={!settings.landscapeShell && !settings.newShell ? styles.segOn : styles.segOff}
+                onClick={() => { settings.set('landscapeShell', false); settings.set('newShell', false) }}
               >
                 Classic
               </button>

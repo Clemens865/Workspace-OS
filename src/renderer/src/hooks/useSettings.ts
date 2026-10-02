@@ -20,6 +20,14 @@ export interface Settings {
    */
   newShell: boolean
   /**
+   * Screen Landscape shell (feat/landscape-shell). Default OFF. When on it wins
+   * over `newShell` and renders LandscapeShell. A separate flag rather than
+   * widening `newShell` into an enum, because the e2e suite writes `newShell`
+   * straight into localStorage; both flags go away when landscape becomes the
+   * only shell (docs/landscape/PLAN.md, phase 7).
+   */
+  landscapeShell: boolean
+  /**
    * Integrated Terminal Dock (new shell only). Where the dock sits when open —
    * a bottom strip under the stage, or a right-hand column. Default 'bottom'.
    */
@@ -61,6 +69,7 @@ const DEFAULTS: Settings = {
   newFileFormat: 'md',
   autoApproveReversible: false,
   newShell: true,
+  landscapeShell: false,
   terminalPlacement: 'bottom',
   terminalOpen: false,
   terminalMinimized: false,
