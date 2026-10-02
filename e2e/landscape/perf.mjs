@@ -91,7 +91,10 @@ try {
   check('idle: 0 frames', idle.frames === 0, `${idle.frames} frames in 3 s`)
 
   // ── a stage surface open: the backdrop must stop ──
-  await win.click('[data-dock="library"]')
+  // A real stage surface (the dock's Library is a landscape view since ADOPTION.md B4).
+  await win.click('[data-dock="menu"]')
+  await win.waitForTimeout(700)
+  await win.click('[data-menu="files"]')
   await win.waitForTimeout(1200)
   await perf('reset')
   await win.mouse.move(500, 500)

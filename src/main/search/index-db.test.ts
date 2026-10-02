@@ -29,6 +29,17 @@ describe('SearchIndex', () => {
     expect(results[0].matchType).toBe('content')
   })
 
+  it('scopes a query to one workspace before the limit (ADOPTION.md B4)', () => {
+    // Other workspaces flood the index with the same word…
+    for (let i = 0; i < 5; i++) doc(`/other/f${i}.docx`, `f${i}.docx`, 'allocation allocation allocation')
+    doc('/ws/budget.docx', 'budget.docx', 'the allocation')
+    doc('/ws_sibling/x.docx', 'x.docx', 'allocation')
+    // …so an unscoped top-3 never reaches this workspace's file.
+    expect(index.query('allocation', 3).some((r) => r.path === '/ws/budget.docx')).toBe(false)
+    const scoped = index.query('allocation', 3, ['/ws'])
+    expect(scoped.map((r) => r.path)).toEqual(['/ws/budget.docx'])
+  })
+
   it('finds a document by filename', () => {
     doc('/ws/proposal.docx', 'proposal.docx', 'unrelated text')
     const results = index.query('proposal')

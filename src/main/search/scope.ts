@@ -7,15 +7,30 @@
  *
  * Pure: paths in, paths out.
  */
+import fs from 'fs'
 import path from 'path'
 import type { Graph } from './index-db'
 
-/** True when `p` is the root or lies inside it. */
+/** The path itself and, when it resolves differently, its real path (macOS: /var → /private/var). */
+export function forms(p: string): string[] {
+  const resolved = path.resolve(p)
+  try {
+    const real = fs.realpathSync(resolved)
+    return real === resolved ? [resolved] : [resolved, real]
+  } catch {
+    return [resolved] // a deleted file still has a place it was
+  }
+}
+
+/**
+ * True when `p` is the root or lies inside it. Compared both as written and
+ * as real paths: the index may hold a file under /private/var while the root
+ * was opened as /var (the cases e2e found this).
+ */
 export function inRoot(p: string | null | undefined, root: string | null): boolean {
   if (!p || !root) return false
-  const r = path.resolve(root)
-  const x = path.resolve(p)
-  return x === r || x.startsWith(r + path.sep)
+  const roots = forms(root)
+  return forms(p).some((x) => roots.some((r) => x === r || x.startsWith(r + path.sep)))
 }
 
 /** Keeps the items whose `key` path lies in the root; nothing when no workspace is open. */

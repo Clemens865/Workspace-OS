@@ -6,7 +6,13 @@ import { SearchIndex } from '../search/index-db'
 import { Indexer } from '../search/indexer'
 import { validateSearchQuery, validateFilePath, IpcValidationError } from '../ipc-validator'
 import { getWorkspaceRoot } from '../workspace-root'
-import { inRoot, scopeByPath, scopeGraph, stubsOf } from '../search/scope'
+import { forms, inRoot, scopeByPath, scopeGraph, stubsOf } from '../search/scope'
+
+/** The open workspace as path prefixes for the index's SQL (none open: nothing matches). */
+function under(): string[] {
+  const root = getWorkspaceRoot()
+  return root ? forms(root) : ['/nonexistent-workspace-scope']
+}
 
 let index: SearchIndex | null = null
 let indexer: Indexer | null = null
@@ -24,14 +30,14 @@ export function registerSearchHandlers(ipcMain: IpcMain): void {
   ipcHandle(ipcMain, IPC.SEARCH_QUERY, (_event, query: unknown) => {
     const q = validateSearchQuery(query)
     // One index serves every workspace ever opened: answer for the open one only.
-    return scopeByPath(ensureIndex().query(q), getWorkspaceRoot(), (r) => r.path)
+    return scopeByPath(ensureIndex().query(q, 50, under()), getWorkspaceRoot(), (r) => r.path)
   })
 
   // Go-to-symbol: substring search over the structural-symbol index (markdown
   // headings + code entities) built alongside the content index.
   ipcHandle(ipcMain, IPC.SEARCH_SYMBOLS, (_event, query: unknown) => {
     const q = validateSearchQuery(query)
-    return scopeByPath(ensureIndex().searchSymbols(q), getWorkspaceRoot(), (r) => r.path)
+    return scopeByPath(ensureIndex().searchSymbols(q, 50, under()), getWorkspaceRoot(), (r) => r.path)
   })
 
   ipcHandle(ipcMain, IPC.SEARCH_INDEX_STATUS, () => {
@@ -75,14 +81,14 @@ export function registerSearchHandlers(ipcMain: IpcMain): void {
   })
 
   ipcHandle(ipcMain, IPC.LINKS_STUBS, () => {
-    return stubsOf(scopeGraph(ensureIndex().graph(), getWorkspaceRoot()))
+    return stubsOf(scopeGraph(ensureIndex().graph(2000, 2000, under()), getWorkspaceRoot()))
   })
 
   // Whole-workspace [[wikilink]] graph (nodes = notes + stubs, edges = resolved
   // links). No input → nothing to validate; node ids are workspace file paths,
   // same exposure surface as the backlinks/outgoing handlers above.
   ipcHandle(ipcMain, IPC.LINKS_GRAPH, () => {
-    return scopeGraph(ensureIndex().graph(), getWorkspaceRoot())
+    return scopeGraph(ensureIndex().graph(2000, 2000, under()), getWorkspaceRoot())
   })
 
   // Related notes for the active file — link-graph proximity (direct links +

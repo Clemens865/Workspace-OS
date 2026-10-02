@@ -137,6 +137,20 @@ function toFtsQuery(raw: string): string {
   return tokens.map((t) => `"${t}"*`).join(' AND ')
 }
 
+/**
+ * SQL that keeps rows whose `col` path lies under one of `under` (the open
+ * workspace, as written and as its real path). The index is shared by every
+ * workspace, so a LIMIT must apply after this cut, not before it.
+ */
+function underClause(col: string, under?: string[]): { sql: string; params: string[] } {
+  if (!under?.length) return { sql: '', params: [] }
+  const esc = (p: string): string => p.replace(/[%_\\]/g, '\\$&')
+  return {
+    sql: ` AND (${under.map(() => `${col} LIKE ? ESCAPE '\\'`).join(' OR ')})`,
+    params: under.map((r) => `${esc(r.replace(/\/+$/, ''))}/%`),
+  }
+}
+
 export class SearchIndex {
   private db: Database.Database
 
@@ -368,18 +382,19 @@ export class SearchIndex {
    * Bounded: notes are capped at `maxNodes` (alphabetical), edges at `maxEdges`;
    * either overflow flips `truncated`. Edges only connect surviving nodes.
    */
-  graph(maxNodes = 2000, maxEdges = 2000): Graph {
+  graph(maxNodes = 2000, maxEdges = 2000, under?: string[]): Graph {
     // 1. Note nodes — every linkable file, capped alphabetically for determinism.
     const kinds = [...GRAPH_KINDS]
     const placeholders = kinds.map(() => '?').join(', ')
+    const scope = underClause('path', under)
     const fileRows = this.db
       .prepare(
         `SELECT path, name FROM files
-         WHERE LOWER(ext) IN (${placeholders})
+         WHERE LOWER(ext) IN (${placeholders})${scope.sql}
          ORDER BY path
          LIMIT ?`
       )
-      .all(...kinds, maxNodes + 1) as Array<{ path: string; name: string }>
+      .all(...kinds, ...scope.params, maxNodes + 1) as Array<{ path: string; name: string }>
     let truncated = fileRows.length > maxNodes
     const notes = fileRows.slice(0, maxNodes)
     const noteIds = new Set(notes.map((r) => r.path))
@@ -483,19 +498,20 @@ export class SearchIndex {
 
   /** Go-to-symbol query: substring match on symbol name, prefix hits ranked
    *  first, then shorter names. Powers a "Symbols" results section. */
-  searchSymbols(raw: string, limit = 50): SymbolResult[] {
+  searchSymbols(raw: string, limit = 50, under?: string[]): SymbolResult[] {
     const q = raw.trim().toLowerCase()
     if (!q) return []
     const like = `%${q.replace(/[%_\\]/g, '\\$&')}%`
+    const scope = underClause('path', under)
     const rows = this.db
       .prepare(
         `SELECT path, name, kind, line
          FROM symbols
-         WHERE name_lower LIKE ? ESCAPE '\\'
+         WHERE name_lower LIKE ? ESCAPE '\\'${scope.sql}
          ORDER BY (name_lower LIKE ? ESCAPE '\\') DESC, LENGTH(name), name
          LIMIT ?`
       )
-      .all(like, `${q.replace(/[%_\\]/g, '\\$&')}%`, limit) as Array<{
+      .all(like, ...scope.params, `${q.replace(/[%_\\]/g, '\\$&')}%`, limit) as Array<{
       path: string
       name: string
       kind: SymbolKind
@@ -504,9 +520,10 @@ export class SearchIndex {
     return rows.map((r) => ({ path: r.path, name: r.name, kind: r.kind, line: r.line }))
   }
 
-  query(raw: string, limit = 50): SearchResult[] {
+  query(raw: string, limit = 50, under?: string[]): SearchResult[] {
     const fts = toFtsQuery(raw)
     if (!fts) return []
+    const scope = underClause('path', under)
 
     const rows = this.db
       .prepare(
@@ -514,11 +531,11 @@ export class SearchIndex {
                 snippet(file_fts, 2, '«', '»', '…', 12) AS snippet,
                 bm25(file_fts) AS rank
          FROM file_fts
-         WHERE file_fts MATCH ?
+         WHERE file_fts MATCH ?${scope.sql}
          ORDER BY rank
          LIMIT ?`
       )
-      .all(`name : ${fts} OR content : ${fts}`, limit) as Array<{
+      .all(`name : ${fts} OR content : ${fts}`, ...scope.params, limit) as Array<{
       path: string
       name: string
       snippet: string

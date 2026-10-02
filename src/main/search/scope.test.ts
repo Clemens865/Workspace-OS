@@ -57,3 +57,23 @@ describe('scopeGraph', () => {
     expect(scopeGraph(g, null).nodes).toEqual([])
   })
 })
+
+describe('inRoot through a symlink', () => {
+  it('matches a file reached by its real path when the root was opened through a link', async () => {
+    const fs = await import('fs')
+    const os = await import('os')
+    const path = await import('path')
+    const real = fs.realpathSync(fs.mkdtempSync(path.join(os.tmpdir(), 'scope-real-')))
+    const link = `${real}-link`
+    fs.symlinkSync(real, link)
+    fs.writeFileSync(path.join(real, 'a.md'), 'x')
+    try {
+      expect(inRoot(path.join(real, 'a.md'), link)).toBe(true)
+      expect(inRoot(path.join(link, 'a.md'), real)).toBe(true)
+      expect(inRoot('/elsewhere/a.md', link)).toBe(false)
+    } finally {
+      fs.unlinkSync(link)
+      fs.rmSync(real, { recursive: true, force: true })
+    }
+  })
+})

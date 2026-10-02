@@ -51,7 +51,8 @@ for (const [label, ext] of formats) {
 
 // the "Exported …" toast shows after export completes
 await win.getByTitle('Export to another format').click()
-await win.getByText('PDF', { exact: true }).click()
+// The Files surface has a 'PDF' filter chip too: take the visible export-menu item.
+await win.getByText('PDF', { exact: true }).locator('visible=true').first().click()
 let toastSeen = false
 for (let i = 0; i < 15; i++) {
   if (await win.getByText('Exported', { exact: false }).isVisible().catch(() => false)) { toastSeen = true; break }
