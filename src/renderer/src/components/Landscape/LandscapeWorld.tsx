@@ -11,6 +11,8 @@ export type WorldMode = 'overview' | 'focus' | 'away'
 
 /** The "Add agent" ghost stands at the end of the last row. */
 export const ADD_ID = '__add'
+/** "All work" closes the work row: the cases and sessions beyond the arc. */
+export const ALL_WORK_ID = '__all-work'
 
 interface Props {
   agents: AgentPresence[]
@@ -24,6 +26,8 @@ interface Props {
   /** Rendered inside the focused screen. */
   renderFocus: (a: AgentPresence) => JSX.Element
   onAdd: () => void
+  /** The work row's closing card: how much work there is, and the list. */
+  allWork?: { total: number; onOpen: () => void }
   reduced: boolean
 }
 
@@ -54,7 +58,7 @@ function footprints(host: HTMLElement | null, byId: Map<string, AgentPresence>):
   return out.sort((a, b) => b.z - a.z).slice(0, 8)
 }
 
-export function LandscapeWorld({ agents, front, back, mode, focusId, onOpen, onStep, renderFocus, onAdd, reduced }: Props): JSX.Element {
+export function LandscapeWorld({ agents, front, back, mode, focusId, onOpen, onStep, renderFocus, onAdd, allWork, reduced }: Props): JSX.Element {
   const host = useRef<HTMLDivElement>(null)
   const [scale, setScale] = useState(1)
   const [cur, setCur] = useState(0)
@@ -89,7 +93,8 @@ export function LandscapeWorld({ agents, front, back, mode, focusId, onOpen, onS
   live.current = { mode, focusId, front, back, onOpen, onStep }
   const stepFrom = (id: string, dir: number): void => {
     const { front: f, back: b, onStep: step } = live.current
-    const ring = b.includes(id) ? b : f
+    // Step between screens only: the Add agent / All work cards are not places to focus.
+    const ring = (b.includes(id) ? b : f).filter((x) => x !== ADD_ID && x !== ALL_WORK_ID)
     const i = ring.indexOf(id)
     if (i < 0 || ring.length < 2) return
     step(ring[(i + dir + ring.length) % ring.length])
@@ -135,7 +140,7 @@ export function LandscapeWorld({ agents, front, back, mode, focusId, onOpen, onS
       if (m === 'overview') {
         if (/^[1-9]$/.test(e.key)) {
           const id = fr[Number(e.key) - 1]
-          if (id && id !== ADD_ID) open(id)
+          if (id && id !== ADD_ID && id !== ALL_WORK_ID) open(id)
           return
         }
         e.preventDefault()
@@ -235,6 +240,21 @@ export function LandscapeWorld({ agents, front, back, mode, focusId, onOpen, onS
                   <button type="button" className={styles.ghost} onClick={onAdd} data-testid="agent-add">
                     <span className={styles.ghostPlus}>+</span>
                     Add agent
+                  </button>
+                </div>
+              )
+            }
+            if (id === ALL_WORK_ID) {
+              return (
+                <div
+                  key={id}
+                  className={styles.slot}
+                  style={{ width: p.w, height: p.h, transform: transformOf(p), opacity: p.op, zIndex: Math.round(p.z + 1000), transitionDelay: `${p.delay}ms`, pointerEvents: p.op < 0.2 ? 'none' : undefined }}
+                  data-front-index={front.indexOf(id)}
+                >
+                  <button type="button" className={styles.ghost} onClick={allWork?.onOpen} data-testid="all-work">
+                    <span className={styles.ghostPlus}>{allWork?.total ?? 0}</span>
+                    All work
                   </button>
                 </div>
               )

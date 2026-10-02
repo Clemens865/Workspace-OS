@@ -326,7 +326,7 @@
   padding: 8px 18px;
   border: 0;
   border-radius: 12px;
-  background: linear-gradient(rgb(var(--wl-paper-rgb)), #f1f4f6);
+  background: linear-gradient(rgb(var(--wl-paper-rgb)), rgba(var(--wl-paper-rgb), 0.82));
   box-shadow: 0 8px 18px -8px rgba(var(--wl-shadow-rgb), 0.4), 0 1px 0 rgb(var(--wl-paper-rgb)) inset;
   font: inherit;
   font-size: 13px;
@@ -431,7 +431,7 @@
 
 /* The focused screen is solid paper (its glass steps aside), so is its name. */
 .glassOn .focused .grip {
-  background: linear-gradient(rgb(var(--wl-paper-rgb)), #f1f4f6);
+  background: linear-gradient(rgb(var(--wl-paper-rgb)), rgba(var(--wl-paper-rgb), 0.82));
   box-shadow: 0 8px 18px -8px rgba(var(--wl-shadow-rgb), 0.4), 0 1px 0 rgb(var(--wl-paper-rgb)) inset;
 }
 
@@ -529,4 +529,16 @@
   font-size: 13px;
   font-weight: 600;
   letter-spacing: 0.05em;
+}
+
+/* A work card's name pill: the title alone, kept to the card's width. */
+.gripWork {
+  max-width: 92%;
+}
+
+.gripTitle {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }

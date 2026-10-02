@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
-import { ArrowUpRight, Check, FolderOpen, Plus, Search, Send } from 'lucide-react'
+import { ArrowUpRight, Check, FolderOpen, Plus, Search, Send, Trash2 } from 'lucide-react'
 import type { WorkCase } from '../../types/workspace-api'
 import { useGlass } from './backdrop/useBackdrop'
 import { ago } from './agentPresence'
@@ -12,6 +12,9 @@ import { CaseActions } from './CaseActions'
 import { CaseData } from './CaseData'
 import styles from './CasesView.module.css'
 import extra from './CaseActions.module.css'
+import { SessionsList } from './session/SessionsList'
+import { sessionStore } from '../../lib/sessions/sessionStore'
+import { toast } from './toastStore'
 
 type Tab = 'overview' | 'files' | 'notes' | 'history' | 'data'
 const TABS: { id: Tab; label: string }[] = [
@@ -23,11 +26,12 @@ const TABS: { id: Tab; label: string }[] = [
 ]
 
 /** Shelf (one case open), Map (cases as territories), Board (cases by stage): ADOPTION.md B3. */
-type Mode = 'shelf' | 'map' | 'board'
+type Mode = 'shelf' | 'map' | 'board' | 'sessions'
 const MODES: { id: Mode; label: string }[] = [
   { id: 'shelf', label: 'Shelf' },
   { id: 'map', label: 'Map' },
   { id: 'board', label: 'Board' },
+  { id: 'sessions', label: 'Sessions' },
 ]
 
 const thumbEntry = (p: string) => ({ name: p.split('/').pop() ?? p, path: p, isDirectory: p.endsWith('/') })
@@ -83,6 +87,7 @@ export function CasesView({ initialCase = null }: { initialCase?: string | null 
   const [busy, setBusy] = useState(false)
   const [mode, setMode] = useState<Mode>('shelf')
   const [creating, setCreating] = useState(false)
+  const [confirmDelete, setConfirmDelete] = useState(false)
   const main = useRef<HTMLDivElement>(null)
   const board = useRef<HTMLDivElement>(null)
   useGlass(board, mode !== 'shelf' ? { radius: 26, bezel: 24, thickness: 46, frost: 0.82 } : null)
@@ -152,11 +157,12 @@ export function CasesView({ initialCase = null }: { initialCase?: string | null 
     </div>
   )
 
-  if (cases && !cases.length) {
+  if (cases && !cases.length && mode !== 'sessions') {
     return (
       <div className={styles.empty} data-testid="cases-view" data-count={0}>
         <div className={styles.emptyTitle}>No cases yet</div>
         <p className={styles.emptyText}>A case keeps one thread of work together: its documents, notes and status. Agents and you create them as work starts.</p>
+        <div style={{ display: 'flex', gap: 8, justifyContent: 'center', marginTop: 12 }}>{modeSwitch}</div>
         <button type="button" className={extra.newBtn} onClick={() => setCreating(true)} data-testid="case-new">
           <Plus size={14} /> New case
         </button>
@@ -174,9 +180,13 @@ export function CasesView({ initialCase = null }: { initialCase?: string | null 
             <Plus size={14} /> New case
           </button>
         </div>
-        <div ref={board} className={extra.board}>
-          {mode === 'map' ? <MapView onOpenFile={openFile} onOpenCase={openCase} /> : <AltitudeHeadOf onOpenCase={openCase} />}
-        </div>
+        {mode === 'sessions' ? (
+          <SessionsList />
+        ) : (
+          <div ref={board} className={extra.board}>
+            {mode === 'map' ? <MapView onOpenFile={openFile} onOpenCase={openCase} /> : <AltitudeHeadOf onOpenCase={openCase} />}
+          </div>
+        )}
         {newCase}
       </div>
     )
@@ -241,6 +251,34 @@ export function CasesView({ initialCase = null }: { initialCase?: string | null 
             >
               <FolderOpen size={13} /> Case folder
             </button>
+            {confirmDelete ? (
+              <span className={extra.confirm}>
+                Delete this case? It goes to the trash.
+                <button
+                  className={extra.dangerBtn}
+                  onClick={() =>
+                    void act(async () => {
+                      await window.workspace.cases.delete(c.id)
+                      await sessionStore.removeCase(c.id)
+                      toast(`Deleted the case "${c.title}". It is in the trash.`)
+                      setConfirmDelete(false)
+                      setPick(null)
+                      window.dispatchEvent(new CustomEvent('wos:work-changed'))
+                    })
+                  }
+                  data-testid="case-delete-confirm"
+                >
+                  Delete
+                </button>
+                <button className={styles.btn} onClick={() => setConfirmDelete(false)}>
+                  Cancel
+                </button>
+              </span>
+            ) : (
+              <button className={styles.btn} onClick={() => setConfirmDelete(true)} data-testid="case-delete">
+                <Trash2 size={13} /> Delete
+              </button>
+            )}
           </div>
 
           <nav className={styles.tabs}>

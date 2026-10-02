@@ -1,0 +1,202 @@
+/* A working session in the landscape (docs/landscape/SESSIONS.md). */
+.pane {
+  min-height: 0;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.head {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.title {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-family: var(--wl-serif);
+  font-size: 20px;
+  color: var(--wl-ink);
+}
+
+.caseChip,
+.keepBtn {
+  flex: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  height: 28px;
+  padding: 0 11px;
+  border-radius: 14px;
+  font: inherit;
+  font-size: 12.5px;
+  cursor: pointer;
+}
+
+.caseChip {
+  border: 0;
+  background: var(--wl-claude-soft);
+  color: var(--wl-claude-ink);
+}
+
+.keepBtn {
+  border: 1px solid var(--wl-line);
+  background: rgba(var(--wl-paper-rgb), 0.8);
+  color: var(--wl-ink-2);
+}
+
+.keepBtn:hover {
+  color: var(--wl-ink);
+  background: rgb(var(--wl-paper-rgb));
+}
+
+.log {
+  flex: 1;
+  min-height: 80px;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding-right: 4px;
+}
+
+.empty {
+  margin: auto 0;
+  font-size: 14px;
+  line-height: 1.5;
+  color: var(--wl-muted);
+}
+
+.you,
+.agent,
+.system {
+  max-width: 88%;
+  padding: 9px 13px;
+  border-radius: 14px;
+  font-size: 13.5px;
+  line-height: 1.5;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
+.you {
+  align-self: flex-end;
+  background: var(--wl-ink);
+  color: var(--wl-on-ink);
+}
+
+.agent {
+  align-self: flex-start;
+  background: rgba(var(--wl-ink-rgb), 0.05);
+  color: var(--wl-ink);
+}
+
+.system {
+  align-self: center;
+  font-size: 12px;
+  color: var(--wl-muted);
+}
+
+.trace {
+  flex: none;
+  max-height: 160px;
+  overflow-y: auto;
+}
+
+.files {
+  flex: none;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.file {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  max-width: 220px;
+  height: 30px;
+  padding: 0 10px 0 6px;
+  border: 1px solid var(--wl-line);
+  border-radius: 15px;
+  background: rgba(var(--wl-paper-rgb), 0.8);
+  font: inherit;
+  font-size: 12.5px;
+  color: var(--wl-ink);
+  cursor: pointer;
+}
+
+.file span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.suggest {
+  flex: none;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 12px;
+  border-radius: 14px;
+  background: var(--wl-amber-soft);
+  font-size: 13px;
+  color: var(--wl-amber-ink);
+}
+
+.suggest span {
+  flex: 1;
+}
+
+.primary,
+.quiet {
+  height: 30px;
+  padding: 0 13px;
+  border-radius: 15px;
+  font: inherit;
+  font-size: 12.5px;
+  cursor: pointer;
+}
+
+.primary {
+  border: 0;
+  background: var(--wl-ink);
+  color: var(--wl-on-ink);
+}
+
+.quiet {
+  border: 0;
+  background: none;
+  color: var(--wl-amber-ink);
+}
+
+.composer {
+  flex: none;
+  display: flex;
+  align-items: flex-end;
+  gap: 8px;
+}
+
+.composer > :first-child {
+  flex: 1;
+  min-width: 0;
+}
+
+.stop {
+  flex: none;
+  display: grid;
+  place-items: center;
+  width: 32px;
+  height: 32px;
+  margin-bottom: 2px;
+  border: 1px solid var(--wl-line);
+  border-radius: 50%;
+  background: rgba(var(--wl-paper-rgb), 0.85);
+  color: var(--wl-ink);
+  cursor: pointer;
+}

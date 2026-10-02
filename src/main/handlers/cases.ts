@@ -8,6 +8,7 @@ import { notify } from '../notify'
 import { getWorkspaceRoot } from '../workspace-root'
 import { computeCsvInsight, computeView, extractViewSpec, type ArtifactInsight } from '../case-insights'
 import { authorizeArtifactPath } from '../artifact-allowlist'
+import { trash } from '../trash'
 import {
   parseCase,
   serializeCase,
@@ -314,6 +315,25 @@ export function registerCaseHandlers(ipcMain: IpcMain): void {
   })
 
   /** The case's own folder (Work/<id>/{sources,drafts,outputs}), created on demand. */
+  /**
+   * Deletes a case: its file and its work folder go to the workspace trash
+   * (recoverable from Files → Trash), or are removed when no workspace is open
+   * (a global case). Unknown ids are a no-op.
+   */
+  ipcHandle(ipcMain, 'cases:delete', async (_e, id: unknown) => {
+    const hit = resolve(str(id, 120))
+    if (!hit) return { ok: false }
+    const root = getWorkspaceRoot()
+    const work = root ? workFolderFor(root, path.basename(hit.file, '.md')) : null
+    if (root && hit.scope === 'workspace') {
+      await trash.moveToTrash(hit.file, 'delete', false, true)
+      if (work && fs.existsSync(work)) await trash.moveToTrash(work, 'delete', true, true)
+    } else {
+      fs.rmSync(hit.file, { force: true })
+    }
+    return { ok: true }
+  })
+
   ipcHandle(ipcMain, 'cases:work-folder', (_e, id: unknown) => {
     const c = load(str(id, 120))
     if (!c) throw new Error('No such case.')

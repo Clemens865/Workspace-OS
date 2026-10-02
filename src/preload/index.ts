@@ -946,6 +946,7 @@ contextBridge.exposeInMainWorld('workspace', {
     list: () => ipcRenderer.invoke('cases:list'),
     get: (id: string) => ipcRenderer.invoke('cases:get', id),
     workFolder: (id: string) => ipcRenderer.invoke('cases:work-folder', id),
+    delete: (id: string) => ipcRenderer.invoke('cases:delete', id),
     promote: (id: string, filePath: string) => ipcRenderer.invoke('cases:promote', id, filePath),
     statuses: (type?: string) => ipcRenderer.invoke('cases:statuses', type),
     create: (payload: { title: string; type?: string; description?: string; subject?: string; artifacts?: string[] }) =>

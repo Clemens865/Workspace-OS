@@ -18,7 +18,9 @@ import { ViewSwitch } from './ViewSwitch'
 import { Toasts } from './Toasts'
 import type { TodayGo } from './today/todayModel'
 import { greeting } from '../Shell/home/homeModel'
-import { LandscapeWorld, ADD_ID, type WorldMode } from './LandscapeWorld'
+import { LandscapeWorld, ADD_ID, ALL_WORK_ID, type WorldMode } from './LandscapeWorld'
+import { useWork } from './session/useWork'
+import { WorkFocus } from './session/WorkFocus'
 import { AgentFocus } from './AgentFocus'
 import { useAgentPresence } from './useAgentPresence'
 import { arrangeRows, teamSummary } from './agentPresence'
@@ -98,11 +100,15 @@ export function LandscapeShell(): JSX.Element {
     [mailReview.cards],
   )
   const inbox = useMemo(() => deriveInbox({ runs, hitl, jobs, codex, dismissed, mail }), [runs, hitl, jobs, codex, dismissed, mail])
+  // Work in progress (cases and sessions) stands in front; the team behind it (SESSIONS.md).
+  const work = useWork(runs)
+  const screens = useMemo(() => [...agents, ...work.arc], [agents, work.arc])
   const rows = useMemo(() => {
+    if (work.arc.length) return { front: [...work.arc.map((w) => w.id), ALL_WORK_ID], back: [...agents.map((a) => a.id), ADD_ID] }
     const r = arrangeRows(agents)
     // The "Add agent" ghost closes the last row.
     return r.back.length ? { front: r.front, back: [...r.back, ADD_ID] } : { front: [...r.front, ADD_ID], back: [] }
-  }, [agents])
+  }, [agents, work.arc])
 
   // The WebGL backdrop runs only while the landscape is on screen (PLAN.md §3a).
   const canvas = useRef<HTMLCanvasElement>(null)
@@ -214,7 +220,7 @@ export function LandscapeShell(): JSX.Element {
   )
 
   // The mist recedes for a focused agent and takes its provider's tint; it breathes on every view change.
-  const focusedAgent = view === 'agent' ? agents.find((a) => a.id === agentId) : undefined
+  const focusedAgent = view === 'agent' ? screens.find((a) => a.id === agentId) : undefined
   const tintHex = focusedAgent ? (focusedAgent.provider === 'codex' ? '#2D9D8F' : '#D97757') : null
   const lastView = useRef(view)
   useEffect(() => {
@@ -240,8 +246,20 @@ export function LandscapeShell(): JSX.Element {
 
   // The focused agent left the roster (deleted, workspace switched): step back.
   useEffect(() => {
-    if (view === 'agent' && agentId && !agents.some((a) => a.id === agentId)) setView('overview')
-  }, [view, agentId, agents])
+    if (view === 'agent' && agentId && !screens.some((a) => a.id === agentId)) setView('overview')
+  }, [view, agentId, screens])
+
+  // Anything can open a case in Cases (a session's case chip, a work card).
+  useEffect(() => {
+    const onOpen = (e: Event): void => {
+      const id = (e as CustomEvent<{ caseId?: string }>).detail?.caseId
+      if (!id) return
+      setCaseFocus(id)
+      setView('cases')
+    }
+    window.addEventListener('wos:open-case', onOpen)
+    return () => window.removeEventListener('wos:open-case', onOpen)
+  }, [])
 
   const onTodayGo = (go: TodayGo): void => {
     if (go.to === 'team') setView('overview')
@@ -295,14 +313,15 @@ export function LandscapeShell(): JSX.Element {
         <PreviewLive.Provider value={!onStage}>
 
         <LandscapeWorld
-          agents={agents}
+          agents={screens}
           front={rows.front}
           back={rows.back}
           mode={worldMode}
           focusId={view === 'agent' ? agentId : null}
           onOpen={openAgent}
           onStep={openAgent}
-          renderFocus={(a) => <AgentFocus a={a} />}
+          renderFocus={(a) => (a.kind === 'work' ? <WorkFocus w={a} /> : <AgentFocus a={a} />)}
+          allWork={{ total: work.total, onOpen: () => showLandscape('cases') }}
           onAdd={createAgent}
           reduced={reduced}
         />

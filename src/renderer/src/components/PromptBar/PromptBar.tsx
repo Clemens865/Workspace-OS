@@ -185,6 +185,21 @@ export function PromptBar({ placeholder, disabled, commands, popover = 'up', com
     el.style.height = 'auto'
     el.style.height = `${Math.min(el.scrollHeight, 132)}px`
   }, [text])
+  // …and again when its width changes: a bar mounted inside a card that is
+  // still growing (the landscape's focus) measured its placeholder too narrow.
+  useEffect(() => {
+    const el = inputRef.current
+    if (!el || typeof ResizeObserver === 'undefined') return
+    let w = el.clientWidth
+    const ro = new ResizeObserver(() => {
+      if (el.clientWidth === w) return
+      w = el.clientWidth
+      el.style.height = 'auto'
+      el.style.height = `${Math.min(el.scrollHeight, 132)}px`
+    })
+    ro.observe(el)
+    return () => ro.disconnect()
+  }, [])
 
   return (
     <div className={`${styles.root} ${compact ? styles.compact : ''}`} onDrop={onDrop} onDragOver={onDragOver}>

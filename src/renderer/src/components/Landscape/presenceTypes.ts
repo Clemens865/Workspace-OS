@@ -32,6 +32,8 @@ export interface AgentPresence {
   question: string | null
   /** Files the run produced (for review). */
   outputs: string[]
+  /** A work card (a case or a session, SESSIONS.md) rather than a roster agent. */
+  kind?: 'agent' | 'work'
 }
 
 /** Status words, as the design writes them. */

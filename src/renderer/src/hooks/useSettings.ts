@@ -62,6 +62,12 @@ export interface Settings {
    * keeps working and ⌘J keeps meaning show/hide.
    */
   terminalMinimized: boolean
+  /**
+   * When a working session becomes a case (the workspace's memory):
+   * 'always' on its first ask; 'suggest' (default) once it produced a file or
+   * ran a few turns, as a one-click offer; 'manual' only when you keep it.
+   */
+  sessionCases: 'always' | 'suggest' | 'manual'
 }
 
 const KEY = 'workspace-os:settings'
@@ -78,6 +84,7 @@ const DEFAULTS: Settings = {
   lightModel: 'haiku',
   agentModel: '',
   codexEffort: '',
+  sessionCases: 'suggest',
 }
 
 function read(): Settings {

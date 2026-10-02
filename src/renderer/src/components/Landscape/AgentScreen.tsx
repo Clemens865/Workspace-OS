@@ -187,14 +187,18 @@ export function AgentScreen({ agent: a, focused, side, depth, onOpen, children }
         </div>
         <div className={styles.full}>{children}</div>
       </div>
-      <button ref={grip} type="button" className={styles.grip} tabIndex={-1} onClick={onOpen}>
+      <button ref={grip} type="button" className={`${styles.grip} ${a.kind === 'work' ? styles.gripWork : ''}`} tabIndex={-1} onClick={onOpen} title={a.name}>
         <span className={styles.dot} />
-        <span>
-          {a.name}
-          <span className={styles.pv}> / {PROVIDER_LABEL[a.provider]}</span>
-        </span>
+        {a.kind === 'work' ? (
+          <span className={styles.gripTitle}>{a.name}</span>
+        ) : (
+          <span>
+            {a.name}
+            <span className={styles.pv}> / {PROVIDER_LABEL[a.provider]}</span>
+          </span>
+        )}
       </button>
-      {a.caseTitle && (
+      {a.caseTitle && a.kind !== 'work' && (
         <div ref={tab} className={styles.casetab}>
           {a.caseTitle}
         </div>

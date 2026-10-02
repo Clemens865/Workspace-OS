@@ -1151,6 +1151,8 @@ export interface WorkspaceApi {
     get: (id: string) => Promise<WorkCase | null>
     /** The case's own folder, Work/<id>/{sources,drafts,outputs}, created on demand. */
     workFolder: (id: string) => Promise<{ folder: string; guidance: string }>
+    /** Moves the case and its work folder to the workspace trash. */
+    delete: (id: string) => Promise<{ ok: boolean }>
     /** Accept a draft: move it from drafts/ to outputs/ and update the case. */
     promote: (id: string, filePath: string) => Promise<WorkCase>
     statuses: (type?: string) => Promise<string[]>

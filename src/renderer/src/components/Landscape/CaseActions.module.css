@@ -160,3 +160,23 @@
   border: 1px solid rgba(var(--wl-paper-rgb), 0.85);
   background: rgba(var(--wl-paper-rgb), 0.9);
 }
+
+.confirm {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 12.5px;
+  color: var(--wl-muted);
+}
+
+.dangerBtn {
+  height: 30px;
+  padding: 0 12px;
+  border: 0;
+  border-radius: 15px;
+  background: var(--wl-danger);
+  color: var(--wl-on-ink);
+  font: inherit;
+  font-size: 12.5px;
+  cursor: pointer;
+}

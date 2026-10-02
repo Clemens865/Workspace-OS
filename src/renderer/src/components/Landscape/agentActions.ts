@@ -82,3 +82,14 @@ export async function stopPaused(runId: string | null): Promise<void> {
   if (jobs.some((j) => j.id === runId)) await window.workspace.runs.cancel(runId)
   else reviewStore.resolveRun(runId, 'kept')
 }
+
+/** Open a case in the landscape's Cases view. */
+export function openCase(caseId: string): void {
+  window.dispatchEvent(new CustomEvent('wos:open-case', { detail: { caseId } }))
+}
+
+/** Delete a roster agent (its sessions and cases stay); the roster reloads. */
+export async function deleteAgent(name: string, scope?: 'global' | 'project'): Promise<void> {
+  await window.workspace.agents.delete(name, scope)
+  window.dispatchEvent(new CustomEvent('wos:agents-changed'))
+}

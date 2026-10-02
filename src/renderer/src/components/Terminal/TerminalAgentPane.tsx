@@ -1,11 +1,9 @@
 import { useState, useRef, useEffect, useCallback } from 'react'
-import { useSettings } from '../../hooks/useSettings'
 import { agentActionsHint } from './surfaceActions'
-import { reviewStore } from '../Review/reviewStore'
-import { activityStore } from '../Review/activityStore'
 import { RunTrace } from '../AgentTerminal/RunTrace'
-import { appendStep, type TraceStep } from '../AgentTerminal/runTraceModel'
 import { PromptBar } from '../PromptBar/PromptBar'
+import { sessionStore } from '../../lib/sessions/sessionStore'
+import { useSessions } from '../Landscape/session/SessionPane'
 import styles from './TerminalDock.module.css'
 
 interface HarnessContext {
@@ -26,8 +24,6 @@ interface Props {
 
 type Msg = { role: 'user' | 'agent' | 'system'; text: string }
 
-const newRunId = (): string => `dockrun-${Date.now()}-${Math.floor(Math.random() * 1e6)}`
-
 /** Build the short harness preamble so the agent knows where the user is. */
 function contextPreamble(c: HarnessContext): string {
   const lines = ['[Workspace-OS context]']
@@ -42,137 +38,55 @@ function contextPreamble(c: HarnessContext): string {
   return lines.join('\n')
 }
 
+/** The dock tab's session id in the shared store (short enough for a conversation key). */
+export const dockSessionId = (tabId: string): string => `dock${tabId.replace(/[^a-z0-9]/gi, '').slice(-30)}`
+
 /**
- * A minimal agent chat tab. It reuses the EXISTING agent backend
- * (window.workspace.agent.run + onOutput/onDone) — one prompt → streamed
- * response — and injects the live harness so the agent knows the user's
- * location. Streaming chunks append to the last agent message.
+ * An agent tab in the terminal: a session like any other (lib/sessions), so
+ * what is started here also stands on the landscape as work, can be kept as a
+ * case and continued from its card. Injects the live harness so the agent
+ * knows where the person is.
  */
 export function TerminalAgentPane({ sessionId, context, agentName, onOpenFile }: Props): JSX.Element {
-  const settings = useSettings()
-  const [messages, setMessages] = useState<Msg[]>([])
-  const [busy, setBusy] = useState(false)
-  // The run trace: every tool call as a merged icon+label+chip row.
-  const [steps, setSteps] = useState<TraceStep[]>([])
-  // The run's deliverables, as clickable chips under the trace.
-  const [files, setFiles] = useState<{ name: string; path: string }[]>([])
+  const id = dockSessionId(sessionId)
+  useSessions()
+  useEffect(() => {
+    if (!sessionStore.get(id)) sessionStore.create({ id, agentName: agentName ?? null })
+  }, [id, agentName])
+  const s = sessionStore.get(id)
+  const live = sessionStore.live(id)
+  const busy = live.running
+  const messages: Msg[] = (s?.messages ?? []).map((m) => ({ role: m.role, text: m.text }))
+  const files = (s?.files ?? []).slice(-6).map((p) => ({ name: p.split('/').pop() ?? p, path: p }))
   // Discovered skills — the slash menu's commands.
   const [skills, setSkills] = useState<{ name: string; description: string }[]>([])
   useEffect(() => {
     window.workspace.skills.list().then(setSkills).catch(() => {})
   }, [])
-  const runRef = useRef<string | null>(null)
-  const convoRef = useRef<string>(`dock-convo-${sessionId}`)
   const logRef = useRef<HTMLDivElement>(null)
   const ctxRef = useRef(context)
   ctxRef.current = context
 
-  const append = useCallback((role: Msg['role'], text: string) => {
-    setMessages((prev) => {
-      // Coalesce streamed agent chunks into the trailing agent bubble.
-      if (role === 'agent' && prev.length && prev[prev.length - 1].role === 'agent') {
-        const next = prev.slice()
-        next[next.length - 1] = { role, text: next[next.length - 1].text + text }
-        return next
-      }
-      return [...prev, { role, text }]
-    })
-  }, [])
-
-  useEffect(() => {
-    const offOutput = window.workspace.agent.onOutput((runId, chunk) => {
-      if (runId === runRef.current) append('agent', chunk)
-    })
-    const offActivity = window.workspace.agent.onActivity((runId, act) => {
-      if (runId !== runRef.current) return
-      // Feed the shared cockpit/Review live-activity store (the "deep-reading
-      // notion.so" line + trail) so this run shows up in the live Cockpit.
-      activityStore.record(runId, act)
-      setSteps((prev) => appendStep(prev, { kind: act.kind ?? 'run', label: act.label, chip: act.chip }, Date.now()))
-    })
-    // Cost/turns + result files onto the run's Review/Cockpit card.
-    const offMeta = window.workspace.agent.onRunMeta((runId, meta) => {
-      if (runId !== runRef.current) return
-      reviewStore.patchRun(runId, { costUsd: meta.costUsd, turns: meta.turns })
-    })
-    const offArtifacts = window.workspace.agent.onArtifacts((runId, items) => {
-      if (runId !== runRef.current || items.length === 0) return
-      // The deliverable chips under the trace — what this run leaves behind.
-      setFiles(items.map((a) => ({ name: a.name, path: a.path })))
-      reviewStore.patchRun(runId, {
-        artifacts: items.map((a) => ({ path: a.path, name: a.name, type: a.type })),
-      })
-    })
-    const offDone = window.workspace.agent.onDone((runId, code, checkpointId) => {
-      if (runId !== runRef.current) return
-      if (code !== 0) append('system', `[agent exited with code ${code}]`)
-      // Retire the live line and move the run to a reviewable state so the
-      // Cockpit surfaces it (running → NEEDS YOU, or → LANDED once kept).
-      activityStore.clear(runId)
-      reviewStore.patchRun(runId, {
-        status: code === 0 ? 'pending' : 'error',
-        code,
-        checkpointId: checkpointId ?? null,
-      })
-      runRef.current = null
-      setBusy(false)
-    })
-    return () => {
-      offOutput()
-      offActivity()
-      offMeta()
-      offArtifacts()
-      offDone()
-    }
-  }, [append])
-
   useEffect(() => {
     logRef.current?.scrollTo({ top: logRef.current.scrollHeight })
-  }, [messages])
+  }, [messages.length, messages[messages.length - 1]?.text.length])
 
-  const submit = useCallback((raw: string, mentions: string[]) => {
-    let prompt = raw.trim()
-    if ((!prompt && mentions.length === 0) || busy) return
-    // A leading /skill becomes the skill invocation — the same contract the
-    // console session uses, now discoverable from the slash menu.
-    const slash = /^\/(\S+)\s*([\s\S]*)$/.exec(prompt)
-    if (slash && skills.some((s) => s.name === slash[1])) {
-      prompt = `Use the "${slash[1]}" skill.${slash[2] ? ' ' + slash[2] : ''}`
-    }
-    const shown = raw.trim() || mentions.map((m) => m.split('/').pop()).join(', ')
-    append('user', shown)
-    const runId = newRunId()
-    runRef.current = runId
-    setBusy(true)
-    // Fresh run → fresh trace.
-    setSteps([])
-    setFiles([])
-    // Open the run in the shared Review/Cockpit store as 'running' so it appears
-    // live in the Cockpit (WORKING band) — the new-shell dock used to bypass this.
-    reviewStore.openRun({
-      runId,
-      sessionId,
-      sessionName: agentName ?? 'Agent',
-      prompt: shown,
-      mode: settings.agentMode,
-      agentName: agentName ?? null,
-      agentId: sessionId, // one lane per agent tab (session)
-    })
-    // Blank agent bubble to stream into.
-    setMessages((prev) => [...prev, { role: 'agent', text: '' }])
-    const c = ctxRef.current
-    const grounded = `${contextPreamble(c)}\n\n${prompt || 'Look at the attached files.'}`
-    window.workspace.agent
-      // @-mentions ride the REAL context-files slot, not pasted-in prose.
-      .run(runId, grounded, mentions, c.openFile ?? null, settings.agentMode, agentName ?? null, convoRef.current)
-      .catch((err: Error) => {
-        append('system', `[error] ${err.message}`)
-        activityStore.clear(runId)
-        reviewStore.patchRun(runId, { status: 'error', code: null })
-        runRef.current = null
-        setBusy(false)
-      })
-  }, [busy, append, settings.agentMode, agentName, sessionId, skills])
+  const submit = useCallback(
+    (raw: string, mentions: string[]) => {
+      let prompt = raw.trim()
+      if ((!prompt && mentions.length === 0) || busy) return
+      // A leading /skill becomes the skill invocation — the same contract the
+      // console session uses, now discoverable from the slash menu.
+      const slash = /^\/(\S+)\s*([\s\S]*)$/.exec(prompt)
+      if (slash && skills.some((k) => k.name === slash[1])) {
+        prompt = `Use the "${slash[1]}" skill.${slash[2] ? ' ' + slash[2] : ''}`
+      }
+      if (!sessionStore.get(id)) sessionStore.create({ id, agentName: agentName ?? null })
+      const c = ctxRef.current
+      void sessionStore.send(id, prompt, mentions, { preamble: contextPreamble(c), openFile: c.openFile ?? null })
+    },
+    [busy, skills, id, agentName],
+  )
 
   return (
     <div className={styles.agent}>
@@ -193,12 +107,12 @@ export function TerminalAgentPane({ sessionId, context, agentName, onOpenFile }:
           </div>
         ))}
       </div>
-      <RunTrace steps={steps} busy={busy} files={files} onOpenFile={onOpenFile} />
+      <RunTrace steps={live.steps} busy={busy} files={files} onOpenFile={onOpenFile} />
       <div className={styles.composer}>
         <PromptBar
           placeholder="Ask the agent — @ file, / skill…"
           disabled={busy}
-          commands={skills.map((s) => ({ name: s.name, hint: s.description }))}
+          commands={skills.map((k) => ({ name: k.name, hint: k.description }))}
           onSubmit={submit}
         />
       </div>

@@ -226,3 +226,131 @@
   letter-spacing: 0.02em;
   color: var(--wl-muted);
 }
+
+/* ── The card as the place to work with the agent (SESSIONS.md) ── */
+.columns {
+  flex: 1;
+  min-height: 0;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 300px;
+  gap: 26px;
+  margin-top: 14px;
+}
+
+.work {
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.side {
+  min-height: 0;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+  padding-left: 22px;
+  border-left: 1px solid var(--wl-line);
+}
+
+.labelRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.linkBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  height: 26px;
+  padding: 0 10px;
+  border: 0;
+  border-radius: 13px;
+  background: none;
+  font: inherit;
+  font-size: 12.5px;
+  color: var(--wl-ink-2);
+  cursor: pointer;
+}
+
+.linkBtn:hover {
+  background: rgba(var(--wl-ink-rgb), 0.06);
+  color: var(--wl-ink);
+}
+
+.sessions {
+  list-style: none;
+  margin: 6px 0 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.sessionRow {
+  width: 100%;
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  padding: 7px 8px;
+  border: 0;
+  border-radius: 10px;
+  background: none;
+  font: inherit;
+  text-align: left;
+  color: var(--wl-ink-2);
+  cursor: pointer;
+}
+
+.sessionRow:hover {
+  background: rgba(var(--wl-ink-rgb), 0.05);
+}
+
+.sessionOn {
+  background: rgba(var(--wl-ink-rgb), 0.08);
+  color: var(--wl-ink);
+}
+
+.sessionTitle {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 13px;
+}
+
+.danger {
+  margin-top: auto;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  font-size: 12.5px;
+  color: var(--wl-muted);
+}
+
+.dangerBtn {
+  height: 30px;
+  padding: 0 13px;
+  border: 0;
+  border-radius: 15px;
+  background: var(--wl-danger);
+  color: var(--wl-on-ink);
+  font: inherit;
+  font-size: 12.5px;
+  cursor: pointer;
+}
+
+.caseLine {
+  margin: 4px 0 8px;
+  font-size: 13px;
+  line-height: 1.45;
+  color: var(--wl-ink-2);
+}
+
+.caseLine b {
+  font-weight: 500;
+  color: var(--wl-ink);
+}
