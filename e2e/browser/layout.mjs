@@ -80,9 +80,7 @@ const isExpanded = () =>
 // ─────────────────────────────────────────────── WOS-011 · fill the window
 const railBefore = await railWidth()
 const topbarBefore = await topbarHeight()
-// On the landscape's stage the rail starts tucked away (⌘B shows it); the tab
-// strip and every surface are there from the start (docs/landscape/PLAN.md §3).
-check('the rail starts tucked away on the stage', railBefore <= 1, `${railBefore}px`)
+check('the rail is on screen to begin with', railBefore > 40, `${railBefore}px`)
 check('the tab strip is on screen to begin with', topbarBefore > 20, `${topbarBefore}px`)
 check('the shell starts un-expanded', (await isExpanded()) === 'false')
 
@@ -103,21 +101,21 @@ check('an exit control is visible — an expanded surface must never be a trap',
 await win.keyboard.press('Escape')
 await win.waitForTimeout(900)
 check('Esc leaves the expanded surface', (await isExpanded()) === 'false')
-check('the rail is back to how it was (tucked away)', (await railWidth()) <= 1, `${await railWidth()}px`)
+check('the rail came back', (await railWidth()) > 40, `${await railWidth()}px`)
 check('the tab strip came back', (await topbarHeight()) > 20, `${await topbarHeight()}px`)
 
-// ⌘B toggles just the rail — this was a no-op before WOS-011.
+// ⌘B reclaims just the rail — this was a no-op before WOS-011.
 await win.evaluate(() =>
   window.dispatchEvent(new KeyboardEvent('keydown', { key: 'b', metaKey: true, bubbles: true })),
 )
 await win.waitForTimeout(700)
-check('⌘B shows the rail', (await railWidth()) > 40, `${await railWidth()}px`)
+check('⌘B hides the rail (it used to be wired to an empty function)', (await railWidth()) <= 1, `${await railWidth()}px`)
 check('…and the tab strip stays, because this is the lighter gesture', (await topbarHeight()) > 20)
 await win.evaluate(() =>
   window.dispatchEvent(new KeyboardEvent('keydown', { key: 'b', metaKey: true, bubbles: true })),
 )
 await win.waitForTimeout(700)
-check('⌘B tucks it away again', (await railWidth()) <= 1, `${await railWidth()}px`)
+check('⌘B brings the rail back', (await railWidth()) > 40)
 
 // ─────────────────────────────────────────── WOS-012 · the Assistant panel
 await win.evaluate(() => {

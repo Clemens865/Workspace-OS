@@ -59,6 +59,12 @@ export interface StageHost {
   onLandscape: () => void
   /** A surface or document was brought forward (by the user, an event or an agent). */
   onSurface: (rail: RailId) => void
+  /**
+   * The app was opened straight on the stage ("Open on: Stage"): show the
+   * rail, as the familiar workspace. Reached from the landscape, the rail stays
+   * tucked away (the landscape's dock is the navigation); ⌘B toggles it.
+   */
+  railOpen?: boolean
 }
 
 export function WorkspaceShell({ stage }: { stage?: StageHost } = {}): JSX.Element {
@@ -88,7 +94,11 @@ export function WorkspaceShell({ stage }: { stage?: StageHost } = {}): JSX.Eleme
    * you are in it.
    */
   const [expanded, setExpanded] = useState(false)
-  const [railHidden, setRailHidden] = useState(!!stage)
+  const [railHidden, setRailHidden] = useState(!!stage && !stage.railOpen)
+  const railOpen = !!stage?.railOpen
+  useEffect(() => {
+    if (railOpen) setRailHidden(false)
+  }, [railOpen])
 
   /**
    * WOS-013: the folder the Files browser is showing. Set when the tree reveals

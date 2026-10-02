@@ -45,8 +45,13 @@ export function LandscapeShell(): JSX.Element {
   const settings = useSettings()
   // Where the app opens: the person's setting, or the stage when a test asks (WOS_START_ON).
   const [view, setView] = useState<LandscapeView>(() => (settings.startOn === 'stage' ? 'stage' : 'overview'))
+  const [openedOnStage, setOpenedOnStage] = useState(() => settings.startOn === 'stage')
   useEffect(() => {
-    void window.workspace?.startOn?.().then((v) => v === 'stage' && setView('stage'))
+    void window.workspace?.startOn?.().then((v) => {
+      if (v !== 'stage') return
+      setView('stage')
+      setOpenedOnStage(true)
+    })
   }, [])
   const [agentId, setAgentId] = useState<string | null>(null)
   // The stage stays visible until the landscape has fully faded back in.
@@ -215,7 +220,7 @@ export function LandscapeShell(): JSX.Element {
 
   return (
     <div className={`wl ${styles.root}`} data-shell="landscape" data-view={view}>
-      <WorkspaceShell stage={{ hidden: !stageShown, onLandscape: () => showLandscape(), onSurface: onStageSurface }} />
+      <WorkspaceShell stage={{ hidden: !stageShown, onLandscape: () => showLandscape(), onSurface: onStageSurface, railOpen: openedOnStage }} />
 
       <div className={`${styles.landscape} ${onStage ? styles.away : ''} ${backdrop ? styles.glassOn : ''}`} aria-hidden={onStage} data-testid="landscape-layer" data-quality={quality}>
         <div className={styles.horizon} aria-hidden />
