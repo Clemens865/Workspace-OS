@@ -1,9 +1,9 @@
 .loading, .error {
   padding: 20px;
-  color: var(--color-text-muted);
+  color: var(--wl-muted, var(--color-text-muted));
   font-size: 13px;
 }
 
 .error {
-  color: var(--color-danger);
+  color: var(--wl-claude, var(--color-danger));
 }

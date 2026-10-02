@@ -7,10 +7,10 @@
   margin: 12px auto 0;
   min-height: 96px;
   max-height: 200px;
-  background: var(--color-surface, #fff);
-  border: 1px solid var(--color-border);
-  border-radius: 8px;
-  box-shadow: var(--shadow-1, 0 1px 3px rgba(0, 0, 0, 0.12));
+  background: rgba(251, 252, 253, 0.9);
+  border: 1px solid rgba(255, 255, 255, 0.85);
+  border-radius: 12px;
+  box-shadow: 0 0 0 1px rgba(27, 39, 48, 0.05);
   overflow: hidden;
 }
 
@@ -21,14 +21,14 @@
   flex: none;
   height: 26px;
   padding: 0 6px 0 10px;
-  background: var(--color-bg, var(--color-surface));
-  border-bottom: 1px solid var(--color-border);
+  background: transparent;
+  border-bottom: 1px solid var(--wl-line, rgba(27, 39, 48, 0.09));
 }
 
 .title {
   font-size: 11.5px;
-  font-weight: 600;
-  color: var(--color-text-muted);
+  font-weight: 500;
+  color: var(--wl-muted, #7a8893);
   letter-spacing: 0.02em;
 }
 
@@ -41,13 +41,13 @@
   justify-content: center;
   background: transparent;
   border: none;
-  border-radius: 4px;
-  color: var(--color-text-muted);
+  border-radius: 999px;
+  color: var(--wl-muted, #7a8893);
   font-size: 15px;
   line-height: 1;
   cursor: pointer;
 }
-.close:hover { background: var(--color-hover, rgba(0, 0, 0, 0.06)); color: var(--color-text); }
+.close:hover { background: rgba(27, 39, 48, 0.05); color: var(--wl-ink, #1b2730); }
 
 .area {
   flex: 1;
@@ -57,9 +57,9 @@
   outline: none;
   padding: 8px 12px;
   background: transparent;
-  color: var(--color-text);
+  color: var(--wl-ink-2, #3b4a55);
   font-size: 13px;
   line-height: 1.5;
   font-family: inherit;
 }
-.area::placeholder { color: var(--color-text-subtle, var(--color-text-muted)); font-style: italic; }
+.area::placeholder { color: var(--wl-faint, #a9b4bc); font-style: italic; }

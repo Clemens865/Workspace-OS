@@ -158,7 +158,7 @@ export function ConnectorsView({ active, onNavigate }: { active: boolean; onNavi
     <div className={`wos ${styles.root}`} data-testid="connectors-view">
       <header className={styles.header}>
         <div>
-          <h1 className={styles.title}>Connectors</h1>
+          <h1 className={styles.heading}>Connectors</h1>
           <p className={styles.status} data-testid="connectors-status">
             {list === null ? 'Checking what is signed in…' : statusLine(sorted)}
           </p>

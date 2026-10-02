@@ -66,7 +66,7 @@ export function EventDetailsDialog({ event, sourceName, ability, onClose, onEdit
   return (
     <div className={styles.backdrop} onClick={onClose}>
       <div className={styles.modal} onClick={(e) => e.stopPropagation()}>
-        <h2 className={styles.title}>{event.summary || '(no title)'}</h2>
+        <h2 className={styles.heading}>{event.summary || '(no title)'}</h2>
 
         <p className={styles.hint}>
           {days} · {formatEventTime(event)}

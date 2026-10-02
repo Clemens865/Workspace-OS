@@ -19,35 +19,42 @@
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: var(--space-2);
-  color: var(--color-text-muted);
+  gap: 6px;
+  padding: 24px;
+  text-align: center;
+  color: var(--wl-muted, var(--color-text-muted));
 }
 
 .emptyIcon {
-  color: var(--color-text-subtle);
-  opacity: 0.7;
-  margin-bottom: var(--space-1);
+  color: var(--wl-faint, var(--color-text-subtle));
+  margin-bottom: 6px;
 }
 
+/* tokens.css forces weight/colour on "title" classes (it is not renamed here
+   because Canvas.tsx is outside this restyle); size and family still apply. */
 .emptyTitle {
-  font-size: var(--text-md);
-  font-weight: 550;
-  color: var(--color-text-muted);
+  font-family: var(--wl-serif, inherit);
+  font-size: 22px;
+  font-weight: 400;
+  letter-spacing: -0.01em;
+  color: var(--wl-ink, var(--color-text-muted));
 }
 
 .hint {
-  font-size: var(--text-sm);
-  color: var(--color-text-subtle);
+  font-size: 13px;
+  color: var(--wl-muted, var(--color-text-subtle));
 }
 
 .placeholder {
-  padding: 20px;
-  color: var(--color-text-muted);
+  padding: 24px;
+  font-size: 13.5px;
+  color: var(--wl-muted, var(--color-text-muted));
 }
 
 .path {
-  font-family: 'SF Mono', 'Fira Code', monospace;
+  font-family: var(--wl-mono, 'SF Mono', 'Fira Code', monospace);
   font-size: 12px;
+  color: var(--wl-faint, inherit);
 }
 
 /* Markdown Edit | Split | Preview layout. Monaco stays mounted in every mode. */
@@ -66,7 +73,7 @@
   height: 100%;
 }
 .mdSplit .mdPreviewPane {
-  border-left: 1px solid var(--border, #e3e3e6);
+  border-left: 1px solid var(--wl-line, var(--border, #e3e3e6));
 }
 .mdEditorPane, .mdPreviewPane {
   height: 100%;

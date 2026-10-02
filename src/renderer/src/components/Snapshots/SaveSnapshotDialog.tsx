@@ -29,7 +29,7 @@ export function SaveSnapshotDialog({ onClose, onSave }: SaveSnapshotDialogProps)
   return (
     <div className={styles.backdrop} onClick={onClose}>
       <div className={styles.panel} data-testid="save-snapshot" onClick={(e) => e.stopPropagation()}>
-        <div className={styles.title}>Save Snapshot</div>
+        <div className={styles.heading}>Save Snapshot</div>
         <div className={styles.hint}>
           Saves your current desk — open tabs, active tab, and panel layout — under a name
           you can restore from File ▸ Snapshots. Re-using a name updates that snapshot.

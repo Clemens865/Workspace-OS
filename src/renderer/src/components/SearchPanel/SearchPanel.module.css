@@ -1,4 +1,4 @@
-/* Follows FilePanel's visual language — this view swaps into the same sidebar. */
+/* Landscape materials: pill search input, tracked section labels, ink rows. */
 
 .root {
   display: flex;
@@ -6,62 +6,70 @@
   height: 100%;
   width: 100%;
   overflow: hidden;
-  background: var(--color-surface);
+  background: var(--wl-paper-solid);
 }
 
 .searchBar {
   position: relative;
   display: flex;
   align-items: center;
-  padding: var(--space-2) var(--space-3);
-  border-bottom: 1px solid var(--color-border);
+  padding: 10px 12px;
+  border-bottom: 1px solid var(--wl-line);
   flex-shrink: 0;
 }
 
 .searchIcon {
   position: absolute;
-  left: calc(var(--space-3) + var(--space-2));
-  color: var(--color-text-subtle);
+  left: 24px;
+  color: var(--wl-muted);
   pointer-events: none;
 }
 
 .searchInput {
   width: 100%;
-  background: var(--color-bg);
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-md);
-  color: var(--color-text);
-  font-size: var(--text-sm);
-  padding: var(--space-2) var(--space-5) var(--space-2) 30px;
+  height: 34px;
+  box-sizing: border-box;
+  background: rgba(255, 255, 255, 0.85);
+  border: 1px solid var(--wl-line);
+  border-radius: 18px;
+  color: var(--wl-ink);
+  font-family: inherit;
+  font-size: 13px;
+  padding: 0 32px 0 34px;
   outline: none;
-  transition: border-color 90ms ease, box-shadow 90ms ease;
+  transition: border-color 0.15s var(--wl-ease-soft), box-shadow 0.15s var(--wl-ease-soft);
 }
 
-.searchInput::placeholder { color: var(--color-text-subtle); }
+.searchInput::placeholder { color: var(--wl-faint); }
 
 .searchInput:focus {
-  border-color: var(--color-accent);
-  box-shadow: 0 0 0 3px var(--color-accent-soft);
+  border-color: rgba(27, 39, 48, 0.25);
+  box-shadow: 0 0 0 3px rgba(27, 39, 48, 0.07);
 }
 
 .clearSearch {
   position: absolute;
-  right: calc(var(--space-3) + var(--space-1));
+  right: 20px;
   display: flex;
   align-items: center;
   justify-content: center;
   background: none;
   border: none;
-  color: var(--color-text-subtle);
+  color: var(--wl-muted);
   cursor: pointer;
-  padding: 2px;
-  border-radius: var(--radius-sm);
+  padding: 3px;
+  border-radius: 999px;
+}
+
+.clearSearch:hover {
+  background: rgba(27, 39, 48, 0.05);
+  color: var(--wl-ink);
 }
 
 .body {
   flex: 1;
   overflow-y: auto;
-  padding: var(--space-2);
+  padding: 6px;
 }
 
 .empty {
@@ -73,40 +81,42 @@
   gap: var(--space-2);
 }
 
-.emptyIcon { color: var(--color-text-subtle); }
+.emptyIcon { color: var(--wl-faint); }
 
 .emptyTitle {
-  color: var(--color-text-muted);
-  font-size: var(--text-sm);
-  font-weight: 550;
+  color: var(--wl-ink);
+  font-family: var(--wl-serif);
+  font-size: 20px;
+  font-weight: 400;
+  letter-spacing: -0.01em;
   margin: 0;
 }
 
 .emptyHint {
-  color: var(--color-text-subtle);
-  font-size: var(--text-xs);
+  color: var(--wl-muted);
+  font-size: 12px;
   margin: 0;
 }
 
 .status {
-  padding: var(--space-4);
+  padding: 16px;
   text-align: center;
-  color: var(--color-text-muted);
-  font-size: var(--text-sm);
+  color: var(--wl-muted);
+  font-size: 13px;
 }
 
 .sectionLabel {
-  padding: var(--space-2) var(--space-3) var(--space-1);
-  font-size: 10px;
-  font-weight: 600;
+  padding: 10px 10px 4px;
+  font-size: 11px;
+  font-weight: 500;
   text-transform: uppercase;
-  letter-spacing: 0.06em;
-  color: var(--color-text-subtle);
+  letter-spacing: 0.18em;
+  color: var(--wl-muted);
 }
 
 .symIcon {
   flex-shrink: 0;
-  color: var(--color-text-subtle);
+  color: var(--wl-muted);
 }
 
 .hit {
@@ -115,25 +125,27 @@
   text-align: left;
   background: none;
   border: none;
-  border-radius: var(--radius-md);
-  padding: var(--space-2) var(--space-3);
+  border-radius: 10px;
+  padding: 9px 10px;
   cursor: pointer;
   overflow: hidden;
+  font-family: inherit;
+  transition: background 0.15s var(--wl-ease-soft);
 }
 
-.hit:hover { background: var(--color-hover); }
+.hit:hover { background: rgba(27, 39, 48, 0.05); }
 
 .hitHead {
   display: flex;
   align-items: center;
-  gap: var(--space-2);
+  gap: 8px;
   overflow: hidden;
 }
 
 .hitName {
-  color: var(--color-text);
-  font-size: var(--text-sm);
-  font-weight: 550;
+  color: var(--wl-ink);
+  font-size: 13px;
+  font-weight: 500;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -141,23 +153,23 @@
 
 .badge {
   flex-shrink: 0;
-  font-size: 9.5px;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-  color: var(--color-text-muted);
-  border: 1px solid var(--color-border);
-  border-radius: 4px;
-  padding: 0 4px;
+  font-size: 11px;
+  font-weight: 500;
+  color: var(--wl-muted);
+  background: rgba(27, 39, 48, 0.06);
+  border: 0;
+  border-radius: 999px;
+  padding: 1px 8px;
   margin-left: auto;
 }
 
 .contentBadge {
-  color: var(--color-accent);
-  border-color: var(--color-accent);
+  color: #8a5a12;
+  background: var(--wl-amber-soft);
 }
 
 .snippet {
-  color: var(--color-text-muted);
+  color: var(--wl-ink-2);
   font-size: 11.5px;
   margin-top: 3px;
   overflow: hidden;
@@ -167,10 +179,9 @@
 }
 
 .hitPath {
-  color: var(--color-text-muted);
-  opacity: 0.55;
+  color: var(--wl-faint);
   font-size: 10.5px;
-  font-family: 'SF Mono', monospace;
+  font-family: var(--wl-mono);
   margin-top: 2px;
   overflow: hidden;
   text-overflow: ellipsis;

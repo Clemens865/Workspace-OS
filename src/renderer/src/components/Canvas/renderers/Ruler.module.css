@@ -16,7 +16,7 @@
 .minor { top: 9px; height: 4px; }
 .tab { position: absolute; top: 14px; width: 0; height: 0; border-left: 1px solid var(--color-text, #333); border-bottom: 1px solid var(--color-text, #333); margin-left: -1px; width: 6px; height: 5px; cursor: pointer; }
 .first, .left, .right { position: absolute; width: 0; height: 0; margin-left: -5px; cursor: ew-resize; }
-.first { top: 2px; border-left: 5px solid transparent; border-right: 5px solid transparent; border-top: 6px solid var(--color-accent, #1a73e8); }
-.left { top: 14px; border-left: 5px solid transparent; border-right: 5px solid transparent; border-bottom: 6px solid var(--color-accent, #1a73e8); }
-.right { top: 14px; border-left: 5px solid transparent; border-right: 5px solid transparent; border-bottom: 6px solid var(--color-accent, #1a73e8); }
-.dragLine { position: absolute; top: 0; bottom: 0; width: 0; border-left: 1px dashed var(--color-accent, #1a73e8); pointer-events: none; }
+.first { top: 2px; border-left: 5px solid transparent; border-right: 5px solid transparent; border-top: 6px solid #1a73e8; }
+.left { top: 14px; border-left: 5px solid transparent; border-right: 5px solid transparent; border-bottom: 6px solid #1a73e8; }
+.right { top: 14px; border-left: 5px solid transparent; border-right: 5px solid transparent; border-bottom: 6px solid #1a73e8; }
+.dragLine { position: absolute; top: 0; bottom: 0; width: 0; border-left: 1px dashed #1a73e8; pointer-events: none; }

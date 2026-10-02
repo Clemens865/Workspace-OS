@@ -7,11 +7,11 @@
   flex-direction: column;
   gap: 6px;
   padding: 8px 10px;
-  background: var(--color-surface, #fff);
-  border: 1px solid var(--color-border, #e2e2e2);
-  border-radius: 10px;
-  box-shadow: 0 12px 34px rgba(0, 0, 0, 0.24);
-  color: var(--color-text, #1a1a1a);
+  background: var(--wl-paper-solid, #fbfcfd);
+  border: 1px solid transparent;
+  border-radius: 14px;
+  box-shadow: 0 0 0 1px rgba(27, 39, 48, 0.07), 0 20px 50px -20px rgba(30, 55, 70, 0.35);
+  color: var(--wl-ink, #1b2730);
   font-size: 13px;
   min-width: 340px;
 }
@@ -23,7 +23,7 @@
 }
 
 .leadIcon {
-  color: var(--color-text-muted);
+  color: var(--wl-muted, #7a8893);
   flex: 0 0 auto;
 }
 
@@ -31,14 +31,15 @@
   flex: 1 1 auto;
   min-width: 0;
   padding: 5px 8px;
-  border: 1px solid var(--color-border);
-  border-radius: 7px;
-  background: var(--color-surface);
-  color: var(--color-text);
+  border: 1px solid var(--wl-line, rgba(27, 39, 48, 0.09));
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.85);
+  color: var(--wl-ink, #1b2730);
   font-size: 13px;
   outline: none;
+  transition: border-color .15s var(--wl-ease-soft, ease), box-shadow .15s var(--wl-ease-soft, ease);
 }
-.input:focus { border-color: var(--color-accent, #2f6bd8); }
+.input:focus { border-color: rgba(27, 39, 48, 0.25); box-shadow: 0 0 0 3px rgba(27, 39, 48, 0.07); }
 
 .opts {
   display: flex;
@@ -53,28 +54,29 @@
   justify-content: center;
   width: 26px;
   height: 26px;
-  border-radius: 6px;
+  border-radius: 999px;
   border: 1px solid transparent;
   background: transparent;
-  color: var(--color-text);
+  color: var(--wl-ink-2, #3b4a55);
+  transition: background .15s var(--wl-ease-soft, ease);
   cursor: pointer;
   flex: 0 0 auto;
 }
-.opt:hover, .btn:hover, .close:hover { background: var(--color-surface-raised); }
+.opt:hover, .btn:hover, .close:hover { background: rgba(27, 39, 48, 0.05); color: var(--wl-ink, #1b2730); }
 
 .optOn {
-  background: var(--color-accent-soft, rgba(47, 107, 216, 0.16));
-  border-color: var(--color-accent, #2f6bd8);
-  color: var(--color-accent, #2f6bd8);
+  background: rgba(27, 39, 48, 0.08);
+  border-color: transparent;
+  color: var(--wl-ink, #1b2730);
 }
 
 .btn:disabled { opacity: 0.4; cursor: default; }
 .btn:disabled:hover { background: transparent; }
 
-.close { color: var(--color-text-muted); }
+.close { color: var(--wl-muted, #7a8893); }
 
 .note {
   padding: 0 2px 2px;
-  color: var(--color-text-muted);
+  color: var(--wl-muted, #7a8893);
   font-size: 11.5px;
 }

@@ -58,7 +58,7 @@ export function NewCaseDialog({
     <div className={styles.backdrop} onClick={onClose}>
       <div className={styles.card} onClick={(e) => e.stopPropagation()}>
         <div className={styles.head}>
-          <span className={styles.title}><FolderPlus size={15} /> Start a case</span>
+          <span className={styles.dialogHeading}><FolderPlus size={15} /> Start a case</span>
           <button className={styles.close} onClick={onClose} title="Close"><X size={16} /></button>
         </div>
 

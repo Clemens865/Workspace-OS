@@ -327,7 +327,7 @@ export function MailAccountDialog({ onClose, onSaved, onTryDemo }: MailAccountDi
     <div className={styles.backdrop} onClick={onClose}>
       <div className={styles.panel} onClick={(e) => e.stopPropagation()}>
         <div className={styles.header}>
-          <span className={styles.title}>Add mail account</span>
+          <span className={styles.heading}>Add mail account</span>
           <button className={styles.close} onClick={onClose} title="Close"><X size={16} /></button>
         </div>
 

@@ -1,7 +1,7 @@
 .backdrop {
   position: absolute;
   inset: 0;
-  background: rgba(0, 0, 0, 0.18);
+  background: rgba(226, 233, 238, 0.55);
   display: flex;
   justify-content: flex-end;
   z-index: 40;
@@ -19,8 +19,10 @@
   width: 420px;
   max-width: 92vw;
   height: 100%;
-  background: var(--wos-card);
-  box-shadow: -1px 0 3px rgba(0, 0, 0, 0.06), -12px 0 40px rgba(0, 0, 0, 0.12);
+  background: var(--wl-paper-solid);
+  border-radius: 24px 0 0 24px;
+  box-shadow: 0 0 0 1px rgba(27, 39, 48, 0.07), 0 20px 50px -20px rgba(30, 55, 70, 0.35);
+  color: var(--wl-ink);
   padding: 28px 26px;
   overflow-y: auto;
   animation: slide 0.2s ease;
@@ -40,15 +42,17 @@
   width: 28px;
   height: 28px;
   border: 0;
-  border-radius: 50%;
-  background: var(--wos-sunk);
-  color: var(--wos-ink-2);
+  border-radius: 999px;
+  background: transparent;
+  color: var(--wl-muted);
   cursor: pointer;
   font-size: 12px;
+  transition: background 0.15s var(--wl-ease-soft), color 0.15s var(--wl-ease-soft);
 }
 
 .close:hover {
-  background: var(--wos-rail);
+  background: rgba(27, 39, 48, 0.05);
+  color: var(--wl-ink);
 }
 
 .hero {
@@ -59,9 +63,11 @@
 }
 
 .name {
-  font-size: 20px;
-  font-weight: 600;
-  color: var(--wos-ink);
+  font-family: var(--wl-serif);
+  font-size: 26px;
+  font-weight: 400;
+  line-height: 1.1;
+  color: var(--wl-ink);
   letter-spacing: -0.02em;
 }
 
@@ -70,18 +76,18 @@
   align-items: center;
   gap: 6px;
   font-size: 13px;
-  color: var(--wos-ink-2);
-  margin-top: 3px;
+  color: var(--wl-muted);
+  margin-top: 4px;
 }
 
 .metaDot {
-  color: var(--wos-ink-3);
+  color: var(--wl-faint);
 }
 
 .desc {
   font-size: 14px;
   line-height: 1.5;
-  color: var(--wos-ink-2);
+  color: var(--wl-ink-2);
   margin: 0 0 20px;
 }
 
@@ -91,10 +97,10 @@
 
 .label {
   font-size: 11px;
-  font-weight: 600;
+  font-weight: 500;
   text-transform: uppercase;
-  letter-spacing: 0.04em;
-  color: var(--wos-ink-3);
+  letter-spacing: 0.18em;
+  color: var(--wl-muted);
   margin-bottom: 8px;
 }
 
@@ -107,19 +113,20 @@
 .chip {
   font-size: 12px;
   font-weight: 500;
-  padding: 4px 11px;
-  border-radius: var(--wos-r-pill);
-  background: var(--wos-sunk);
-  color: var(--wos-ink-2);
+  padding: 2px 8px;
+  border-radius: 999px;
+  background: rgba(27, 39, 48, 0.06);
+  color: var(--wl-ink-2);
 }
 
 .persona {
-  font-family: var(--wos-font-mono);
+  font-family: var(--wl-mono);
   font-size: 12px;
   line-height: 1.55;
-  color: var(--wos-ink);
-  background: var(--wos-sunk);
-  border-radius: var(--wos-r-sm);
+  color: var(--wl-ink);
+  background: #fff;
+  border: 1px solid var(--wl-line);
+  border-radius: 12px;
   padding: 14px;
   white-space: pre-wrap;
   word-break: break-word;
@@ -135,7 +142,7 @@
   gap: 8px;
   margin-top: 8px;
   padding-top: 18px;
-  border-top: 1px solid var(--wos-hair);
+  border-top: 1px solid var(--wl-line);
 }
 
 .spacer {
@@ -144,62 +151,64 @@
 
 .run {
   height: 34px;
-  padding: 0 20px;
+  padding: 0 18px;
   border: 0;
-  border-radius: var(--wos-r-pill);
-  background: var(--wos-blue);
+  border-radius: 18px;
+  background: var(--wl-ink);
   color: #fff;
   font: inherit;
-  font-weight: 600;
-  font-size: 13px;
+  font-weight: 500;
+  font-size: 13.5px;
   cursor: pointer;
+  transition: background 0.15s var(--wl-ease-soft);
 }
 
 .run:hover {
-  background: #0060bf;
+  background: #2c3b46;
 }
 
 .quiet {
   height: 34px;
   padding: 0 14px;
-  border: 1px solid var(--wos-hair);
-  border-radius: var(--wos-r-pill);
-  background: transparent;
-  color: var(--wos-ink);
+  border: 1px solid var(--wl-line);
+  border-radius: 18px;
+  background: rgba(255, 255, 255, 0.8);
+  color: var(--wl-ink);
   font: inherit;
   font-size: 13px;
   cursor: pointer;
+  transition: background 0.15s var(--wl-ease-soft);
 }
 
 .quiet:hover {
-  background: var(--wos-sunk);
+  background: #fff;
 }
 
 .dangerQuiet {
   height: 34px;
   padding: 0 14px;
   border: 0;
-  border-radius: var(--wos-r-pill);
+  border-radius: 18px;
   background: transparent;
-  color: #c0555a;
+  color: #b84a3a;
   font: inherit;
   font-size: 13px;
   cursor: pointer;
 }
 
 .dangerQuiet:hover {
-  background: #fbecec;
+  background: var(--wl-claude-soft);
 }
 
 .danger {
   height: 34px;
   padding: 0 16px;
   border: 0;
-  border-radius: var(--wos-r-pill);
-  background: #d0595e;
+  border-radius: 18px;
+  background: #b84a3a;
   color: #fff;
   font: inherit;
-  font-weight: 600;
+  font-weight: 500;
   font-size: 13px;
   cursor: pointer;
 }

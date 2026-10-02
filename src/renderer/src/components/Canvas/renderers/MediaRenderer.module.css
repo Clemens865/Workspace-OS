@@ -3,36 +3,48 @@
   align-items: center;
   justify-content: center;
   height: 100%;
-  background: #111;
+  padding: 24px;
+  box-sizing: border-box;
+  background: var(--wl-mist-2, #e2e9ee);
 }
 
 .video {
   max-width: 100%;
   max-height: 100%;
   outline: none;
+  border-radius: 12px;
+  background: #000;
 }
 
+/* An audio file reads as a paper card on the mist. */
 .audioWrap {
   display: flex;
   flex-direction: column;
   align-items: center;
   gap: 16px;
+  padding: 24px 28px;
+  border-radius: 20px;
+  background: rgba(251, 252, 253, 0.9);
+  border: 1px solid rgba(255, 255, 255, 0.85);
+  box-shadow: 0 0 0 1px rgba(27, 39, 48, 0.05);
 }
 
 .audioLabel {
-  color: var(--color-text-muted);
-  font-size: 14px;
+  font-family: var(--wl-serif, inherit);
+  font-size: 22px;
+  letter-spacing: -0.01em;
+  color: var(--wl-ink, var(--color-text));
 }
 
 .audio {
   width: 400px;
-  max-width: 90vw;
+  max-width: 80vw;
 }
 
 .loading, .error {
-  padding: 20px;
-  color: var(--color-text-muted);
+  padding: 24px;
+  color: var(--wl-muted, var(--color-text-muted));
   font-size: 13px;
 }
 
-.error { color: var(--color-danger); }
+.error { color: #b84a3a; }

@@ -6,39 +6,45 @@
 }
 
 .status {
-  margin: 0 0 18px;
-  font-size: 17px;
-  line-height: 1.4;
-  color: var(--wos-ink-2);
+  margin: 0 0 20px;
+  font-family: var(--wl-serif);
+  font-weight: 400;
+  font-size: 24px;
+  line-height: 1.3;
+  color: var(--wl-ink);
   letter-spacing: -0.01em;
 }
 
 .lensRow {
-  display: flex;
-  gap: 4px;
+  display: inline-flex;
+  gap: 2px;
   margin: 0 0 26px;
+  padding: 3px;
+  border-radius: 999px;
+  background: rgba(27, 39, 48, 0.05);
 }
 
 .lensChip {
-  padding: 4px 11px;
+  padding: 4px 12px;
   border: 0;
-  border-radius: var(--wos-r-pill);
+  border-radius: 999px;
   background: transparent;
-  box-shadow: inset 0 0 0 0.5px var(--wos-hair);
   font: inherit;
   font-size: 12px;
-  color: var(--wos-ink-3);
+  font-weight: 500;
+  color: var(--wl-muted);
   cursor: pointer;
+  transition: background 0.15s var(--wl-ease-soft), color 0.15s var(--wl-ease-soft);
 }
 
 .lensChip:hover {
-  color: var(--wos-ink-2);
+  color: var(--wl-ink);
 }
 
 .lensChipOn {
-  background: var(--wos-card);
-  color: var(--wos-ink);
-  font-weight: 600;
+  background: #fff;
+  color: var(--wl-ink);
+  box-shadow: 0 0 0 1px rgba(27, 39, 48, 0.06);
 }
 
 .empty {
@@ -46,7 +52,7 @@
   max-width: 46ch;
   font-size: 13.5px;
   line-height: 1.6;
-  color: var(--wos-ink-3);
+  color: var(--wl-muted);
 }
 
 .group {
@@ -59,25 +65,25 @@
   justify-content: space-between;
   gap: 8px;
   margin: 0 0 8px;
-  padding-bottom: 6px;
-  box-shadow: 0 0.5px 0 var(--wos-hair);
-  font-size: 12px;
-  font-weight: 600;
+  padding-bottom: 8px;
+  border-bottom: 1px solid var(--wl-line);
+  font-size: 11px;
+  font-weight: 500;
   text-transform: uppercase;
-  letter-spacing: 0.06em;
-  color: var(--wos-ink-3);
+  letter-spacing: 0.18em;
+  color: var(--wl-muted);
 }
 
 .groupMeta {
-  font-weight: 500;
+  font-size: 11.5px;
+  font-weight: 400;
   letter-spacing: 0;
   text-transform: none;
   font-variant-numeric: tabular-nums;
 }
 
 .cost {
-  color: var(--wos-ink-3);
-  opacity: 0.8;
+  color: var(--wl-faint);
 }
 
 .list {
@@ -95,13 +101,13 @@
   display: flex;
   align-items: center;
   gap: 10px;
-  padding: 8px 12px;
-  border-radius: var(--wos-r-sm);
-  transition: background 0.12s ease;
+  padding: 9px 10px;
+  border-radius: 10px;
+  transition: background 0.15s var(--wl-ease-soft);
 }
 
 .row:hover {
-  background: var(--wos-card);
+  background: rgba(27, 39, 48, 0.05);
 }
 
 .row .open {
@@ -116,34 +122,34 @@
 .glyph {
   width: 14px;
   text-align: center;
-  color: var(--wos-ink-3);
+  color: var(--wl-muted);
   font-size: 13px;
   flex-shrink: 0;
 }
 
 /* Fresh = a live dot in place of the glyph's quiet; nothing louder. */
 .rowFresh .glyph {
-  color: var(--wos-blue);
+  color: var(--wl-codex);
 }
 
 .text {
   flex: 1;
   min-width: 0;
   font-size: 13.5px;
-  color: var(--wos-ink-2);
+  color: var(--wl-ink-2);
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
 
 .rowFresh .text {
-  color: var(--wos-ink);
+  color: var(--wl-ink);
 }
 
 .when {
   flex-shrink: 0;
   font-size: 11.5px;
-  color: var(--wos-ink-3);
+  color: var(--wl-faint);
   font-variant-numeric: tabular-nums;
 }
 
@@ -153,13 +159,13 @@
   background: transparent;
   font: inherit;
   font-size: 12.5px;
-  color: var(--wos-ink-3);
+  color: var(--wl-muted);
   cursor: pointer;
-  transition: opacity 0.12s ease;
+  transition: opacity 0.15s var(--wl-ease-soft), color 0.15s var(--wl-ease-soft);
 }
 
 .open:hover {
-  color: var(--wos-ink);
+  color: var(--wl-ink);
 }
 
 /* "You last looked here" — a hairline with a whisper, not a banner. */
@@ -169,16 +175,16 @@
   gap: 10px;
   margin: 6px 0 6px;
   font-size: 10.5px;
-  font-weight: 600;
-  letter-spacing: 0.05em;
+  font-weight: 500;
+  letter-spacing: 0.18em;
   text-transform: uppercase;
-  color: var(--wos-ink-3);
+  color: var(--wl-claude);
 }
 
 .seenMark::before,
 .seenMark::after {
   content: '';
   flex: 1;
-  height: 0.5px;
-  background: var(--wos-hair);
+  height: 1px;
+  background: var(--wl-claude-soft);
 }

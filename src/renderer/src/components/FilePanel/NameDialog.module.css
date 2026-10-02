@@ -1,0 +1,132 @@
+/* Small landscape dialog for naming / confirming in the file tree.
+   Solid-ish backdrop, no backdrop-filter: it can cover a live office canvas. */
+.backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 300;
+  display: grid;
+  place-items: center;
+  padding: 16px;
+  background: rgba(226, 233, 238, 0.72);
+}
+
+.dialog {
+  width: min(380px, 100%);
+  padding: 22px 22px 18px;
+  border-radius: 22px;
+  background: var(--wl-paper-solid, #fbfcfd);
+  box-shadow: 0 0 0 1px rgba(27, 39, 48, 0.07), 0 20px 50px -20px rgba(30, 55, 70, 0.35);
+  color: var(--wl-ink, #1b2730);
+  font-family: var(--wl-sans, inherit);
+}
+
+.heading {
+  margin: 0 0 14px;
+  font-family: var(--wl-serif, Georgia, serif);
+  font-weight: 400;
+  font-size: 22px;
+  line-height: 1.2;
+  letter-spacing: -0.01em;
+  color: var(--wl-ink, #1b2730);
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.label {
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--wl-muted, #6b7781);
+}
+
+.input {
+  height: 36px;
+  padding: 0 14px;
+  border-radius: 18px;
+  border: 1px solid var(--wl-line, rgba(27, 39, 48, 0.1));
+  background: rgba(255, 255, 255, 0.85);
+  color: var(--wl-ink, #1b2730);
+  font: inherit;
+  font-size: 13.5px;
+  outline: none;
+  transition: border-color 0.15s var(--wl-ease-soft, ease), box-shadow 0.15s var(--wl-ease-soft, ease);
+}
+
+.input:focus {
+  border-color: rgba(27, 39, 48, 0.25);
+  box-shadow: 0 0 0 3px rgba(27, 39, 48, 0.07);
+}
+
+.message {
+  margin: 0;
+  font-size: 13.5px;
+  line-height: 1.5;
+  color: var(--wl-ink-2, #3a4852);
+}
+
+.actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  margin-top: 20px;
+}
+
+.primary,
+.secondary,
+.danger {
+  height: 32px;
+  padding: 0 16px;
+  border-radius: 18px;
+  font: inherit;
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background 0.15s var(--wl-ease-soft, ease), opacity 0.15s var(--wl-ease-soft, ease);
+}
+
+.primary {
+  border: 0;
+  background: var(--wl-ink, #1b2730);
+  color: #fff;
+}
+
+.primary:hover:not(:disabled) {
+  background: #2c3b46;
+}
+
+.danger {
+  border: 0;
+  background: var(--wl-claude-soft, rgba(217, 119, 87, 0.14));
+  color: #b84a3a;
+}
+
+.danger:hover {
+  background: rgba(217, 119, 87, 0.22);
+}
+
+.primary:disabled {
+  opacity: 0.35;
+  cursor: default;
+}
+
+.secondary {
+  border: 1px solid var(--wl-line, rgba(27, 39, 48, 0.1));
+  background: rgba(255, 255, 255, 0.8);
+  color: var(--wl-ink, #1b2730);
+}
+
+.secondary:hover {
+  background: #fff;
+}
+
+.primary:focus-visible,
+.secondary:focus-visible,
+.danger:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(27, 39, 48, 0.12);
+}

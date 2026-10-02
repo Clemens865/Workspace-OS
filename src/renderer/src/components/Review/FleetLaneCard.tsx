@@ -19,10 +19,10 @@ const STATUS_LABEL: Record<LaneStatus, string> = {
   done: 'idle',
 }
 const STATUS_DOT: Record<LaneStatus, string> = {
-  error: '#e87878',
-  'awaiting-approval': '#0071E3',
-  running: '#e0b341',
-  done: '#8A8A8E',
+  error: 'var(--wl-claude)',
+  'awaiting-approval': 'var(--wl-amber)',
+  running: 'var(--wl-codex)',
+  done: 'var(--wl-grey)',
 }
 
 /**
@@ -53,7 +53,7 @@ export function FleetLaneCard({ lane, onOpenFile, onWorkspaceChanged }: FleetLan
         aria-expanded={open}
         data-testid="fleet-lane-header"
       >
-        <span className={styles.dot} style={{ background: dot, boxShadow: `0 0 10px ${dot}66` }} />
+        <span className={styles.dot} style={{ background: dot }} />
         <span className={styles.laneName}>{lane.agentName}</span>
         <StatusPill tone={laneTone(lane.status)}>{STATUS_LABEL[lane.status]}</StatusPill>
         {lane.pending > 0 && <span className={styles.pendingPill}>{lane.pending}</span>}

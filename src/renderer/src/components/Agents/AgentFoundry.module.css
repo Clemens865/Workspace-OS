@@ -2,7 +2,7 @@
 .backdrop {
   position: absolute;
   inset: 0;
-  background: rgba(0, 0, 0, 0.24);
+  background: rgba(226, 233, 238, 0.55);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -23,12 +23,13 @@
   max-width: 94vw;
   max-height: 90vh;
   overflow-y: auto;
-  background: var(--wos-card);
-  border-radius: var(--wos-r);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1), 0 24px 64px rgba(0, 0, 0, 0.22);
+  background: var(--wl-paper-solid);
+  border-radius: 22px;
+  box-shadow: 0 0 0 1px rgba(27, 39, 48, 0.07), 0 20px 50px -20px rgba(30, 55, 70, 0.35);
   padding: 28px 30px 24px;
   animation: rise 0.2s ease;
-  font-family: var(--wos-font);
+  color: var(--wl-ink);
+  font-family: var(--wl-sans);
 }
 
 @keyframes rise {
@@ -38,19 +39,27 @@
   }
 }
 
-/* ── Shared heading ── */
+/* ── Shared heading ── (`.title` kept for compatibility; `.heading` beats the
+   tokens.css `[class*="title"]` override for the serif look) */
 .title {
-  font-size: 21px;
-  font-weight: 600;
-  color: var(--wos-ink);
-  letter-spacing: -0.02em;
+  font-size: 26px;
+}
+
+/* tripled class: outranks `.wos [class*="title"]` (also !important) */
+.heading.heading.heading {
+  font-family: var(--wl-serif) !important;
+  font-size: 26px;
+  font-weight: 400 !important;
+  line-height: 1.15;
+  color: var(--wl-ink) !important;
+  letter-spacing: -0.01em !important;
 }
 
 .sub {
   margin: 6px 0 18px;
   font-size: 13.5px;
   line-height: 1.5;
-  color: var(--wos-ink-2);
+  color: var(--wl-ink-2);
 }
 
 /* ── Step 1 — describe ── */
@@ -63,21 +72,21 @@
   font: inherit;
   font-size: 14px;
   line-height: 1.5;
-  color: var(--wos-ink);
-  background: var(--wos-sunk);
-  border: 1px solid transparent;
-  border-radius: var(--wos-r-sm);
-  transition: border-color 0.14s ease, background 0.14s ease;
+  color: var(--wl-ink);
+  background: rgba(255, 255, 255, 0.85);
+  border: 1px solid var(--wl-line);
+  border-radius: 12px;
+  transition: border-color 0.15s var(--wl-ease-soft), box-shadow 0.15s var(--wl-ease-soft);
 }
 
 .textarea::placeholder {
-  color: var(--wos-ink-3);
+  color: var(--wl-faint);
 }
 
 .textarea:focus {
   outline: none;
-  background: var(--wos-card);
-  border-color: var(--wos-blue);
+  border-color: rgba(27, 39, 48, 0.25);
+  box-shadow: 0 0 0 3px rgba(27, 39, 48, 0.07);
 }
 
 .textarea:disabled {
@@ -96,17 +105,17 @@
   font-size: 12.5px;
   font-weight: 500;
   padding: 6px 13px;
-  border-radius: var(--wos-r-pill);
-  background: var(--wos-sunk);
-  color: var(--wos-ink-2);
-  border: 1px solid var(--wos-hair);
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.8);
+  color: var(--wl-ink-2);
+  border: 1px solid var(--wl-line);
   cursor: pointer;
-  transition: background 0.14s ease, color 0.14s ease, border-color 0.14s ease;
+  transition: background 0.15s var(--wl-ease-soft), color 0.15s var(--wl-ease-soft);
 }
 
 .exampleChip:hover:not(:disabled) {
-  color: var(--wos-ink);
-  border-color: rgba(0, 0, 0, 0.16);
+  color: var(--wl-ink);
+  background: #fff;
 }
 
 .exampleChip:disabled {
@@ -121,19 +130,20 @@
   gap: 14px;
   margin-top: 22px;
   padding: 16px 18px;
-  border-radius: var(--wos-r-sm);
-  background: var(--wos-sunk);
+  border-radius: 12px;
+  background: rgba(27, 39, 48, 0.04);
 }
 
 .buildingTitle {
-  font-size: 14px;
-  font-weight: 600;
-  color: var(--wos-ink);
+  font-family: var(--wl-serif);
+  font-size: 17px;
+  font-weight: 400;
+  color: var(--wl-ink);
 }
 
 .buildingHint {
   font-size: 12.5px;
-  color: var(--wos-ink-2);
+  color: var(--wl-muted);
   margin-top: 2px;
 }
 
@@ -142,8 +152,8 @@
   width: 20px;
   height: 20px;
   border-radius: 50%;
-  border: 2.5px solid var(--wos-hair);
-  border-top-color: var(--wos-blue);
+  border: 2.5px solid var(--wl-line);
+  border-top-color: var(--wl-ink);
   animation: spin 0.7s linear infinite;
 }
 
@@ -158,9 +168,9 @@
   padding: 10px 14px;
   font-size: 13px;
   line-height: 1.45;
-  color: var(--wos-warn-ink);
-  background: var(--wos-warn-bg);
-  border-radius: var(--wos-r-sm);
+  color: var(--wl-ink);
+  background: var(--wl-claude-soft);
+  border-radius: 12px;
 }
 
 /* ── Step 2 — preview & approve ── */
@@ -196,10 +206,11 @@
 }
 
 .label {
-  font-size: 12px;
-  font-weight: 600;
-  color: var(--wos-ink-2);
-  letter-spacing: -0.01em;
+  font-size: 11px;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.18em;
+  color: var(--wl-muted);
 }
 
 .input,
@@ -208,16 +219,17 @@
   box-sizing: border-box;
   font: inherit;
   font-size: 13.5px;
-  color: var(--wos-ink);
-  background: var(--wos-sunk);
-  border: 1px solid transparent;
-  border-radius: var(--wos-r-sm);
-  transition: border-color 0.14s ease, background 0.14s ease;
+  color: var(--wl-ink);
+  background: rgba(255, 255, 255, 0.85);
+  border: 1px solid var(--wl-line);
+  border-radius: 12px;
+  transition: border-color 0.15s var(--wl-ease-soft), box-shadow 0.15s var(--wl-ease-soft);
 }
 
 .input {
   height: 38px;
-  padding: 0 12px;
+  padding: 0 14px;
+  border-radius: 19px;
 }
 
 .personaArea {
@@ -230,8 +242,8 @@
 .input:focus,
 .personaArea:focus {
   outline: none;
-  background: var(--wos-card);
-  border-color: var(--wos-blue);
+  border-color: rgba(27, 39, 48, 0.25);
+  box-shadow: 0 0 0 3px rgba(27, 39, 48, 0.07);
 }
 
 .capChips {
@@ -245,23 +257,26 @@
   font-size: 12.5px;
   font-weight: 500;
   padding: 6px 13px;
-  border-radius: var(--wos-r-pill);
-  background: var(--wos-sunk);
-  color: var(--wos-ink-2);
+  border-radius: 999px;
+  background: rgba(27, 39, 48, 0.05);
+  color: var(--wl-ink-2);
   border: 1px solid transparent;
   cursor: pointer;
-  transition: background 0.14s ease, color 0.14s ease, border-color 0.14s ease;
+  transition: background 0.15s var(--wl-ease-soft), color 0.15s var(--wl-ease-soft);
 }
 
 .capChip:hover {
-  color: var(--wos-ink);
+  color: var(--wl-ink);
 }
 
 .capChipOn {
-  color: var(--wos-ink);
-  border-color: var(--wos-blue);
-  background: var(--wos-card);
-  box-shadow: inset 0 0 0 1px var(--wos-blue);
+  color: #fff;
+  background: var(--wl-ink);
+  border-color: var(--wl-ink);
+}
+
+.capChipOn:hover {
+  color: #fff;
 }
 
 .row {
@@ -274,8 +289,8 @@
 .segment {
   display: inline-flex;
   padding: 3px;
-  background: var(--wos-sunk);
-  border-radius: var(--wos-r-pill);
+  background: rgba(27, 39, 48, 0.05);
+  border-radius: 999px;
   gap: 2px;
 }
 
@@ -283,21 +298,21 @@
   flex: 1;
   font: inherit;
   font-size: 12.5px;
-  font-weight: 600;
-  height: 32px;
+  font-weight: 500;
+  height: 30px;
   padding: 0 16px;
   border: 0;
-  border-radius: var(--wos-r-pill);
+  border-radius: 999px;
   background: transparent;
-  color: var(--wos-ink-2);
+  color: var(--wl-ink-2);
   cursor: pointer;
-  transition: background 0.14s ease, color 0.14s ease;
+  transition: background 0.15s var(--wl-ease-soft), color 0.15s var(--wl-ease-soft);
 }
 
 .segOn {
-  background: var(--wos-card);
-  color: var(--wos-ink);
-  box-shadow: var(--wos-sh-raised);
+  background: #fff;
+  color: var(--wl-ink);
+  box-shadow: 0 0 0 1px rgba(27, 39, 48, 0.06);
 }
 
 /* ── Footer ── */
@@ -306,6 +321,8 @@
   align-items: center;
   gap: 10px;
   margin-top: 24px;
+  padding-top: 16px;
+  border-top: 1px solid var(--wl-line);
 }
 
 .spacer {
@@ -313,21 +330,21 @@
 }
 
 .primary {
-  height: 38px;
-  padding: 0 20px;
+  height: 36px;
+  padding: 0 18px;
   border: 0;
-  border-radius: var(--wos-r-pill);
-  background: var(--wos-blue);
+  border-radius: 18px;
+  background: var(--wl-ink);
   color: #fff;
   font: inherit;
   font-size: 13.5px;
-  font-weight: 600;
+  font-weight: 500;
   cursor: pointer;
-  transition: background 0.14s ease, opacity 0.14s ease;
+  transition: background 0.15s var(--wl-ease-soft), opacity 0.15s var(--wl-ease-soft);
 }
 
 .primary:hover:not(:disabled) {
-  background: #0060bf;
+  background: #2c3b46;
 }
 
 .primary:disabled {
@@ -336,22 +353,21 @@
 }
 
 .quiet {
-  height: 38px;
+  height: 36px;
   padding: 0 16px;
-  border: 0;
-  border-radius: var(--wos-r-pill);
-  background: transparent;
-  color: var(--wos-ink-2);
+  border: 1px solid var(--wl-line);
+  border-radius: 18px;
+  background: rgba(255, 255, 255, 0.8);
+  color: var(--wl-ink);
   font: inherit;
   font-size: 13.5px;
-  font-weight: 600;
+  font-weight: 500;
   cursor: pointer;
-  transition: background 0.14s ease, color 0.14s ease;
+  transition: background 0.15s var(--wl-ease-soft);
 }
 
 .quiet:hover:not(:disabled) {
-  background: var(--wos-sunk);
-  color: var(--wos-ink);
+  background: #fff;
 }
 
 .quiet:disabled {

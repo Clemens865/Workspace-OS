@@ -336,7 +336,7 @@
   display: flex;
   flex-direction: column;
   min-width: 0;
-  background: var(--wos-bg);
+  background: var(--wl-mist-1, var(--wos-bg));
   overflow: hidden;
 }
 
@@ -351,7 +351,7 @@
   display: grid;
   place-items: center;
   height: 100%;
-  color: var(--wos-ink-3);
+  color: var(--wl-muted, var(--wos-ink-3));
   font-size: 14px;
   text-align: center;
   padding: 40px;
@@ -415,35 +415,52 @@
 .peekHead {
   display: flex;
   align-items: center;
-  gap: 10px;
-  padding: 14px 20px;
-  border-bottom: 0.5px solid var(--wos-hair);
+  gap: 8px;
+  padding: 14px 20px 12px 24px;
+  border-bottom: 1px solid var(--wl-line, var(--wos-hair));
 }
 
+/* Serif surface heading (class has a capital T, so tokens.css's [class*="title"]
+   override does not catch it). */
 .peekTitle {
-  font-weight: 600;
-  font-size: 15px;
+  font-family: var(--wl-serif, inherit);
+  font-weight: 400;
+  font-size: 22px;
+  line-height: 1.2;
+  letter-spacing: -0.01em;
+  color: var(--wl-ink, var(--wos-ink));
 }
 
 .peekSub {
-  color: var(--wos-ink-3);
+  margin-top: 2px;
+  color: var(--wl-faint, var(--wos-ink-3));
   font-size: 12px;
 }
 
 .peekAct {
-  margin-left: auto;
   display: flex;
   align-items: center;
   gap: 6px;
-  color: var(--wos-ink-2);
-  font-size: 12.5px;
-  background: var(--wos-card);
-  padding: 7px 11px;
-  border-radius: 9px;
-  box-shadow: var(--wos-sh-raised);
+  height: 32px;
+  padding: 0 14px;
+  color: var(--wl-ink, var(--wos-ink-2));
+  font-size: 13px;
+  font-weight: 500;
+  background: rgba(255, 255, 255, 0.8);
+  border: 1px solid var(--wl-line, var(--wos-hair));
+  border-radius: 18px;
   cursor: pointer;
-  border: 0;
   font-family: inherit;
+  transition: background 0.15s var(--wl-ease-soft, ease);
+}
+
+.peekAct:hover {
+  background: #fff;
+}
+
+/* The first action pushes the group to the right edge. */
+.peekHead > div + .peekAct {
+  margin-left: auto;
 }
 
 /* Files surface: tree (left) + in-place document pane (right) — tree stays visible. */
@@ -456,7 +473,8 @@
 .filesTree {
   min-width: 0;
   overflow: hidden;
-  border-right: 0.5px solid var(--wos-hair);
+  border-right: 1px solid var(--wl-line, var(--wos-hair));
+  background: rgba(251, 252, 253, 0.55);
   display: flex;
 }
 .filesTree > * { flex: 1; min-width: 0; }

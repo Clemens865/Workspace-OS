@@ -328,7 +328,7 @@ export function MailCompose({ account, initial, onClose, onSent, onQueued }: Mai
     <div className={`${styles.backdrop} ${expanded ? styles.backdropTall : ''}`} onClick={onClose}>
       <div className={`${styles.panel} ${expanded ? styles.panelExpanded : ''}`} onClick={(e) => e.stopPropagation()}>
         <div className={styles.header}>
-          <span className={styles.title}>{title(initial.context)}</span>
+          <span className={styles.heading}>{title(initial.context)}</span>
           <span className={styles.headerTools}>
             <button
               className={styles.close}

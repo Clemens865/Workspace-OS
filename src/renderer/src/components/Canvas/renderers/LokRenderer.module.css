@@ -11,8 +11,8 @@
   align-items: center;
   justify-content: space-between;
   padding: 6px 12px;
-  background: var(--color-surface);
-  border-bottom: 1px solid var(--color-border);
+  background: var(--wl-paper-solid, var(--color-surface));
+  border-bottom: 1px solid var(--wl-line, var(--color-border));
   flex-shrink: 0;
 }
 
@@ -21,21 +21,21 @@
   align-items: center;
   gap: 10px;
   font-size: 12px;
-  color: var(--color-text-muted);
+  color: var(--wl-muted, var(--color-text-muted));
 }
 
 .live {
-  color: #3fae6a;
+  color: var(--wl-codex, #2d9d8f);
   font-size: 11px;
-  font-weight: 600;
+  font-weight: 500;
   letter-spacing: 0.03em;
 }
 
 .styleSelect {
-  background: var(--color-surface-raised);
-  border: 1px solid var(--color-border);
-  border-radius: 4px;
-  color: var(--color-text);
+  background: rgba(255, 255, 255, 0.85);
+  border: 1px solid var(--wl-line, var(--color-border));
+  border-radius: 8px;
+  color: var(--wl-ink, var(--color-text));
   font-size: 12px;
   padding: 3px 6px;
   height: 26px;
@@ -46,15 +46,16 @@
   align-items: center;
   gap: 2px;
   padding-left: 6px;
-  border-left: 1px solid var(--color-border);
+  border-left: 1px solid var(--wl-line, var(--color-border));
 }
 
 .fmtGroup button {
   background: transparent;
   border: 1px solid transparent;
-  border-radius: 4px;
-  color: var(--color-text);
+  border-radius: 8px;
+  color: var(--wl-ink-2, var(--color-text));
   cursor: pointer;
+  transition: background 0.15s var(--wl-ease-soft, ease);
   width: 26px;
   height: 24px;
   display: flex;
@@ -63,22 +64,24 @@
 }
 
 .fmtGroup button:hover {
-  background: var(--color-surface-raised);
-  border-color: var(--color-border);
+  background: rgba(27, 39, 48, 0.05);
+  color: var(--wl-ink, var(--color-text));
 }
 
 .saveBtn {
   display: inline-flex;
   align-items: center;
   gap: 5px;
-  background: var(--color-surface-raised);
-  border: 1px solid var(--color-border);
-  border-radius: 4px;
-  color: var(--color-text);
+  background: rgba(255, 255, 255, 0.8);
+  border: 1px solid var(--wl-line, var(--color-border));
+  border-radius: 999px;
+  color: var(--wl-ink, var(--color-text));
   cursor: pointer;
   font-size: 12px;
+  font-weight: 500;
   padding: 3px 9px;
 }
+.saveBtn:hover:not(:disabled) { background: #fff; }
 
 .saveBtn:disabled {
   opacity: 0.55;
@@ -90,14 +93,14 @@
   align-items: center;
   gap: 8px;
   font-size: 12px;
-  color: var(--color-text);
+  color: var(--wl-ink-2, var(--color-text));
 }
 
 .zoomControls button {
-  background: var(--color-surface-raised);
-  border: 1px solid var(--color-border);
-  border-radius: 4px;
-  color: var(--color-text);
+  background: transparent;
+  border: 1px solid var(--wl-line, var(--color-border));
+  border-radius: 999px;
+  color: var(--wl-ink, var(--color-text));
   cursor: pointer;
   width: 24px;
   height: 24px;
@@ -121,7 +124,7 @@
   align-items: center;
   justify-content: center;
   z-index: 2;
-  color: var(--color-danger);
+  color: var(--wl-claude, var(--color-danger));
   font-size: 13px;
 }
 
@@ -235,8 +238,8 @@
   align-items: stretch;
   gap: 2px;
   padding: 4px 8px;
-  background: var(--color-surface);
-  border-top: 1px solid var(--color-border);
+  background: var(--wl-paper-solid, var(--color-surface));
+  border-top: 1px solid var(--wl-line, var(--color-border));
   flex-shrink: 0;
   overflow-x: auto;
 }
@@ -245,27 +248,28 @@
 .partActive {
   background: transparent;
   border: 1px solid transparent;
-  border-radius: 6px;
-  color: var(--color-text-muted);
+  border-radius: 999px;
+  color: var(--wl-muted, var(--color-text-muted));
   cursor: pointer;
   font-size: 12px;
+  font-weight: 500;
   padding: 4px 12px;
   white-space: nowrap;
   max-width: 180px;
   overflow: hidden;
   text-overflow: ellipsis;
-  transition: background 100ms ease, color 100ms ease;
+  transition: background 0.15s var(--wl-ease-soft, ease), color 0.15s var(--wl-ease-soft, ease);
 }
 
 .partTab:hover {
-  background: var(--color-hover);
-  color: var(--color-text);
+  background: rgba(27, 39, 48, 0.05);
+  color: var(--wl-ink, var(--color-text));
 }
 
 .partActive {
-  background: var(--color-accent-soft);
-  color: var(--color-accent);
-  font-weight: 600;
+  background: #fff;
+  border-color: rgba(27, 39, 48, 0.06);
+  color: var(--wl-ink, var(--color-text));
 }
 
 .caret {
@@ -287,13 +291,13 @@
   left: 50%;
   transform: translateX(-50%);
   z-index: 5;
-  background: rgba(20, 20, 20, 0.92);
+  background: var(--wl-ink, #1b2730);
   color: #fff;
   font-size: 12px;
   padding: 8px 16px;
-  border-radius: 6px;
+  border-radius: 999px;
   pointer-events: none;
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.3);
+  box-shadow: 0 20px 50px -20px rgba(30, 55, 70, 0.35);
 }
 
 .propsBackdrop {
@@ -303,22 +307,24 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  background: rgba(0, 0, 0, 0.3);
+  /* Sits over the office canvas: solid-ish mist, never a backdrop-filter. */
+  background: rgba(226, 233, 238, 0.72);
 }
 
 .propsModal {
-  background: var(--color-surface, #fff);
-  border: 1px solid var(--color-border, #e2e2e2);
-  border-radius: 10px;
-  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.25);
+  background: var(--wl-paper-solid, #fbfcfd);
+  border: 1px solid transparent;
+  border-radius: 22px;
+  box-shadow: 0 0 0 1px rgba(27, 39, 48, 0.07), 0 20px 50px -20px rgba(30, 55, 70, 0.35);
   padding: 18px 20px;
   min-width: 320px;
-  color: var(--color-text, #1a1a1a);
+  color: var(--wl-ink, #1b2730);
 }
 
 .propsTitle {
   font-size: 14px;
   font-weight: 600;
+  color: var(--wl-ink, #1b2730);
   margin-bottom: 12px;
 }
 
@@ -330,16 +336,18 @@
   font-size: 13px;
 }
 
-.propsList dt { color: var(--color-text-muted); }
+.propsList dt { color: var(--wl-muted, var(--color-text-muted)); }
+.propsList dd { color: var(--wl-ink-2, var(--color-text)); }
 .propsList dd { margin: 0; }
 
 .propsClose {
-  background: var(--color-surface-raised);
-  border: 1px solid var(--color-border);
-  border-radius: 5px;
-  color: var(--color-text);
+  background: rgba(255, 255, 255, 0.8);
+  border: 1px solid var(--wl-line, var(--color-border));
+  border-radius: 999px;
+  color: var(--wl-ink, var(--color-text));
   cursor: pointer;
   font-size: 13px;
+  font-weight: 500;
   padding: 5px 14px;
   float: right;
 }
@@ -354,7 +362,7 @@
 /* Calc active-cell outline (the box you see when you click a cell). */
 .cellCursor {
   position: absolute;
-  border: 2px solid var(--accent, #1a73e8);
+  border: 2px solid #1a73e8;
   box-shadow: 0 0 0 1px rgba(26, 115, 232, 0.25);
   pointer-events: none;
   box-sizing: border-box;
@@ -366,7 +374,7 @@
   position: absolute;
   pointer-events: none;
   box-sizing: border-box;
-  border-bottom: 1.5px solid var(--accent, #1a73e8);
+  border-bottom: 1.5px solid #1a73e8;
   z-index: 4;
 }
 .liveLinkDot {
@@ -376,7 +384,7 @@
   width: 5px;
   height: 5px;
   border-radius: 50%;
-  background: var(--accent, #1a73e8);
+  background: #1a73e8;
   box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.7);
 }
 
@@ -391,17 +399,18 @@
   gap: 5px;
   height: 24px;
   padding: 0 10px;
-  background: var(--color-surface, #fff);
-  border: 1px solid var(--color-border);
+  background: rgba(251, 252, 253, 0.9);
+  border: 1px solid rgba(255, 255, 255, 0.85);
   border-radius: 999px;
-  color: var(--color-text);
+  color: var(--wl-ink, var(--color-text));
   font-size: 11px;
+  font-weight: 500;
   cursor: pointer;
-  box-shadow: var(--shadow-1, 0 1px 3px rgba(0,0,0,0.12));
+  box-shadow: 0 0 0 1px rgba(27, 39, 48, 0.05);
 }
-.liveChip:hover { background: var(--color-hover); }
+.liveChip:hover { background: #fff; }
 .liveChipDot {
-  color: #1a7f37;
+  color: var(--wl-codex, #2d9d8f);
   font-size: 9px;
   line-height: 1;
 }
@@ -410,7 +419,7 @@
    is pass-through so the drag reaches the canvas and the engine moves/resizes. */
 .graphicSel {
   position: absolute;
-  border: 1px solid var(--accent, #1a73e8);
+  border: 1px solid #1a73e8;
   pointer-events: none;
   box-sizing: border-box;
   z-index: 5;
@@ -448,18 +457,17 @@
   transform: translateX(-50%);
   z-index: 7;
   padding: 5px 12px;
-  background: var(--accent, #1a73e8);
+  background: var(--wl-ink, #1b2730);
   color: #fff;
   font-size: 12px;
-  border-radius: 7px;
-  box-shadow: var(--shadow-1, 0 1px 3px rgba(0,0,0,0.2));
+  border-radius: 999px;
 }
 .handle {
   position: absolute;
   width: 8px;
   height: 8px;
   background: #fff;
-  border: 1.5px solid var(--accent, #1a73e8);
+  border: 1.5px solid #1a73e8;
   border-radius: 2px;
   box-shadow: 0 1px 2px rgba(0, 0, 0, 0.25);
 }
@@ -500,16 +508,16 @@
   gap: 4px;
   height: 28px;
   padding: 0 14px;
-  background: var(--accent, #6e8ae0);
+  background: var(--wl-ink, #1b2730);
   border: none;
-  border-radius: 7px;
+  border-radius: 999px;
   color: #fff;
   font-size: 12px;
-  font-weight: 600;
+  font-weight: 500;
   cursor: pointer;
-  box-shadow: var(--shadow-1, 0 1px 3px rgba(0,0,0,0.15));
+  transition: background 0.15s var(--wl-ease-soft, ease);
 }
-.presentBtn:hover { opacity: 0.92; }
+.presentBtn:hover { background: #2c3b46; }
 
 .componentsBtn {
   position: absolute;
@@ -521,16 +529,16 @@
   gap: 4px;
   height: 28px;
   padding: 0 12px;
-  background: var(--color-surface, #fff);
-  border: 1px solid var(--color-border);
-  border-radius: 7px;
-  color: var(--color-text);
+  background: rgba(255, 255, 255, 0.8);
+  border: 1px solid var(--wl-line, var(--color-border));
+  border-radius: 999px;
+  color: var(--wl-ink, var(--color-text));
   font-size: 12px;
-  font-weight: 600;
+  font-weight: 500;
   cursor: pointer;
-  box-shadow: var(--shadow-1, 0 1px 3px rgba(0,0,0,0.12));
+  transition: background 0.15s var(--wl-ease-soft, ease);
 }
-.componentsBtn:hover { background: var(--color-hover); }
+.componentsBtn:hover { background: #fff; }
 
 /* Metrics (live-transclusion) toggle — sits just left of Components (Calc). */
 .metricsBtn {
@@ -543,16 +551,16 @@
   gap: 4px;
   height: 28px;
   padding: 0 12px;
-  background: var(--color-surface, #fff);
-  border: 1px solid var(--color-border);
-  border-radius: 7px;
-  color: var(--color-text);
+  background: rgba(255, 255, 255, 0.8);
+  border: 1px solid var(--wl-line, var(--color-border));
+  border-radius: 999px;
+  color: var(--wl-ink, var(--color-text));
   font-size: 12px;
-  font-weight: 600;
+  font-weight: 500;
   cursor: pointer;
-  box-shadow: var(--shadow-1, 0 1px 3px rgba(0,0,0,0.12));
+  transition: background 0.15s var(--wl-ease-soft, ease);
 }
-.metricsBtn:hover { background: var(--color-hover); }
+.metricsBtn:hover { background: #fff; }
 
 /* Comment anchors in the document margin. */
 .commentAnchor {

@@ -1,7 +1,9 @@
 .backdrop {
   position: fixed;
   inset: 0;
-  background: rgba(0, 0, 0, 0.5);
+  /* Solid-ish veil, no backdrop-filter: it can lie over the browser <webview>
+     or the office canvas. */
+  background: rgba(226, 233, 238, 0.72);
   z-index: 150;
   display: flex;
   align-items: center;
@@ -13,51 +15,74 @@
   max-width: 90vw;
   display: flex;
   flex-direction: column;
-  gap: 10px;
-  background: var(--color-surface-raised);
-  border: 1px solid var(--color-border);
-  border-radius: 10px;
-  padding: 16px;
-  box-shadow: 0 16px 48px rgba(0, 0, 0, 0.5);
+  gap: 12px;
+  background: var(--wl-paper-solid);
+  border: 0;
+  border-radius: 22px;
+  padding: 22px;
+  box-shadow: 0 0 0 1px rgba(27, 39, 48, 0.07), 0 20px 50px -20px rgba(30, 55, 70, 0.35);
 }
 
-.title { font-size: 14px; font-weight: 600; color: var(--color-text); }
+/* Not named *title*: tokens.css forces weight/colour on those. */
+.heading {
+  font-family: var(--wl-serif);
+  font-size: 24px;
+  font-weight: 400;
+  letter-spacing: -0.01em;
+  color: var(--wl-ink);
+}
 
-.hint { font-size: 12px; line-height: 1.45; color: var(--color-text-muted); }
+.hint { font-size: 13px; line-height: 1.5; color: var(--wl-ink-2); }
 
 .input {
-  background: var(--color-surface);
-  border: 1px solid var(--color-border);
-  border-radius: 6px;
-  color: var(--color-text);
-  font-size: 13px;
-  padding: 7px 10px;
+  height: 36px;
+  box-sizing: border-box;
+  background: rgba(255, 255, 255, 0.85);
+  border: 1px solid var(--wl-line);
+  border-radius: 18px;
+  color: var(--wl-ink);
+  font-family: inherit;
+  font-size: 13.5px;
+  padding: 0 14px;
   outline: none;
+  transition: border-color 0.15s var(--wl-ease-soft), box-shadow 0.15s var(--wl-ease-soft);
 }
-.input:focus { border-color: var(--color-accent); }
+.input:focus {
+  border-color: rgba(27, 39, 48, 0.25);
+  box-shadow: 0 0 0 3px rgba(27, 39, 48, 0.07);
+}
 
-.error { font-size: 12px; color: var(--color-danger); }
+.error { font-size: 12px; color: #b84a3a; }
 
 .actions { display: flex; justify-content: flex-end; gap: 8px; margin-top: 2px; }
 
 .cancelBtn {
-  background: none;
-  border: 1px solid var(--color-border);
-  border-radius: 6px;
-  color: var(--color-text);
+  height: 34px;
+  background: rgba(255, 255, 255, 0.8);
+  border: 1px solid var(--wl-line);
+  border-radius: 18px;
+  color: var(--wl-ink);
   cursor: pointer;
-  font-size: 12px;
-  padding: 5px 12px;
+  font-family: inherit;
+  font-size: 13px;
+  font-weight: 500;
+  padding: 0 15px;
+  transition: background 0.15s var(--wl-ease-soft);
 }
+.cancelBtn:hover { background: #fff; }
 
 .saveBtn {
-  background: var(--color-accent);
-  border: none;
-  border-radius: 6px;
+  height: 34px;
+  background: var(--wl-ink);
+  border: 0;
+  border-radius: 18px;
   color: #fff;
   cursor: pointer;
-  font-size: 12px;
-  padding: 5px 14px;
+  font-family: inherit;
+  font-size: 13px;
+  font-weight: 500;
+  padding: 0 16px;
+  transition: background 0.15s var(--wl-ease-soft);
 }
 .saveBtn:disabled { opacity: 0.5; cursor: default; }
-.saveBtn:hover:not(:disabled) { filter: brightness(1.1); }
+.saveBtn:hover:not(:disabled) { background: #2c3b46; }

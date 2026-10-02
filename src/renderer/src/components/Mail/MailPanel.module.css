@@ -1,348 +1,109 @@
-.root { display: flex; flex-direction: column; height: 100%; overflow: hidden; }
+/* Mail surface — landscape materials: mist ground, paper reading pane, ink accents. */
+.root { display: flex; flex-direction: column; height: 100%; overflow: hidden; color: var(--wl-ink); }
 
 .header {
   display: flex; align-items: center; justify-content: space-between;
-  padding: 10px 12px; border-bottom: 1px solid var(--color-border); flex: none;
+  padding: 14px 16px 10px; flex: none;
 }
-.headerTitle { display: flex; align-items: center; gap: 7px; font-size: 13px; font-weight: 600; color: var(--color-text); }
+.headerTitle { display: flex; align-items: center; gap: 7px; color: var(--wl-ink); }
+/* Serif surface heading (class name avoids the tokens.css "title" override). */
+.heading { font-family: var(--wl-serif); font-size: 26px; font-weight: 400; letter-spacing: -0.01em; color: var(--wl-ink); line-height: 1.1; }
 .headerActions { display: flex; gap: 2px; }
-.iconBtn {
+.iconBtn, .removeAccount {
   display: flex; align-items: center; justify-content: center;
-  background: none; border: none; cursor: pointer; color: var(--color-text-muted);
-  padding: 4px; border-radius: 6px;
+  width: 30px; height: 30px; background: transparent; border: 0; cursor: pointer; color: var(--wl-muted);
+  border-radius: 999px; transition: background 0.15s var(--wl-ease-soft), color 0.15s var(--wl-ease-soft);
 }
-.iconBtn:hover { color: var(--color-text); background: var(--color-hover); }
+.iconBtn:hover, .removeAccount:hover { color: var(--wl-ink); background: rgba(27, 39, 48, 0.05); }
+.removeAccount:hover { color: #b84a3a; }
 .iconBtn:disabled { opacity: 0.5; cursor: default; }
 
-.accountBar { display: flex; align-items: center; gap: 6px; padding: 8px 12px; border-bottom: 1px solid var(--color-border); flex: none; }
+/* Account selector — a pill select, not a full-width native bar. */
+.accountBar { display: flex; align-items: center; gap: 6px; padding: 0 16px 10px; flex: none; }
 .accountSelect {
-  flex: 1; background: var(--color-bg, var(--color-surface)); border: 1px solid var(--color-border);
-  border-radius: 6px; color: var(--color-text); font-size: 12px; padding: 5px 8px; outline: none;
+  appearance: none; -webkit-appearance: none;
+  flex: 0 1 280px; min-width: 0; height: 32px; box-sizing: border-box;
+  padding: 0 32px 0 14px; border-radius: 18px;
+  border: 1px solid var(--wl-line); background-color: rgba(255, 255, 255, 0.85);
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'%3E%3Cpath d='M1 1l4 4 4-4' fill='none' stroke='%237a8893' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+  background-repeat: no-repeat; background-position: right 13px center;
+  color: var(--wl-ink); font: inherit; font-size: 13px; font-weight: 500; outline: none; cursor: pointer;
+  transition: border-color 0.15s var(--wl-ease-soft), box-shadow 0.15s var(--wl-ease-soft);
 }
-.removeAccount { background: none; border: none; cursor: pointer; color: var(--color-text-muted); padding: 4px; border-radius: 6px; display: flex; }
-.removeAccount:hover { color: var(--color-danger, #d9534f); background: var(--color-hover); }
+.accountSelect:hover { background-color: #fff; }
+.accountSelect:focus { border-color: rgba(27, 39, 48, 0.25); box-shadow: 0 0 0 3px rgba(27, 39, 48, 0.07); }
 
+/* Errors are warm, not alarm-red: a soft claude banner inset in the surface. */
 .errorBar {
-  display: flex; align-items: center; gap: 6px; font-size: 12px; color: var(--color-danger, #d9534f);
-  padding: 8px 12px; background: rgba(217, 83, 79, 0.08); flex: none;
+  display: flex; align-items: center; gap: 8px; flex: none;
+  margin: 0 16px 10px; padding: 9px 14px; border-radius: 12px;
+  font-size: 12.5px; color: var(--wl-ink-2); background: var(--wl-claude-soft);
 }
+.errorBar svg { color: var(--wl-claude); flex: none; }
 
-.split { display: flex; flex: 1; min-height: 0; }
+.split { display: flex; flex: 1; min-height: 0; border-top: 1px solid var(--wl-line); }
 
 .folders {
-  width: 34%; min-width: 92px; max-width: 150px; border-right: 1px solid var(--color-border);
-  overflow-y: auto; padding: 6px 0; display: flex; flex-direction: column; gap: 1px;
+  width: 34%; min-width: 92px; max-width: 150px;
+  overflow-y: auto; padding: 10px 0 10px 8px; display: flex; flex-direction: column; gap: 2px;
 }
 .folder {
   display: flex; align-items: center; gap: 7px; width: 100%; text-align: left;
-  background: none; border: none; cursor: pointer; color: var(--color-text-muted);
-  font-size: 12px; padding: 7px 10px;
+  background: none; border: none; cursor: pointer; color: var(--wl-ink-2);
+  font: inherit; font-size: 12.5px; padding: 8px 10px; border-radius: 10px; margin-right: 6px;
+  transition: background 0.15s var(--wl-ease-soft);
 }
-.folder:hover { background: var(--color-hover); color: var(--color-text); }
-.folderActive { background: var(--color-hover); color: var(--color-text); font-weight: 600; }
+.folder:hover { background: rgba(27, 39, 48, 0.05); color: var(--wl-ink); }
+.folderActive, .folderActive:hover { background: rgba(27, 39, 48, 0.08); color: var(--wl-ink); font-weight: 500; }
 .folderName { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 
 .messages { flex: 1; overflow-y: auto; min-width: 0; }
+.split > .messages { flex: 1 1 320px; min-width: 260px; }
 .filterBar {
-  display: flex; align-items: center; gap: 6px; padding: 6px 10px;
-  border-bottom: 1px solid var(--color-border); position: sticky; top: 0;
-  background: var(--color-surface); z-index: 1;
+  display: flex; align-items: center; gap: 8px; margin: 10px 10px 4px; padding: 0 14px; height: 34px;
+  border: 1px solid var(--wl-line); border-radius: 18px; position: sticky; top: 0;
+  background: rgba(255, 255, 255, 0.85); z-index: 1;
+  transition: border-color 0.15s var(--wl-ease-soft), box-shadow 0.15s var(--wl-ease-soft);
 }
-.filterIcon { color: var(--color-text-muted); flex: none; }
+.filterBar:focus-within { border-color: rgba(27, 39, 48, 0.25); box-shadow: 0 0 0 3px rgba(27, 39, 48, 0.07); }
+.filterIcon { color: var(--wl-muted); flex: none; }
 .filterInput {
   flex: 1; min-width: 0; background: none; border: none; outline: none;
-  font-size: 12px; color: var(--color-text);
+  font: inherit; font-size: 13px; color: var(--wl-ink);
 }
-.filterInput::placeholder { color: var(--color-text-muted); }
-.msg {
-  display: block; width: 100%; text-align: left; background: none; border: none;
-  border-bottom: 1px solid var(--color-border); cursor: pointer; padding: 9px 12px;
-}
-.msg:hover { background: var(--color-hover); }
-.msgUnread { background: var(--color-surface); }
-.msgTop { display: flex; align-items: center; gap: 6px; margin-bottom: 3px; }
-.unreadDot { color: var(--color-accent); flex: none; }
-.msgFrom { font-size: 12.5px; color: var(--color-text); font-weight: 500; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; flex: 1; }
-.msgUnread .msgFrom { font-weight: 700; }
-.msgWhen { font-size: 11px; color: var(--color-text-muted); flex: none; }
-.msgSubject { font-size: 12px; color: var(--color-text-muted); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.msgUnread .msgSubject { color: var(--color-text); }
+.filterInput::placeholder { color: var(--wl-faint); }
 
-.loadMore {
-  display: block; width: 100%; background: none; border: none; cursor: pointer;
-  color: var(--color-accent); font-size: 12px; font-weight: 600; padding: 10px;
-}
-.loadMore:hover { background: var(--color-hover); }
-.loadMore:disabled { opacity: 0.5; cursor: default; }
-
-.status { padding: 16px 12px; font-size: 12px; color: var(--color-text-muted); text-align: center; }
-
-/* ── Reader ─────────────────────────────────────────────────────────────── */
-.readerWrap { display: flex; flex-direction: column; flex: 1; min-height: 0; }
-.backBtn {
-  display: flex; align-items: center; gap: 4px; background: none; border: none; cursor: pointer;
-  color: var(--color-text-muted); font-size: 12px; padding: 8px 12px; flex: none;
-  border-bottom: 1px solid var(--color-border);
-}
-.backBtn:hover { color: var(--color-text); }
-
-.reader { display: flex; flex-direction: column; flex: 1; min-height: 0; background: var(--color-canvas, var(--color-bg)); }
-.readerHeader { padding: 18px 24px 14px; border-bottom: 1px solid var(--color-border); flex: none; }
-.readerSubject {
-  font-size: 19px; font-weight: 640; letter-spacing: -0.02em; line-height: 1.25;
-  color: var(--color-text); margin-bottom: 10px;
-}
-.readerMeta { display: flex; flex-direction: column; gap: 3px; font-size: 12.5px; color: var(--color-text); }
-.metaKey { display: inline-block; width: 38px; color: var(--color-text-subtle, var(--color-text-muted)); }
-.metaDate { color: var(--color-text-subtle, var(--color-text-muted)); margin-top: 4px; font-size: 12px; }
-
-.replyActions { display: flex; gap: 8px; margin-top: 14px; }
-.replyBtn {
-  display: inline-flex; align-items: center; gap: 6px; font-size: 12.5px; font-weight: 600;
-  background: var(--color-surface); color: var(--color-text); border: 1px solid var(--color-border);
-  border-radius: 9px; padding: 6px 12px; cursor: pointer; box-shadow: var(--wos-sh-raised, 0 1px 2px rgba(0,0,0,0.05));
-}
-.replyBtn:hover { background: var(--color-hover); }
-
-.composeBtn {
-  display: inline-flex; align-items: center; gap: 6px; font-size: 12.5px; font-weight: 600;
-  background: var(--color-accent); color: #fff; border: none; border-radius: 8px;
-  padding: 7px 14px; cursor: pointer; margin: 8px 12px 0; align-self: flex-start;
-}
-
-.blockedNotice {
-  display: flex; align-items: center; gap: 6px; font-size: 11.5px; color: var(--color-text-muted);
-  margin-top: 8px; padding: 6px 8px; background: var(--color-hover); border-radius: 6px;
-}
-.attachments { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; }
-.attachment {
-  display: inline-flex; align-items: center; gap: 5px; font-size: 11.5px; color: var(--color-text);
-  border: 1px solid var(--color-border); border-radius: 6px; padding: 3px 8px;
-}
-.attSize { color: var(--color-text-muted); }
-
-.readerFrame { flex: 1; width: 100%; border: none; background: #fff; }
-
-/* ── Empty state ────────────────────────────────────────────────────────── */
-.empty { display: flex; flex-direction: column; align-items: center; justify-content: center; flex: 1; padding: 24px; text-align: center; }
-.emptyIcon { color: var(--color-text-muted); margin-bottom: 10px; }
-.emptyTitle { margin: 0 0 4px; font-size: 13px; font-weight: 600; color: var(--color-text); }
-.emptyHint { margin: 0 0 14px; font-size: 12px; color: var(--color-text-muted); line-height: 1.4; max-width: 220px; }
-.addBtn {
-  display: inline-flex; align-items: center; gap: 6px; font-size: 12.5px; font-weight: 600;
-  background: var(--color-accent); color: #fff; border: none; border-radius: 8px;
-  padding: 8px 16px; cursor: pointer;
-}
-
-.demoBtn {
-  display: inline-flex; align-items: center; gap: 6px; margin-top: 10px; font-size: 12px; font-weight: 500;
-  background: transparent; color: var(--color-text-muted); border: 1px dashed var(--color-border);
-  border-radius: 8px; padding: 7px 14px; cursor: pointer;
-}
-.demoBtn:hover { color: var(--color-text); background: var(--color-hover); }
-
-.spin { animation: mailspin 0.9s linear infinite; }
-@keyframes mailspin { to { transform: rotate(360deg); } }
-
-/* ── Three-pane layout + spacing pass ─────────────────────────────────────────
-   The panel was a two-pane sidebar (folders | list) that swapped the list out
-   for the reader. Full-width that reads as broken: you lose your place in the
-   mailbox every time you open a message. Folders | list | reader instead. */
-
-.toolbar {
-  display: flex; align-items: center; gap: 8px;
-  padding: 8px 12px; border-bottom: 1px solid var(--color-border);
-}
-.toolBtn {
-  display: inline-flex; align-items: center; gap: 6px;
-  padding: 6px 10px; border-radius: 6px;
-  background: var(--color-surface-raised, transparent);
-  border: 1px solid var(--color-border); cursor: pointer;
-  color: var(--color-text); font-size: 12px; white-space: nowrap;
-}
-.toolBtn:hover:not(:disabled) { background: var(--color-surface-hover, rgba(127,127,127,0.08)); }
-.toolBtn:disabled { opacity: 0.55; cursor: default; }
-/* The view the message column is currently showing (List ↔ Sift toggle). */
-.toolBtnOn { background: var(--color-surface-hover, rgba(127,127,127,0.1)); border-color: var(--color-text-muted); }
-
-/* The reading column. flex-basis rather than a percentage so the list keeps a
-   usable width on a narrow window instead of collapsing to nothing. */
-.readerCol {
-  display: flex; flex-direction: column; min-width: 0;
-  flex: 1 1 480px; border-left: 1px solid var(--color-border);
-  overflow: hidden;
-}
-
-/* Give the folder rail room to breathe and let long names wrap out of the way
-   rather than being clipped mid-word. */
-.folders { padding: 8px 0; gap: 2px; }
-.folder { padding: 8px 12px; border-radius: 0 6px 6px 0; margin-right: 6px; }
-.folder:hover { background: var(--color-surface-hover, rgba(127,127,127,0.08)); }
-.folderName { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-
-/* Rows: a hover affordance, and breathing room. Previously a row gave no
-   feedback at all before you clicked it. */
-.msg { padding: 10px 12px; }
-.msg:hover { background: var(--color-surface-hover, rgba(127,127,127,0.06)); }
-.msgTop { gap: 8px; }
-.msgSubject { margin-top: 2px; }
-
-/* When the reader is open the list becomes the narrower column. */
-.split > .messages { flex: 1 1 320px; min-width: 260px; }
-
-/* ── Row actions + undo ──────────────────────────────────────────────────────
-   Actions appear on hover so the list stays calm when you are only reading.
-   Every one is journalled and reversible; Delete is a move to Trash. */
-
-.msgRow { position: relative; display: flex; align-items: stretch; }
+/* Rows */
+.msgRow { position: relative; display: flex; align-items: stretch; margin: 0 6px; border-radius: 10px; transition: background 0.15s var(--wl-ease-soft); }
+.msgRow:hover { background: rgba(27, 39, 48, 0.05); }
 .msgRow > .msg { flex: 1; min-width: 0; }
-.rowActions {
-  display: none; align-items: center; gap: 2px;
-  padding-right: 8px; background: inherit;
+.msg {
+  display: flex; align-items: flex-start; gap: 10px; width: 100%; text-align: left;
+  background: none; border: none; border-radius: 10px; cursor: pointer; padding: 10px 10px; font: inherit; color: inherit;
 }
+.msgUnread { background: transparent; }
+.msgTop { display: flex; align-items: center; gap: 8px; margin-bottom: 3px; }
+.unreadDot { color: var(--wl-claude); flex: none; }
+.msgFrom { font-size: 13px; color: var(--wl-ink); font-weight: 500; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; flex: 1; }
+.msgUnread .msgFrom { font-weight: 600; }
+.msgWhen { font-size: 11.5px; color: var(--wl-faint); flex: none; font-variant-numeric: tabular-nums; }
+.msgSubject { font-size: 12.5px; color: var(--wl-muted); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; margin-top: 2px; }
+.msgUnread .msgSubject { color: var(--wl-ink-2); }
+.msgBody { flex: 1; min-width: 0; }
+.msgDense { padding: 5px 10px; gap: 6px; }
+.msgDense .msgSubject { margin-top: 0; }
+.msgPicked, .msgPicked:hover { background: rgba(27, 39, 48, 0.08); }
+.pick { flex: none; margin: 0 2px 0 10px; opacity: 0; cursor: pointer; accent-color: var(--wl-ink); }
+.msgRow:hover .pick, .msgPicked .pick { opacity: 1; }
+.rowActions { display: none; align-items: center; gap: 2px; padding-right: 6px; }
 .msgRow:hover .rowActions { display: flex; }
 .rowAction {
   display: inline-flex; align-items: center; justify-content: center;
-  width: 26px; height: 26px; border-radius: 6px;
-  background: none; border: none; cursor: pointer;
-  color: var(--color-text-muted);
+  width: 28px; height: 28px; border-radius: 999px;
+  background: none; border: none; cursor: pointer; color: var(--wl-muted);
+  transition: background 0.15s var(--wl-ease-soft), color 0.15s var(--wl-ease-soft);
 }
-.rowAction:hover { background: var(--color-surface-hover, rgba(127,127,127,0.14)); color: var(--color-text); }
-
-.undoBar {
-  display: flex; align-items: center; gap: 8px;
-  padding: 7px 12px; font-size: 12px;
-  border-bottom: 1px solid var(--color-border);
-  color: var(--color-text-muted);
-}
-.undoText { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.undoBtn {
-  padding: 3px 10px; border-radius: 5px; cursor: pointer;
-  border: 1px solid var(--color-border); background: none;
-  color: var(--color-text); font-size: 12px;
-}
-.undoBtn:hover { background: var(--color-surface-hover, rgba(127,127,127,0.1)); }
-
-.errorBar {
-  display: flex; align-items: center; gap: 7px;
-  padding: 7px 12px; font-size: 12px;
-  color: var(--color-danger, #b3261e);
-}
-
-/* Unread badge. Rendered only when the count is known AND non-zero — an
-   uncertain or zero badge is noise, and a wrong one is worse than none. */
-.folderCount {
-  margin-left: auto; flex: none;
-  min-width: 18px; padding: 1px 6px; border-radius: 9px;
-  font-size: 11px; font-variant-numeric: tabular-nums; text-align: center;
-  background: var(--color-surface-hover, rgba(127,127,127,0.16));
-  color: var(--color-text);
-}
-
-/* Multi-select + bulk actions. The checkbox stays hidden until you hover or
-   have a selection going, so a list you are only reading stays calm. */
-.pick { flex: none; margin: 0 2px 0 10px; opacity: 0; cursor: pointer; }
-.msgRow:hover .pick, .msgPicked .pick { opacity: 1; }
-.msgPicked { background: var(--color-surface-hover, rgba(90,140,255,0.10)); }
-
-.bulkBar {
-  display: flex; align-items: center; gap: 8px; flex-wrap: wrap;
-  padding: 7px 12px; border-bottom: 1px solid var(--color-border);
-}
-.bulkCount { font-size: 12px; color: var(--color-text-muted); margin-right: 2px; }
-
-/* Attachments are now actionable: the name opens, the icon saves. */
-.attOpen {
-  display: inline-flex; align-items: center; gap: 5px;
-  background: none; border: none; cursor: pointer; padding: 0;
-  color: inherit; font: inherit;
-}
-.attOpen:disabled, .attSave:disabled { opacity: 0.5; cursor: default; }
-.attOpen:hover:not(:disabled) { text-decoration: underline; }
-.attSave {
-  display: inline-flex; align-items: center; justify-content: center;
-  width: 20px; height: 20px; margin-left: 4px; border-radius: 4px;
-  background: none; border: none; cursor: pointer; color: var(--color-text-muted);
-}
-.attSave:hover:not(:disabled) { background: var(--color-surface-hover, rgba(127,127,127,0.14)); color: var(--color-text); }
-
-/* Conversation size, shown only when a row stands for more than one message. */
-.threadCount {
-  margin-left: 6px; padding: 0 5px; border-radius: 8px;
-  font-size: 10px; font-variant-numeric: tabular-nums;
-  background: var(--color-surface-hover, rgba(127,127,127,0.16));
-  color: var(--color-text-muted);
-}
-
-/* Load-images control, inside the blocked-content notice. */
-.blockedNotice { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
-.loadImages {
-  display: inline-flex; align-items: center; gap: 5px;
-  padding: 3px 9px; border-radius: 5px; cursor: pointer;
-  border: 1px solid var(--color-border); background: none;
-  color: var(--color-text); font-size: 11px;
-}
-.loadImages:hover { background: var(--color-surface-hover, rgba(127,127,127,0.12)); }
-
-/* Reading-pane toolbar. */
-.paneBar {
-  display: flex; align-items: center; gap: 2px;
-  padding: 6px 8px; border-bottom: 1px solid var(--color-border);
-}
-.paneSpacer { flex: 1; }
-
-/* Raw source viewer — monospace, scrollable, never rendered as HTML. */
-.rawSource {
-  flex: 1; overflow: auto; margin: 0; padding: 12px;
-  font: 11px/1.5 ui-monospace, SFMono-Regular, Menlo, monospace;
-  white-space: pre-wrap; word-break: break-all;
-  background: var(--color-surface); color: var(--color-text-muted);
-}
-
-/* Filter chips + sort. Chips write real operators into the search box, so the
-   query stays visible and editable rather than becoming hidden state. */
-.chips {
-  display: flex; align-items: center; gap: 6px; flex-wrap: wrap;
-  padding: 6px 10px; border-bottom: 1px solid var(--color-border);
-}
-.chip {
-  padding: 3px 9px; border-radius: 11px; cursor: pointer; font-size: 11px;
-  border: 1px solid var(--color-border); background: none; color: var(--color-text-muted);
-}
-.chip:hover { background: var(--color-surface-hover, rgba(127,127,127,0.10)); }
-.chipOn { background: var(--color-accent, #2a6df4); border-color: transparent; color: #fff; }
-.chipSpacer { flex: 1; }
-.sortSelect {
-  font-size: 11px; padding: 2px 4px; border-radius: 5px;
-  border: 1px solid var(--color-border); background: none; color: var(--color-text-muted);
-}
-
-/* Nested folder rail: twisty, indent, favourites, drop target. */
-.folderRow { display: flex; align-items: center; }
-.folderRow > .folder { flex: 1; min-width: 0; }
-.folderTwisty {
-  display: inline-flex; align-items: center; justify-content: center;
-  width: 16px; flex: none; background: none; border: none; cursor: pointer;
-  color: var(--color-text-muted); padding: 0;
-}
-.folderDrop { background: var(--color-accent, #2a6df4); border-radius: 6px; }
-.folderDrop .folder, .folderDrop .folderTwisty { color: #fff; }
-.favStar { flex: none; opacity: 0.7; }
-.newFolder {
-  display: flex; align-items: center; gap: 6px; margin: 6px 10px 2px;
-  padding: 5px 8px; border-radius: 6px; cursor: pointer; font-size: 11px;
-  background: none; border: 1px dashed var(--color-border); color: var(--color-text-muted);
-}
-.newFolder:hover { background: var(--color-surface-hover, rgba(127,127,127,0.08)); }
-
-/* New-mail banner. A prompt, not an auto-refresh — reordering the list under
-   someone who is mid-read is hostile. */
-.newMailBar {
-  display: flex; align-items: center; gap: 7px; width: 100%;
-  padding: 8px 12px; cursor: pointer; font-size: 12px;
-  background: var(--color-accent, #2a6df4); color: #fff; border: none;
-}
-.newMailBar:hover { filter: brightness(1.06); }
+.rowAction:hover { background: rgba(27, 39, 48, 0.06); color: var(--wl-ink); }
 
 /* Avatars: initials + a hue derived from the address. No network — fetching
    avatars would leak who you correspond with on every render. */
@@ -351,93 +112,235 @@
   display: inline-flex; align-items: center; justify-content: center;
   font-size: 10px; font-weight: 600; color: #fff; letter-spacing: 0.3px;
 }
-.msg { display: flex; align-items: flex-start; gap: 9px; text-align: left; }
-.msgBody { flex: 1; min-width: 0; }
+.threadCount {
+  margin-left: 6px; padding: 0 6px; border-radius: 999px;
+  font-size: 10.5px; font-variant-numeric: tabular-nums;
+  background: rgba(27, 39, 48, 0.06); color: var(--wl-muted);
+}
 
-/* Compact density. */
-.msgDense { padding: 5px 12px; gap: 6px; }
-.msgDense .msgSubject { margin-top: 0; }
+.loadMore {
+  display: block; width: calc(100% - 12px); margin: 6px; background: none; border: none; cursor: pointer;
+  color: var(--wl-ink-2); font: inherit; font-size: 12.5px; font-weight: 500; padding: 9px; border-radius: 10px;
+}
+.loadMore:hover { background: rgba(27, 39, 48, 0.05); color: var(--wl-ink); }
+.loadMore:disabled { opacity: 0.5; cursor: default; }
 
-/* Rail resize grip. */
+.status { padding: 16px 12px; font-size: 12.5px; color: var(--wl-muted); text-align: center; }
+
+/* ── Toolbar: ink "New message", secondary pills for the rest ───────────── */
+.toolbar { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; padding: 0 16px 12px; flex: none; }
+.composeBtn {
+  display: inline-flex; align-items: center; gap: 7px; height: 32px; box-sizing: border-box;
+  font: inherit; font-size: 13px; font-weight: 500; white-space: nowrap;
+  background: var(--wl-ink); color: #fff; border: 0; border-radius: 18px;
+  padding: 0 16px; cursor: pointer; align-self: center; transition: background 0.15s var(--wl-ease-soft);
+}
+.composeBtn:hover:not(:disabled) { background: #2c3b46; }
+.composeBtn:disabled { opacity: 0.5; cursor: default; }
+.toolBtn, .undoBtn, .replyBtn, .loadImages {
+  display: inline-flex; align-items: center; gap: 6px; box-sizing: border-box;
+  border-radius: 18px; cursor: pointer; white-space: nowrap;
+  background: rgba(255, 255, 255, 0.8); border: 1px solid var(--wl-line);
+  color: var(--wl-ink); font: inherit; font-weight: 500;
+  transition: background 0.15s var(--wl-ease-soft), border-color 0.15s var(--wl-ease-soft);
+}
+.toolBtn { height: 32px; padding: 0 14px; font-size: 12.5px; }
+.toolBtn:hover:not(:disabled), .undoBtn:hover, .replyBtn:hover, .loadImages:hover { background: #fff; }
+.toolBtn:disabled { opacity: 0.5; cursor: default; }
+/* The view the message column is currently showing (List ↔ Sift toggle). */
+.toolBtnOn, .toolBtnOn:hover:not(:disabled) { background: rgba(27, 39, 48, 0.08); border-color: rgba(27, 39, 48, 0.12); }
+
+/* ── Undo / sending / bulk rows: quiet rows with secondary pills ────────── */
+.undoBar, .bulkBar {
+  display: flex; align-items: center; gap: 8px; flex-wrap: wrap; flex: none;
+  margin: 0 16px 8px; padding: 6px 6px 6px 14px; border-radius: 12px;
+  font-size: 12.5px; color: var(--wl-ink-2); background: rgba(27, 39, 48, 0.04);
+}
+.undoBar svg { color: var(--wl-muted); flex: none; }
+.undoText { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.undoBtn { height: 28px; padding: 0 12px; font-size: 12px; }
+.bulkCount { font-size: 12.5px; color: var(--wl-muted); margin-right: 2px; }
+.bulkBar .toolBtn { height: 28px; font-size: 12px; padding: 0 12px; }
+
+.newMailBar {
+  display: flex; align-items: center; justify-content: center; gap: 7px; flex: none;
+  margin: 0 16px 8px; width: calc(100% - 32px); height: 32px; border-radius: 18px;
+  cursor: pointer; font: inherit; font-size: 12.5px; font-weight: 500;
+  background: rgba(27, 39, 48, 0.06); color: var(--wl-ink); border: none;
+  transition: background 0.15s var(--wl-ease-soft);
+}
+.newMailBar:hover { background: rgba(27, 39, 48, 0.1); }
+
+/* ── Filter chips + sort ─────────────────────────────────────────────────── */
+.chips { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; padding: 6px 12px 8px; }
+.chip {
+  padding: 3px 10px; border-radius: 999px; cursor: pointer; font: inherit; font-size: 11.5px;
+  border: 0; background: rgba(27, 39, 48, 0.05); color: var(--wl-ink-2);
+  transition: background 0.15s var(--wl-ease-soft);
+}
+.chip:hover { background: rgba(27, 39, 48, 0.09); color: var(--wl-ink); }
+.chipOn, .chipOn:hover { background: var(--wl-ink); color: #fff; }
+.chipSpacer { flex: 1; }
+.sortSelect {
+  font: inherit; font-size: 11.5px; height: 24px; padding: 0 8px; border-radius: 999px;
+  border: 1px solid var(--wl-line); background: rgba(255, 255, 255, 0.8); color: var(--wl-ink-2); outline: none;
+}
+.sortSelect:focus { border-color: rgba(27, 39, 48, 0.25); }
+
+/* ── Folder tree: twisty, counts, favourites, drop target ──────────────── */
+.folderRow { display: flex; align-items: center; border-radius: 10px; }
+.folderRow > .folder { flex: 1; min-width: 0; }
+.folderTwisty {
+  display: inline-flex; align-items: center; justify-content: center;
+  width: 16px; flex: none; background: none; border: none; cursor: pointer;
+  color: var(--wl-faint); padding: 0;
+}
+.folderTwisty:hover { color: var(--wl-ink); }
+.folderDrop { background: rgba(27, 39, 48, 0.1); }
+.folderDrop .folder, .folderDrop .folderTwisty { color: var(--wl-ink); }
+.favStar { flex: none; opacity: 0.7; color: var(--wl-amber); }
+.folderCount {
+  margin-left: auto; flex: none; min-width: 18px; padding: 1px 7px; border-radius: 999px;
+  font-size: 11px; font-variant-numeric: tabular-nums; text-align: center;
+  background: rgba(27, 39, 48, 0.06); color: var(--wl-ink-2);
+}
+.newFolder {
+  display: flex; align-items: center; gap: 6px; margin: 8px 6px 2px 0;
+  padding: 6px 10px; border-radius: 999px; cursor: pointer; font: inherit; font-size: 11.5px;
+  background: none; border: 1px dashed var(--wl-line); color: var(--wl-muted);
+}
+.newFolder:hover { background: rgba(27, 39, 48, 0.05); color: var(--wl-ink); }
+/* Inline new-folder input — Electron has no window.prompt. */
+.newFolderForm { margin: 8px 6px 2px 0; }
+.newFolderInput {
+  width: 100%; box-sizing: border-box; height: 30px; padding: 0 12px; border-radius: 18px; font: inherit; font-size: 12px;
+  border: 1px solid rgba(27, 39, 48, 0.25); box-shadow: 0 0 0 3px rgba(27, 39, 48, 0.07);
+  background: rgba(255, 255, 255, 0.9); color: var(--wl-ink); outline: none;
+}
 .railGrip {
   flex: none; width: 4px; cursor: col-resize;
-  background: transparent; border-right: 1px solid var(--color-border);
+  background: transparent; border-right: 1px solid var(--wl-line);
+  transition: background 0.15s var(--wl-ease-soft);
 }
-.railGrip:hover { background: var(--color-accent, #2a6df4); opacity: 0.5; }
+.railGrip:hover { background: rgba(27, 39, 48, 0.12); }
 
-/* Quick replies — a stance, not a canned sentence. */
-.quickReplies { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; margin-top: 8px; }
-.quickLabel { font-size: 11px; color: var(--color-text-muted); margin-right: 2px; }
-.quickYes, .quickNeutral, .quickNo {
-  padding: 4px 11px; border-radius: 13px; cursor: pointer; font-size: 11px;
-  border: 1px solid var(--color-border); background: none; color: var(--color-text);
+/* ── Filing proposal — the review step between analysis and action ─────── */
+.planPanel {
+  margin: 0 16px 10px; padding: 12px 14px; border-radius: 18px; flex: none;
+  background: rgba(251, 252, 253, 0.9); border: 1px solid rgba(255, 255, 255, 0.85);
+  box-shadow: 0 0 0 1px rgba(27, 39, 48, 0.05);
 }
-.quickYes:hover { background: rgba(46,160,67,0.14); border-color: rgba(46,160,67,0.5); }
-.quickNeutral:hover { background: var(--color-surface-hover, rgba(127,127,127,0.12)); }
-.quickNo:hover { background: rgba(207,34,46,0.12); border-color: rgba(207,34,46,0.45); }
-
-/* Inline new-folder input — Electron has no window.prompt. */
-.newFolderForm { margin: 6px 10px 2px; }
-.newFolderInput {
-  width: 100%; padding: 5px 8px; border-radius: 6px; font-size: 11px;
-  border: 1px solid var(--color-accent, #2a6df4);
-  background: var(--color-surface); color: var(--color-text); outline: none;
-}
-
-/* The filing proposal — the review step between analysis and action. */
-.planPanel { border-bottom: 1px solid var(--color-border); padding: 10px 12px; }
-.planHead { display: flex; flex-direction: column; gap: 2px; margin-bottom: 8px; }
-.planSub { font-size: 11px; color: var(--color-text-muted); }
+.planHead { display: flex; flex-direction: column; gap: 2px; margin-bottom: 8px; color: var(--wl-ink); }
+.planSub { font-size: 11.5px; color: var(--wl-muted); }
 .planList { display: flex; flex-direction: column; gap: 4px; max-height: 180px; overflow-y: auto; }
-.planRow { display: flex; align-items: baseline; gap: 8px; font-size: 12px; }
-.planFolder { font-weight: 600; min-width: 110px; }
-.planReason { color: var(--color-text-muted); font-size: 11px; }
-.planActions { display: flex; gap: 8px; justify-content: flex-end; margin-top: 10px; }
-
-/* What the app decided this message is, and the one-press correction.
-   Quiet: it is an explanation, not an alert. */
-.verdict {
-  display: flex;
-  align-items: center;
-  flex-wrap: wrap;
-  gap: 8px;
-  margin-top: 8px;
-  font-size: 12px;
-}
-
-.verdictTag {
-  padding: 2px 8px;
-  border-radius: 20px;
-  font-weight: 600;
-  background: var(--wos-sunk, #f1f1f0);
-  color: var(--wos-ink-soft, #6b6b6b);
-}
-
-.verdict_newsletter { background: #FFF3E8; color: #B4531A; }
-.verdict_personal { background: #E8F1FF; color: #1A4FB4; }
-
-.verdictWhy { color: var(--wos-ink-soft, #6b6b6b); }
-
-.verdictFix {
-  border: 0.5px solid var(--wos-hair, #dcdcda);
-  border-radius: 7px;
-  background: transparent;
-  color: var(--wos-ink, #1a1a1a);
-  font-size: 11.5px;
-  padding: 3px 9px;
-  cursor: pointer;
-}
-
-.verdictFix:hover { background: var(--wos-sunk, #f1f1f0); }
-
-.verdictSaved {
-  margin-top: 6px;
-  font-size: 11.5px;
-  color: var(--wos-ink-soft, #6b6b6b);
-}
-
-/* A sender group the person unchecked — its mail stays where it is. */
-.planRow { cursor: pointer; }
-.planRow input[type='checkbox'] { accent-color: var(--wos-accent, var(--color-accent, #1a73e8)); }
+.planRow { display: flex; align-items: baseline; gap: 8px; font-size: 12.5px; color: var(--wl-ink-2); cursor: pointer; }
+.planRow input[type='checkbox'] { accent-color: var(--wl-ink); }
+.planFolder { font-weight: 500; min-width: 110px; color: var(--wl-ink); }
+.planReason { color: var(--wl-muted); font-size: 11.5px; }
 .planRowOff { opacity: 0.5; }
 .planRowOff .planFolder { text-decoration: line-through; }
+.planActions { display: flex; gap: 8px; justify-content: flex-end; margin-top: 10px; }
+
+.spin { animation: mailspin 0.9s linear infinite; }
+@keyframes mailspin { to { transform: rotate(360deg); } }
+
+/* ── Reader: a paper pane beside the list ────────────────────────────────── */
+.readerCol {
+  display: flex; flex-direction: column; min-width: 0;
+  flex: 1 1 480px; border-left: 1px solid var(--wl-line); overflow: hidden;
+}
+.readerWrap { display: flex; flex-direction: column; flex: 1; min-height: 0; }
+.paneBar { display: flex; align-items: center; gap: 2px; padding: 6px 10px; border-bottom: 1px solid var(--wl-line); }
+.paneSpacer { flex: 1; }
+.backBtn {
+  display: flex; align-items: center; gap: 4px; background: none; border: none; cursor: pointer;
+  color: var(--wl-muted); font: inherit; font-size: 12.5px; padding: 5px 10px; flex: none; border-radius: 999px;
+}
+.backBtn:hover { color: var(--wl-ink); background: rgba(27, 39, 48, 0.05); }
+
+.reader { display: flex; flex-direction: column; flex: 1; min-height: 0; background: var(--wl-paper-solid); }
+.readerHeader { padding: 22px 28px 16px; border-bottom: 1px solid var(--wl-line); flex: none; }
+.readerSubject {
+  font-family: var(--wl-serif); font-size: 24px; font-weight: 400; letter-spacing: -0.01em; line-height: 1.25;
+  color: var(--wl-ink); margin-bottom: 12px;
+}
+.readerMeta { display: flex; flex-direction: column; gap: 3px; font-size: 13px; color: var(--wl-ink-2); }
+.metaKey { display: inline-block; width: 38px; color: var(--wl-faint); }
+.metaDate { color: var(--wl-faint); margin-top: 4px; font-size: 12px; }
+
+.replyActions { display: flex; gap: 8px; margin-top: 14px; flex-wrap: wrap; }
+.replyBtn { height: 32px; padding: 0 14px; font-size: 12.5px; }
+
+.blockedNotice {
+  display: flex; align-items: center; gap: 8px; flex-wrap: wrap; font-size: 12px; color: var(--wl-ink-2);
+  margin-top: 10px; padding: 7px 8px 7px 12px; background: var(--wl-amber-soft); border-radius: 12px;
+}
+.loadImages { height: 26px; padding: 0 10px; font-size: 11.5px; }
+
+.attachments { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 10px; }
+.attachment {
+  display: inline-flex; align-items: center; gap: 5px; font-size: 12px; color: var(--wl-ink);
+  background: rgba(27, 39, 48, 0.05); border-radius: 999px; padding: 3px 6px 3px 10px;
+}
+.attSize { color: var(--wl-muted); }
+.attOpen { display: inline-flex; align-items: center; gap: 5px; background: none; border: none; cursor: pointer; padding: 0; color: inherit; font: inherit; }
+.attOpen:disabled, .attSave:disabled { opacity: 0.5; cursor: default; }
+.attOpen:hover:not(:disabled) { text-decoration: underline; }
+.attSave {
+  display: inline-flex; align-items: center; justify-content: center;
+  width: 20px; height: 20px; margin-left: 2px; border-radius: 999px;
+  background: none; border: none; cursor: pointer; color: var(--wl-muted);
+}
+.attSave:hover:not(:disabled) { background: rgba(27, 39, 48, 0.08); color: var(--wl-ink); }
+
+/* Quick replies — a stance, not a canned sentence. */
+.quickReplies { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; margin-top: 10px; }
+.quickLabel { font-size: 11px; font-weight: 500; text-transform: uppercase; letter-spacing: 0.18em; color: var(--wl-muted); margin-right: 4px; }
+.quickYes, .quickNeutral, .quickNo {
+  padding: 4px 12px; border-radius: 999px; cursor: pointer; font: inherit; font-size: 12px;
+  border: 1px solid var(--wl-line); background: rgba(255, 255, 255, 0.8); color: var(--wl-ink);
+  transition: background 0.15s var(--wl-ease-soft);
+}
+.quickYes:hover { background: var(--wl-codex-soft); }
+.quickNeutral:hover { background: #fff; }
+.quickNo:hover { background: var(--wl-claude-soft); }
+
+/* What the app decided this message is, and the one-press correction. */
+.verdict { display: flex; align-items: center; flex-wrap: wrap; gap: 8px; margin-top: 10px; font-size: 12px; }
+.verdictTag { padding: 2px 9px; border-radius: 999px; font-weight: 500; background: rgba(27, 39, 48, 0.06); color: var(--wl-ink-2); }
+.verdict_newsletter { background: var(--wl-amber-soft); color: var(--wl-ink); }
+.verdict_personal { background: var(--wl-codex-soft); color: var(--wl-ink); }
+.verdictWhy { color: var(--wl-muted); }
+.verdictFix {
+  border: 1px solid var(--wl-line); border-radius: 999px; background: rgba(255, 255, 255, 0.8);
+  color: var(--wl-ink); font: inherit; font-size: 11.5px; padding: 3px 10px; cursor: pointer;
+}
+.verdictFix:hover { background: #fff; }
+.verdictSaved { margin-top: 6px; font-size: 11.5px; color: var(--wl-muted); }
+
+/* Mail HTML renders on white, as its author designed it. */
+.readerFrame { flex: 1; width: 100%; border: none; background: #fff; }
+/* Raw source viewer — monospace, scrollable, never rendered as HTML. */
+.rawSource {
+  flex: 1; overflow: auto; margin: 0; padding: 14px 18px;
+  font: 11px/1.5 var(--wl-mono); white-space: pre-wrap; word-break: break-all;
+  background: var(--wl-paper-solid); color: var(--wl-ink-2);
+}
+
+/* ── Empty state ────────────────────────────────────────────────────────── */
+.empty { display: flex; flex-direction: column; align-items: center; justify-content: center; flex: 1; padding: 24px; text-align: center; }
+.emptyIcon { color: var(--wl-faint); margin-bottom: 12px; }
+.emptyTitle { margin: 0 0 6px; font-family: var(--wl-serif); font-size: 24px; font-weight: 400; letter-spacing: -0.01em; color: var(--wl-ink); }
+.emptyHint { margin: 0 0 16px; font-size: 13px; color: var(--wl-ink-2); line-height: 1.5; max-width: 260px; }
+.addBtn {
+  display: inline-flex; align-items: center; gap: 6px; height: 34px; font: inherit; font-size: 13px; font-weight: 500;
+  background: var(--wl-ink); color: #fff; border: none; border-radius: 18px; padding: 0 18px; cursor: pointer;
+  transition: background 0.15s var(--wl-ease-soft);
+}
+.addBtn:hover { background: #2c3b46; }
+.demoBtn {
+  display: inline-flex; align-items: center; gap: 6px; margin-top: 10px; height: 32px; font: inherit; font-size: 12.5px; font-weight: 500;
+  background: rgba(255, 255, 255, 0.8); color: var(--wl-ink); border: 1px solid var(--wl-line);
+  border-radius: 18px; padding: 0 16px; cursor: pointer; transition: background 0.15s var(--wl-ease-soft);
+}
+.demoBtn:hover { background: #fff; }

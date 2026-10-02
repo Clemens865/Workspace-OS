@@ -116,7 +116,7 @@ await runCase(
   { 'deleteme.txt': 'temporary' },
   async ({ window }, ws) => {
     await window.waitForTimeout(500)
-    // Delete via the preload API directly (context menu uses a native confirm()).
+    // Delete via the preload API directly (the context menu asks first through the in-app NameDialog).
     await window.evaluate((p) => window.workspace.fs.delete(p), path.join(ws, 'deleteme.txt'))
     await window.waitForTimeout(300)
     assert('file is gone from disk after delete', !fs.existsSync(path.join(ws, 'deleteme.txt')))

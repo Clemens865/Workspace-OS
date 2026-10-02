@@ -102,7 +102,7 @@ export function NewEventDialog({ weekStart, editing, recurring, initialDraft, on
   return (
     <div className={styles.backdrop} onClick={onClose}>
       <div className={styles.modal} onClick={(e) => e.stopPropagation()}>
-        <h2 className={styles.title}>{editing ? 'Edit event' : 'New event'}</h2>
+        <h2 className={styles.heading}>{editing ? 'Edit event' : 'New event'}</h2>
 
         {editing && recurring && (
           <div className={styles.kinds}>

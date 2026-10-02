@@ -163,7 +163,7 @@ function CaseRow({
       <div className={styles.headWrap}>
         <button className={styles.head} onClick={onToggle} aria-expanded={expanded}>
           <ChevronRight size={14} className={`${styles.chev} ${expanded ? styles.chevOpen : ''}`} />
-          <span className={styles.title}>{c.title}</span>
+          <span className={styles.caseName}>{c.title}</span>
           <StatusPill tone={caseTone(c.status, NEEDS_YOU.has(c.status))}>{c.status}</StatusPill>
           {agentBusy && <span className={styles.scopeTag}>{run?.requests.length ? 'Agent needs you' : 'Agent running'}</span>}
           {/* A life thread, visible from every workspace — worth saying quietly. */}

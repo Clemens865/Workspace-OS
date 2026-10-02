@@ -1,6 +1,6 @@
-/* The fleet cockpit — N agent lanes stacked in the light Living-Feed surface.
- * Calm white lane cards, one blue on the primary batch action. Tokens from
- * styles/tokens.css (--wos-*); --rv-* fall back to them. */
+/* The fleet cockpit — N agent lanes stacked in the Living-Feed surface, in
+ * landscape materials: paper lane cards, status dot + serif name, ink pill on
+ * the primary batch action. */
 .root {
   flex: 1;
   overflow-y: auto;
@@ -11,6 +11,7 @@
   max-width: 900px;
   width: 100%;
   margin: 0 auto;
+  color: var(--wl-ink);
 }
 
 .fleetBar {
@@ -21,50 +22,61 @@
   align-items: center;
   gap: 12px;
   padding: 14px 0;
-  border-bottom: 0.5px solid var(--wos-hair);
+  border-bottom: 1px solid var(--wl-line);
   background: var(--wos-bg);
 }
 .fleetTitle {
-  font-family: var(--rv-body, sans-serif);
-  font-size: 15px;
-  font-weight: 640;
-  letter-spacing: -0.02em;
-  color: var(--wos-ink);
+  font-family: var(--wl-serif);
+  font-size: 22px;
+  font-weight: 400;
+  letter-spacing: -0.01em;
+  color: var(--wl-ink);
 }
 .spacer { flex: 1; }
 
-.approveAll {
+.approveAll,
+.batchBtn {
+  display: inline-flex;
+  align-items: center;
+  height: 34px;
   font-family: var(--rv-body, sans-serif);
   font-size: 13px;
-  font-weight: 600;
-  padding: 8px 16px;
-  border-radius: 11px;
+  font-weight: 500;
+  padding: 0 15px;
+  border-radius: 18px;
   border: 0;
-  background: var(--wos-blue);
+  background: var(--wl-ink);
   color: #fff;
   cursor: pointer;
+  transition: background 0.15s var(--wl-ease-soft);
 }
-.approveAll:hover { background: #0060bf; }
-.gatedNote {
+.approveAll:hover,
+.batchBtn:hover { background: #2c3b46; }
+.gatedNote,
+.batchNote {
   font-family: var(--rv-body, sans-serif);
   font-size: 12px;
-  color: var(--wos-warn-ink);
+  color: #8a5a12;
 }
 
 /* Launch-agent affordance. */
 .launchWrap { position: relative; }
 .launchBtn {
+  display: inline-flex;
+  align-items: center;
+  height: 34px;
   font-family: var(--rv-body, sans-serif);
   font-size: 13px;
-  font-weight: 600;
-  padding: 8px 14px;
-  border-radius: 11px;
-  border: 0;
-  background: var(--wos-sunk);
-  color: var(--wos-ink);
+  font-weight: 500;
+  padding: 0 14px;
+  border-radius: 18px;
+  border: 1px solid var(--wl-line);
+  background: rgba(255, 255, 255, 0.8);
+  color: var(--wl-ink);
   cursor: pointer;
+  transition: background 0.15s var(--wl-ease-soft);
 }
-.launchBtn:hover { background: #e8e8ec; }
+.launchBtn:hover { background: #fff; }
 .launchMenu {
   position: absolute;
   right: 0;
@@ -75,9 +87,8 @@
   overflow-y: auto;
   padding: 6px;
   border-radius: 14px;
-  background: var(--wos-card);
-  border: 0.5px solid var(--wos-hair);
-  box-shadow: var(--wos-sh-card);
+  background: var(--wl-paper-solid);
+  box-shadow: 0 0 0 1px rgba(27, 39, 48, 0.07), 0 20px 50px -20px rgba(30, 55, 70, 0.35);
   display: flex;
   flex-direction: column;
   gap: 2px;
@@ -88,16 +99,16 @@
   font-size: 13px;
   padding: 8px 10px;
   border: none;
-  border-radius: 9px;
+  border-radius: 8px;
   background: transparent;
-  color: var(--wos-ink);
+  color: var(--wl-ink);
   cursor: pointer;
 }
-.launchItem:hover { background: var(--wos-sunk); }
+.launchItem:hover { background: rgba(27, 39, 48, 0.05); }
 .launchEmpty {
   font-family: var(--rv-body, sans-serif);
   font-size: 12px;
-  color: var(--wos-ink-2);
+  color: var(--wl-muted);
   padding: 8px 10px;
 }
 
@@ -109,16 +120,17 @@
 .empty {
   font-family: var(--rv-body, sans-serif);
   font-size: 14px;
-  color: var(--wos-ink-2);
+  color: var(--wl-muted);
   padding: 40px 6px;
   text-align: center;
 }
 
-/* One lane — a calm white card. */
+/* One lane — a paper card. */
 .lane {
-  border-radius: var(--wos-r);
-  background: var(--wos-card);
-  box-shadow: var(--wos-sh-card);
+  border-radius: 20px;
+  background: rgba(251, 252, 253, 0.9);
+  border: 1px solid rgba(255, 255, 255, 0.85);
+  box-shadow: 0 0 0 1px rgba(27, 39, 48, 0.05);
   overflow: hidden;
 }
 .laneHeader {
@@ -129,58 +141,62 @@
   padding: 14px 18px;
   border: none;
   background: transparent;
+  color: var(--wl-ink);
+  font: inherit;
   cursor: pointer;
   text-align: left;
+  transition: background 0.15s var(--wl-ease-soft);
 }
-.laneHeader:hover { background: var(--wos-sunk); }
+.laneHeader:hover { background: rgba(27, 39, 48, 0.03); }
 .dot {
-  width: 9px;
-  height: 9px;
+  width: 8px;
+  height: 8px;
   border-radius: 50%;
   flex-shrink: 0;
+  background: var(--wl-grey);
 }
 .laneName {
-  font-family: var(--rv-body, sans-serif);
-  font-size: 15px;
-  font-weight: 600;
+  font-family: var(--wl-serif);
+  font-size: 18px;
+  font-weight: 400;
   letter-spacing: -0.01em;
-  color: var(--wos-ink);
+  color: var(--wl-ink);
 }
 .laneStatus {
   font-family: var(--rv-body, sans-serif);
   font-size: 12px;
-  font-weight: 600;
-  color: var(--wos-ink-2);
+  font-weight: 500;
+  color: var(--wl-ink-2);
 }
 .pendingPill {
   font-family: var(--rv-body, sans-serif);
   font-size: 11px;
-  font-weight: 700;
+  font-weight: 500;
   min-width: 18px;
   text-align: center;
-  padding: 1px 6px;
+  padding: 1px 7px;
   border-radius: 999px;
-  background: var(--wos-blue);
-  color: #fff;
+  background: var(--wl-claude-soft);
+  color: var(--wl-ink);
 }
 .laneMeta {
   display: inline-flex;
   gap: 10px;
   font-family: var(--rv-body, sans-serif);
   font-size: 12px;
-  color: var(--wos-ink-2);
+  color: var(--wl-muted);
 }
 .mono { font-family: var(--rv-mono, monospace); }
 .chevron {
   font-size: 12px;
-  color: var(--wos-ink-3);
+  color: var(--wl-faint);
   margin-left: 4px;
 }
 .latest {
-  padding: 0 18px 14px 37px;
+  padding: 0 18px 14px 36px;
   font-family: var(--rv-body, sans-serif);
   font-size: 13px;
-  color: var(--wos-ink-2);
+  color: var(--wl-ink-2);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -191,28 +207,11 @@
   display: flex;
   flex-direction: column;
   gap: 12px;
-  border-top: 0.5px solid var(--wos-hair);
+  border-top: 1px solid var(--wl-line);
 }
 .batchRow {
   display: flex;
   align-items: center;
   gap: 10px;
   padding-top: 8px;
-}
-.batchBtn {
-  font-family: var(--rv-body, sans-serif);
-  font-size: 13px;
-  font-weight: 600;
-  padding: 8px 14px;
-  border-radius: 11px;
-  border: 0;
-  background: var(--wos-blue);
-  color: #fff;
-  cursor: pointer;
-}
-.batchBtn:hover { background: #0060bf; }
-.batchNote {
-  font-family: var(--rv-body, sans-serif);
-  font-size: 12px;
-  color: var(--wos-warn-ink);
 }

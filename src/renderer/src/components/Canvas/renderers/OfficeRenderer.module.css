@@ -12,14 +12,14 @@
   align-items: center;
   justify-content: space-between;
   padding: 0 12px;
-  background: var(--accent-soft);
-  border-bottom: 1px solid var(--border);
+  background: rgba(27, 39, 48, 0.04);
+  border-bottom: 1px solid var(--wl-line, var(--border));
 }
 
 .editLabel {
   font-size: var(--text-sm);
-  font-weight: 560;
-  color: var(--accent);
+  font-weight: 500;
+  color: var(--wl-ink, var(--accent));
 }
 
 .editBody { flex: 1; overflow: hidden; min-height: 0; }
@@ -29,15 +29,16 @@
   display: inline-flex;
   align-items: center;
   gap: 5px;
-  background: var(--surface);
-  border: 1px solid var(--border-strong);
-  border-radius: var(--radius-md);
-  color: var(--fg);
+  background: rgba(255, 255, 255, 0.8);
+  border: 1px solid var(--wl-line, var(--border-strong));
+  border-radius: 999px;
+  color: var(--wl-ink, var(--fg));
   cursor: pointer;
   font-size: 12px;
-  font-weight: 540;
+  font-weight: 500;
+  transition: background .15s var(--wl-ease-soft, ease);
   padding: 4px 10px;
 }
 
-.editBtn { margin-right: 10px; box-shadow: var(--shadow-1); }
-.editBtn:hover, .viewBtn:hover { border-color: var(--accent); color: var(--accent); }
+.editBtn { margin-right: 10px; }
+.editBtn:hover, .viewBtn:hover { background: #fff; }

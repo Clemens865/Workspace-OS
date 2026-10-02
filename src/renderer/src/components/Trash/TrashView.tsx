@@ -50,7 +50,7 @@ export function TrashView({ onClose, onChange }: TrashViewProps): JSX.Element {
     <div className={styles.backdrop} onClick={onClose}>
       <div className={styles.panel} onClick={(e) => e.stopPropagation()}>
         <div className={styles.header}>
-          <span className={styles.title}>Trash</span>
+          <span className={styles.heading}>Trash</span>
           <div className={styles.headerActions}>
             {entries.length > 0 && (
               <button className={styles.emptyBtn} onClick={handleEmpty}>Empty Trash</button>

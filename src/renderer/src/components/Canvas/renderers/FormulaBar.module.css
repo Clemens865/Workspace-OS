@@ -5,8 +5,8 @@
   height: 30px;
   flex: none;
   padding: 0 10px;
-  background: var(--color-surface, #fff);
-  border-bottom: 1px solid var(--color-border);
+  background: var(--wl-paper-solid, #fbfcfd);
+  border-bottom: 1px solid var(--wl-line, rgba(27, 39, 48, 0.09));
 }
 
 .ref {
@@ -18,18 +18,19 @@
   justify-content: center;
   padding: 0 8px;
   font-size: 12px;
-  font-weight: 600;
-  color: var(--color-text);
-  background: var(--color-bg, var(--color-surface));
-  border: 1px solid var(--color-border);
-  border-radius: 5px;
+  font-weight: 500;
+  color: var(--wl-ink, #1b2730);
+  background: rgba(27, 39, 48, 0.05);
+  border: 1px solid transparent;
+  border-radius: 999px;
 }
 
 .fx {
   flex: none;
   font-style: italic;
   font-size: 12px;
-  color: var(--color-text-muted);
+  color: var(--wl-muted, #7a8893);
+  font-family: var(--wl-serif, Georgia, serif);
   padding-right: 2px;
 }
 
@@ -41,10 +42,10 @@
   border: none;
   outline: none;
   font-size: 12.5px;
-  color: var(--color-text);
-  font-family: var(--mono, 'SF Mono', monospace);
+  color: var(--wl-ink, #1b2730);
+  font-family: var(--wl-mono, 'SF Mono', monospace);
 }
-.input::placeholder { color: var(--color-text-subtle, var(--color-text-muted)); font-family: inherit; font-style: italic; }
+.input::placeholder { color: var(--wl-faint, #a9b4bc); font-family: inherit; font-style: italic; }
 
 /* WOS-004: function autocomplete. */
 .inputWrap {
@@ -64,10 +65,10 @@
   max-height: 260px;
   overflow-y: auto;
   list-style: none;
-  background: var(--elevated, #fff);
-  border: 1px solid var(--border, #d8d8dc);
-  border-radius: 8px;
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.14);
+  background: var(--wl-paper-solid, #fbfcfd);
+  border: 1px solid transparent;
+  border-radius: 14px;
+  box-shadow: 0 0 0 1px rgba(27, 39, 48, 0.07), 0 20px 50px -20px rgba(30, 55, 70, 0.35);
 }
 
 .suggestion {
@@ -75,18 +76,21 @@
   align-items: baseline;
   gap: 8px;
   padding: 5px 8px;
-  border-radius: 5px;
+  border-radius: 8px;
   cursor: pointer;
   font-size: 12px;
+  color: var(--wl-ink-2, #3b4a55);
   white-space: nowrap;
 }
+.suggestion:hover { background: rgba(27, 39, 48, 0.05); }
 
-.picked { background: var(--accent-soft, #eef2ff); }
+.picked,
+.picked:hover { background: rgba(27, 39, 48, 0.08); color: var(--wl-ink, #1b2730); }
 
-.sName { font-weight: 600; font-family: var(--mono, monospace); }
-.sArgs { color: var(--fg-subtle, #8a8a8f); font-family: var(--mono, monospace); font-size: 11px; }
+.sName { font-weight: 600; color: var(--wl-ink, #1b2730); font-family: var(--wl-mono, monospace); }
+.sArgs { color: var(--wl-faint, #a9b4bc); font-family: var(--wl-mono, monospace); font-size: 11px; }
 .sDesc {
-  color: var(--color-text-muted, #6b6b70);
+  color: var(--wl-muted, #7a8893);
   margin-left: auto;
   overflow: hidden;
   text-overflow: ellipsis;

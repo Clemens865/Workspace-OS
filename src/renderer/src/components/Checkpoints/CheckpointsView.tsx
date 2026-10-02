@@ -52,7 +52,7 @@ export function CheckpointsView({ onClose, onChange }: CheckpointsViewProps): JS
     <div className={styles.backdrop} onClick={onClose}>
       <div className={styles.panel} data-testid="checkpoints-view" onClick={(e) => e.stopPropagation()}>
         <div className={styles.header}>
-          <span className={styles.title}>Checkpoints</span>
+          <span className={styles.heading}>Checkpoints</span>
           <button className={styles.closeBtn} onClick={onClose}>×</button>
         </div>
 

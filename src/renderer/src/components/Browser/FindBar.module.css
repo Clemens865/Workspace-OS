@@ -10,10 +10,11 @@
   align-items: center;
   gap: 4px;
   padding: 5px 6px 5px 12px;
-  border-radius: 10px;
-  background: var(--wos-card);
-  border: 0.5px solid var(--wos-hair);
-  box-shadow: 0 10px 28px rgb(0 0 0 / 20%);
+  border-radius: 14px;
+  /* Over the page: opaque paper, never glass. */
+  background: var(--wl-paper-solid);
+  border: 0;
+  box-shadow: 0 0 0 1px rgba(27, 39, 48, 0.07), 0 20px 50px -20px rgba(30, 55, 70, 0.35);
 }
 
 .input {
@@ -21,18 +22,18 @@
   border: none;
   outline: none;
   background: transparent;
-  font-family: var(--wos-font);
+  font-family: inherit;
   font-size: 13px;
-  color: var(--wos-ink);
+  color: var(--wl-ink);
 }
 
 .input::placeholder {
-  color: var(--wos-ink-3);
+  color: var(--wl-faint);
 }
 
 .count {
   font-size: 12px;
-  color: var(--wos-ink-3);
+  color: var(--wl-muted);
   min-width: 54px;
   text-align: right;
   font-variant-numeric: tabular-nums;
@@ -43,14 +44,15 @@
   height: 24px;
   border: none;
   background: transparent;
-  border-radius: 6px;
+  border-radius: 999px;
   display: grid;
   place-items: center;
-  color: var(--wos-ink-3);
+  color: var(--wl-muted);
   cursor: pointer;
+  transition: background 0.15s var(--wl-ease-soft), color 0.15s var(--wl-ease-soft);
 }
 
 .btn:hover {
-  background: var(--wos-sunk);
-  color: var(--wos-ink);
+  background: rgba(27, 39, 48, 0.05);
+  color: var(--wl-ink);
 }

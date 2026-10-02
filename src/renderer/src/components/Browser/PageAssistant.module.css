@@ -1,41 +1,44 @@
-/* The Browser surface's page-aware Assistant panel. Token language matches the
- * prototype: calm surfaces, ONE blue (var(--wos-blue)) reserved for the primary
- * deep-read + send actions, ink text, grey meta. (Hanken Grotesk via --wos-font.) */
+/* The Browser surface's page-aware Assistant panel, in landscape materials:
+ * a serif heading, tracked section labels, paper cards, and ONE ink pill for
+ * the primary deep-read (plus the send button). */
 
 .panel {
   display: flex;
   flex-direction: column;
   min-height: 0;
   height: 100%;
-  background: var(--wos-bg);
-  font-family: var(--wos-font);
+  background: var(--wl-mist-1);
+  font-family: inherit;
 }
 
 .head {
   padding: 20px 20px 14px;
-  border-bottom: 0.5px solid var(--wos-hair);
+  border-bottom: 1px solid var(--wl-line);
 }
 
-.title {
+/* Not named *title*: tokens.css forces weight/colour on those. */
+.heading {
   display: flex;
   align-items: center;
   gap: 9px;
-  font-size: 13.5px;
-  font-weight: 640;
+  font-family: var(--wl-serif);
+  font-size: 24px;
+  font-weight: 400;
   letter-spacing: -0.01em;
-  color: var(--wos-ink);
+  line-height: 1.15;
+  color: var(--wl-ink);
 }
 
-.titleIc {
-  color: var(--wos-blue);
+.headingIc {
+  color: var(--wl-claude);
   flex: none;
 }
 
-.subtitle {
+.lede {
   margin: 8px 0 0;
-  font-size: 12px;
+  font-size: 12.5px;
   line-height: 1.5;
-  color: var(--wos-ink-3);
+  color: var(--wl-muted);
 }
 
 .body {
@@ -51,32 +54,34 @@
 .empty {
   font-size: 12.5px;
   line-height: 1.6;
-  color: var(--wos-ink-3);
-  background: var(--wos-card);
-  border-radius: 12px;
-  box-shadow: var(--wos-sh-card);
+  color: var(--wl-muted);
+  background: rgba(251, 252, 253, 0.9);
+  border: 1px solid rgba(255, 255, 255, 0.85);
+  border-radius: 18px;
+  box-shadow: 0 0 0 1px rgba(27, 39, 48, 0.05);
   padding: 14px 15px;
 }
 
-/* Primary blue actions — deep-read + send are the ONLY blue-filled elements. */
+/* Primary ink pill — deep-read + send are the ONLY filled elements. */
 .primary {
   display: inline-flex;
   align-items: center;
   justify-content: center;
   gap: 8px;
-  height: 38px;
-  border: none;
-  border-radius: 10px;
-  background: var(--wos-blue);
+  height: 36px;
+  border: 0;
+  border-radius: 18px;
+  background: var(--wl-ink);
   color: #fff;
-  font-family: var(--wos-font);
+  font-family: inherit;
   font-size: 13px;
-  font-weight: 560;
+  font-weight: 500;
   cursor: pointer;
+  transition: background 0.15s var(--wl-ease-soft);
 }
 
 .primary:hover:not(:disabled) {
-  filter: brightness(1.05);
+  background: #2c3b46;
 }
 
 .primary:disabled {
@@ -101,24 +106,25 @@
 
 .hint {
   font-size: 11.5px;
-  color: var(--wos-ink-3);
+  color: var(--wl-faint);
   line-height: 1.5;
 }
 
 .readError {
   font-size: 12px;
-  color: var(--wos-ink-2);
-  background: var(--wos-sunk);
-  border-radius: 8px;
+  color: var(--wl-ink-2);
+  background: var(--wl-claude-soft);
+  border-radius: 12px;
   padding: 9px 11px;
   line-height: 1.5;
 }
 
 /* Deep-read profile. */
 .profile {
-  background: var(--wos-card);
-  border-radius: 12px;
-  box-shadow: var(--wos-sh-card);
+  background: rgba(251, 252, 253, 0.9);
+  border: 1px solid rgba(255, 255, 255, 0.85);
+  border-radius: 18px;
+  box-shadow: 0 0 0 1px rgba(27, 39, 48, 0.05);
   padding: 15px 16px;
   display: flex;
   flex-direction: column;
@@ -126,16 +132,17 @@
 }
 
 .pName {
-  font-size: 13.5px;
-  font-weight: 620;
+  font-family: var(--wl-serif);
+  font-size: 18px;
+  font-weight: 400;
   letter-spacing: -0.01em;
-  color: var(--wos-ink);
-  line-height: 1.35;
+  color: var(--wl-ink);
+  line-height: 1.3;
 }
 
 .pHome {
   font-size: 12px;
-  color: var(--wos-blue);
+  color: var(--wl-ink-2);
   text-decoration: none;
   word-break: break-all;
   margin-top: -8px;
@@ -152,11 +159,11 @@
 }
 
 .sHead {
-  font-size: 10.5px;
-  font-weight: 640;
-  letter-spacing: 0.04em;
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: 0.18em;
   text-transform: uppercase;
-  color: var(--wos-ink-3);
+  color: var(--wl-muted);
 }
 
 .pages {
@@ -178,17 +185,17 @@
 .cat {
   flex: none;
   font-size: 10px;
-  font-weight: 600;
-  letter-spacing: 0.02em;
+  font-weight: 500;
+  letter-spacing: 0.06em;
   text-transform: uppercase;
-  color: var(--wos-ink-3);
-  background: var(--wos-sunk);
-  border-radius: 5px;
-  padding: 2px 6px;
+  color: var(--wl-muted);
+  background: rgba(27, 39, 48, 0.06);
+  border-radius: 999px;
+  padding: 2px 8px;
 }
 
 .pageTitle {
-  color: var(--wos-ink-2);
+  color: var(--wl-ink-2);
   line-height: 1.45;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -205,27 +212,27 @@
   align-items: center;
   gap: 5px;
   font-size: 11.5px;
-  color: var(--wos-ink-2);
-  background: var(--wos-sunk);
-  border-radius: 8px;
-  padding: 5px 9px;
+  color: var(--wl-ink-2);
+  background: rgba(27, 39, 48, 0.06);
+  border-radius: 999px;
+  padding: 4px 10px;
   word-break: break-all;
 }
 
 .chip svg {
-  color: var(--wos-ink-3);
+  color: var(--wl-muted);
   flex: none;
 }
 
 .muted {
   font-size: 12px;
-  color: var(--wos-ink-3);
+  color: var(--wl-muted);
   line-height: 1.5;
 }
 
 .note {
   font-size: 12px;
-  color: var(--wos-ink-2);
+  color: var(--wl-ink-2);
   line-height: 1.55;
 }
 
@@ -243,51 +250,54 @@
 }
 
 .q {
-  font-size: 12px;
-  font-weight: 560;
-  color: var(--wos-ink);
+  font-size: 12.5px;
+  font-weight: 500;
+  color: var(--wl-ink);
 }
 
 .a {
-  font-size: 12.5px;
+  font-size: 13px;
   line-height: 1.6;
-  color: var(--wos-ink-2);
-  background: var(--wos-card);
-  border-radius: 10px;
-  box-shadow: var(--wos-sh-card);
+  color: var(--wl-ink-2);
+  background: rgba(251, 252, 253, 0.9);
+  border: 1px solid rgba(255, 255, 255, 0.85);
+  border-radius: 12px;
+  box-shadow: 0 0 0 1px rgba(27, 39, 48, 0.05);
   padding: 11px 13px;
   white-space: pre-wrap;
 }
 
 .typing {
-  color: var(--wos-ink-3);
+  color: var(--wl-faint);
 }
 
-/* Composer — mirrors TerminalAgentPane; send is the second blue element. */
+/* Composer — mirrors TerminalAgentPane; send is the second ink element. */
 .composer {
   display: flex;
   align-items: flex-end;
   gap: 8px;
   padding: 12px 20px;
-  border-top: 0.5px solid var(--wos-hair);
+  border-top: 1px solid var(--wl-line);
 }
 
 .input {
   flex: 1;
   resize: none;
-  border: 0.5px solid var(--wos-hair);
-  border-radius: 10px;
-  background: var(--wos-card);
+  border: 1px solid var(--wl-line);
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.85);
   padding: 9px 11px;
-  font-family: var(--wos-font);
-  font-size: 12.5px;
+  font-family: inherit;
+  font-size: 13px;
   line-height: 1.4;
-  color: var(--wos-ink);
+  color: var(--wl-ink);
   outline: none;
+  transition: border-color 0.15s var(--wl-ease-soft), box-shadow 0.15s var(--wl-ease-soft);
 }
 
 .input:focus {
-  border-color: var(--wos-blue);
+  border-color: rgba(27, 39, 48, 0.25);
+  box-shadow: 0 0 0 3px rgba(27, 39, 48, 0.07);
 }
 
 .input:disabled {
@@ -295,24 +305,25 @@
 }
 
 .input::placeholder {
-  color: var(--wos-ink-3);
+  color: var(--wl-faint);
 }
 
 .send {
   flex: none;
   width: 34px;
   height: 34px;
-  border: none;
-  border-radius: 9px;
-  background: var(--wos-blue);
+  border: 0;
+  border-radius: 999px;
+  background: var(--wl-ink);
   color: #fff;
   display: grid;
   place-items: center;
   cursor: pointer;
+  transition: background 0.15s var(--wl-ease-soft);
 }
 
 .send:hover:not(:disabled) {
-  filter: brightness(1.05);
+  background: #2c3b46;
 }
 
 .send:disabled {
@@ -325,12 +336,12 @@
   align-items: center;
   gap: 6px;
   padding: 0 20px 16px;
-  font-size: 11px;
-  color: var(--wos-ink-3);
+  font-size: 11.5px;
+  color: var(--wl-faint);
   line-height: 1.4;
 }
 
 .safety svg {
-  color: var(--wos-ink-3);
+  color: var(--wl-faint);
   flex: none;
 }

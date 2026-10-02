@@ -1,7 +1,8 @@
 .box {
   width: 86px; height: 24px; padding: 0 8px;
   font: inherit; font-size: 12.5px; font-variant-numeric: tabular-nums;
-  border: 1px solid var(--color-border, #d8d8d8); border-radius: 6px;
-  background: var(--color-surface, #fff); color: var(--color-text, #1a1a1a);
+  border: 1px solid var(--wl-line, rgba(27, 39, 48, 0.09)); border-radius: 999px;
+  background: rgba(255, 255, 255, 0.85); color: var(--wl-ink, #1b2730);
+  transition: border-color .15s var(--wl-ease-soft, ease), box-shadow .15s var(--wl-ease-soft, ease);
 }
-.box:focus { outline: 2px solid var(--color-accent-soft, rgba(26,115,232,.35)); outline-offset: 0; }
+.box:focus { outline: none; border-color: rgba(27, 39, 48, 0.25); box-shadow: 0 0 0 3px rgba(27, 39, 48, 0.07); }

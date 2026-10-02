@@ -227,10 +227,10 @@ export function PageAssistant({ currentUrl, signals, onBrowserAction }: Props): 
   return (
     <aside className={styles.panel}>
       <div className={styles.head}>
-        <div className={styles.title}>
-          <Sparkles className={styles.titleIc} size={18} /> Assistant
+        <div className={styles.heading}>
+          <Sparkles className={styles.headingIc} size={18} /> Assistant
         </div>
-        <p className={styles.subtitle}>Reads the page you're on — ask anything, or pull a full profile.</p>
+        <p className={styles.lede}>Reads the page you're on — ask anything, or pull a full profile.</p>
       </div>
 
       <div className={styles.body}>

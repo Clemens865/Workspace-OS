@@ -68,7 +68,7 @@ export function WorkspaceMemoryView(): JSX.Element {
   return (
     <div className={styles.root}>
       <div className={styles.head}>
-        <h3 className={styles.title}>What this workspace knows</h3>
+        <h3 className={styles.heading}>What this workspace knows</h3>
         {stats && (
           <span className={styles.count}>
             {stats.workspace} here · {stats.global} personal

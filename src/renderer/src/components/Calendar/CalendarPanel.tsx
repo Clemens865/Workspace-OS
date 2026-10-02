@@ -193,7 +193,7 @@ export function CalendarPanel(): JSX.Element {
           <button className={styles.today} onClick={() => setAnchor(startOfDay(Date.now()))}>Today</button>
           <button className={styles.navBtn} onClick={() => step(1)} title={`Next ${view}`}>›</button>
         </div>
-        <h1 className={styles.title}>{title}</h1>
+        <h1 className={styles.heading}>{title}</h1>
         <div className={styles.viewSwitch} role="tablist">
           {(['day', 'week', 'month'] as const).map((v) => (
             <button
@@ -217,7 +217,7 @@ export function CalendarPanel(): JSX.Element {
             onSubmit={(t, m) => void runAsk(t, m)}
           />
         </div>
-        <button className={styles.connect} onClick={() => { setNotice(null); setNewEventOpen(true) }}>New event</button>
+        <button className={styles.newEvent} onClick={() => { setNotice(null); setNewEventOpen(true) }}>New event</button>
         <button className={styles.connect} onClick={() => setConnectOpen(true)}>Add calendar</button>
       </header>
 

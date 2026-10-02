@@ -82,8 +82,7 @@ export function KnowledgePanel({ active, activeFile, onFileOpen }: KnowledgePane
     <div className={styles.root}>
       <div className={styles.header}>
         <div className={styles.headerTitle}>
-          <Link2 size={14} strokeWidth={1.75} className={styles.headerIcon} />
-          <span>Knowledge</span>
+          <span className={styles.surfaceHeading}>Knowledge</span>
         </div>
         <div className={styles.headerRight}>
           <div className={styles.modeToggle} role="tablist" aria-label="Knowledge view">

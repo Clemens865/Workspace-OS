@@ -1,5 +1,5 @@
 import { useEffect, useState, useCallback, useRef } from 'react'
-import Editor, { type OnMount } from '@monaco-editor/react'
+import Editor, { type BeforeMount, type OnMount } from '@monaco-editor/react'
 import { getMonacoLanguage } from './routeFile'
 import { useTheme } from '../../../hooks/useTheme'
 import { useFilePrint } from '../../../hooks/useFilePrint'
@@ -7,6 +7,35 @@ import { printTextDocument } from '../../../lib/printDocument'
 import styles from './MonacoRenderer.module.css'
 
 export type CodeEditor = Parameters<OnMount>[0]
+
+/** The landscape's light editor theme: paper ground, ink text, quiet chrome. */
+export const LANDSCAPE_THEME = 'wl'
+
+const defineLandscapeTheme: BeforeMount = (monaco) => {
+  monaco.editor.defineTheme(LANDSCAPE_THEME, {
+    base: 'vs',
+    inherit: true,
+    rules: [],
+    colors: {
+      'editor.background': '#fbfcfd',
+      'editor.foreground': '#1b2730',
+      'editorLineNumber.foreground': '#a9b4bc',
+      'editorLineNumber.activeForeground': '#3b4a55',
+      'editor.lineHighlightBackground': '#1b27300a',
+      'editor.lineHighlightBorder': '#00000000',
+      'editor.selectionBackground': '#1b27301a',
+      'editor.inactiveSelectionBackground': '#1b273012',
+      'editorCursor.foreground': '#1b2730',
+      'editorGutter.background': '#fbfcfd',
+      'editorIndentGuide.background1': '#1b273014',
+      'editorWidget.background': '#fbfcfd',
+      'editorWidget.border': '#1b273017',
+      'scrollbarSlider.background': '#1b27301f',
+      'scrollbarSlider.hoverBackground': '#1b273033',
+      'scrollbarSlider.activeBackground': '#1b273047',
+    },
+  })
+}
 
 interface MonacoRendererProps {
   filePath: string
@@ -91,11 +120,12 @@ export function MonacoRenderer({ filePath, onDirty, onEditorMount, onSaveRegiste
       language={getMonacoLanguage(filePath)}
       value={content}
       onChange={handleChange}
+      beforeMount={defineLandscapeTheme}
       onMount={handleMount}
-      theme={theme === 'dark' ? 'vs-dark' : 'light'}
+      theme={theme === 'dark' ? 'vs-dark' : LANDSCAPE_THEME}
       options={{
         fontSize: 13,
-        fontFamily: "'SF Mono', 'Fira Code', 'Cascadia Code', monospace",
+        fontFamily: "'JetBrains Mono', 'SF Mono', 'Fira Code', 'Cascadia Code', monospace",
         minimap: { enabled: false },
         scrollBeyondLastLine: false,
         wordWrap: 'on',

@@ -138,7 +138,7 @@ export function FilePanel({ onFileOpen, onFileCreate, onShowTrash, refreshSignal
   return (
     <div className={styles.root}>
       <div className={styles.header}>
-        <span className={styles.title}>
+        <span className={styles.heading}>
           {root ? root.split('/').pop() : 'No folder'}
         </span>
         <div className={styles.headerBtns}>
@@ -208,7 +208,7 @@ export function FilePanel({ onFileOpen, onFileCreate, onShowTrash, refreshSignal
         {!root ? (
           <div className={styles.empty}>
             <FolderOpen size={32} strokeWidth={1.25} className={styles.emptyIcon} />
-            <p className={styles.emptyTitle}>No folder open</p>
+            <p className={styles.emptyHeading}>No folder open</p>
             <p className={styles.emptyHint}>Open a folder to start working</p>
             <button className={styles.openFolderBtn} onClick={handleOpenFolder}>
               Open Folder

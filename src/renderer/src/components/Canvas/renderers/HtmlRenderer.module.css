@@ -3,51 +3,66 @@
   flex-direction: column;
   height: 100%;
   overflow: hidden;
+  background: var(--wl-mist-1, var(--color-canvas));
 }
 
 .toolbar {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 6px 12px;
-  background: var(--color-surface);
-  border-bottom: 1px solid var(--color-border);
+  padding: 7px 14px;
+  background: var(--wl-paper-solid, var(--color-surface));
+  border-bottom: 1px solid var(--wl-line, var(--color-border));
   flex-shrink: 0;
 }
 
+/* Preview | Code — segmented. */
 .toggle {
   display: flex;
   gap: 2px;
-  background: var(--color-bg);
-  border: 1px solid var(--color-border);
-  border-radius: 6px;
-  padding: 2px;
+  background: rgba(27, 39, 48, 0.05);
+  border-radius: 999px;
+  padding: 3px;
 }
 
 .toggleBtn {
-  background: none;
+  height: 24px;
+  background: transparent;
   border: none;
-  border-radius: 4px;
-  color: var(--color-text-muted);
+  border-radius: 999px;
+  color: var(--wl-muted, var(--color-text-muted));
   cursor: pointer;
+  font: inherit;
   font-size: 12px;
-  padding: 3px 12px;
+  font-weight: 500;
+  padding: 0 12px;
+  transition: background 0.15s var(--wl-ease-soft, ease), color 0.15s var(--wl-ease-soft, ease);
 }
 
+.toggleBtn:hover { color: var(--wl-ink, var(--color-text)); }
+
 .toggleBtn.active {
-  background: var(--color-accent);
-  color: #fff;
+  background: #fff;
+  color: var(--wl-ink, var(--color-text));
+  box-shadow: 0 0 0 1px rgba(27, 39, 48, 0.06);
 }
 
 .refresh {
-  background: none;
+  width: 28px;
+  height: 28px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: transparent;
   border: none;
-  color: var(--color-text-muted);
+  border-radius: 999px;
+  color: var(--wl-muted, var(--color-text-muted));
   cursor: pointer;
   font-size: 15px;
+  transition: background 0.15s var(--wl-ease-soft, ease), color 0.15s var(--wl-ease-soft, ease);
 }
 
-.refresh:hover { color: var(--color-text); }
+.refresh:hover { color: var(--wl-ink, var(--color-text)); background: rgba(27, 39, 48, 0.05); }
 
 .body {
   flex: 1;
@@ -63,9 +78,9 @@
 }
 
 .loading, .error {
-  padding: 20px;
-  color: var(--color-text-muted);
+  padding: 24px;
+  color: var(--wl-muted, var(--color-text-muted));
   font-size: 13px;
 }
 
-.error { color: var(--color-danger); }
+.error { color: #b84a3a; }

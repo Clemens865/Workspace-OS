@@ -4,7 +4,8 @@
   min-height: 0;
   width: 100%;
   overflow: hidden;
-  background: var(--color-bg);
+  background: var(--wos-bg, var(--wl-mist-1));
+  border-top: 1px solid var(--wl-line);
 }
 
 .canvas {
@@ -23,25 +24,29 @@
   align-items: center;
   justify-content: center;
   height: 100%;
-  padding: var(--space-6);
+  padding: 32px;
   text-align: center;
-  color: var(--color-text-subtle);
-  font-size: var(--text-xs);
+  color: var(--wl-muted);
+  font-size: 12.5px;
 }
 
 .overlay {
   position: absolute;
-  left: var(--space-2);
-  bottom: var(--space-2);
+  left: 12px;
+  bottom: 12px;
   display: flex;
-  gap: var(--space-3);
+  gap: 12px;
   align-items: center;
   pointer-events: none;
-  font-size: 10px;
-  color: var(--color-text-subtle);
+  font-size: 11.5px;
+  color: var(--wl-muted);
+  padding: 4px 12px;
+  border-radius: 999px;
+  background: rgba(251, 252, 253, 0.9);
+  box-shadow: 0 0 0 1px rgba(27, 39, 48, 0.05);
 }
 
 .hoverLabel {
-  color: var(--color-text);
-  font-weight: 600;
+  color: var(--wl-ink);
+  font-weight: 500;
 }

@@ -78,11 +78,11 @@ export function FullCaseView({
         <div className={styles.chead}>
           <div className={styles.crow1}>
             <div style={{ flex: 1 }}>
-              <div className={styles.ctitle}>{c.title}</div>
+              <div className={styles.caseHeading}>{c.title}</div>
               {c.description && <div className={styles.cdesc}>{c.description}</div>}
             </div>
             <span className={styles.badge}><span className={styles.dot} /> {c.type}</span>
-            {c.scope === 'global' && <span className={styles.badge}><span className={styles.dot} style={{ background: '#8a8a8e' }} /> Everywhere</span>}
+            {c.scope === 'global' && <span className={styles.badge}><span className={styles.dot} style={{ background: 'var(--wl-grey)' }} /> Everywhere</span>}
           </div>
           {c.subject && (
             <a className={styles.subject} href={c.subject} onClick={(e) => e.preventDefault()} title={c.subject}>{c.subject}</a>
@@ -270,7 +270,7 @@ function Chart({ chart }: { chart: NonNullable<ArtifactInsight['chart']> }): JSX
         {chart.bars.map((b, i) => (
           <div key={i} className={styles.col}>
             <div className={styles.cv}>{b.text}</div>
-            <div className={styles.bar} style={{ height: `${Math.max(2, (Math.abs(b.value) / max) * 100)}%`, ...(b.value < 0 ? { background: '#b4431a' } : {}) }} />
+            <div className={styles.bar} style={{ height: `${Math.max(2, (Math.abs(b.value) / max) * 100)}%`, ...(b.value < 0 ? { background: 'var(--wl-claude)' } : {}) }} />
             <div className={styles.cl} title={b.label}>{b.label}</div>
           </div>
         ))}

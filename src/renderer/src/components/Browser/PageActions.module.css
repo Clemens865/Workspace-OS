@@ -7,15 +7,15 @@
   gap: 6px;
   padding-bottom: 12px;
   margin-bottom: 12px;
-  border-bottom: 0.5px solid var(--wos-hair);
+  border-bottom: 1px solid var(--wl-line);
 }
 
 .head {
   font-size: 11px;
-  font-weight: 600;
-  letter-spacing: 0.04em;
+  font-weight: 500;
+  letter-spacing: 0.18em;
   text-transform: uppercase;
-  color: var(--wos-ink-3);
+  color: var(--wl-muted);
 }
 
 .list {
@@ -32,10 +32,10 @@
   width: 100%;
   padding: 7px 8px;
   border: none;
-  border-radius: 8px;
+  border-radius: 10px;
   background: transparent;
-  color: var(--wos-ink);
-  font-family: var(--wos-font);
+  color: var(--wl-ink);
+  font-family: inherit;
   font-size: 12.5px;
   text-align: left;
   cursor: pointer;
@@ -44,13 +44,13 @@
 /* Irrelevant-for-this-page actions stay listed but recede, so someone hunting
  * a known feature can still find it by looking. */
 .rowDim {
-  color: var(--wos-ink-3);
+  color: var(--wl-muted);
 }
 
 .row:hover,
 .rowDim:hover {
-  background: var(--wos-sunk);
-  color: var(--wos-ink);
+  background: rgba(27, 39, 48, 0.05);
+  color: var(--wl-ink);
 }
 
 .row:disabled,
@@ -61,7 +61,7 @@
 
 /* Marks the actions that hand work to an agent. */
 .spark {
-  color: var(--wos-accent, #e0a33e);
+  color: var(--wl-claude);
   flex: none;
 }
 
@@ -75,12 +75,12 @@
 
 .kbd {
   flex: none;
-  font-family: var(--wos-font);
+  font-family: var(--wl-mono);
   font-size: 10.5px;
-  color: var(--wos-ink-3);
-  background: var(--wos-sunk);
-  border-radius: 4px;
-  padding: 1px 5px;
+  color: var(--wl-muted);
+  background: rgba(27, 39, 48, 0.06);
+  border-radius: 999px;
+  padding: 1px 7px;
 }
 
 .more {
@@ -90,13 +90,13 @@
   gap: 4px;
   border: none;
   background: transparent;
-  color: var(--wos-ink-3);
-  font-family: var(--wos-font);
+  color: var(--wl-muted);
+  font-family: inherit;
   font-size: 11.5px;
   cursor: pointer;
   padding: 2px 0;
 }
 
 .more:hover {
-  color: var(--wos-ink);
+  color: var(--wl-ink);
 }

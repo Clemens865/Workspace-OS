@@ -8,8 +8,8 @@
   display: flex;
   flex-direction: column;
   gap: 8px;
-  background: var(--color-surface, #f7f7f8);
-  border-right: 1px solid var(--color-border);
+  background: var(--wl-mist-1, #eef2f5);
+  border-right: 1px solid var(--wl-line, rgba(27, 39, 48, 0.09));
 }
 
 .item {
@@ -20,35 +20,36 @@
   padding: 4px;
   background: transparent;
   border: none;
-  border-radius: 6px;
+  border-radius: 10px;
   cursor: pointer;
+  transition: background 0.15s var(--wl-ease-soft, ease);
 }
-.item:hover { background: var(--hover, rgba(0,0,0,0.04)); }
+.item:hover { background: rgba(27, 39, 48, 0.05); }
 
 .num {
   flex: none;
   width: 16px;
   text-align: right;
   font-size: 11px;
-  color: var(--color-text-muted);
+  color: var(--wl-faint, #a9b4bc);
   padding-top: 2px;
 }
 
 .thumb {
   flex: none;
-  border: 1px solid var(--color-border);
-  border-radius: 3px;
+  border: 1px solid rgba(27, 39, 48, 0.08);
+  border-radius: 4px;
   background: #fff;
-  box-shadow: var(--shadow-1, 0 1px 2px rgba(0,0,0,0.08));
+  box-shadow: none;
   display: block;
 }
 
-.active { background: var(--active, rgba(110,138,224,0.12)); }
-.active .thumb { border-color: var(--accent, #6e8ae0); box-shadow: 0 0 0 2px var(--accent, #6e8ae0); }
-.active .num { color: var(--accent, #6e8ae0); font-weight: 600; }
+.active, .active:hover { background: rgba(27, 39, 48, 0.08); }
+.active .thumb { border-color: var(--wl-ink, #1b2730); box-shadow: 0 0 0 2px var(--wl-ink, #1b2730); }
+.active .num { color: var(--wl-ink, #1b2730); font-weight: 600; }
 
-.dropTarget { box-shadow: inset 0 2px 0 var(--accent, #6e8ae0); }
-.dropTarget .thumb { border-color: var(--accent, #6e8ae0); }
+.dropTarget { box-shadow: inset 0 2px 0 var(--wl-ink, #1b2730); }
+.dropTarget .thumb { border-color: var(--wl-ink, #1b2730); }
 
 /* Hidden slide: still in the deck, skipped in the show. */
 .hidden { opacity: 0.45; }
@@ -56,6 +57,7 @@
 .rename {
   position: absolute; left: 6px; right: 6px; bottom: 6px;
   font: inherit; font-size: 12px; padding: 3px 6px;
-  border: 1px solid var(--accent, #6e8ae0); border-radius: 5px;
-  background: var(--color-surface, #fff); color: var(--color-text, #1a1a1a);
+  border: 1px solid rgba(27, 39, 48, 0.25); border-radius: 8px;
+  background: #fff; color: var(--wl-ink, #1b2730);
+  box-shadow: 0 0 0 3px rgba(27, 39, 48, 0.07);
 }

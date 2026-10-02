@@ -3,9 +3,9 @@
 .backdrop {
   position: fixed;
   inset: 0;
-  background: rgba(20, 20, 22, 0.34);
-  backdrop-filter: blur(2px);
-  -webkit-backdrop-filter: blur(2px);
+  /* Landscape veil. No backdrop-filter: this layer spans the whole window, so
+     it lies over the browser <webview> rectangle whenever the Browser is open. */
+  background: rgba(226, 233, 238, 0.62);
   z-index: 200;
   display: flex;
   align-items: flex-start;
@@ -15,24 +15,26 @@
 
 .bar {
   width: 600px;
-  max-width: 92vw;
-  background: var(--elevated);
-  border: 1px solid var(--border);
-  border-radius: 15px;
+  max-width: calc(100vw - 32px);
+  background: var(--wl-paper-solid);
+  border: 0;
+  border-radius: 22px;
   overflow: hidden;
-  box-shadow: var(--shadow-3);
+  box-shadow: 0 0 0 1px rgba(27, 39, 48, 0.07), 0 20px 50px -20px rgba(30, 55, 70, 0.35);
+  font-family: var(--wl-sans);
+  color: var(--wl-ink);
 }
 
 .inputRow {
   display: flex;
   align-items: center;
-  gap: var(--space-3);
-  padding: var(--space-4);
-  border-bottom: 1px solid var(--color-border);
+  gap: 12px;
+  padding: 16px 20px;
+  border-bottom: 1px solid var(--wl-line);
 }
 
 .icon {
-  color: var(--color-text-subtle);
+  color: var(--wl-muted);
   flex-shrink: 0;
 }
 
@@ -41,40 +43,44 @@
   background: none;
   border: none;
   outline: none;
-  color: var(--color-text);
-  font-size: var(--text-lg);
+  color: var(--wl-ink);
+  font-family: inherit;
+  font-size: 16px;
 }
 
-.input::placeholder { color: var(--color-text-subtle); }
+.input::placeholder { color: var(--wl-faint); }
 
 .results {
   max-height: 52vh;
   overflow-y: auto;
-  padding: var(--space-1);
+  padding: 6px;
 }
 
 .empty {
-  padding: var(--space-6);
+  padding: 28px 16px;
   text-align: center;
-  color: var(--color-text-muted);
-  font-size: var(--text-base);
+  color: var(--wl-muted);
+  font-size: 13px;
 }
 
 .result {
   display: flex;
   align-items: center;
-  gap: var(--space-3);
+  gap: 12px;
   width: 100%;
   text-align: left;
   background: none;
   border: none;
-  border-radius: var(--radius-md);
-  padding: var(--space-2) var(--space-3);
+  border-radius: 10px;
+  padding: 9px 10px;
   cursor: pointer;
   overflow: hidden;
+  font-family: inherit;
+  transition: background 0.15s var(--wl-ease-soft);
 }
 
-.result.active { background: var(--accent-soft); }
+.result:hover { background: rgba(27, 39, 48, 0.05); }
+.result.active { background: rgba(27, 39, 48, 0.08); }
 
 .resultIcon {
   flex-shrink: 0;
@@ -83,43 +89,42 @@
 }
 
 .resultName {
-  color: var(--color-text);
-  font-size: var(--text-base);
-  font-weight: 550;
+  color: var(--wl-ink);
+  font-size: 13.5px;
+  font-weight: 500;
   white-space: nowrap;
 }
 
 .badge {
   flex-shrink: 0;
-  font-size: 10px;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-  color: var(--color-text-muted);
-  border: 1px solid var(--color-border);
-  border-radius: 4px;
-  padding: 1px 5px;
+  font-size: 11px;
+  font-weight: 500;
+  color: var(--wl-muted);
+  background: rgba(27, 39, 48, 0.06);
+  border: 0;
+  border-radius: 999px;
+  padding: 1px 8px;
 }
 
 .resultDir {
-  color: var(--color-text-muted);
-  opacity: 0.6;
+  color: var(--wl-faint);
   font-size: 11.5px;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
   margin-left: auto;
-  padding-left: var(--space-3);
+  padding-left: 12px;
 }
 
 .footer {
   display: flex;
   align-items: center;
-  gap: var(--space-4);
-  padding: 9px 16px;
-  border-top: 1px solid var(--hairline);
-  background: var(--panel);
-  font-size: var(--text-xs);
-  color: var(--fg-subtle);
+  gap: 16px;
+  padding: 10px 20px;
+  border-top: 1px solid var(--wl-line);
+  background: transparent;
+  font-size: 11.5px;
+  color: var(--wl-faint);
 }
 
 .hint {
@@ -136,10 +141,11 @@
 }
 
 .kbd {
-  font-family: var(--mono);
-  background: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: var(--radius-sm);
-  padding: 1px 5px;
+  font-family: var(--wl-mono);
+  color: var(--wl-muted);
+  background: rgba(27, 39, 48, 0.06);
+  border: 0;
+  border-radius: 999px;
+  padding: 1px 7px;
   font-size: 10.5px;
 }

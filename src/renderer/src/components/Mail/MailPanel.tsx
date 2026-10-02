@@ -1625,7 +1625,7 @@ function PanelHeader({ onAdd, onRefresh, loading }: { onAdd: () => void; onRefre
   return (
     <div className={styles.header}>
       <div className={styles.headerTitle}>
-        <Mail size={14} strokeWidth={1.75} /> <span>Mail</span>
+        <span className={styles.heading}>Mail</span>
       </div>
       <div className={styles.headerActions}>
         <button className={styles.iconBtn} onClick={onRefresh} title="Refresh" disabled={loading}>

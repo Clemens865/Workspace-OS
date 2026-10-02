@@ -95,7 +95,7 @@ export function ConnectCalendarDialog({ onClose, onConnected }: Props): JSX.Elem
   return (
     <div className={styles.backdrop} onClick={onClose}>
       <div className={styles.modal} onClick={(e) => e.stopPropagation()}>
-        <h2 className={styles.title}>Add a calendar</h2>
+        <h2 className={styles.heading}>Add a calendar</h2>
 
         {/* Google / Microsoft sign in through the provider's own consent screen —
             no password is ever typed here, and only a refresh token is kept. */}

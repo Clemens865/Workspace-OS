@@ -60,7 +60,7 @@ export function PdfPageOps({ filePath, pageCount, onClose, onChanged }: Props): 
   return (
     <div className={styles.panel}>
       <div className={styles.head}>
-        <h3 className={styles.title}>Pages</h3>
+        <h3 className={styles.heading}>Pages</h3>
         <span className={styles.warn}>Changes rewrite the file — the previous version goes to Trash</span>
         <button className={styles.close} onClick={onClose}>×</button>
       </div>

@@ -7,64 +7,58 @@
  *     is a cue, never the message. Four categories stay distinguishable at a
  *     glance while the surface stays calm.
  *   - quiet sentence-case micro-type, subtle tracking — reads like a human
- *     phrase, not a systemic tag. Never borrows the reserved --wos-blue.
+ *     phrase, not a systemic tag. Landscape status palette.
  *     Per-category accents are local vars so the dot + tint stay in sync. */
 .tag {
-  --cat: var(--wos-ink-3);
-  --cat-tint: rgba(0, 0, 0, 0.03);
+  --cat: var(--wl-grey);
+  --cat-tint: rgba(27, 39, 48, 0.06);
   display: inline-flex;
   align-items: center;
-  gap: 5px;
-  height: 19px;
-  padding: 0 9px 0 7px;
-  border-radius: 6px;
+  gap: 6px;
+  height: 20px;
+  padding: 0 9px 0 8px;
+  border-radius: 999px;
   background: var(--cat-tint);
-  box-shadow: inset 0 0 0 0.5px var(--wos-hair);
-  color: var(--wos-ink-2);
-  font-size: 11px;
-  font-weight: 560;
-  letter-spacing: 0.005em;
+  color: var(--wl-ink-2);
+  font-size: 11.5px;
+  font-weight: 400;
   line-height: 1;
   white-space: nowrap;
   user-select: none;
 }
 
 .dot {
-  width: 5px;
-  height: 5px;
+  width: 7px;
+  height: 7px;
   border-radius: 50%;
   background: var(--cat);
   flex: none;
 }
 
-/* ── Category accents. One hue each; all restrained, all light-friendly. ── */
+/* ── Category accents — the landscape status palette. ── */
 
-/* REVIEW — a checkpointed edit to look over. Calm teal (the "reversible" green
- * the feed already uses for keep/revert), signalling "safe to undo". */
+/* REVIEW — a checkpointed edit to look over. Codex teal: "safe to undo". */
 .tag[data-category='REVIEW'] {
-  --cat: #3fbfa3;
-  --cat-tint: rgba(63, 191, 163, 0.08);
+  --cat: var(--wl-codex);
+  --cat-tint: var(--wl-codex-soft);
 }
 
-/* SEND — an outbound draft. The reserved blue's cooler cousin so it reads
- * "will leave the workspace" without borrowing the primary-action blue. */
+/* SEND — an outbound draft. Neutral ink: "will leave the workspace". */
 .tag[data-category='SEND'] {
-  --cat: #6e9bf4;
-  --cat-tint: rgba(110, 155, 244, 0.09);
+  --cat: var(--wl-ink-2);
+  --cat-tint: rgba(27, 39, 48, 0.06);
 }
 
-/* DECISION — a plain yes/no. Warm amber (the feed's warn ink), the "your call"
- * temperature, quiet but forward. */
+/* DECISION — a plain yes/no. Amber, the "your call" question temperature. */
 .tag[data-category='DECISION'] {
-  --cat: #c98a2e;
-  --cat-tint: rgba(201, 138, 46, 0.09);
-  color: var(--wos-warn-ink);
+  --cat: var(--wl-amber);
+  --cat-tint: var(--wl-amber-soft);
+  color: #8a5a12;
 }
 
-/* ERROR — the run failed. A muted rose (never a shouting red) — legible,
- * concerned, not alarming. */
+/* ERROR — the run failed. Warm attention, never a shouting red. */
 .tag[data-category='ERROR'] {
-  --cat: #e0797a;
-  --cat-tint: rgba(224, 121, 122, 0.1);
-  color: #9c3a3b;
+  --cat: var(--wl-claude);
+  --cat-tint: var(--wl-claude-soft);
+  color: #9c4a2f;
 }

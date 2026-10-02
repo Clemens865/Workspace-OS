@@ -3,8 +3,9 @@
 /* ── thumbnails ── */
 .thumbImg {
   object-fit: cover;
-  border-radius: 6px;
-  background: var(--wos-bg-soft, rgba(0, 0, 0, 0.04));
+  border-radius: 10px;
+  background: rgba(27, 39, 48, 0.05);
+  box-shadow: 0 0 0 1px rgba(27, 39, 48, 0.05);
   flex-shrink: 0;
 }
 
@@ -12,9 +13,8 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  border-radius: 6px;
-  background: var(--wos-bg-soft, rgba(0, 0, 0, 0.04));
-  opacity: 0.72;
+  border-radius: 10px;
+  background: rgba(27, 39, 48, 0.05);
   flex-shrink: 0;
 }
 
@@ -27,8 +27,8 @@
   /* auto-fill, not auto-fit: a half-empty folder keeps its tiles at a sane
      width instead of stretching two of them across the whole pane. */
   grid-template-columns: repeat(auto-fill, minmax(104px, 1fr));
-  gap: 6px;
-  padding: 14px;
+  gap: 8px;
+  padding: 10px 16px 16px;
   align-content: start;
 }
 
@@ -38,28 +38,28 @@
   align-items: center;
   gap: 7px;
   padding: 12px 6px 10px;
-  border: 0.5px solid transparent;
-  border-radius: 10px;
+  border: 0;
+  border-radius: 14px;
   background: transparent;
-  color: var(--wos-ink);
+  color: var(--wl-ink-2, var(--wos-ink));
   font-family: var(--wos-font);
   cursor: pointer;
   min-width: 0;
+  transition: background 0.15s var(--wl-ease-soft, ease);
 }
 
 .tile:hover {
-  background: var(--wos-bg-soft, rgba(0, 0, 0, 0.035));
+  background: rgba(27, 39, 48, 0.05);
 }
 
 .tileOn,
 .tileOn:hover {
-  background: var(--wos-blue, #0071e3);
-  border-color: transparent;
-  color: #fff;
+  background: rgba(27, 39, 48, 0.08);
+  color: var(--wl-ink, var(--wos-ink));
 }
 
 .tileName {
-  font-size: 11.5px;
+  font-size: 12px;
   line-height: 1.3;
   text-align: center;
   /* Two lines then ellipsis — a long filename must not push the row's tiles
@@ -73,12 +73,12 @@
 }
 
 .tileMeta {
-  font-size: 10px;
-  opacity: 0.5;
+  font-size: 11px;
+  color: var(--wl-faint, var(--wos-ink-3));
 }
 
 .tileOn .tileMeta {
-  opacity: 0.8;
+  color: var(--wl-muted, var(--wos-ink-2));
 }
 
 /* ── gallery view ── */
@@ -103,8 +103,11 @@
 }
 
 .galleryName {
-  font-size: 14px;
-  font-weight: 600;
+  font-family: var(--wl-serif, var(--wos-font));
+  font-size: 22px;
+  font-weight: 400;
+  letter-spacing: -0.01em;
+  color: var(--wl-ink, var(--wos-ink));
   text-align: center;
   max-width: 90%;
   overflow: hidden;
@@ -113,32 +116,35 @@
 }
 
 .galleryMeta {
-  font-size: 11.5px;
-  opacity: 0.55;
+  font-size: 12px;
+  color: var(--wl-faint, var(--wos-ink-3));
 }
 
 .galleryOpen {
-  margin-top: 4px;
-  padding: 5px 14px;
-  border: 0.5px solid var(--wos-hair);
-  border-radius: 999px;
-  background: var(--wos-bg);
-  color: var(--wos-ink);
+  margin-top: 6px;
+  height: 32px;
+  padding: 0 16px;
+  border: 0;
+  border-radius: 18px;
+  background: var(--wl-ink, var(--wos-ink));
+  color: #fff;
   font-family: var(--wos-font);
-  font-size: 12px;
+  font-size: 13px;
+  font-weight: 500;
   cursor: pointer;
+  transition: background 0.15s var(--wl-ease-soft, ease);
 }
 
 .galleryOpen:hover {
-  background: var(--wos-bg-soft, rgba(0, 0, 0, 0.04));
+  background: #2c3b46;
 }
 
 .strip {
   flex-shrink: 0;
   display: flex;
   gap: 6px;
-  padding: 10px 12px;
-  border-top: 0.5px solid var(--wos-hair);
+  padding: 10px 16px;
+  border-top: 1px solid var(--wl-line, var(--wos-hair));
   overflow-x: auto;
   scrollbar-width: thin;
 }
@@ -151,26 +157,27 @@
   width: 74px;
   flex-shrink: 0;
   padding: 6px 4px;
-  border: 0.5px solid transparent;
-  border-radius: 8px;
+  border: 0;
+  border-radius: 12px;
   background: transparent;
-  color: var(--wos-ink);
+  color: var(--wl-ink-2, var(--wos-ink));
   font-family: var(--wos-font);
   cursor: pointer;
+  transition: background 0.15s var(--wl-ease-soft, ease);
 }
 
 .stripItem:hover {
-  background: var(--wos-bg-soft, rgba(0, 0, 0, 0.035));
+  background: rgba(27, 39, 48, 0.05);
 }
 
 .stripItemOn,
 .stripItemOn:hover {
-  background: var(--wos-blue, #0071e3);
-  color: #fff;
+  background: rgba(27, 39, 48, 0.08);
+  color: var(--wl-ink, var(--wos-ink));
 }
 
 .stripName {
-  font-size: 10px;
+  font-size: 11px;
   max-width: 100%;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -193,8 +200,8 @@
   min-width: 0;
   height: 100%;
   overflow-y: auto;
-  border-right: 0.5px solid var(--wos-hair);
-  padding: 4px 0;
+  border-right: 1px solid var(--wl-line, var(--wos-hair));
+  padding: 6px;
   scroll-snap-align: end;
 }
 
@@ -203,31 +210,34 @@
   align-items: center;
   gap: 8px;
   width: 100%;
-  padding: 4px 8px;
+  padding: 7px 10px;
   border: none;
+  border-radius: 10px;
   background: transparent;
-  color: var(--wos-ink);
+  color: var(--wl-ink-2, var(--wos-ink));
   font-family: var(--wos-font);
-  font-size: 12.5px;
+  font-size: 13px;
   text-align: left;
   cursor: pointer;
+  transition: background 0.15s var(--wl-ease-soft, ease);
 }
 
 .colRow:hover {
-  background: var(--wos-bg-soft, rgba(0, 0, 0, 0.035));
+  background: rgba(27, 39, 48, 0.05);
 }
 
 /* The folder whose contents are showing in the column to the right. Muted
-   rather than full selection blue — it marks the PATH, not the cursor. */
+   rather than full selection — it marks the PATH, not the cursor. */
 .colRowOpen {
-  background: var(--wos-bg-soft, rgba(0, 0, 0, 0.06));
-  font-weight: 600;
+  background: rgba(27, 39, 48, 0.04);
+  color: var(--wl-ink, var(--wos-ink));
+  font-weight: 500;
 }
 
 .colRowOn,
 .colRowOn:hover {
-  background: var(--wos-blue, #0071e3);
-  color: #fff;
+  background: rgba(27, 39, 48, 0.08);
+  color: var(--wl-ink, var(--wos-ink));
 }
 
 .colName {
@@ -249,14 +259,14 @@
 
 .colEmpty {
   padding: 14px 10px;
-  font-size: 11.5px;
-  opacity: 0.45;
+  font-size: 12px;
+  color: var(--wl-faint, var(--wos-ink-3));
   text-align: center;
 }
 
 .note {
-  padding: 22px 14px;
-  font-size: 12.5px;
-  opacity: 0.55;
+  padding: 40px 16px;
+  font-size: 13px;
+  color: var(--wl-muted, var(--wos-ink-2));
   text-align: center;
 }

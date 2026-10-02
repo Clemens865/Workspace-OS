@@ -1,33 +1,35 @@
-.root { display: flex; flex-direction: column; height: 100%; overflow: hidden; background: var(--color-canvas); }
+.root { display: flex; flex-direction: column; height: 100%; overflow: hidden; background: var(--wl-mist-1, var(--color-canvas)); }
 
 .toolbar {
   display: flex; align-items: center; gap: 10px; flex-wrap: wrap;
-  padding: 7px 12px; background: var(--color-surface);
-  border-bottom: 1px solid var(--color-border); flex-shrink: 0;
+  padding: 7px 14px; background: var(--wl-paper-solid, var(--color-surface));
+  border-bottom: 1px solid var(--wl-line, var(--color-border)); flex-shrink: 0;
 }
 .tools, .colors, .zoom { display: flex; align-items: center; gap: 4px; }
 .toolOn, .toolOff, .btn {
-  border: 1px solid var(--color-border); border-radius: 6px; cursor: pointer;
-  font-size: 12px; padding: 4px 10px; color: var(--color-text);
-  background: var(--color-surface-raised);
+  border: 1px solid var(--wl-line, var(--color-border)); border-radius: 18px; cursor: pointer;
+  font: inherit; font-size: 12px; padding: 4px 12px; color: var(--wl-ink, var(--color-text));
+  background: rgba(255, 255, 255, 0.8);
+  transition: background 0.15s var(--wl-ease-soft, ease), color 0.15s var(--wl-ease-soft, ease);
 }
-.toolOn { background: var(--color-accent-soft, #e8f0fe); border-color: var(--color-accent, #1a73e8); color: var(--color-accent, #1a73e8); font-weight: 600; }
-.toolOff:hover, .btn:hover { background: var(--color-hover); }
+.toolOn { background: var(--wl-ink, #1b2730); border-color: transparent; color: #fff; font-weight: 500; }
+.toolOff:hover, .btn:hover { background: #fff; }
 .toolOff:disabled, .btn:disabled { opacity: 0.45; cursor: default; }
 
 .swatch { width: 18px; height: 18px; border-radius: 50%; border: 2px solid transparent; cursor: pointer; padding: 0; }
-.swatchOn { border-color: var(--color-text); }
+.swatchOn { border-color: var(--wl-ink, var(--color-text)); }
 
 .spacer { flex: 1; }
-.note { font-size: 11px; color: var(--color-danger, #b4483f); }
-.count { font-size: 11.5px; color: var(--color-text-muted); font-variant-numeric: tabular-nums; }
-.zoom button { background: var(--color-surface-raised); border: 1px solid var(--color-border); border-radius: 5px; width: 22px; height: 22px; cursor: pointer; color: var(--color-text); }
-.zoom span { font-size: 11.5px; min-width: 40px; text-align: center; color: var(--color-text-muted); }
+.note { font-size: 11.5px; color: #b84a3a; }
+.count { font-size: 11.5px; color: var(--wl-faint, var(--color-text-muted)); font-variant-numeric: tabular-nums; }
+.zoom button { background: rgba(255, 255, 255, 0.8); border: 1px solid var(--wl-line, var(--color-border)); border-radius: 999px; width: 24px; height: 24px; cursor: pointer; color: var(--wl-ink, var(--color-text)); transition: background 0.15s var(--wl-ease-soft, ease); }
+.zoom button:hover { background: #fff; }
+.zoom span { font-size: 11.5px; min-width: 40px; text-align: center; color: var(--wl-muted, var(--color-text-muted)); font-variant-numeric: tabular-nums; }
 
 .status {
-  padding: 6px 12px; font-size: 12px; cursor: pointer;
-  background: var(--color-accent-soft, #e8f0fe); color: var(--color-text);
-  border-bottom: 1px solid var(--color-border);
+  padding: 7px 14px; font-size: 12.5px; cursor: pointer;
+  background: var(--wl-amber-soft, #fbefd9); color: var(--wl-ink, var(--color-text));
+  border-bottom: 1px solid var(--wl-line, var(--color-border));
 }
 
 .viewport { flex: 1; position: relative; overflow: auto; min-height: 0; }
@@ -37,7 +39,7 @@
 .selecting .textLayer { pointer-events: auto; }
 .marking { cursor: crosshair; }
 
-.pageWrap { position: relative; box-shadow: var(--shadow-2); background: #fff; }
+.pageWrap { position: relative; box-shadow: 0 0 0 1px rgba(27, 39, 48, 0.06), 0 12px 28px -18px rgba(30, 55, 70, 0.3); background: #fff; }
 .pageCanvas { display: block; }
 
 /* pdf.js text layer: invisible glyphs positioned over the canvas so the text is
@@ -64,5 +66,5 @@
   position: absolute; inset: 0; display: flex; align-items: center; justify-content: center;
   z-index: 2; font-size: 13px;
 }
-.overlay { color: var(--color-danger); }
-.overlayMuted { color: var(--color-text-muted); }
+.overlay { color: #b84a3a; }
+.overlayMuted { color: var(--wl-muted, var(--color-text-muted)); }

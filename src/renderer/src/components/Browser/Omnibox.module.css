@@ -1,5 +1,5 @@
 /* The omnibox — one input for address, search, history and bookmarks.
- * Token language matches BrowserSurface.module.css (--wos-*). The pill keeps
+ * Landscape materials (--wl-*), like BrowserSurface.module.css. The pill keeps
  * the exact geometry of the address bar it replaces, so adopting it costs no
  * vertical space: the suggestion list is an overlay, not a row. */
 
@@ -14,13 +14,21 @@
   align-items: center;
   gap: 8px;
   height: 34px;
-  border-radius: 99px;
-  background: var(--wos-sunk);
+  box-sizing: border-box;
+  border-radius: 18px;
+  background: rgba(255, 255, 255, 0.85);
+  border: 1px solid var(--wl-line);
   padding: 0 8px 0 14px;
+  transition: border-color 0.15s var(--wl-ease-soft), box-shadow 0.15s var(--wl-ease-soft);
+}
+
+.url:focus-within {
+  border-color: rgba(27, 39, 48, 0.25);
+  box-shadow: 0 0 0 3px rgba(27, 39, 48, 0.07);
 }
 
 .lead {
-  color: var(--wos-ink-3);
+  color: var(--wl-muted);
   flex: none;
 }
 
@@ -30,13 +38,13 @@
   border: none;
   outline: none;
   background: transparent;
-  font-family: var(--wos-font);
+  font-family: inherit;
   font-size: 13px;
-  color: var(--wos-ink);
+  color: var(--wl-ink);
 }
 
 .input::placeholder {
-  color: var(--wos-ink-3);
+  color: var(--wl-faint);
 }
 
 .star,
@@ -53,16 +61,16 @@
 }
 
 .star {
-  color: var(--wos-ink-3);
+  color: var(--wl-faint);
 }
 
 /* A bookmarked page is the one state worth colour in this row. */
 .starOn {
-  color: var(--wos-accent, #e0a33e);
+  color: var(--wl-amber);
 }
 
 .star:hover {
-  color: var(--wos-ink);
+  color: var(--wl-ink);
 }
 
 /* Overlaid, never in flow — the page must not shift when suggestions appear. */
@@ -77,10 +85,11 @@
   list-style: none;
   max-height: 420px;
   overflow-y: auto;
-  background: var(--wos-card);
-  border: 0.5px solid var(--wos-hair);
-  border-radius: 12px;
-  box-shadow: 0 12px 32px rgb(0 0 0 / 18%);
+  /* Overlaps the page: opaque paper, never glass. */
+  background: var(--wl-paper-solid);
+  border: 0;
+  border-radius: 14px;
+  box-shadow: 0 0 0 1px rgba(27, 39, 48, 0.07), 0 20px 50px -20px rgba(30, 55, 70, 0.35);
 }
 
 .row,
@@ -92,19 +101,19 @@
   border-radius: 8px;
   cursor: pointer;
   font-size: 13px;
-  color: var(--wos-ink);
+  color: var(--wl-ink);
 }
 
 .rowOn {
-  background: var(--wos-sunk);
+  background: rgba(27, 39, 48, 0.08);
 }
 
 .row:hover {
-  background: var(--wos-sunk);
+  background: rgba(27, 39, 48, 0.05);
 }
 
 .icon {
-  color: var(--wos-ink-3);
+  color: var(--wl-muted);
   flex: none;
 }
 
@@ -124,7 +133,7 @@
 }
 
 .host {
-  color: var(--wos-ink-3);
+  color: var(--wl-faint);
   font-size: 12px;
   flex: none;
   max-width: 40%;

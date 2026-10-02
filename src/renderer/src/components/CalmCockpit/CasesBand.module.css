@@ -1,5 +1,6 @@
 /* Open cases in the cockpit. Vertical and document-like, matching the calm
-   cockpit's zones — deliberately not columns and not a board. */
+   cockpit's zones — deliberately not columns and not a board. Landscape
+   materials: paper folios, serif case names, pill chips. */
 
 .band {
   display: flex;
@@ -12,85 +13,96 @@
 
 .heading {
   margin: 0;
-  font-size: 12px;
-  font-weight: 600;
-  letter-spacing: 0.08em;
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: 0.18em;
   text-transform: uppercase;
-  color: var(--wos-ink-soft);
+  color: var(--wl-muted);
 }
 
 .newCase {
-  display: inline-flex; align-items: center; gap: 5px;
-  font-size: 12px; font-weight: 550; padding: 4px 10px; border-radius: 8px;
-  border: 0.5px solid var(--wos-hair); background: var(--wos-card); color: var(--wos-ink);
+  display: inline-flex; align-items: center; gap: 6px;
+  height: 30px; padding: 0 13px; border-radius: 18px;
+  font: inherit; font-size: 12.5px; font-weight: 500;
+  border: 1px solid var(--wl-line); background: rgba(255, 255, 255, 0.8); color: var(--wl-ink);
   cursor: pointer;
+  transition: background 0.15s var(--wl-ease-soft);
 }
-.newCase:hover { background: var(--wos-sunk); }
+.newCase:hover { background: #fff; }
 
 /* The empty-state invitation — an entry point where there were zero cases. */
 .emptyStart {
   display: flex; align-items: center; gap: 9px; width: 100%;
-  text-align: left; font-size: 13px; color: var(--wos-ink-soft);
-  padding: 14px 16px; border: 0.5px dashed var(--wos-hair); border-radius: 12px;
-  background: var(--wos-card); cursor: pointer;
+  text-align: left; font: inherit; font-size: 13.5px; color: var(--wl-ink-2);
+  padding: 16px 18px; border: 1px dashed rgba(27, 39, 48, 0.14); border-radius: 18px;
+  background: rgba(255, 255, 255, 0.4); cursor: pointer;
+  transition: background 0.15s var(--wl-ease-soft), color 0.15s var(--wl-ease-soft);
 }
-.emptyStart:hover { background: var(--wos-sunk); color: var(--wos-ink); }
-.emptyStart svg { flex: none; color: var(--wos-ink-soft); }
+.emptyStart:hover { background: rgba(251, 252, 253, 0.9); color: var(--wl-ink); }
+.emptyStart svg { flex: none; color: var(--wl-muted); }
 
 .list { display: flex; flex-direction: column; gap: 8px; }
 
 .row {
-  border: 0.5px solid var(--wos-hair);
-  border-radius: 12px;
-  background: var(--wos-card);
+  border: 1px solid rgba(255, 255, 255, 0.85);
+  border-radius: 18px;
+  background: rgba(251, 252, 253, 0.9);
+  box-shadow: 0 0 0 1px rgba(27, 39, 48, 0.05);
   overflow: hidden;
+  transition: background 0.15s var(--wl-ease-soft);
 }
 
-.rowOpen { box-shadow: 0 2px 14px rgb(0 0 0 / 6%); }
+.rowOpen { background: var(--wl-paper-solid); box-shadow: 0 0 0 1px rgba(27, 39, 48, 0.08); }
 
 .headWrap { display: flex; align-items: center; }
 .head {
   display: flex;
   align-items: center;
-  gap: 9px;
+  gap: 10px;
   flex: 1;
   min-width: 0;
-  padding: 11px 14px;
+  padding: 12px 16px;
   border: 0;
   background: transparent;
+  font: inherit;
   cursor: pointer;
   text-align: left;
-  color: var(--wos-ink);
+  color: var(--wl-ink);
+  transition: background 0.15s var(--wl-ease-soft);
 }
 
-.head:hover { background: var(--wos-sunk); }
+.head:hover { background: rgba(27, 39, 48, 0.03); }
 
 /* Open the case full screen — quiet until the row is hovered. */
 .expand {
   flex: none;
   width: 30px;
   height: 30px;
-  margin-right: 8px;
+  margin-right: 10px;
   display: grid;
   place-items: center;
   border: 0;
-  border-radius: 8px;
+  border-radius: 999px;
   background: transparent;
-  color: var(--wos-ink-soft);
+  color: var(--wl-muted);
   cursor: pointer;
   opacity: 0;
+  transition: opacity 0.15s var(--wl-ease-soft), background 0.15s var(--wl-ease-soft);
 }
 .headWrap:hover .expand { opacity: 1; }
-.expand:hover { background: var(--wos-sunk); color: var(--wos-ink); }
+.expand:hover { background: rgba(27, 39, 48, 0.05); color: var(--wl-ink); }
 
-.chev { flex: none; color: var(--wos-ink-soft); transition: transform 0.15s ease; }
+.chev { flex: none; color: var(--wl-muted); transition: transform 0.15s var(--wl-ease-soft); }
 .chevOpen { transform: rotate(90deg); }
 
-.title {
+.caseName {
   flex: 1;
   min-width: 0;
-  font-size: 14px;
-  font-weight: 550;
+  font-family: var(--wl-serif);
+  font-size: 18px;
+  font-weight: 400;
+  line-height: 1.2;
+  color: var(--wl-ink);
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -98,16 +110,16 @@
 
 .status {
   flex: none;
-  font-size: 11px;
-  font-weight: 600;
+  font-size: 11.5px;
+  font-weight: 400;
   padding: 2px 9px;
-  border-radius: 20px;
-  background: var(--wos-sunk);
-  color: var(--wos-ink-soft);
+  border-radius: 999px;
+  background: rgba(27, 39, 48, 0.06);
+  color: var(--wl-ink-2);
 }
 
 /* Waiting on the person — the cockpit's whole job is making these visible. */
-.statusWarm { background: #FFF3E8; color: #B4531A; }
+.statusWarm { background: var(--wl-claude-soft); color: #9c4a2f; }
 
 .count {
   flex: none;
@@ -115,13 +127,13 @@
   align-items: center;
   gap: 4px;
   font-size: 11.5px;
-  color: var(--wos-ink-soft);
+  color: var(--wl-faint);
 }
 
 .lastNote {
-  padding: 0 14px 11px 37px;
-  font-size: 12.5px;
-  color: var(--wos-ink-soft);
+  padding: 0 16px 12px 40px;
+  font-size: 13px;
+  color: var(--wl-ink-2);
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -130,13 +142,13 @@
 .body {
   display: flex;
   flex-direction: column;
-  gap: 11px;
-  padding: 2px 14px 14px 37px;
+  gap: 12px;
+  padding: 2px 16px 16px 40px;
 }
 
 .subject {
-  font-size: 12px;
-  color: var(--wos-accent, #2f5bff);
+  font-size: 12.5px;
+  color: var(--wl-ink-2);
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -147,33 +159,35 @@
 .file {
   display: inline-flex;
   align-items: center;
-  gap: 5px;
-  border: 0.5px solid var(--wos-hair);
-  border-radius: 7px;
-  background: var(--wos-sunk);
-  color: var(--wos-ink);
-  font-size: 12px;
-  padding: 4px 9px;
+  gap: 6px;
+  border: 1px solid var(--wl-line);
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.85);
+  color: var(--wl-ink);
+  font: inherit;
+  font-size: 12.5px;
+  padding: 6px 11px;
   cursor: pointer;
+  transition: background 0.15s var(--wl-ease-soft);
 }
 
-.file:hover { background: var(--wos-card); }
+.file:hover { background: #fff; }
 
-.notes { display: flex; flex-direction: column; gap: 5px; }
+.notes { display: flex; flex-direction: column; gap: 6px; }
 
 .note {
   display: flex;
   gap: 8px;
-  font-size: 12.5px;
-  color: var(--wos-ink);
+  font-size: 13px;
+  color: var(--wl-ink);
   line-height: 1.45;
 }
 
 .noteWho {
   flex: none;
   width: 42px;
-  font-size: 11px;
-  color: var(--wos-ink-soft);
+  font-size: 11.5px;
+  color: var(--wl-faint);
   text-transform: lowercase;
 }
 
@@ -182,73 +196,80 @@
 .input {
   flex: 1;
   min-width: 0;
-  border: 0.5px solid var(--wos-hair);
-  border-radius: 8px;
-  background: var(--wos-bg);
-  color: var(--wos-ink);
+  height: 34px;
+  border: 1px solid var(--wl-line);
+  border-radius: 18px;
+  background: rgba(255, 255, 255, 0.85);
+  color: var(--wl-ink);
+  font: inherit;
   font-size: 13px;
-  padding: 7px 10px;
+  padding: 0 14px;
+  outline: none;
+  transition: border-color 0.15s var(--wl-ease-soft), box-shadow 0.15s var(--wl-ease-soft);
 }
 
-.input:focus { outline: 2px solid var(--wos-accent, #2f5bff); outline-offset: -1px; }
+.input:focus { border-color: rgba(27, 39, 48, 0.25); box-shadow: 0 0 0 3px rgba(27, 39, 48, 0.07); }
 
 .add, .signal, .chip {
   display: inline-flex;
   align-items: center;
-  gap: 5px;
-  border: 0.5px solid var(--wos-hair);
-  border-radius: 8px;
-  background: var(--wos-sunk);
-  color: var(--wos-ink);
-  font-size: 12px;
-  padding: 6px 11px;
+  gap: 6px;
+  border: 1px solid var(--wl-line);
+  border-radius: 18px;
+  background: rgba(255, 255, 255, 0.8);
+  color: var(--wl-ink);
+  font: inherit;
+  font-size: 12.5px;
+  padding: 6px 13px;
   cursor: pointer;
   white-space: nowrap;
+  transition: background 0.15s var(--wl-ease-soft);
 }
 
+.add:hover, .chip:hover { background: #fff; }
 .add:disabled, .chip:disabled { opacity: 0.5; cursor: default; }
 
 .signals { display: flex; flex-wrap: wrap; gap: 6px; }
 
 /* An offer that arose from a note. Warm, because it is an invitation. */
-.signal { background: #FFF3E8; color: #B4531A; border-color: #F3D6BE; }
+.signal { background: var(--wl-amber-soft); color: #8a5a12; border-color: rgba(227, 163, 59, 0.35); }
+.signal:hover { border-color: rgba(227, 163, 59, 0.6); }
 
 /* A hand-off that failed. Said in the case, because a failure that looks
    identical to success is how this band shipped with a dead agent box. */
 .error {
   font-size: 12.5px;
   line-height: 1.45;
-  color: #B42318;
+  color: #b84a3a;
 }
 
 .statuses { display: flex; flex-wrap: wrap; gap: 5px; }
 
 /* Where the case lives — this workspace, or everywhere. */
 .scopeRow { display: flex; align-items: center; flex-wrap: wrap; gap: 5px; }
-.scopeKey { font-size: 11px; color: var(--wos-ink-soft); margin-right: 3px; }
+.scopeKey { font-size: 11.5px; color: var(--wl-muted); margin-right: 3px; }
 .scopeTag {
   flex: none;
-  font-size: 10.5px;
-  font-weight: 600;
-  letter-spacing: 0.03em;
+  font-size: 11px;
+  font-weight: 400;
   padding: 2px 8px;
-  border-radius: 20px;
-  background: var(--wos-sunk);
-  color: var(--wos-ink-soft);
+  border-radius: 999px;
+  background: rgba(27, 39, 48, 0.06);
+  color: var(--wl-ink-2);
 }
 
-.chip { font-size: 11.5px; padding: 4px 9px; }
-.chipOn { background: var(--wos-ink); color: var(--wos-card); border-color: transparent; }
+.chip { font-size: 12px; padding: 3px 10px; }
+.chipOn, .chipOn:hover { background: var(--wl-ink); color: #fff; border-color: transparent; }
 
-/* What this case IS. A title says what it is called; a status says where it
+/* What this case IS. A name says what it is called; a status says where it
    stands; neither says why it matters six weeks later. */
 .description {
   margin: 0;
-  font-size: 13px;
+  font-size: 13.5px;
   line-height: 1.5;
-  color: var(--wos-ink);
+  color: var(--wl-ink-2);
 }
 
 /* Asked only when the app genuinely does not know which calendar. */
 .pick { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; }
-.pickLabel { font-size: 12.5px; color: var(--wos-ink-soft); }
+.pickLabel { font-size: 12.5px; color: var(--wl-muted); }

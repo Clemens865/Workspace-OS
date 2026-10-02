@@ -1,13 +1,13 @@
 /* WOS-013 · the Files surface's browsable folder view.
-   Token language matches the rest of the new shell. */
+   Landscape vocabulary: pill search and chips, quiet ink rows, segmented views. */
 
 .browser {
   display: flex;
   flex-direction: column;
   height: 100%;
   min-height: 0;
-  background: var(--wos-bg);
-  color: var(--wos-ink);
+  background: transparent;
+  color: var(--wl-ink, var(--wos-ink));
   font-family: var(--wos-font);
 }
 
@@ -16,8 +16,7 @@
   display: flex;
   align-items: center;
   gap: 6px;
-  padding: 9px 12px;
-  border-bottom: 0.5px solid var(--wos-hair);
+  padding: 14px 16px 10px;
   flex-shrink: 0;
 }
 
@@ -25,21 +24,19 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 26px;
-  height: 26px;
+  width: 28px;
+  height: 28px;
   padding: 0;
-  border: 0.5px solid transparent;
-  border-radius: 7px;
+  border: 0;
+  border-radius: 999px;
   background: transparent;
-  color: var(--wos-ink);
+  color: var(--wl-ink, var(--wos-ink));
   cursor: pointer;
-  opacity: 0.8;
+  transition: background 0.15s var(--wl-ease-soft, ease), opacity 0.15s var(--wl-ease-soft, ease);
 }
 
 .navBtn:hover:not(:disabled) {
-  border-color: var(--wos-hair);
-  background: var(--wos-bg-soft, rgba(0, 0, 0, 0.03));
-  opacity: 1;
+  background: rgba(27, 39, 48, 0.05);
 }
 
 /* Disabled rather than hidden: the control keeping its place is what tells you
@@ -68,34 +65,40 @@
 }
 
 .crumbSep {
-  opacity: 0.35;
+  color: var(--wl-faint, currentColor);
   flex-shrink: 0;
 }
 
 .crumb,
 .crumbOn {
-  padding: 3px 6px;
+  padding: 3px 8px;
   border: none;
-  border-radius: 6px;
+  border-radius: 999px;
   background: transparent;
-  color: var(--wos-ink);
   font-family: var(--wos-font);
-  font-size: 12.5px;
   cursor: pointer;
   white-space: nowrap;
+  transition: background 0.15s var(--wl-ease-soft, ease), color 0.15s var(--wl-ease-soft, ease);
 }
 
 .crumb {
-  opacity: 0.62;
+  color: var(--wl-muted, var(--wos-ink-2));
+  font-size: 13px;
 }
 
 .crumb:hover {
-  opacity: 1;
-  background: var(--wos-bg-soft, rgba(0, 0, 0, 0.04));
+  color: var(--wl-ink, var(--wos-ink));
+  background: rgba(27, 39, 48, 0.05);
 }
 
+/* The folder you are in reads as the surface heading. */
 .crumbOn {
-  font-weight: 600;
+  color: var(--wl-ink, var(--wos-ink));
+  font-family: var(--wl-serif, var(--wos-font));
+  font-weight: 400;
+  font-size: 22px;
+  line-height: 1.2;
+  letter-spacing: -0.01em;
   cursor: default;
 }
 
@@ -104,8 +107,8 @@
   display: flex;
   align-items: center;
   gap: 8px;
-  padding: 8px 12px;
-  border-bottom: 0.5px solid var(--wos-hair);
+  padding: 2px 16px 12px;
+  border-bottom: 1px solid var(--wl-line, var(--wos-hair));
   flex-wrap: wrap;
   flex-shrink: 0;
 }
@@ -113,18 +116,25 @@
 .search {
   flex: 1;
   min-width: 140px;
-  padding: 5px 9px;
-  border: 0.5px solid var(--wos-hair);
-  border-radius: 7px;
-  background: var(--wos-bg);
-  color: var(--wos-ink);
+  height: 32px;
+  padding: 0 14px;
+  border: 1px solid var(--wl-line, var(--wos-hair));
+  border-radius: 18px;
+  background: rgba(255, 255, 255, 0.85);
+  color: var(--wl-ink, var(--wos-ink));
   font-family: var(--wos-font);
-  font-size: 12.5px;
+  font-size: 13px;
   outline: none;
+  transition: border-color 0.15s var(--wl-ease-soft, ease), box-shadow 0.15s var(--wl-ease-soft, ease);
+}
+
+.search::placeholder {
+  color: var(--wl-faint, var(--wos-ink-3));
 }
 
 .search:focus {
-  border-color: var(--wos-accent, #0071e3);
+  border-color: rgba(27, 39, 48, 0.25);
+  box-shadow: 0 0 0 3px rgba(27, 39, 48, 0.07);
 }
 
 .chips {
@@ -135,60 +145,67 @@
 
 .chip,
 .chipOn {
-  padding: 3px 9px;
-  border: 0.5px solid var(--wos-hair);
+  padding: 3px 10px;
+  border: 0;
   border-radius: 999px;
-  background: transparent;
-  color: var(--wos-ink);
   font-family: var(--wos-font);
-  font-size: 11.5px;
+  font-size: 12px;
   cursor: pointer;
   white-space: nowrap;
+  transition: background 0.15s var(--wl-ease-soft, ease), color 0.15s var(--wl-ease-soft, ease);
 }
 
 .chip {
-  opacity: 0.66;
+  background: rgba(27, 39, 48, 0.05);
+  color: var(--wl-muted, var(--wos-ink-2));
 }
 
 .chip:hover {
-  opacity: 1;
+  background: rgba(27, 39, 48, 0.08);
+  color: var(--wl-ink, var(--wos-ink));
 }
 
 .chipOn {
-  background: var(--wos-accent, #0071e3);
-  border-color: transparent;
+  background: var(--wl-ink, var(--wos-ink));
   color: #fff;
 }
 
 .age {
-  padding: 4px 7px;
-  border: 0.5px solid var(--wos-hair);
-  border-radius: 7px;
-  background: var(--wos-bg);
-  color: var(--wos-ink);
+  height: 28px;
+  padding: 0 10px;
+  border: 1px solid var(--wl-line, var(--wos-hair));
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.8);
+  color: var(--wl-ink, var(--wos-ink));
   font-family: var(--wos-font);
-  font-size: 11.5px;
+  font-size: 12px;
   cursor: pointer;
+  outline: none;
+}
+
+.age:focus {
+  border-color: rgba(27, 39, 48, 0.25);
+  box-shadow: 0 0 0 3px rgba(27, 39, 48, 0.07);
 }
 
 .clear {
   display: inline-flex;
   align-items: center;
   gap: 4px;
-  padding: 3px 8px;
+  padding: 3px 10px;
   border: none;
-  border-radius: 6px;
+  border-radius: 999px;
   background: transparent;
-  color: var(--wos-ink);
+  color: var(--wl-muted, var(--wos-ink-2));
   font-family: var(--wos-font);
-  font-size: 11.5px;
+  font-size: 12px;
   cursor: pointer;
-  opacity: 0.7;
+  transition: background 0.15s var(--wl-ease-soft, ease), color 0.15s var(--wl-ease-soft, ease);
 }
 
 .clear:hover {
-  opacity: 1;
-  background: var(--wos-bg-soft, rgba(0, 0, 0, 0.04));
+  color: var(--wl-ink, var(--wos-ink));
+  background: rgba(27, 39, 48, 0.05);
 }
 
 /* ── column headers + rows ──
@@ -203,8 +220,7 @@
 }
 
 .head {
-  padding: 6px 12px;
-  border-bottom: 0.5px solid var(--wos-hair);
+  padding: 10px 20px 6px;
   flex-shrink: 0;
 }
 
@@ -217,20 +233,20 @@
   padding: 0;
   border: none;
   background: transparent;
-  color: var(--wos-ink);
+  color: var(--wl-muted, var(--wos-ink-2));
   font-family: var(--wos-font);
   font-size: 11px;
-  font-weight: 600;
-  letter-spacing: 0.02em;
+  font-weight: 500;
+  letter-spacing: 0.18em;
   text-transform: uppercase;
-  opacity: 0.55;
   cursor: pointer;
+  transition: color 0.15s var(--wl-ease-soft, ease);
 }
 
 .hName:hover,
 .hCol:hover,
 .hColR:hover {
-  opacity: 0.95;
+  color: var(--wl-ink, var(--wos-ink));
 }
 
 .hColR {
@@ -241,29 +257,31 @@
   flex: 1;
   min-height: 0;
   overflow-y: auto;
-  padding: 4px 0;
+  padding: 2px 10px 10px;
 }
 
 .row {
-  padding: 5px 12px;
-  border-radius: 0;
+  padding: 8px 10px;
+  border-radius: 10px;
   cursor: pointer;
-  font-size: 12.5px;
+  font-size: 13px;
+  color: var(--wl-ink-2, var(--wos-ink));
+  transition: background 0.15s var(--wl-ease-soft, ease);
 }
 
 .row:hover {
-  background: var(--wos-bg-soft, rgba(0, 0, 0, 0.035));
+  background: rgba(27, 39, 48, 0.05);
 }
 
 .row:focus-visible {
-  outline: 2px solid var(--wos-accent, #0071e3);
-  outline-offset: -2px;
+  outline: none;
+  box-shadow: inset 0 0 0 1px rgba(27, 39, 48, 0.25);
 }
 
 .rowOn,
 .rowOn:hover {
-  background: var(--wos-accent, #0071e3);
-  color: #fff;
+  background: rgba(27, 39, 48, 0.08);
+  color: var(--wl-ink, var(--wos-ink));
 }
 
 .cName {
@@ -275,7 +293,7 @@
 
 .icon {
   flex-shrink: 0;
-  opacity: 0.75;
+  opacity: 0.8;
 }
 
 .nameText {
@@ -286,8 +304,8 @@
 
 .cCol,
 .cColR {
-  font-size: 11.5px;
-  opacity: 0.62;
+  font-size: 12px;
+  color: var(--wl-faint, var(--wos-ink-3));
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -299,34 +317,37 @@
 }
 
 .rowOn .cCol,
-.rowOn .cColR,
+.rowOn .cColR {
+  color: var(--wl-muted, var(--wos-ink-2));
+}
+
 .rowOn .icon {
-  opacity: 0.85;
+  opacity: 1;
 }
 
 .note {
-  padding: 22px 14px;
-  font-size: 12.5px;
-  opacity: 0.55;
+  padding: 40px 16px;
+  font-size: 13px;
+  color: var(--wl-muted, var(--wos-ink-2));
   text-align: center;
 }
 
 .status {
-  padding: 6px 12px;
-  border-top: 0.5px solid var(--wos-hair);
-  font-size: 11px;
-  opacity: 0.5;
+  padding: 8px 20px;
+  border-top: 1px solid var(--wl-line, var(--wos-hair));
+  font-size: 11.5px;
+  color: var(--wl-faint, var(--wos-ink-3));
   flex-shrink: 0;
 }
 
-/* ── view switcher ── */
+/* ── view switcher (segmented) ── */
 .views {
   display: flex;
   gap: 2px;
   margin-left: auto;
-  padding: 2px;
-  border: 0.5px solid var(--wos-hair);
-  border-radius: 8px;
+  padding: 3px;
+  border-radius: 999px;
+  background: rgba(27, 39, 48, 0.05);
   flex-shrink: 0;
 }
 
@@ -335,28 +356,28 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 26px;
-  height: 22px;
+  width: 30px;
+  height: 24px;
   padding: 0;
   border: none;
-  border-radius: 6px;
-  background: transparent;
-  color: var(--wos-ink);
+  border-radius: 999px;
   cursor: pointer;
+  transition: background 0.15s var(--wl-ease-soft, ease), color 0.15s var(--wl-ease-soft, ease);
 }
 
 .view {
-  opacity: 0.5;
+  background: transparent;
+  color: var(--wl-muted, var(--wos-ink-2));
 }
 
 .view:hover {
-  opacity: 0.9;
-  background: var(--wos-bg-soft, rgba(0, 0, 0, 0.04));
+  color: var(--wl-ink, var(--wos-ink));
 }
 
 .viewOn {
-  background: var(--wos-blue, #0071e3);
-  color: #fff;
+  background: #fff;
+  color: var(--wl-ink, var(--wos-ink));
+  box-shadow: 0 0 0 1px rgba(27, 39, 48, 0.06);
 }
 
 /* ── sort control for the non-list views ──
@@ -367,43 +388,43 @@
   display: flex;
   align-items: center;
   gap: 4px;
-  padding: 6px 12px;
-  border-bottom: 0.5px solid var(--wos-hair);
+  padding: 10px 16px 6px;
   flex-shrink: 0;
 }
 
 .sortLabel {
-  font-size: 10.5px;
-  font-weight: 600;
-  letter-spacing: 0.03em;
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: 0.18em;
   text-transform: uppercase;
-  opacity: 0.45;
-  margin-right: 2px;
+  color: var(--wl-muted, var(--wos-ink-2));
+  margin-right: 6px;
 }
 
 .sort,
 .sortOn {
-  padding: 2px 8px;
-  border: 0.5px solid var(--wos-hair);
+  padding: 2px 10px;
+  border: 0;
   border-radius: 999px;
-  background: transparent;
-  color: var(--wos-ink);
   font-family: var(--wos-font);
-  font-size: 11px;
+  font-size: 12px;
   cursor: pointer;
   font-variant-numeric: tabular-nums;
+  transition: background 0.15s var(--wl-ease-soft, ease), color 0.15s var(--wl-ease-soft, ease);
 }
 
 .sort {
-  opacity: 0.62;
+  background: transparent;
+  color: var(--wl-muted, var(--wos-ink-2));
 }
 
 .sort:hover {
-  opacity: 1;
+  background: rgba(27, 39, 48, 0.05);
+  color: var(--wl-ink, var(--wos-ink));
 }
 
 .sortOn {
-  background: var(--wos-bg-soft, rgba(0, 0, 0, 0.07));
-  border-color: transparent;
-  font-weight: 600;
+  background: rgba(27, 39, 48, 0.08);
+  color: var(--wl-ink, var(--wos-ink));
+  font-weight: 500;
 }

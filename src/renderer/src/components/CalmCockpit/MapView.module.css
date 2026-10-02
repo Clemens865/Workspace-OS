@@ -6,10 +6,12 @@
 }
 
 .status {
-  margin: 0 0 22px;
-  font-size: 17px;
-  line-height: 1.4;
-  color: var(--wos-ink-2);
+  margin: 0 0 24px;
+  font-family: var(--wl-serif);
+  font-weight: 400;
+  font-size: 24px;
+  line-height: 1.3;
+  color: var(--wl-ink);
   letter-spacing: -0.01em;
 }
 
@@ -18,7 +20,7 @@
   max-width: 52ch;
   font-size: 13.5px;
   line-height: 1.6;
-  color: var(--wos-ink-3);
+  color: var(--wl-muted);
 }
 
 /* The measured field: chips are positioned by the grid, wires by measurement. */
@@ -43,14 +45,14 @@
 }
 
 .wire {
-  stroke: var(--wos-ink-3);
-  opacity: 0.45;
+  stroke: var(--wl-grey);
+  opacity: 0.55;
 }
 
 .wireStale {
-  stroke: var(--wos-warn-ink);
+  stroke: var(--wl-amber);
   stroke-dasharray: 4 4;
-  opacity: 0.85;
+  opacity: 0.9;
 }
 
 .territories {
@@ -65,17 +67,16 @@
   display: flex;
   flex-direction: column;
   gap: 10px;
-  padding: 14px 14px 12px;
-  border-radius: var(--wos-r);
-  background: var(--wos-sunk);
-  box-shadow: inset 0 0 0 0.5px var(--wos-hair);
+  padding: 16px 16px 14px;
+  border-radius: 20px;
+  border: 1px solid rgba(255, 255, 255, 0.85);
+  background: rgba(251, 252, 253, 0.9);
+  box-shadow: 0 0 0 1px rgba(27, 39, 48, 0.05);
 }
 
 .territoryWarm {
-  background: linear-gradient(180deg, #fff7ec 0%, var(--wos-card) 82%);
-  box-shadow:
-    0 0 0 0.5px rgba(138, 90, 0, 0.16),
-    0 10px 26px rgba(60, 40, 0, 0.08);
+  background: linear-gradient(180deg, var(--wl-amber-soft) 0%, rgba(251, 252, 253, 0.9) 82%);
+  box-shadow: 0 0 0 1px rgba(227, 163, 59, 0.3);
 }
 
 .territorySettled {
@@ -84,8 +85,9 @@
 
 .territoryLoose {
   background: transparent;
-  box-shadow: inset 0 0 0 0.5px var(--wos-hair);
-  border-radius: var(--wos-r);
+  border: 1px dashed var(--wl-line);
+  box-shadow: none;
+  border-radius: 20px;
 }
 
 .tHead {
@@ -100,10 +102,11 @@
   background: transparent;
   padding: 0;
   font: inherit;
-  font-size: 13.5px;
-  font-weight: 600;
-  color: var(--wos-ink);
-  letter-spacing: -0.01em;
+  font-family: var(--wl-serif);
+  font-size: 18px;
+  font-weight: 400;
+  line-height: 1.2;
+  color: var(--wl-ink);
   text-align: left;
   cursor: pointer;
   overflow: hidden;
@@ -117,17 +120,19 @@
 }
 
 .tTitleQuiet {
-  font-size: 12px;
-  font-weight: 600;
+  font-family: var(--wl-sans);
+  font-size: 11px;
+  font-weight: 500;
+  line-height: 1.4;
   text-transform: uppercase;
-  letter-spacing: 0.06em;
-  color: var(--wos-ink-3);
+  letter-spacing: 0.18em;
+  color: var(--wl-muted);
 }
 
 .tNone {
   margin: 0;
   font-size: 12.5px;
-  color: var(--wos-ink-3);
+  color: var(--wl-muted);
 }
 
 .chips {
@@ -141,33 +146,29 @@
   align-items: center;
   gap: 6px;
   max-width: 100%;
-  padding: 5px 9px 5px 8px;
-  border: 0;
-  border-radius: var(--wos-r-sm);
-  background: var(--wos-card);
-  box-shadow: inset 0 0 0 0.5px var(--wos-hair);
+  padding: 6px 11px 6px 10px;
+  border: 1px solid var(--wl-line);
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.85);
   font: inherit;
   font-size: 12.5px;
-  color: var(--wos-ink);
+  color: var(--wl-ink);
   cursor: pointer;
-  transition: transform 0.13s ease, box-shadow 0.13s ease;
+  transition: background 0.15s var(--wl-ease-soft), border-color 0.15s var(--wl-ease-soft);
 }
 
 .chip:hover {
-  transform: translateY(-1px);
-  box-shadow:
-    0 0 0 0.5px var(--wos-hair),
-    0 4px 12px rgba(0, 0, 0, 0.06);
+  background: #fff;
+  border-color: rgba(27, 39, 48, 0.16);
 }
 
 .chipWarm {
-  box-shadow:
-    0 0 0 0.5px rgba(138, 90, 0, 0.16),
-    0 4px 12px rgba(60, 40, 0, 0.07);
+  border-color: rgba(227, 163, 59, 0.45);
+  background: var(--wl-amber-soft);
 }
 
 .chipGlyph {
-  color: var(--wos-ink-3);
+  color: var(--wl-muted);
   font-size: 12px;
 }
 
@@ -178,8 +179,8 @@
 }
 
 .chipBy {
-  font-size: 10.5px;
-  color: var(--wos-ink-3);
+  font-size: 11px;
+  color: var(--wl-faint);
   white-space: nowrap;
 }
 
@@ -192,11 +193,11 @@
 
 .sourcesTitle {
   margin: 0 0 10px;
-  font-size: 12px;
-  font-weight: 600;
+  font-size: 11px;
+  font-weight: 500;
   text-transform: uppercase;
-  letter-spacing: 0.06em;
-  color: var(--wos-ink-3);
+  letter-spacing: 0.18em;
+  color: var(--wl-muted);
 }
 
 .metricRow {
@@ -210,32 +211,33 @@
   flex-direction: column;
   gap: 2px;
   min-width: 150px;
-  padding: 9px 12px;
-  border-radius: var(--wos-r-sm);
-  background: var(--wos-card);
-  box-shadow: inset 0 0 0 0.5px var(--wos-hair);
+  padding: 10px 14px;
+  border-radius: 18px;
+  border: 1px solid rgba(255, 255, 255, 0.85);
+  background: rgba(251, 252, 253, 0.9);
+  box-shadow: 0 0 0 1px rgba(27, 39, 48, 0.05);
 }
 
 .metricStale {
-  box-shadow:
-    0 0 0 0.5px rgba(138, 90, 0, 0.16),
-    0 4px 12px rgba(60, 40, 0, 0.07);
+  background: var(--wl-amber-soft);
+  box-shadow: 0 0 0 1px rgba(227, 163, 59, 0.35);
 }
 
 .metricName {
   font-size: 12px;
-  color: var(--wos-ink-2);
+  color: var(--wl-ink-2);
 }
 
 .metricValue {
-  font-size: 16px;
-  font-weight: 600;
-  color: var(--wos-ink);
+  font-family: var(--wl-serif);
+  font-size: 20px;
+  font-weight: 400;
+  line-height: 1.15;
+  color: var(--wl-ink);
   font-variant-numeric: tabular-nums;
-  letter-spacing: -0.01em;
 }
 
 .metricMeta {
-  font-size: 10.5px;
-  color: var(--wos-ink-3);
+  font-size: 11px;
+  color: var(--wl-faint);
 }

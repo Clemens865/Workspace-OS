@@ -5,8 +5,8 @@
   align-items: center;
   gap: 2px;
   padding: 0 12px;
-  background: var(--surface);
-  border-bottom: 1px solid var(--border);
+  background: var(--wl-paper-solid, var(--surface));
+  border-bottom: 1px solid var(--wl-line, var(--border));
 }
 
 .btn {
@@ -17,18 +17,18 @@
   height: 30px;
   background: transparent;
   border: none;
-  border-radius: var(--radius-md);
-  color: var(--fg-muted);
+  border-radius: 10px;
+  color: var(--wl-muted, var(--fg-muted));
   cursor: pointer;
-  transition: background 90ms ease, color 90ms ease;
+  transition: background 0.15s var(--wl-ease-soft, ease), color 0.15s var(--wl-ease-soft, ease);
 }
 
-.btn:hover { background: var(--hover); color: var(--fg); }
+.btn:hover { background: rgba(27, 39, 48, 0.05); color: var(--wl-ink, var(--fg)); }
 
 .divider {
   width: 1px;
-  height: 20px;
-  background: var(--border);
+  height: 18px;
+  background: var(--wl-line, var(--border));
   margin: 0 6px;
 }
 
@@ -36,16 +36,16 @@
   opacity: 0.35;
   cursor: default;
 }
-.btn:disabled:hover { background: transparent; color: var(--fg-muted); }
+.btn:disabled:hover { background: transparent; color: var(--wl-muted, var(--fg-muted)); }
 
 .spacer { flex: 1; }
 
 .segmented {
   display: flex;
   gap: 2px;
-  padding: 2px;
-  background: var(--hover);
-  border-radius: var(--radius-md);
+  padding: 3px;
+  background: rgba(27, 39, 48, 0.05);
+  border-radius: 999px;
 }
 
 .seg, .segActive {
@@ -53,19 +53,20 @@
   align-items: center;
   gap: 5px;
   height: 26px;
-  padding: 0 10px;
+  padding: 0 12px;
   border: none;
-  border-radius: calc(var(--radius-md) - 2px);
+  border-radius: 999px;
   background: transparent;
-  color: var(--fg-muted);
+  color: var(--wl-muted, var(--fg-muted));
+  font-family: inherit;
   font-size: 12px;
-  font-weight: 550;
+  font-weight: 500;
   cursor: pointer;
-  transition: background 90ms ease, color 90ms ease;
+  transition: background 0.15s var(--wl-ease-soft, ease), color 0.15s var(--wl-ease-soft, ease);
 }
-.seg:hover { color: var(--fg); }
+.seg:hover { color: var(--wl-ink, var(--fg)); }
 .segActive {
-  background: var(--surface);
-  color: var(--fg);
-  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.08);
+  background: #fff;
+  color: var(--wl-ink, var(--fg));
+  box-shadow: 0 0 0 1px rgba(27, 39, 48, 0.06);
 }

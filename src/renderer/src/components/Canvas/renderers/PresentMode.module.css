@@ -24,7 +24,7 @@
   align-items: center;
   gap: 10px;
   padding: 6px 12px;
-  background: rgba(30, 30, 34, 0.82);
+  background: rgba(27, 39, 48, 0.86);
   border-radius: 999px;
   opacity: 0;
   transition: opacity 160ms ease;
@@ -39,7 +39,8 @@
   font-size: 20px;
   line-height: 1;
   padding: 2px 8px;
-  border-radius: 6px;
+  border-radius: 999px;
+  transition: background .15s var(--wl-ease-soft, ease);
 }
 .bar button:disabled { opacity: 0.35; cursor: default; }
 .bar button:not(:disabled):hover { background: rgba(255, 255, 255, 0.12); }

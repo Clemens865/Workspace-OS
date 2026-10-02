@@ -5,7 +5,7 @@
   height: 100%;
   min-height: 0;
   background: var(--wos-bg);
-  color: var(--wos-ink);
+  color: var(--wl-ink);
   font-family: var(--wos-font);
 }
 
@@ -18,25 +18,28 @@
   flex-shrink: 0;
 }
 
-.title {
+/* Serif surface heading (class name avoids the tokens.css "title" override). */
+.heading {
   margin: 0 0 6px;
-  font-size: 22px;
-  font-weight: 600;
-  letter-spacing: -0.015em;
+  font-family: var(--wl-serif);
+  font-size: 30px;
+  font-weight: 400;
+  letter-spacing: -0.01em;
+  color: var(--wl-ink);
 }
 
 .status {
   margin: 0;
-  font-size: 15px;
-  color: var(--wos-ink-2);
+  font-size: 14px;
+  color: var(--wl-ink-2);
 }
 
 .warn {
   margin: 0 28px 10px;
   padding: 10px 12px;
-  border-radius: var(--wos-r-sm);
-  background: var(--wos-warn-bg);
-  color: var(--wos-warn-ink);
+  border-radius: 12px;
+  background: var(--wl-amber-soft);
+  color: var(--wl-ink-2);
   font-size: 13px;
 }
 
@@ -61,17 +64,17 @@
   align-items: center;
   gap: 10px;
   padding: 0 10px 0 0;
-  border-radius: var(--wos-r-sm);
-  background: var(--wos-card);
-  box-shadow: inset 0 0 0 0.5px var(--wos-hair);
-  margin: 0 0 6px;
+  border-radius: 18px;
+  background: rgba(251, 252, 253, 0.9);
+  border: 1px solid rgba(255, 255, 255, 0.85);
+  box-shadow: 0 0 0 1px rgba(27, 39, 48, 0.05);
+  margin: 0 0 8px;
+  transition: background 0.15s var(--wl-ease-soft);
 }
 
 .s_needs_signin {
-  background: linear-gradient(90deg, #fff7ec 0%, var(--wos-card) 60%);
-  box-shadow:
-    0 0 0 0.5px rgba(138, 90, 0, 0.16),
-    0 6px 18px rgba(60, 40, 0, 0.06);
+  background: linear-gradient(90deg, var(--wl-claude-soft) 0%, rgba(251, 252, 253, 0.9) 55%);
+  box-shadow: 0 0 0 1px rgba(217, 119, 87, 0.18);
 }
 
 .s_off {
@@ -83,7 +86,7 @@
   grid-template-columns: 14px minmax(140px, 1.1fr) minmax(120px, 0.9fr) minmax(160px, 1.6fr) minmax(120px, 1fr);
   align-items: center;
   gap: 12px;
-  padding: 11px 12px;
+  padding: 12px 14px;
   border: 0;
   background: transparent;
   text-align: left;
@@ -97,24 +100,25 @@
   width: 8px;
   height: 8px;
   border-radius: 50%;
-  background: var(--wos-ink-3);
-  opacity: 0.5;
+  background: var(--wl-grey);
+  opacity: 0.6;
 }
 
 .s_connected .dot {
-  background: var(--wos-ok);
+  background: var(--wl-codex);
   opacity: 1;
 }
 
 .s_needs_signin .dot {
-  background: var(--wos-warn-ink);
+  background: var(--wl-claude);
   opacity: 1;
-  box-shadow: 0 0 0 3px var(--wos-warn-bg);
+  box-shadow: 0 0 0 3px var(--wl-claude-soft);
 }
 
 .name {
   font-size: 13.5px;
-  font-weight: 600;
+  font-weight: 500;
+  color: var(--wl-ink);
   letter-spacing: -0.01em;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -122,9 +126,9 @@
 }
 
 .how {
-  font-family: var(--wos-font-mono);
+  font-family: var(--wl-mono);
   font-size: 11.5px;
-  color: var(--wos-ink-3);
+  color: var(--wl-muted);
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -132,7 +136,7 @@
 
 .gives {
   font-size: 13px;
-  color: var(--wos-ink-2);
+  color: var(--wl-ink-2);
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -140,7 +144,7 @@
 
 .detail {
   font-size: 12px;
-  color: var(--wos-ink-3);
+  color: var(--wl-faint);
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -149,26 +153,27 @@
 
 .s_needs_signin .detail,
 .s_setup .detail {
-  color: var(--wos-warn-ink);
+  color: #b5603f;
 }
 
 .action {
-  padding: 5px 11px;
-  border: 0;
-  border-radius: var(--wos-r-pill);
-  background: transparent;
-  box-shadow: inset 0 0 0 0.5px var(--wos-hair);
+  height: 30px;
+  padding: 0 14px;
+  border: 1px solid var(--wl-line);
+  border-radius: 18px;
+  background: rgba(255, 255, 255, 0.8);
   font: inherit;
   font-size: 12.5px;
-  font-weight: 600;
-  color: var(--wos-ink-2);
+  font-weight: 500;
+  color: var(--wl-ink);
+  transition: background 0.15s var(--wl-ease-soft);
   cursor: pointer;
   white-space: nowrap;
 }
 
 .action:hover {
-  color: var(--wos-ink);
-  background: var(--wos-sunk);
+  color: var(--wl-ink);
+  background: #fff;
 }
 
 .action:disabled {
@@ -177,13 +182,13 @@
 }
 
 .actionWarm {
-  background: var(--wos-ink);
-  color: var(--wos-card);
-  box-shadow: none;
+  background: var(--wl-ink);
+  border-color: transparent;
+  color: #fff;
 }
 
 .actionWarm:hover {
-  background: var(--wos-dark);
+  background: #2c3b46;
   color: #fff;
 }
 
@@ -198,7 +203,7 @@
 .panelLine {
   margin: 0;
   font-size: 13px;
-  color: var(--wos-ink-2);
+  color: var(--wl-ink-2);
   max-width: 70ch;
 }
 
@@ -209,13 +214,18 @@
 }
 
 .keyLabel {
-  font-size: 12.5px;
-  font-weight: 600;
+  font-size: 11px;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.18em;
+  color: var(--wl-muted);
 }
 
 .stored {
-  font-weight: 500;
-  color: var(--wos-ink-3);
+  font-weight: 400;
+  text-transform: none;
+  letter-spacing: 0;
+  color: var(--wl-faint);
 }
 
 .keyField,
@@ -233,36 +243,41 @@
 .input {
   flex: 1;
   min-width: 0;
-  padding: 7px 10px;
-  border: 0;
-  border-radius: var(--wos-r-sm);
-  background: var(--wos-card);
-  box-shadow: inset 0 0 0 0.5px var(--wos-hair);
+  height: 34px;
+  box-sizing: border-box;
+  padding: 0 14px;
+  border: 1px solid var(--wl-line);
+  border-radius: 18px;
+  background: rgba(255, 255, 255, 0.85);
   font: inherit;
   font-size: 13px;
-  color: var(--wos-ink);
+  color: var(--wl-ink);
+  transition: border-color 0.15s var(--wl-ease-soft), box-shadow 0.15s var(--wl-ease-soft);
 }
 
 .input:focus {
-  outline: 2px solid var(--wos-blue);
-  outline-offset: -1px;
+  outline: none;
+  border-color: rgba(27, 39, 48, 0.25);
+  box-shadow: 0 0 0 3px rgba(27, 39, 48, 0.07);
 }
 
 .quiet {
-  padding: 6px 11px;
-  border: 0;
-  border-radius: var(--wos-r-pill);
-  background: var(--wos-card);
-  box-shadow: inset 0 0 0 0.5px var(--wos-hair);
+  height: 32px;
+  padding: 0 14px;
+  border: 1px solid var(--wl-line);
+  border-radius: 18px;
+  background: rgba(255, 255, 255, 0.8);
   font: inherit;
   font-size: 12.5px;
-  color: var(--wos-ink-2);
+  font-weight: 500;
+  color: var(--wl-ink);
+  transition: background 0.15s var(--wl-ease-soft);
   cursor: pointer;
   white-space: nowrap;
 }
 
 .quiet:hover {
-  color: var(--wos-ink);
+  background: #fff;
 }
 
 .quiet:disabled {
@@ -272,13 +287,13 @@
 
 .danger {
   align-self: flex-start;
-  color: #a12b2b;
+  color: #b84a3a;
 }
 
 .hint {
   margin: 8px 0 0;
   font-size: 12px;
-  color: var(--wos-ink-3);
+  color: var(--wl-muted);
   max-width: 70ch;
   line-height: 1.5;
 }
@@ -288,5 +303,5 @@
   margin: 0;
   padding: 0 12px 10px 38px;
   font-size: 12.5px;
-  color: #a12b2b;
+  color: #b84a3a;
 }

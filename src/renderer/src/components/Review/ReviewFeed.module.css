@@ -1,6 +1,6 @@
-/* The Living Feed — the calm light Cockpit surface (docs/design/cockpit-redesign.html).
- * Overlays the canvas region when the Review view is active. Tokens from
- * styles/tokens.css (--wos-*). */
+/* The Living Feed — in landscape materials (docs/landscape/ADOPTION.md, A3).
+ * Overlays the canvas region when the Review view is active, so it stays
+ * opaque (mist). No backdrop-filter: the canvas/webview may sit beneath. */
 .surface {
   position: absolute;
   inset: 0;
@@ -8,10 +8,10 @@
   display: flex;
   flex-direction: column;
   background: var(--wos-bg);
-  color: var(--wos-ink);
-  font-family: var(--wos-font);
-  --rv-body: var(--wos-font, 'Hanken Grotesk', -apple-system, system-ui, sans-serif);
-  --rv-mono: var(--wos-font-mono, 'JetBrains Mono', 'SF Mono', ui-monospace, monospace);
+  color: var(--wl-ink);
+  font-family: var(--wl-sans, var(--wos-font));
+  --rv-body: var(--wl-sans, 'Inter', system-ui, sans-serif);
+  --rv-mono: var(--wl-mono, 'JetBrains Mono', ui-monospace, monospace);
 }
 
 .topBar {
@@ -19,68 +19,75 @@
   top: 0;
   z-index: 5;
   display: flex;
-  align-items: baseline;
+  align-items: center;
   gap: 14px;
   flex-wrap: wrap;
-  padding: 16px 30px;
-  background: rgba(245, 245, 247, 0.8);
-  backdrop-filter: saturate(180%) blur(20px);
-  -webkit-backdrop-filter: saturate(180%) blur(20px);
-  border-bottom: 0.5px solid var(--wos-hair);
+  padding: 22px 30px 16px;
+  background: var(--wos-bg);
+  border-bottom: 1px solid var(--wl-line);
 }
 
+/* The surface heading — serif, no bold. */
 .count {
-  font-family: var(--rv-body);
-  font-size: 20px;
-  font-weight: 640;
-  letter-spacing: -0.02em;
-  color: var(--wos-ink);
+  font-family: var(--wl-serif);
+  font-size: 28px;
+  font-weight: 400;
+  line-height: 1.15;
+  letter-spacing: -0.01em;
+  color: var(--wl-ink);
 }
 
 .eta {
   font-family: var(--rv-body);
-  font-size: 13px;
-  color: var(--wos-ink-3);
+  font-size: 12px;
+  color: var(--wl-muted);
 }
 
 .subtitle {
   flex-basis: 100%;
   font-family: var(--rv-body);
-  font-size: 13px;
-  color: var(--wos-ink-2);
+  font-size: 13.5px;
+  color: var(--wl-ink-2);
+}
+
+/* tripled class: outranks `.wos [class*="title"]` (bold, ink-2, !important) */
+.lede.lede.lede {
+  font-weight: 400 !important;
+  letter-spacing: normal !important;
+  color: var(--wl-ink-2) !important;
 }
 
 .spacerFlex { flex: 1; }
 
-/* Feed / Fleet segmented toggle in the top bar. */
+/* Team / Feed / Fleet / Routines segmented toggle. */
 .viewToggle {
   display: inline-flex;
-  gap: 3px;
+  gap: 2px;
   padding: 3px;
   border-radius: 999px;
-  background: var(--wos-sunk);
+  background: rgba(27, 39, 48, 0.05);
 }
 .viewOn,
 .viewOff {
   font-family: var(--rv-body);
-  font-size: 12px;
+  font-size: 12.5px;
   font-weight: 500;
   padding: 5px 14px;
   border: none;
   border-radius: 999px;
   cursor: pointer;
-  transition: background 0.12s ease, color 0.12s ease;
+  transition: background 0.15s var(--wl-ease-soft), color 0.15s var(--wl-ease-soft);
 }
 .viewOn {
-  background: var(--wos-card);
-  color: var(--wos-ink);
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.12);
+  background: #fff;
+  color: var(--wl-ink);
+  box-shadow: 0 0 0 1px rgba(27, 39, 48, 0.06);
 }
 .viewOff {
   background: transparent;
-  color: var(--wos-ink-2);
+  color: var(--wl-muted);
 }
-.viewOff:hover { color: var(--wos-ink); }
+.viewOff:hover { color: var(--wl-ink); }
 
 .stream {
   flex: 1;
@@ -101,59 +108,63 @@
   flex-shrink: 0;
 }
 
+/* Section label. */
 .divider {
   display: flex;
   align-items: center;
   gap: 12px;
-  margin: 12px 0 2px;
+  margin: 14px 0 2px;
   font-family: var(--rv-body);
   font-size: 11px;
-  font-weight: 700;
-  letter-spacing: 0.09em;
+  font-weight: 500;
+  letter-spacing: 0.18em;
   text-transform: uppercase;
-  color: var(--wos-ink-3);
+  color: var(--wl-muted);
 }
 .divider::after {
   content: '';
   flex: 1;
-  height: 0.5px;
-  background: var(--wos-hair);
+  height: 1px;
+  background: var(--wl-line);
 }
 
 /* ── Queue-zero: the calm "you're caught up" reward (not approval volume). */
 .zero {
   text-align: center;
   padding: 60px 30px;
-  animation: rv-rise 0.6s ease both;
+  animation: rv-rise 0.6s var(--wl-ease, ease) both;
 }
 @keyframes rv-rise {
   from { opacity: 0; transform: translateY(12px); }
   to { opacity: 1; transform: translateY(0); }
 }
 .zeroRing {
-  width: 74px;
-  height: 74px;
+  width: 56px;
+  height: 56px;
   border-radius: 50%;
-  margin: 0 auto 24px;
+  margin: 0 auto 16px;
   display: flex;
   align-items: center;
   justify-content: center;
-  border: 1.5px solid rgba(48, 180, 74, 0.4);
-  background: radial-gradient(circle at 50% 35%, rgba(48, 180, 74, 0.14), transparent 70%);
+  background: var(--wl-codex-soft);
+}
+.zeroRing svg {
+  width: 24px;
+  height: 24px;
 }
 .zeroTitle {
-  font-family: var(--rv-body);
+  font-family: var(--wl-serif);
   font-size: 28px;
-  font-weight: 640;
-  letter-spacing: -0.03em;
-  color: var(--wos-ink);
-  margin-bottom: 12px;
+  font-weight: 400;
+  letter-spacing: -0.01em;
+  color: var(--wl-ink);
+  margin-bottom: 8px;
 }
 .zeroText {
   font-family: var(--rv-body);
-  font-size: 15px;
+  font-size: 14px;
   line-height: 1.5;
-  color: var(--wos-ink-2);
-  max-width: 340px;
+  color: var(--wl-muted);
+  max-width: 360px;
   margin: 0 auto;
 }

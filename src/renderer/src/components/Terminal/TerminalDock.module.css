@@ -1,23 +1,24 @@
-/* Integrated Terminal Dock — token-styled to match docs/design/prototype.html.
- * Calm surfaces, one blue for the active/primary only. */
+/* Integrated Terminal Dock — landscape materials: paper pill tabs on the mist,
+ * ink for the one primary action, hairline dividers. The xterm canvas keeps its
+ * own theme (TerminalShellPane); only the chrome around it is styled here. */
 
 .root {
   display: flex;
   flex-direction: column;
-  background: var(--wos-card);
-  color: var(--wos-ink);
-  font-family: var(--wos-font);
+  background: var(--wl-paper-solid);
+  color: var(--wl-ink);
+  font-family: var(--wl-sans);
   overflow: hidden;
   min-height: 0;
   min-width: 0;
 }
 
 .root.bottom {
-  border-top: 0.5px solid var(--wos-hair);
+  border-top: 1px solid var(--wl-line);
 }
 
 .root.right {
-  border-left: 0.5px solid var(--wos-hair);
+  border-left: 1px solid var(--wl-line);
   height: 100%;
 }
 
@@ -26,9 +27,9 @@
   display: flex;
   align-items: center;
   gap: 2px;
-  padding: 4px 6px;
-  border-bottom: 0.5px solid var(--wos-hair);
-  background: var(--wos-sunk);
+  padding: 5px 8px;
+  border-bottom: 1px solid var(--wl-line);
+  background: var(--wl-mist-1);
   flex-shrink: 0;
   /* NO overflow here — it would create a clip context that cuts off the + menu.
      The tabs scroll inside .tabScroll instead. */
@@ -49,27 +50,31 @@
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  padding: 4px 8px 4px 10px;
-  border-radius: 8px;
-  font-size: 12px;
-  color: var(--wos-ink-2);
+  padding: 4px 8px 4px 11px;
+  border-radius: 999px;
+  font-size: 12.5px;
+  font-weight: 500;
+  color: var(--wl-ink-2);
   cursor: pointer;
-  border: 0;
+  border: 1px solid transparent;
   background: transparent;
   font-family: inherit;
   white-space: nowrap;
   max-width: 180px;
+  transition: background 0.15s var(--wl-ease-soft), color 0.15s var(--wl-ease-soft);
 }
 
 .tab:hover {
-  background: rgba(0, 0, 0, 0.04);
-  color: var(--wos-ink);
+  background: rgba(255, 255, 255, 0.55);
+  color: var(--wl-ink);
 }
 
-.tabOn {
-  background: var(--wos-card);
-  color: var(--wos-ink);
-  box-shadow: 0 0 0 0.5px var(--wos-hair);
+.tabOn,
+.tabOn:hover {
+  background: rgba(255, 255, 255, 0.9);
+  border-color: rgba(255, 255, 255, 0.95);
+  color: var(--wl-ink);
+  box-shadow: 0 0 0 1px rgba(27, 39, 48, 0.06);
 }
 
 .tabLabel {
@@ -78,7 +83,7 @@
 }
 
 .agentMark {
-  color: var(--wos-blue);
+  color: var(--wl-claude);
   font-weight: 600;
 }
 
@@ -87,15 +92,15 @@
   place-items: center;
   width: 15px;
   height: 15px;
-  border-radius: 4px;
-  color: var(--wos-ink-2);
+  border-radius: 999px;
+  color: var(--wl-faint);
   font-size: 13px;
   line-height: 1;
 }
 
 .tabClose:hover {
-  background: rgba(0, 0, 0, 0.08);
-  color: var(--wos-ink);
+  background: rgba(27, 39, 48, 0.07);
+  color: var(--wl-ink);
 }
 
 .spacer {
@@ -107,16 +112,17 @@
   place-items: center;
   width: 24px;
   height: 24px;
-  border-radius: 7px;
+  border-radius: 999px;
   border: 0;
   background: transparent;
-  color: var(--wos-ink-2);
+  color: var(--wl-muted);
   cursor: pointer;
+  transition: background 0.15s var(--wl-ease-soft), color 0.15s var(--wl-ease-soft);
 }
 
 .iconBtn:hover {
-  background: rgba(0, 0, 0, 0.06);
-  color: var(--wos-ink);
+  background: rgba(27, 39, 48, 0.05);
+  color: var(--wl-ink);
 }
 
 .plusWrap {
@@ -131,10 +137,10 @@
   right: auto;
   top: 28px;
   z-index: 40;
-  background: var(--wos-card);
-  border: 0.5px solid var(--wos-hair);
-  border-radius: 10px;
-  box-shadow: 0 8px 28px rgba(0, 0, 0, 0.14);
+  background: var(--wl-paper-solid);
+  border: 0;
+  border-radius: 14px;
+  box-shadow: 0 0 0 1px rgba(27, 39, 48, 0.07), 0 20px 50px -20px rgba(30, 55, 70, 0.35);
   padding: 4px;
   min-width: 150px;
   /* Opens downward into the dock body (within .root's overflow) so it's never
@@ -149,10 +155,10 @@
   gap: 8px;
   width: 100%;
   padding: 7px 9px;
-  border-radius: 7px;
+  border-radius: 8px;
   border: 0;
   background: transparent;
-  color: var(--wos-ink);
+  color: var(--wl-ink);
   font: inherit;
   font-size: 12.5px;
   cursor: pointer;
@@ -160,7 +166,7 @@
 }
 
 .menuItem:hover {
-  background: var(--wos-sunk);
+  background: rgba(27, 39, 48, 0.05);
 }
 
 /* Agent persona picker — a scrolling list when the workspace has many agents. */
@@ -171,9 +177,9 @@
 }
 
 .menuSep {
-  height: 0.5px;
+  height: 1px;
   margin: 4px 6px;
-  background: var(--wos-hair);
+  background: var(--wl-line);
 }
 
 /* Placement segmented control (bottom | right) */
@@ -181,25 +187,30 @@
   display: inline-flex;
   gap: 2px;
   padding: 2px;
-  background: rgba(0, 0, 0, 0.05);
-  border-radius: 8px;
+  background: rgba(27, 39, 48, 0.05);
+  border-radius: 999px;
 }
 
 .segBtn {
-  padding: 2px 8px;
-  border-radius: 6px;
+  padding: 2px 9px;
+  border-radius: 999px;
   border: 0;
   background: transparent;
-  color: var(--wos-ink-2);
+  color: var(--wl-muted);
   font: inherit;
   font-size: 11px;
+  font-weight: 500;
   cursor: pointer;
 }
 
+.segBtn:hover {
+  color: var(--wl-ink);
+}
+
 .segOn {
-  background: var(--wos-card);
-  color: var(--wos-ink);
-  box-shadow: 0 0 0 0.5px var(--wos-hair);
+  background: #fff;
+  color: var(--wl-ink);
+  box-shadow: 0 0 0 1px rgba(27, 39, 48, 0.06);
 }
 
 /* ── Context chip (the live harness) ── */
@@ -207,11 +218,11 @@
   display: flex;
   align-items: center;
   gap: 6px;
-  padding: 4px 10px;
-  font-size: 11px;
-  color: var(--wos-ink-2);
-  border-bottom: 0.5px solid var(--wos-hair);
-  background: var(--wos-card);
+  padding: 5px 12px;
+  font-size: 11.5px;
+  color: var(--wl-muted);
+  border-bottom: 1px solid var(--wl-line);
+  background: var(--wl-paper-solid);
   flex-shrink: 0;
   overflow: hidden;
   white-space: nowrap;
@@ -221,7 +232,7 @@
   width: 6px;
   height: 6px;
   border-radius: 50%;
-  background: var(--wos-blue);
+  background: var(--wl-codex);
   flex-shrink: 0;
 }
 
@@ -239,9 +250,9 @@
   display: flex;
   align-items: center;
   gap: 6px;
-  padding: 6px 10px;
-  border-bottom: 0.5px solid var(--wos-hair);
-  background: var(--wos-card);
+  padding: 6px 12px;
+  border-bottom: 1px solid var(--wl-line);
+  background: var(--wl-paper-solid);
   flex-shrink: 0;
   overflow-x: auto;
   white-space: nowrap;
@@ -251,21 +262,21 @@
   display: inline-flex;
   align-items: center;
   gap: 5px;
-  padding: 3px 9px;
-  font-size: 11px;
-  font-family: var(--wos-font);
-  color: var(--wos-ink);
-  background: var(--wos-sunk);
-  border: none;
-  border-radius: 6px;
-  box-shadow: 0 0 0 0.5px var(--wos-hair);
+  padding: 3px 10px;
+  font-size: 11.5px;
+  font-weight: 500;
+  font-family: inherit;
+  color: var(--wl-ink);
+  background: rgba(255, 255, 255, 0.8);
+  border: 1px solid var(--wl-line);
+  border-radius: 999px;
   cursor: pointer;
   flex-shrink: 0;
-  transition: background 0.12s ease;
+  transition: background 0.15s var(--wl-ease-soft);
 }
 
 .actionBtn:hover {
-  background: var(--wos-card);
+  background: #fff;
 }
 
 .actionBtn:disabled {
@@ -273,16 +284,15 @@
   cursor: default;
 }
 
-/* One blue = the primary action only; the rest stay quiet. */
+/* One ink pill = the primary action only; the rest stay quiet. */
 .actionPrimary {
   color: #fff;
-  background: var(--wos-blue);
-  box-shadow: none;
+  background: var(--wl-ink);
+  border-color: var(--wl-ink);
 }
 
 .actionPrimary:hover {
-  background: var(--wos-blue);
-  filter: brightness(1.05);
+  background: #2c3b46;
 }
 
 /* ── Panes ── */
@@ -306,7 +316,7 @@
   display: grid;
   place-items: center;
   height: 100%;
-  color: var(--wos-ink-2);
+  color: var(--wl-muted);
   font-size: 13px;
   padding: 20px;
   text-align: center;
@@ -323,7 +333,7 @@
 
 /* ── Drag-a-file-in affordance (shared by shell + agent panes) ── */
 .dropTarget {
-  outline: 1.5px dashed var(--wos-blue);
+  outline: 1.5px dashed rgba(27, 39, 48, 0.35);
   outline-offset: -3px;
 }
 
@@ -332,14 +342,13 @@
   left: 50%;
   bottom: 12px;
   transform: translateX(-50%);
-  padding: 4px 10px;
-  border-radius: 6px;
-  font-family: var(--wos-font);
+  padding: 4px 11px;
+  border-radius: 999px;
+  font-family: inherit;
   font-size: 11.5px;
-  font-weight: 600;
+  font-weight: 500;
   color: #fff;
-  background: var(--wos-blue);
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.16);
+  background: var(--wl-ink);
   pointer-events: none;
   z-index: 5;
 }
@@ -364,30 +373,30 @@
 
 .msgUser {
   margin: 6px 0 2px;
-  color: var(--wos-ink);
-  font-weight: 600;
+  color: var(--wl-ink);
+  font-weight: 500;
 }
 
 .msgAgent {
   margin: 2px 0 10px;
-  color: var(--wos-ink);
+  color: var(--wl-ink-2);
   white-space: pre-wrap;
-  font-family: var(--wos-font-mono);
+  font-family: var(--wl-mono);
   font-size: 12px;
 }
 
 .msgSystem {
   margin: 4px 0;
-  color: var(--wos-ink-2);
+  color: var(--wl-muted);
   font-size: 11.5px;
 }
 
-/* "It's working" activity strip — calm, one blue, sits above the composer. */
+/* "It's working" activity strip — calm, one accent, sits above the composer. */
 .activity {
   flex-shrink: 0;
   padding: 6px 12px;
-  border-top: 0.5px solid var(--wos-hair);
-  background: var(--wos-sunk);
+  border-top: 1px solid var(--wl-line);
+  background: var(--wl-mist-1);
 }
 
 .activityLine {
@@ -395,19 +404,19 @@
   align-items: center;
   gap: 8px;
   font-size: 11.5px;
-  color: var(--wos-ink-2);
+  color: var(--wl-muted);
 }
 
 .activityLabel {
-  color: var(--wos-ink);
+  color: var(--wl-ink);
   font-weight: 500;
 }
 
 .activityDone {
-  color: var(--wos-ink-2);
+  color: var(--wl-muted);
 }
 
-/* Three softly pulsing dots — the single accent blue, staggered. */
+/* Three softly pulsing dots — the agent accent, staggered. */
 .activityDots {
   display: inline-flex;
   gap: 3px;
@@ -418,7 +427,7 @@
   width: 5px;
   height: 5px;
   border-radius: 50%;
-  background: var(--wos-blue);
+  background: var(--wl-claude);
   opacity: 0.35;
   animation: wosAgentPulse 1.2s ease-in-out infinite;
 }
@@ -459,15 +468,15 @@
   border: none;
   background: none;
   padding: 2px 4px;
-  color: var(--wos-ink-2);
+  color: var(--wl-muted);
   font: inherit;
   font-size: 11px;
   cursor: pointer;
-  border-radius: 5px;
+  border-radius: 999px;
 }
 
 .stepsToggle:hover {
-  color: var(--wos-blue);
+  color: var(--wl-ink);
 }
 
 .stepsChevron {
@@ -491,55 +500,65 @@
   gap: 8px;
   padding: 2px 0;
   font-size: 11px;
-  color: var(--wos-ink-2);
+  color: var(--wl-muted);
 }
 
 .stepTime {
   flex-shrink: 0;
-  font-family: var(--wos-font-mono);
-  opacity: 0.7;
+  font-family: var(--wl-mono);
+  color: var(--wl-faint);
 }
 
 .stepLabel {
-  color: var(--wos-ink);
+  color: var(--wl-ink-2);
 }
 
 .composer {
   display: flex;
   gap: 8px;
   padding: 8px 10px;
-  border-top: 0.5px solid var(--wos-hair);
+  border-top: 1px solid var(--wl-line);
   flex-shrink: 0;
 }
 
 .input {
   flex: 1;
-  border: 0.5px solid var(--wos-hair);
-  border-radius: 9px;
+  border: 1px solid var(--wl-line);
+  border-radius: 12px;
   padding: 8px 11px;
   font: inherit;
-  font-size: 12.5px;
-  background: var(--wos-sunk);
-  color: var(--wos-ink);
+  font-size: 13px;
+  background: rgba(255, 255, 255, 0.85);
+  color: var(--wl-ink);
   resize: none;
   outline: none;
+  transition: border-color 0.15s var(--wl-ease-soft), box-shadow 0.15s var(--wl-ease-soft);
+}
+
+.input::placeholder {
+  color: var(--wl-faint);
 }
 
 .input:focus {
-  box-shadow: 0 0 0 2px rgba(0, 113, 227, 0.25);
-  background: var(--wos-card);
+  border-color: rgba(27, 39, 48, 0.25);
+  box-shadow: 0 0 0 3px rgba(27, 39, 48, 0.07);
 }
 
 .send {
-  padding: 0 14px;
-  border-radius: 9px;
+  padding: 0 15px;
+  border-radius: 18px;
   border: 0;
-  background: var(--wos-blue);
+  background: var(--wl-ink);
   color: #fff;
   font: inherit;
-  font-size: 12.5px;
-  font-weight: 600;
+  font-size: 13px;
+  font-weight: 500;
   cursor: pointer;
+  transition: background 0.15s var(--wl-ease-soft);
+}
+
+.send:hover:not(:disabled) {
+  background: #2c3b46;
 }
 
 .send:disabled {

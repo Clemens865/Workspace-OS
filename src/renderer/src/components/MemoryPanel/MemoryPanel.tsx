@@ -77,8 +77,7 @@ export function MemoryPanel({ active }: MemoryPanelProps): JSX.Element {
     <div className={styles.root}>
       <div className={styles.header}>
         <div className={styles.headerTitle}>
-          <Brain size={14} strokeWidth={1.75} className={styles.headerIcon} />
-          <span>Memory</span>
+          <span className={styles.heading}>Memory</span>
           {insights.length > 0 && <span className={styles.count}>{insights.length}</span>}
         </div>
         <button className={styles.refresh} onClick={() => void load()} title="Refresh" disabled={loading}>

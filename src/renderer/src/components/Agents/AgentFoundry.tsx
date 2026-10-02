@@ -247,7 +247,7 @@ function DescribeStep({
 }): JSX.Element {
   return (
     <div className={styles.describe}>
-      <div className={styles.title}>New specialist</div>
+      <div className={`${styles.title} ${styles.heading}`}>New specialist</div>
       <p className={styles.sub}>Describe the job in plain language — we’ll author the agent for you.</p>
 
       <textarea
@@ -335,7 +335,7 @@ function PreviewStep({
   const models = useAgentModels()
   return (
     <div className={styles.preview}>
-      <div className={styles.title}>Preview your specialist</div>
+      <div className={`${styles.title} ${styles.heading}`}>Preview your specialist</div>
       <p className={styles.sub}>This is how the agent will appear. Fine-tune anything, then save.</p>
 
       <div className={styles.columns}>

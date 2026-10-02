@@ -3,7 +3,7 @@
   flex-direction: column;
   height: 100%;
   overflow: hidden;
-  background: #1a1a1a;
+  background: var(--wl-mist-2, #e2e9ee);
   user-select: none;
 }
 
@@ -11,23 +11,29 @@
   display: flex;
   align-items: center;
   gap: 8px;
-  padding: 6px 12px;
-  background: var(--color-surface);
-  border-bottom: 1px solid var(--color-border);
+  padding: 7px 14px;
+  background: var(--wl-paper-solid, var(--color-surface));
+  border-bottom: 1px solid var(--wl-line, var(--color-border));
   flex-shrink: 0;
   font-size: 12px;
-  color: var(--color-text-muted);
+  color: var(--wl-muted, var(--color-text-muted));
+  font-variant-numeric: tabular-nums;
 }
 
 .toolbar button {
-  background: var(--color-surface-raised);
-  border: 1px solid var(--color-border);
-  border-radius: 4px;
-  color: var(--color-text);
+  height: 26px;
+  background: rgba(255, 255, 255, 0.8);
+  border: 1px solid var(--wl-line, var(--color-border));
+  border-radius: 18px;
+  color: var(--wl-ink, var(--color-text));
   cursor: pointer;
-  padding: 2px 8px;
+  padding: 0 10px;
+  font: inherit;
   font-size: 12px;
+  transition: background 0.15s var(--wl-ease-soft, ease);
 }
+
+.toolbar button:hover { background: #fff; }
 
 .canvas {
   flex: 1;
@@ -46,9 +52,9 @@
 }
 
 .loading, .error {
-  padding: 20px;
-  color: var(--color-text-muted);
+  padding: 24px;
+  color: var(--wl-muted, var(--color-text-muted));
   font-size: 13px;
 }
 
-.error { color: var(--color-danger); }
+.error { color: #b84a3a; }

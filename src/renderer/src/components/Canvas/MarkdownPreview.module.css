@@ -2,5 +2,5 @@
   width: 100%;
   height: 100%;
   border: none;
-  background: var(--bg);
+  background: var(--wl-paper-solid, var(--bg));
 }

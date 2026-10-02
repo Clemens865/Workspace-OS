@@ -4,6 +4,7 @@ import { ChevronRight } from 'lucide-react'
 import { FileIcon } from './fileIcons'
 import { ContextMenu } from './ContextMenu'
 import { NewCaseDialog } from '../CalmCockpit/NewCaseDialog'
+import { NameDialog } from './NameDialog'
 import styles from './FileTree.module.css'
 
 interface FileTreeProps {
@@ -15,6 +16,12 @@ interface FileTreeProps {
   isStarred: (path: string) => boolean
   onToggleStar: (path: string) => void
   depth?: number
+}
+
+/** The in-app dialog standing in for window.prompt / window.confirm. */
+interface DialogState {
+  kind: 'newFile' | 'newFolder' | 'delete'
+  node: TreeNode
 }
 
 interface ContextState {
@@ -29,6 +36,7 @@ export function FileTree({ nodes, expandedPaths, onToggle, onFileOpen, onRefresh
   const [renameValue, setRenameValue] = useState('')
   // "Start a case from this file" — the file becomes the case's first artifact.
   const [startCaseFile, setStartCaseFile] = useState<string | null>(null)
+  const [dialog, setDialog] = useState<DialogState | null>(null)
 
   const handleContextMenu = useCallback((e: React.MouseEvent, node: TreeNode) => {
     e.preventDefault()
@@ -51,24 +59,29 @@ export function FileTree({ nodes, expandedPaths, onToggle, onFileOpen, onRefresh
     setRenamingPath(null)
   }, [renameValue, onRefresh])
 
-  const handleDelete = useCallback(async (node: TreeNode) => {
-    if (!window.confirm(`Move "${node.name}" to trash? You can restore it later.`)) return
+  const handleDelete = useCallback((node: TreeNode) => {
+    setDialog({ kind: 'delete', node })
+  }, [])
+
+  const confirmDelete = useCallback(async (node: TreeNode) => {
+    setDialog(null)
     await window.workspace.fs.delete(node.path)
     const parent = node.path.substring(0, node.path.lastIndexOf('/'))
     onRefresh(parent)
   }, [onRefresh])
 
-  const handleNewFile = useCallback(async (node: TreeNode) => {
-    const name = window.prompt('New file name:')
-    if (!name?.trim()) return
-    await window.workspace.fs.create(node.path, name.trim(), false)
-    onRefresh(node.path)
-  }, [onRefresh])
+  const handleNewFile = useCallback((node: TreeNode) => {
+    setDialog({ kind: 'newFile', node })
+  }, [])
 
-  const handleNewFolder = useCallback(async (node: TreeNode) => {
-    const name = window.prompt('New folder name:')
-    if (!name?.trim()) return
-    await window.workspace.fs.create(node.path, name.trim(), true)
+  const handleNewFolder = useCallback((node: TreeNode) => {
+    setDialog({ kind: 'newFolder', node })
+  }, [])
+
+  const createEntry = useCallback(async (node: TreeNode, name: string, isDirectory: boolean) => {
+    setDialog(null)
+    if (!name.trim()) return
+    await window.workspace.fs.create(node.path, name.trim(), isDirectory)
     onRefresh(node.path)
   }, [onRefresh])
 
@@ -163,6 +176,30 @@ export function FileTree({ nodes, expandedPaths, onToggle, onFileOpen, onRefresh
           onReveal={handleReveal}
           onToggleStar={() => onToggleStar(context.node.path)}
           onStartCase={(node) => setStartCaseFile(node.path)}
+        />
+      )}
+
+      {dialog?.kind === 'delete' && (
+        <NameDialog
+          kind="confirm"
+          heading="Move to trash?"
+          message={`Move "${dialog.node.name}" to trash? You can restore it later.`}
+          confirmLabel="Move to trash"
+          danger
+          onConfirm={() => confirmDelete(dialog.node)}
+          onCancel={() => setDialog(null)}
+        />
+      )}
+
+      {(dialog?.kind === 'newFile' || dialog?.kind === 'newFolder') && (
+        <NameDialog
+          kind="prompt"
+          heading={dialog.kind === 'newFile' ? 'New file' : 'New folder'}
+          label={dialog.kind === 'newFile' ? 'New file name' : 'New folder name'}
+          placeholder={dialog.kind === 'newFile' ? 'notes.md' : 'Untitled folder'}
+          confirmLabel="Create"
+          onSubmit={(name) => createEntry(dialog.node, name, dialog.kind === 'newFolder')}
+          onCancel={() => setDialog(null)}
         />
       )}
 

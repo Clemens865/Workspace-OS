@@ -1,13 +1,14 @@
-/* Browser tab strip — echoes the Terminal dock's active tab (calm surfaces,
- * one blue reserved for primary only). Sits above the address bar. */
+/* Browser tab strip — paper pill tabs, the same vocabulary as the stage
+ * topbar (Shell/WorkspaceShell.module.css .tab/.tabOn). Sits above the
+ * address bar, on the stage mist. */
 
 .strip {
   display: flex;
   align-items: center;
   gap: 2px;
-  padding: 4px 6px;
-  border-bottom: 0.5px solid var(--wos-hair);
-  background: var(--wos-sunk);
+  padding: 6px 10px;
+  border-bottom: 1px solid var(--wl-line);
+  background: transparent;
   flex-shrink: 0;
 }
 
@@ -24,26 +25,31 @@
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  padding: 4px 6px 4px 9px;
-  border-radius: 8px;
-  font-size: 12px;
-  color: var(--wos-ink-2);
+  padding: 5px 6px 5px 11px;
+  border-radius: 999px;
+  border: 1px solid transparent;
+  font-size: 12.5px;
+  font-weight: 500;
+  color: var(--wl-ink-2);
   cursor: pointer;
   background: transparent;
   white-space: nowrap;
   max-width: 180px;
   min-width: 90px;
+  transition: background 0.15s var(--wl-ease-soft), color 0.15s var(--wl-ease-soft);
 }
 
 .tab:hover {
-  background: rgba(0, 0, 0, 0.04);
-  color: var(--wos-ink);
+  background: rgba(255, 255, 255, 0.55);
+  color: var(--wl-ink);
 }
 
-.tabOn {
-  background: var(--wos-card);
-  color: var(--wos-ink);
-  box-shadow: 0 0 0 0.5px var(--wos-hair);
+.tabOn,
+.tabOn:hover {
+  background: rgba(255, 255, 255, 0.9);
+  border-color: rgba(255, 255, 255, 0.95);
+  color: var(--wl-ink);
+  box-shadow: 0 0 0 1px rgba(27, 39, 48, 0.06);
 }
 
 .favicon {
@@ -55,7 +61,7 @@
 }
 
 .globe {
-  color: var(--wos-ink-3);
+  color: var(--wl-muted);
   flex: none;
 }
 
@@ -70,17 +76,17 @@
   place-items: center;
   width: 16px;
   height: 16px;
-  border-radius: 4px;
+  border-radius: 999px;
   border: 0;
   background: transparent;
-  color: var(--wos-ink-3);
+  color: var(--wl-faint);
   cursor: pointer;
   flex: none;
 }
 
 .tabClose:hover {
-  background: rgba(0, 0, 0, 0.08);
-  color: var(--wos-ink);
+  background: rgba(27, 39, 48, 0.07);
+  color: var(--wl-ink);
 }
 
 .newBtn {
@@ -88,18 +94,19 @@
   place-items: center;
   width: 26px;
   height: 26px;
-  border-radius: 7px;
+  border-radius: 999px;
   border: 0;
   background: transparent;
-  color: var(--wos-ink-2);
+  color: var(--wl-muted);
   cursor: pointer;
   flex: none;
   margin-left: 2px;
+  transition: background 0.15s var(--wl-ease-soft), color 0.15s var(--wl-ease-soft);
 }
 
 .newBtn:hover {
-  background: rgba(0, 0, 0, 0.06);
-  color: var(--wos-ink);
+  background: rgba(27, 39, 48, 0.05);
+  color: var(--wl-ink);
 }
 
 /* ── Tab groups ────────────────────────────────────────────────────────────
@@ -115,8 +122,8 @@
   height: 26px;
   padding: 0 6px 0 7px;
   margin-right: 2px;
-  border-radius: 7px;
-  background: var(--wos-sunk);
+  border-radius: 999px;
+  background: rgba(27, 39, 48, 0.05);
 }
 
 .groupDot {
@@ -136,7 +143,7 @@
   font-family: var(--wos-font);
   font-size: 11.5px;
   font-weight: 500;
-  color: var(--wos-ink-2);
+  color: var(--wl-ink-2);
   cursor: pointer;
   max-width: 130px;
   overflow: hidden;
@@ -147,22 +154,22 @@
 .groupCount {
   margin-left: 5px;
   padding: 1px 5px;
-  border-radius: 99px;
-  background: var(--wos-card);
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.85);
   font-size: 10px;
-  color: var(--wos-ink-3);
+  color: var(--wl-muted);
 }
 
 .groupInput {
   width: 110px;
   border: none;
   outline: none;
-  background: var(--wos-card);
-  border-radius: 4px;
-  padding: 1px 4px;
-  font-family: var(--wos-font);
+  background: rgba(255, 255, 255, 0.85);
+  border-radius: 999px;
+  padding: 1px 6px;
+  font-family: inherit;
   font-size: 11.5px;
-  color: var(--wos-ink);
+  color: var(--wl-ink);
 }
 
 .groupX {
@@ -170,30 +177,35 @@
   height: 16px;
   border: none;
   background: transparent;
-  border-radius: 4px;
+  border-radius: 999px;
   display: grid;
   place-items: center;
-  color: var(--wos-ink-3);
+  color: var(--wl-muted);
   cursor: pointer;
   opacity: 0;
 }
 
 .groupHead:hover .groupX { opacity: 1; }
-.groupX:hover { color: var(--wos-ink); background: var(--wos-card); }
+.groupX:hover { color: var(--wl-ink); background: rgba(255, 255, 255, 0.85); }
 
 /* A grouped tab carries a thin colour stripe, so membership is visible without
- * boxing the tabs and eating horizontal space. */
+ * boxing the tabs and eating horizontal space. Softened toward the landscape:
+ * same six hues, less saturated. */
 .tabGrouped {
   box-shadow: inset 0 -2px 0 0 var(--grp, transparent);
 }
 
-.groupDot[data-color='0'], .tabGrouped[data-color='0'] { --grp: #6ea8fe; background-color: var(--grp); }
-.groupDot[data-color='1'], .tabGrouped[data-color='1'] { --grp: #7bc47f; background-color: var(--grp); }
-.groupDot[data-color='2'], .tabGrouped[data-color='2'] { --grp: #e0a33e; background-color: var(--grp); }
-.groupDot[data-color='3'], .tabGrouped[data-color='3'] { --grp: #c78bd9; background-color: var(--grp); }
-.groupDot[data-color='4'], .tabGrouped[data-color='4'] { --grp: #e08a7b; background-color: var(--grp); }
-.groupDot[data-color='5'], .tabGrouped[data-color='5'] { --grp: #6fc7c1; background-color: var(--grp); }
+.tabGrouped.tabOn {
+  box-shadow: 0 0 0 1px rgba(27, 39, 48, 0.06), inset 0 -2px 0 0 var(--grp, transparent);
+}
+
+.strip [data-color='0'] { --grp: #8fb3d6; }
+.strip [data-color='1'] { --grp: #8fc4a0; }
+.strip [data-color='2'] { --grp: #e3b56a; }
+.strip [data-color='3'] { --grp: #b9a0cf; }
+.strip [data-color='4'] { --grp: #e09c84; }
+.strip [data-color='5'] { --grp: #7fbfb6; }
 
 /* Only the DOT is filled with the colour; the tab keeps its own surface and
  * shows the colour as a stripe. */
-.tabGrouped { background-color: transparent; }
+.groupDot { background-color: var(--grp); }

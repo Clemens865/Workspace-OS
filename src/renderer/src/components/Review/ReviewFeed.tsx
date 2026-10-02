@@ -121,7 +121,7 @@ export function ReviewFeed({ onOpenFile, onWorkspaceChanged }: ReviewFeedProps):
             Routines
           </button>
         </div>
-        <span className={styles.subtitle}>
+        <span className={`${styles.subtitle} ${styles.lede}`}>
           {mode === 'team'
             ? 'Your specialists. Open one to see how it thinks, or run it in a fresh agent tab.'
             : mode === 'routines'
@@ -143,7 +143,7 @@ export function ReviewFeed({ onOpenFile, onWorkspaceChanged }: ReviewFeedProps):
         {nothingPending && (
           <div className={styles.zero} data-testid="review-zero">
             <div className={styles.zeroRing}>
-              <svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="#3FBFA3" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round">
+              <svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="var(--wl-codex)" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round">
                 <path d="M20 6 9 17l-5-5" />
               </svg>
             </div>

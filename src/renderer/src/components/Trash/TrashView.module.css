@@ -1,38 +1,44 @@
+/* Trash modal in landscape materials. Solid-ish backdrop without blur: it can
+   sit over a live office canvas or webview. */
 .backdrop {
   position: fixed;
   inset: 0;
-  background: rgba(0, 0, 0, 0.5);
+  background: rgba(226, 233, 238, 0.72);
   z-index: 150;
   display: flex;
   align-items: center;
   justify-content: center;
+  padding: 16px;
 }
 
 .panel {
   width: 600px;
-  max-width: 90vw;
+  max-width: 100%;
   max-height: 70vh;
   display: flex;
   flex-direction: column;
-  background: var(--color-surface-raised);
-  border: 1px solid var(--color-border);
-  border-radius: 10px;
+  background: var(--wl-paper-solid, #fbfcfd);
+  border: 0;
+  border-radius: 22px;
   overflow: hidden;
-  box-shadow: 0 16px 48px rgba(0, 0, 0, 0.5);
+  box-shadow: 0 0 0 1px rgba(27, 39, 48, 0.07), 0 20px 50px -20px rgba(30, 55, 70, 0.35);
+  color: var(--wl-ink, var(--color-text));
 }
 
 .header {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 12px 16px;
-  border-bottom: 1px solid var(--color-border);
+  padding: 20px 20px 14px 24px;
+  border-bottom: 1px solid var(--wl-line, var(--color-border));
 }
 
-.title {
-  font-size: 14px;
-  font-weight: 600;
-  color: var(--color-text);
+.heading {
+  font-family: var(--wl-serif, var(--serif));
+  font-size: 24px;
+  font-weight: 400;
+  letter-spacing: -0.01em;
+  color: var(--wl-ink, var(--color-text));
 }
 
 .headerActions {
@@ -42,37 +48,51 @@
 }
 
 .emptyBtn {
-  background: none;
-  border: 1px solid var(--color-border);
-  border-radius: 5px;
-  color: var(--color-danger);
+  height: 30px;
+  padding: 0 14px;
+  border: 1px solid var(--wl-line, var(--color-border));
+  border-radius: 18px;
+  background: rgba(255, 255, 255, 0.8);
+  color: #b84a3a;
+  font: inherit;
+  font-size: 12.5px;
+  font-weight: 500;
   cursor: pointer;
-  font-size: 12px;
-  padding: 4px 10px;
+  transition: background 0.15s var(--wl-ease-soft, ease);
 }
 
-.emptyBtn:hover { background: var(--color-danger); color: #fff; }
+.emptyBtn:hover { background: var(--wl-claude-soft, rgba(217, 119, 87, 0.14)); }
 
 .closeBtn {
-  background: none;
+  width: 30px;
+  height: 30px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: transparent;
   border: none;
-  color: var(--color-text-muted);
+  border-radius: 999px;
+  color: var(--wl-muted, var(--color-text-muted));
   cursor: pointer;
   font-size: 18px;
   line-height: 1;
-  padding: 0 4px;
+  padding: 0;
+  transition: background 0.15s var(--wl-ease-soft, ease), color 0.15s var(--wl-ease-soft, ease);
 }
+
+.closeBtn:hover { background: rgba(27, 39, 48, 0.05); color: var(--wl-ink, var(--color-text)); }
 
 .body {
   flex: 1;
   overflow-y: auto;
+  padding: 8px 10px 12px;
 }
 
 .state {
   padding: 40px;
   text-align: center;
-  color: var(--color-text-muted);
-  font-size: 13px;
+  color: var(--wl-muted, var(--color-text-muted));
+  font-size: 13.5px;
 }
 
 .row {
@@ -80,11 +100,14 @@
   align-items: center;
   justify-content: space-between;
   gap: 12px;
-  padding: 10px 16px;
-  border-bottom: 1px solid var(--color-border);
+  padding: 10px 12px;
+  border-radius: 12px;
+  transition: background 0.15s var(--wl-ease-soft, ease);
 }
 
-.row:hover { background: var(--color-surface); }
+.row + .row { margin-top: 2px; }
+
+.row:hover { background: rgba(27, 39, 48, 0.05); }
 
 .info {
   display: flex;
@@ -94,26 +117,25 @@
 }
 
 .name {
-  font-size: 13px;
-  color: var(--color-text);
+  font-size: 13.5px;
+  color: var(--wl-ink, var(--color-text));
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
 }
 
 .meta {
-  font-size: 11px;
-  color: var(--color-text-muted);
+  font-size: 11.5px;
+  color: var(--wl-muted, var(--color-text-muted));
 }
 
 .path {
-  font-size: 11px;
-  color: var(--color-text-muted);
-  opacity: 0.6;
+  font-size: 11.5px;
+  color: var(--wl-faint, var(--color-text-subtle));
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
-  font-family: 'SF Mono', monospace;
+  font-family: var(--wl-mono, 'SF Mono', monospace);
 }
 
 .actions {
@@ -122,15 +144,30 @@
   flex-shrink: 0;
 }
 
-.restoreBtn, .deleteBtn {
-  border: 1px solid var(--color-border);
-  border-radius: 5px;
+.restoreBtn,
+.deleteBtn {
+  height: 28px;
+  padding: 0 12px;
+  border-radius: 18px;
   cursor: pointer;
-  font-size: 12px;
-  padding: 4px 10px;
-  background: var(--color-surface);
-  color: var(--color-text);
+  font: inherit;
+  font-size: 12.5px;
+  font-weight: 500;
+  transition: background 0.15s var(--wl-ease-soft, ease);
 }
 
-.restoreBtn:hover { background: var(--color-accent); color: #fff; border-color: var(--color-accent); }
-.deleteBtn:hover { background: var(--color-danger); color: #fff; border-color: var(--color-danger); }
+.restoreBtn {
+  border: 0;
+  background: var(--wl-ink, var(--color-accent));
+  color: #fff;
+}
+
+.restoreBtn:hover { background: #2c3b46; }
+
+.deleteBtn {
+  border: 1px solid var(--wl-line, var(--color-border));
+  background: rgba(255, 255, 255, 0.8);
+  color: #b84a3a;
+}
+
+.deleteBtn:hover { background: var(--wl-claude-soft, rgba(217, 119, 87, 0.14)); }

@@ -106,7 +106,7 @@ export function SettingsPanel({ onClose }: SettingsPanelProps): JSX.Element {
     <div className={styles.backdrop} onClick={onClose}>
       <div className={styles.panel} onClick={(e) => e.stopPropagation()}>
         <div className={styles.header}>
-          <span className={styles.title}>Settings</span>
+          <span className={styles.heading}>Settings</span>
           <button className={styles.close} onClick={onClose} title="Close"><X size={16} /></button>
         </div>
 

@@ -5,9 +5,9 @@
   flex-direction: column;
   height: 100%;
   min-height: 0;
-  background: var(--wos-bg);
-  color: var(--wos-ink);
-  font-family: var(--wos-font);
+  background: transparent;
+  color: var(--wl-ink);
+  font-family: var(--wl-sans);
   -webkit-font-smoothing: antialiased;
 }
 
@@ -22,30 +22,34 @@
 }
 
 .views {
-  display: flex;
+  display: inline-flex;
   gap: 2px;
+  padding: 3px;
+  border-radius: 999px;
+  background: rgba(27, 39, 48, 0.05);
 }
 
 .view {
-  padding: 5px 12px;
+  padding: 5px 14px;
   border: 0;
   background: transparent;
-  border-radius: var(--wos-r-pill);
+  border-radius: 999px;
   font: inherit;
-  font-size: 14px;
+  font-size: 13px;
   font-weight: 500;
-  color: var(--wos-ink-3);
+  color: var(--wl-muted);
   cursor: pointer;
-  letter-spacing: -0.01em;
+  transition: background 0.15s var(--wl-ease-soft), color 0.15s var(--wl-ease-soft);
 }
 
 .view:hover {
-  color: var(--wos-ink-2);
+  color: var(--wl-ink);
 }
 
 .viewOn {
-  color: var(--wos-ink);
-  font-weight: 600;
+  color: var(--wl-ink);
+  background: #fff;
+  box-shadow: 0 0 0 1px rgba(27, 39, 48, 0.06);
 }
 
 .controls {
@@ -58,16 +62,22 @@
   display: inline-flex;
   align-items: center;
   gap: 5px;
-  padding: 4px 10px 4px 9px;
-  border-radius: var(--wos-r-pill);
-  background: var(--wos-card);
-  box-shadow: 0 0 0 0.5px var(--wos-hair);
+  height: 30px;
+  padding: 0 12px 0 11px;
+  border-radius: 999px;
+  border: 1px solid var(--wl-line);
+  background: rgba(255, 255, 255, 0.8);
   cursor: pointer;
+  transition: background 0.15s var(--wl-ease-soft);
+}
+
+.selectWrap:hover {
+  background: #fff;
 }
 
 .selectIcon {
   font-size: 11px;
-  color: var(--wos-ink-3);
+  color: var(--wl-muted);
 }
 
 .select {
@@ -75,7 +85,7 @@
   background: transparent;
   font: inherit;
   font-size: 12.5px;
-  color: var(--wos-ink-2);
+  color: var(--wl-ink);
   cursor: pointer;
   outline: none;
   -webkit-appearance: none;
@@ -86,25 +96,30 @@
 /* Altitude segmented control */
 .altitude {
   display: inline-flex;
-  gap: 1px;
-  padding: 2px;
-  border-radius: var(--wos-r-pill);
-  background: var(--wos-sunk);
-  box-shadow: inset 0 0 0 0.5px var(--wos-hair);
+  gap: 2px;
+  padding: 3px;
+  border-radius: 999px;
+  background: rgba(27, 39, 48, 0.05);
 }
 
 .alt {
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  padding: 4px 11px;
+  padding: 4px 12px;
   border: 0;
   background: transparent;
-  border-radius: var(--wos-r-pill);
+  border-radius: 999px;
   font: inherit;
   font-size: 12px;
-  color: var(--wos-ink-3);
+  font-weight: 500;
+  color: var(--wl-muted);
   cursor: pointer;
+  transition: background 0.15s var(--wl-ease-soft), color 0.15s var(--wl-ease-soft);
+}
+
+.alt:hover {
+  color: var(--wl-ink);
 }
 
 /* Quiet "Preview" pill on the vision-only altitudes in LIVE mode — hairline,
@@ -112,13 +127,13 @@
 .previewPill {
   display: inline-flex;
   align-items: center;
-  padding: 1px 6px;
-  border-radius: var(--wos-r-pill);
-  box-shadow: inset 0 0 0 0.5px var(--wos-hair);
-  color: var(--wos-ink-3);
+  padding: 1px 7px;
+  border-radius: 999px;
+  background: rgba(27, 39, 48, 0.06);
+  color: var(--wl-muted);
   font-size: 9.5px;
-  font-weight: 600;
-  letter-spacing: 0.03em;
+  font-weight: 500;
+  letter-spacing: 0.1em;
   line-height: 1.35;
   text-transform: uppercase;
 }
@@ -129,36 +144,38 @@
 }
 
 .altOn {
-  background: var(--wos-card);
-  color: var(--wos-ink);
-  font-weight: 600;
+  background: #fff;
+  color: var(--wl-ink);
   opacity: 1;
-  box-shadow: 0 0 0 0.5px var(--wos-hair);
+  box-shadow: 0 0 0 1px rgba(27, 39, 48, 0.06);
 }
 
 .search {
-  width: 30px;
-  height: 30px;
-  border: 0;
+  width: 32px;
+  height: 32px;
+  border: 1px solid var(--wl-line);
   border-radius: 50%;
-  background: var(--wos-card);
-  box-shadow: 0 0 0 0.5px var(--wos-hair);
-  color: var(--wos-ink-2);
+  background: rgba(255, 255, 255, 0.8);
+  color: var(--wl-ink-2);
   font-size: 15px;
   cursor: pointer;
+  transition: background 0.15s var(--wl-ease-soft), color 0.15s var(--wl-ease-soft);
 }
 
 .search:hover {
-  color: var(--wos-ink);
+  background: #fff;
+  color: var(--wl-ink);
 }
 
 /* ── Status line — plain language, the whole board in a breath ── */
 .status {
   margin: 0;
-  padding: 2px 28px 20px;
-  font-size: 17px;
-  line-height: 1.4;
-  color: var(--wos-ink-2);
+  padding: 4px 28px 22px;
+  font-family: var(--wl-serif);
+  font-weight: 400;
+  font-size: 24px;
+  line-height: 1.3;
+  color: var(--wl-ink);
   letter-spacing: -0.01em;
   flex-shrink: 0;
 }
@@ -247,11 +264,11 @@
   align-items: center;
   gap: 8px;
   margin: 0 0 12px;
-  font-size: 12px;
-  font-weight: 600;
+  font-size: 11px;
+  font-weight: 500;
   text-transform: uppercase;
-  letter-spacing: 0.06em;
-  color: var(--wos-ink-3);
+  letter-spacing: 0.18em;
+  color: var(--wl-muted);
 }
 
 .count {
@@ -260,29 +277,29 @@
   letter-spacing: 0;
   font-weight: 500;
   font-size: 11.5px;
-  color: var(--wos-ink-3);
+  color: var(--wl-faint);
 }
 
-/* Needs-you title carries the only warm ink in a heading. */
+/* Needs-you heading carries the only warm ink in a heading. */
 .needsTitle {
-  color: var(--wos-warn-ink);
+  color: var(--wl-claude);
 }
 
 .needsDot {
   width: 8px;
   height: 8px;
   border-radius: 50%;
-  background: var(--wos-warn-ink);
-  box-shadow: 0 0 0 3px var(--wos-warn-bg);
+  background: var(--wl-claude);
+  box-shadow: 0 0 0 3px var(--wl-claude-soft);
 }
 
 .workingMark {
-  color: var(--wos-ink-3);
+  color: var(--wl-muted);
   font-size: 13px;
 }
 
 .landedMark {
-  color: var(--wos-ok);
+  color: var(--wl-codex);
   font-size: 12px;
 }
 
@@ -311,10 +328,12 @@
   appearance: none;
   border: 0;
   background: transparent;
-  color: var(--wos-ink-2);
+  color: var(--wl-ink-2);
   font: inherit;
-  font-size: 12px;
-  font-weight: 600;
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: inherit;
+  text-transform: inherit;
   cursor: pointer;
   padding: 0 2px;
 }
@@ -334,7 +353,7 @@
 /* "+N more" artifacts on a landed row — quiet trailer. */
 .resultMore {
   font-size: 11px;
-  color: var(--wos-ink-3);
+  color: var(--wl-faint);
   flex-shrink: 0;
 }
 
@@ -342,7 +361,7 @@
   align-self: flex-start;
   border: 0;
   background: transparent;
-  color: var(--wos-warn-ink);
+  color: var(--wl-claude);
   font: inherit;
   font-size: 12.5px;
   font-weight: 500;
@@ -353,7 +372,7 @@
 .cleared {
   margin: 0;
   font-size: 13px;
-  color: var(--wos-ink-3);
+  color: var(--wl-muted);
   padding: 6px 2px;
 }
 
@@ -363,10 +382,9 @@
   margin: 0 auto 22px;
   max-width: 860px;
   padding-bottom: 12px;
-  border-bottom: 0.5px solid var(--wos-hair);
+  border-bottom: 1px solid var(--wl-line);
   font-size: 12.5px;
-  letter-spacing: 0.01em;
-  color: var(--wos-ink-3);
+  color: var(--wl-muted);
 }
 
 /* ── Working band — recessed columns of pale presence cells ── */
@@ -387,10 +405,11 @@
 
 .groupLabel {
   font-size: 11px;
-  font-weight: 600;
-  color: var(--wos-ink-3);
-  padding: 0 4px 2px;
-  letter-spacing: 0.01em;
+  font-weight: 500;
+  color: var(--wl-muted);
+  padding: 0 4px 4px;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
 }
 
 .cells {
@@ -410,25 +429,25 @@
   display: flex;
   align-items: center;
   gap: 10px;
-  padding: 9px 12px;
-  border-radius: var(--wos-r-sm);
-  transition: background 0.12s ease;
+  padding: 9px 10px;
+  border-radius: 10px;
+  transition: background 0.15s var(--wl-ease-soft);
 }
 
 .result:hover {
-  background: var(--wos-card);
+  background: rgba(27, 39, 48, 0.05);
 }
 
 .kind {
-  color: var(--wos-ink-3);
+  color: var(--wl-muted);
   font-size: 13px;
   flex-shrink: 0;
 }
 
 .resultLine {
   flex: 1;
-  font-size: 13px;
-  color: var(--wos-ink-2);
+  font-size: 13.5px;
+  color: var(--wl-ink-2);
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -437,7 +456,7 @@
 .open {
   border: 0;
   background: transparent;
-  color: var(--wos-ink-3);
+  color: var(--wl-muted);
   font: inherit;
   font-size: 12.5px;
   cursor: pointer;
@@ -445,20 +464,22 @@
 }
 
 .open:hover {
-  color: var(--wos-blue);
+  color: var(--wl-ink);
 }
 
 .settled {
   align-self: flex-start;
   border: 0;
   background: transparent;
-  color: var(--wos-ink-3);
+  color: var(--wl-muted);
   font: inherit;
   font-size: 12px;
   cursor: pointer;
   padding: 6px 12px;
+  border-radius: 999px;
 }
 
 .settled:hover {
-  color: var(--wos-ink-2);
+  color: var(--wl-ink);
+  background: rgba(27, 39, 48, 0.05);
 }

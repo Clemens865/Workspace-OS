@@ -8,30 +8,33 @@
 .actions {
   display: flex;
   align-items: center;
-  gap: 8px;
-  padding: 6px 10px;
-  border-bottom: 1px solid var(--border, rgba(0, 0, 0, 0.1));
-  background: var(--surface, #fff);
+  gap: 6px;
+  padding: 7px 12px;
+  border-bottom: 1px solid var(--wl-line, var(--border, rgba(0, 0, 0, 0.1)));
+  background: var(--wl-paper-solid, var(--surface, #fff));
   flex: 0 0 auto;
 }
 
 .actionBtn {
+  height: 28px;
+  font: inherit;
   font-size: 12px;
-  padding: 4px 10px;
-  border: 1px solid var(--border, rgba(0, 0, 0, 0.15));
-  border-radius: 6px;
-  background: var(--surface-2, transparent);
-  color: var(--text, inherit);
+  padding: 0 12px;
+  border: 1px solid var(--wl-line, var(--border, rgba(0, 0, 0, 0.15)));
+  border-radius: 18px;
+  background: rgba(255, 255, 255, 0.8);
+  color: var(--wl-ink, inherit);
   cursor: pointer;
+  transition: background 0.15s var(--wl-ease-soft, ease);
 }
 
 .actionBtn:hover {
-  background: var(--surface-hover, rgba(0, 0, 0, 0.05));
+  background: #fff;
 }
 
 .status {
   font-size: 12px;
-  color: var(--text-muted, #666);
+  color: var(--wl-muted, #666);
 }
 
 /* tldraw positions itself absolutely; it needs a sized, positioned container. */

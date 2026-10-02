@@ -5,14 +5,15 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  background: rgba(0, 0, 0, 0.32);
+  /* Over the office canvas: solid-ish mist, no backdrop-filter. */
+  background: rgba(226, 233, 238, 0.72);
 }
 
 .dialog {
-  background: var(--color-surface, #fff);
-  border: 1px solid var(--color-border, #d8d8d8);
-  border-radius: 10px;
-  box-shadow: 0 18px 50px rgba(0, 0, 0, 0.32);
+  background: var(--wl-paper-solid, #fbfcfd);
+  border: 1px solid transparent;
+  border-radius: 22px;
+  box-shadow: 0 0 0 1px rgba(27, 39, 48, 0.07), 0 20px 50px -20px rgba(30, 55, 70, 0.35);
   overflow: hidden;
   outline: none;
 }
@@ -22,14 +23,14 @@
   align-items: center;
   justify-content: space-between;
   padding: 8px 10px 8px 14px;
-  background: var(--color-surface-raised, #f3f3f3);
-  border-bottom: 1px solid var(--color-border, #e2e2e2);
+  background: var(--wl-paper-solid, #fbfcfd);
+  border-bottom: 1px solid var(--wl-line, rgba(27, 39, 48, 0.09));
 }
 
 .title {
   font-size: 13px;
   font-weight: 600;
-  color: var(--color-text, #1a1a1a);
+  color: var(--wl-ink, #1b2730);
 }
 
 .close {
@@ -40,14 +41,15 @@
   height: 24px;
   background: transparent;
   border: none;
-  border-radius: 5px;
-  color: var(--color-text-muted, #666);
+  border-radius: 999px;
+  color: var(--wl-muted, #7a8893);
+  transition: background .15s var(--wl-ease-soft, ease);
   cursor: pointer;
 }
 
 .close:hover {
-  background: var(--color-danger, #e0533d);
-  color: #fff;
+  background: rgba(27, 39, 48, 0.05);
+  color: var(--wl-ink, #1b2730);
 }
 
 .canvas {

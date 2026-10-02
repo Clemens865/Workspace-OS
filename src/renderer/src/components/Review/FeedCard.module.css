@@ -1,25 +1,26 @@
 /*
- * Cockpit card language — matches docs/design/cockpit-redesign.html.
- * White soft-shadow cards, 18px radius, ONE blue (only the primary action),
- * content in ink (never gray), plain-language consequence notes (green check
- * for reversible edits, amber pill for outbound). 8-pt spacing, crafted look.
- * Tokens come from styles/tokens.css (--wos-*).
+ * Review card language — landscape materials (docs/landscape/ADOPTION.md, A3):
+ * paper card, white border + hairline ring, radius 20, no drop shadow; a tag
+ * row with a status dot, a serif headline, ink pill for the primary action.
+ * Status colours: claude = attention, codex = ok, amber = question/outbound.
  */
 .card {
-  --rv-body: var(--wos-font, 'Hanken Grotesk', -apple-system, system-ui, sans-serif);
-  --rv-mono: var(--wos-font-mono, 'JetBrains Mono', 'SF Mono', ui-monospace, monospace);
+  --rv-body: var(--wl-sans, 'Inter', system-ui, sans-serif);
+  --rv-mono: var(--wl-mono, 'JetBrains Mono', ui-monospace, monospace);
 
   position: relative;
-  border-radius: var(--wos-r, 18px);
+  border-radius: 20px;
   overflow: hidden;
-  background: var(--wos-card, #fff);
-  box-shadow: var(--wos-sh-card);
-  color: var(--wos-ink);
-  animation: rv-arrive 0.5s cubic-bezier(0.2, 0.8, 0.2, 1) both;
+  background: rgba(251, 252, 253, 0.9);
+  border: 1px solid rgba(255, 255, 255, 0.85);
+  box-shadow: 0 0 0 1px rgba(27, 39, 48, 0.05);
+  color: var(--wl-ink);
+  animation: rv-arrive 0.5s var(--wl-ease, cubic-bezier(0.2, 0.8, 0.2, 1)) both;
 }
 
+/* A live HITL request: a warm hairline instead of a blue ring. */
 .card.live {
-  box-shadow: 0 0 0 1px rgba(0, 113, 227, 0.28), var(--wos-sh-card);
+  box-shadow: 0 0 0 1px rgba(217, 119, 87, 0.35);
 }
 
 @keyframes rv-arrive {
@@ -27,95 +28,111 @@
   to { opacity: 1; transform: translateY(0); }
 }
 
-/* The mockup has no family-colored bar; keep the element but collapse it. */
+/* Kept for markup compatibility; collapsed. */
 .topAccent {
   height: 0;
   width: 100%;
 }
 
 .body {
-  padding: 24px;
+  padding: 20px 22px;
 }
 
 .kickerRow {
   display: flex;
   align-items: center;
   gap: 10px;
-  margin-bottom: 12px;
+  margin-bottom: 8px;
 }
 
+/* The tag: status dot + family word. Edit = codex (reversible, ok);
+   action / waiting-on-you = claude (needs attention). */
 .family {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
   font-family: var(--rv-body);
-  font-size: 11px;
-  font-weight: 700;
-  letter-spacing: 0.08em;
+  font-size: 11.5px;
+  font-weight: 500;
+  color: var(--wl-ink-2);
+}
+.family::before {
+  content: '';
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--wl-codex);
+}
+.card[data-family='action'] .family::before {
+  background: var(--wl-claude);
 }
 
 .session {
   font-family: var(--rv-body);
-  font-size: 13px;
-  color: var(--wos-ink-2);
+  font-size: 12px;
+  color: var(--wl-muted);
 }
 
 .time {
   margin-left: auto;
   font-family: var(--rv-body);
-  font-size: 13px;
-  color: var(--wos-ink-3);
+  font-size: 11.5px;
+  color: var(--wl-faint);
 }
 
 .headline {
   margin: 0 0 12px;
-  font-family: var(--rv-body);
-  font-size: 16px;
-  font-weight: 600;
+  font-family: var(--wl-serif);
+  font-size: 20px;
+  font-weight: 400;
   line-height: 1.3;
-  letter-spacing: -0.02em;
-  color: var(--wos-ink);
+  letter-spacing: -0.01em;
+  color: var(--wl-ink);
 }
 
 .deliverable {
   display: inline-flex;
   align-items: center;
-  gap: 6px;
+  gap: 7px;
   margin: 0 0 14px;
-  padding: 6px 12px;
+  padding: 8px 12px;
   border-radius: 10px;
-  background: var(--wos-sunk);
-  border: 0;
-  color: var(--wos-ink);
+  background: rgba(255, 255, 255, 0.85);
+  border: 1px solid var(--wl-line);
+  color: var(--wl-ink);
   font-family: var(--rv-body);
   font-size: 13px;
   cursor: pointer;
+  transition: background 0.15s var(--wl-ease-soft);
 }
-.deliverable:hover { background: #e8e8ec; }
+.deliverable:hover { background: #fff; }
 
 .stakes {
   display: flex;
   flex-wrap: wrap;
-  gap: 7px;
+  gap: 6px;
   margin-bottom: 14px;
 }
 
 .chip,
 .chipMono,
 .chipError {
-  padding: 3px 10px;
+  padding: 2px 8px;
   border-radius: 999px;
-  font-size: 12px;
-  background: var(--wos-sunk);
-  color: var(--wos-ink-2);
+  font-size: 11.5px;
+  background: rgba(27, 39, 48, 0.06);
+  color: var(--wl-ink-2);
 }
 .chip { font-family: var(--rv-body); }
-.chipMono { font-family: var(--rv-mono); color: var(--wos-ink-2); }
+.chipMono { font-family: var(--rv-mono); color: var(--wl-ink-2); }
 .chipError {
   font-family: var(--rv-body);
-  color: var(--wos-warn-ink);
-  background: var(--wos-warn-bg);
+  color: var(--wl-ink);
+  background: var(--wl-claude-soft);
 }
 
-/* Plain-language consequence note — green check for reversible, amber pill for
- * outbound (see .gateNote.willsend via JS; here it defaults to the calm form). */
+/* Plain-language consequence note — codex check for reversible, amber pill for
+ * outbound. */
 .gateNote {
   display: inline-flex;
   align-items: center;
@@ -124,16 +141,15 @@
   font-family: var(--rv-body);
   font-size: 13.5px;
   line-height: 1.45;
-  color: var(--wos-ink-2);
+  color: var(--wl-ink-2);
 }
 
-/* Reversible-edit note: calm, green check leads it. */
 .gateNote .noteIcon {
   width: 16px;
   height: 16px;
   flex-shrink: 0;
   fill: none;
-  stroke: var(--wos-ok);
+  stroke: var(--wl-codex);
   stroke-width: 1.9;
   stroke-linecap: round;
   stroke-linejoin: round;
@@ -141,20 +157,21 @@
 
 /* Outbound / irreversible note: the amber "this sends…" pill. */
 .gateNote.willsend {
-  color: var(--wos-warn-ink);
-  background: var(--wos-warn-bg);
-  padding: 8px 12px;
+  color: #8a5a12;
+  background: var(--wl-amber-soft);
+  padding: 7px 12px;
   border-radius: 999px;
   font-weight: 500;
 }
 .gateNote.willsend .noteIcon {
-  stroke: var(--wos-warn-ink);
+  stroke: var(--wl-amber);
 }
 
-/* ── Actions: ONE blue on the primary (first) action; secondary is quiet. */
+/* ── Actions: ink pill on the primary (first) action; secondary is quiet. */
 .actions {
   display: flex;
-  gap: 10px;
+  flex-wrap: wrap;
+  gap: 8px;
   margin-bottom: 4px;
 }
 
@@ -162,61 +179,66 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  height: 42px;
-  padding: 0 20px;
-  border-radius: 12px;
+  height: 36px;
+  padding: 0 16px;
+  border-radius: 18px;
   font-family: var(--rv-body);
-  font-size: 15px;
-  font-weight: 600;
-  letter-spacing: -0.01em;
+  font-size: 13.5px;
+  font-weight: 500;
   cursor: pointer;
-  transition: background 0.16s;
-  border: 0;
-  background: var(--wos-sunk);
-  color: var(--wos-ink);
+  transition: background 0.15s var(--wl-ease-soft);
+  border: 1px solid var(--wl-line);
+  background: rgba(255, 255, 255, 0.8);
+  color: var(--wl-ink);
 }
-.act:hover:not(:disabled) { background: #e8e8ec; }
+.act:hover:not(:disabled) { background: #fff; }
 .act:disabled { opacity: 0.5; cursor: default; }
 
-/* The primary action = the first button in the row: the one blue per card. */
+/* The primary action = the first button in the row. */
 .actions .act:first-child {
-  background: var(--wos-blue);
+  border-color: transparent;
+  background: var(--wl-ink);
   color: #fff;
 }
-.actions .act:first-child:hover:not(:disabled) { background: #0060bf; }
+.actions .act:first-child:hover:not(:disabled) { background: #2c3b46; }
 
-/* Armed = the deliberate second-tap confirm — stays blue (committing). */
+/* Armed = the deliberate second-tap confirm — warm, committing. */
 .actArmed,
 .actions .actArmed:first-child {
-  background: #0060bf;
+  border-color: transparent;
+  background: var(--wl-claude);
   color: #fff;
 }
-.actArmed:hover:not(:disabled) { background: #0060bf; }
+.actArmed:hover:not(:disabled),
+.actions .actArmed:first-child:hover:not(:disabled) { background: #c8684a; }
 
 .disclosure {
   display: flex;
   flex-wrap: wrap;
-  gap: 16px;
-  padding-top: 12px;
+  gap: 4px;
+  padding-top: 10px;
+  margin-left: -10px;
 }
 
 .discBtn {
   background: none;
   border: none;
-  padding: 0;
+  padding: 5px 10px;
+  border-radius: 999px;
   cursor: pointer;
   font-family: var(--rv-body);
-  font-size: 13px;
-  font-weight: 600;
-  color: var(--wos-ink-2);
+  font-size: 12.5px;
+  font-weight: 500;
+  color: var(--wl-muted);
+  transition: background 0.15s var(--wl-ease-soft), color 0.15s var(--wl-ease-soft);
 }
-.discBtn:hover { color: var(--wos-ink); }
+.discBtn:hover { color: var(--wl-ink); background: rgba(27, 39, 48, 0.05); }
 
 /* ── Disclosure tiers (unfold inline; never a new page). */
 .tier {
-  margin-top: 16px;
-  padding-top: 16px;
-  border-top: 0.5px solid var(--wos-hair);
+  margin-top: 14px;
+  padding-top: 14px;
+  border-top: 1px solid var(--wl-line);
   animation: rv-unfold 0.28s ease both;
 }
 
@@ -225,49 +247,45 @@
   to { opacity: 1; transform: translateY(0); }
 }
 
-.tierKicker {
-  font-family: var(--rv-body);
-  font-size: 10.5px;
-  font-weight: 700;
-  letter-spacing: 0.09em;
-  color: var(--wos-ink-3);
-  margin-bottom: 10px;
-}
-
+.tierKicker,
 .metaLabel {
   font-family: var(--rv-body);
-  font-size: 10.5px;
-  font-weight: 700;
-  letter-spacing: 0.07em;
-  color: var(--wos-ink-2);
-  margin: 10px 0 6px;
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--wl-muted);
+  margin-bottom: 8px;
 }
+.metaLabel { margin: 12px 0 6px; }
 
 .prompt {
   margin: 0;
   padding: 12px 14px;
-  border-radius: 10px;
-  background: var(--wos-sunk);
+  border-radius: 12px;
+  background: #fff;
+  border: 1px solid var(--wl-line);
   font-family: var(--rv-mono);
   font-size: 12px;
   line-height: 1.5;
-  color: var(--wos-ink);
+  color: var(--wl-ink);
   white-space: pre-wrap;
   word-break: break-word;
 }
 
-.artifactList { display: flex; flex-wrap: wrap; gap: 7px; }
+.artifactList { display: flex; flex-wrap: wrap; gap: 8px; }
 .artifactChip {
-  padding: 5px 11px;
-  border-radius: 9px;
-  background: var(--wos-sunk);
-  border: 0;
-  color: var(--wos-ink);
+  padding: 6px 11px;
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.85);
+  border: 1px solid var(--wl-line);
+  color: var(--wl-ink);
   font-family: var(--rv-body);
-  font-size: 12px;
+  font-size: 12.5px;
   cursor: pointer;
+  transition: background 0.15s var(--wl-ease-soft);
 }
-.artifactChip:hover { background: #e8e8ec; }
+.artifactChip:hover { background: #fff; }
 
 .provRow {
   display: flex;
@@ -276,41 +294,42 @@
   margin-top: 12px;
   font-family: var(--rv-mono);
   font-size: 11px;
-  color: var(--wos-ink-3);
+  color: var(--wl-faint);
 }
 
-/* ── Inline diff (Draft tier). */
+/* ── Inline diff (Draft tier). Muted codex/claude add/remove distinction. */
 .diffState {
   padding: 10px 12px;
   font-family: var(--rv-body);
   font-size: 13px;
-  color: var(--wos-ink-2);
+  color: var(--wl-ink-2);
 }
 .diffFiles { display: flex; flex-direction: column; gap: 12px; }
 .diffFile {
-  border: 0.5px solid var(--wos-hair);
-  border-radius: 10px;
+  border: 1px solid var(--wl-line);
+  border-radius: 12px;
   overflow: hidden;
+  background: #fff;
 }
 .diffFileHeader {
   display: flex;
   align-items: center;
   gap: 10px;
   padding: 7px 11px;
-  background: var(--wos-sunk);
-  border-bottom: 0.5px solid var(--wos-hair);
+  background: rgba(27, 39, 48, 0.03);
+  border-bottom: 1px solid var(--wl-line);
 }
 .diffPath {
   font-family: var(--rv-mono);
   font-size: 12px;
-  color: var(--wos-ink);
+  color: var(--wl-ink);
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
 .diffFileStat { margin-left: auto; font-family: var(--rv-mono); font-size: 11px; }
-.add { color: #1e7145; }
-.del { color: #d7382b; }
+.add { color: #1f7a6f; }
+.del { color: #b84a3a; }
 
 .hunks {
   margin: 0;
@@ -322,11 +341,11 @@
   line-height: 1.5;
 }
 .line { display: flex; padding: 0 10px; white-space: pre-wrap; word-break: break-word; }
-.marker { width: 14px; flex-shrink: 0; color: var(--wos-ink-3); }
-.add { background: rgba(30, 113, 69, 0.08); }
-.del { background: rgba(215, 56, 43, 0.08); }
-.hunk { color: #5563c8; background: rgba(85, 99, 200, 0.07); }
-.ctx { color: var(--wos-ink-2); }
+.marker { width: 14px; flex-shrink: 0; color: var(--wl-faint); }
+.add { background: rgba(45, 157, 143, 0.1); }
+.del { background: rgba(217, 119, 87, 0.1); }
+.hunk { color: var(--wl-muted); background: rgba(27, 39, 48, 0.04); }
+.ctx { color: var(--wl-ink-2); }
 
 /* ── Mail card: the editable drafted-reply textarea (draft tier). */
 .draftArea {
@@ -335,15 +354,20 @@
   min-height: 120px;
   resize: vertical;
   padding: 12px 14px;
-  border-radius: 10px;
-  background: var(--wos-card);
-  border: 0.5px solid var(--wos-hair);
-  color: var(--wos-ink);
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.85);
+  border: 1px solid var(--wl-line);
+  color: var(--wl-ink);
   font-family: var(--rv-body);
   font-size: 14px;
   line-height: 1.5;
+  transition: border-color 0.15s var(--wl-ease-soft), box-shadow 0.15s var(--wl-ease-soft);
 }
-.draftArea:focus { outline: none; border-color: var(--wos-blue); }
+.draftArea:focus {
+  outline: none;
+  border-color: rgba(27, 39, 48, 0.25);
+  box-shadow: 0 0 0 3px rgba(27, 39, 48, 0.07);
+}
 .replyToggle {
   display: inline-flex;
   align-items: center;
@@ -351,33 +375,32 @@
   margin-bottom: 10px;
   font-family: var(--rv-body);
   font-size: 13px;
-  color: var(--wos-ink-2);
+  color: var(--wl-ink-2);
   cursor: pointer;
 }
 
 /* ── Resolved (memory) state — kept and reverted rendered with equal weight. */
-.card.resolved { animation: none; }
+.card.resolved { animation: none; background: rgba(251, 252, 253, 0.6); }
 .resolvedRow {
   display: flex;
   align-items: center;
   gap: 12px;
-  padding: 16px 24px;
+  padding: 12px 18px;
 }
 .resolvedBadge {
   flex-shrink: 0;
-  padding: 3px 10px;
+  padding: 2px 8px;
   border-radius: 999px;
-  background: var(--wos-sunk);
-  color: var(--wos-ink-2);
+  background: rgba(27, 39, 48, 0.06);
+  color: var(--wl-ink-2);
   font-family: var(--rv-body);
   font-size: 11px;
-  font-weight: 700;
-  letter-spacing: 0.05em;
+  font-weight: 500;
 }
 .resolvedText {
   font-family: var(--rv-body);
-  font-size: 14px;
-  color: var(--wos-ink);
+  font-size: 13.5px;
+  color: var(--wl-ink-2);
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -386,6 +409,6 @@
   margin-left: auto;
   flex-shrink: 0;
   font-family: var(--rv-body);
-  font-size: 12px;
-  color: var(--wos-ink-3);
+  font-size: 11.5px;
+  color: var(--wl-faint);
 }

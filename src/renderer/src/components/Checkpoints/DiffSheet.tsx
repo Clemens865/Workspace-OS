@@ -47,7 +47,7 @@ export function DiffSheet({ checkpointId, title, onClose, onRevert }: DiffSheetP
     <div className={styles.backdrop} onClick={onClose}>
       <div className={styles.panel} data-testid="diff-sheet" onClick={(e) => e.stopPropagation()}>
         <div className={styles.header}>
-          <span className={styles.title}>Changes since {title}</span>
+          <span className={styles.heading}>Changes since {title}</span>
           {stats && stats.files > 0 && (
             <span className={styles.stats}>
               {stats.files} file{stats.files === 1 ? '' : 's'}

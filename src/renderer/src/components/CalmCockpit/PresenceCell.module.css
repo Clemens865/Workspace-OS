@@ -5,18 +5,18 @@
   display: flex;
   align-items: center;
   gap: 10px;
-  padding: 8px 12px;
-  border-radius: var(--wos-r-sm);
-  background: transparent;
+  padding: 9px 12px;
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.35);
   /* barely-there hairline; healthy work recedes into the page */
-  box-shadow: inset 0 0 0 0.5px var(--wos-hair);
+  box-shadow: 0 0 0 1px rgba(27, 39, 48, 0.04);
   min-width: 0;
-  transition: background 0.15s ease, box-shadow 0.15s ease;
+  transition: background 0.15s var(--wl-ease-soft), box-shadow 0.15s var(--wl-ease-soft);
 }
 
 .cell:hover {
-  background: var(--wos-card);
-  box-shadow: 0 0 0 0.5px var(--wos-hair);
+  background: rgba(251, 252, 253, 0.9);
+  box-shadow: 0 0 0 1px rgba(27, 39, 48, 0.07);
 }
 
 /* ── Breathing glyph — the presence "pulse". Reuses the TerminalDock
@@ -33,7 +33,7 @@
   width: 4px;
   height: 4px;
   border-radius: 50%;
-  background: var(--wos-ink-3);
+  background: var(--wl-muted);
   opacity: 0.3;
   animation: wosCockpitPulse 1.5s ease-in-out infinite;
 }
@@ -69,16 +69,16 @@
 
 /* Small + pale — the name is present but recedes. */
 .who {
-  font-size: 12px;
-  font-weight: 600;
-  color: var(--wos-ink-2);
+  font-size: 12.5px;
+  font-weight: 500;
+  color: var(--wl-ink);
   white-space: nowrap;
   flex-shrink: 0;
 }
 
 .live {
-  font-size: 12px;
-  color: var(--wos-ink-3);
+  font-size: 12.5px;
+  color: var(--wl-muted);
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -92,33 +92,29 @@
 }
 
 .dot {
-  width: 6px;
-  height: 6px;
+  width: 8px;
+  height: 8px;
   border-radius: 50%;
   flex-shrink: 0;
 }
 
 /* Confidence/health as colour-temperature — quiet, never a badge. */
 .dotOk {
-  background: var(--wos-ok);
-  opacity: 0.55;
+  background: var(--wl-codex);
 }
 
 .dotWatch {
-  background: #d9a441; /* warm amber — "watch", still calm */
-  opacity: 0.75;
+  background: var(--wl-amber); /* "watch", still calm */
 }
 
 .dotBlocked {
-  background: #d0777a;
-  opacity: 0.8;
+  background: var(--wl-claude);
 }
 
 .cost {
-  font-size: 10.5px;
-  font-family: var(--wos-font-mono);
-  color: var(--wos-ink-3);
-  opacity: 0.7;
+  font-size: 11px;
+  font-family: var(--wl-mono);
+  color: var(--wl-faint);
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -130,7 +126,7 @@
 
 /* ── Pixel-grid orbit for LIVE cells (Beautiful UI loading-state grammar):
    nine 3px cells, a comet lapping the perimeter clockwise. Quiet by way of
-   ink-3 at low opacity — motion is the signal, not colour. ── */
+   muted ink at low opacity — motion is the signal, not colour. ── */
 .pixels {
   display: grid;
   grid-template-columns: repeat(3, 3px);
@@ -141,7 +137,7 @@
   width: 3px;
   height: 3px;
   border-radius: 1px;
-  background: var(--wos-ink-3);
+  background: var(--wl-ink-2);
   opacity: 0.15;
   animation: wosPixelOn 950ms ease-in-out infinite;
 }

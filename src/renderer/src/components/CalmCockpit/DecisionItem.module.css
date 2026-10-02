@@ -1,28 +1,21 @@
-/* NEEDS-YOU decision — the ONE warm, elevated, pulled-forward thing.
- * The iridescent aurora shimmer was REMOVED (it was decorative noise). Depth is
- * now a solid card + a soft shadow — calm, legible, and consistent with the live
- * NeedsYouCard. Text stays fully on --wos-ink. */
+/* NEEDS-YOU decision — the ONE warm, pulled-forward thing. A paper card with
+ * a hairline ring (landscape materials, no drop shadow); text stays on ink. */
 .item {
   position: relative;
   display: flex;
   flex-direction: column;
   gap: 8px;
   padding: 16px 18px;
-  border-radius: var(--wos-r);
-  background: var(--wos-card);
-  box-shadow:
-    inset 0 0 0 0.5px var(--wos-hair),
-    0 1px 2px rgba(0, 0, 0, 0.04),
-    0 12px 28px rgba(30, 30, 40, 0.06);
-  transition: transform 0.16s ease, box-shadow 0.16s ease;
+  border-radius: 20px;
+  border: 1px solid rgba(255, 255, 255, 0.85);
+  background: rgba(251, 252, 253, 0.9);
+  box-shadow: 0 0 0 1px rgba(27, 39, 48, 0.05);
+  transition: background 0.15s var(--wl-ease-soft), box-shadow 0.15s var(--wl-ease-soft);
 }
 
 .item:hover {
-  transform: translateY(-1px);
-  box-shadow:
-    inset 0 0 0 0.5px var(--wos-hair),
-    0 2px 4px rgba(0, 0, 0, 0.05),
-    0 18px 40px rgba(30, 30, 40, 0.08);
+  background: #fff;
+  box-shadow: 0 0 0 1px rgba(27, 39, 48, 0.08);
 }
 
 .top {
@@ -32,39 +25,50 @@
 }
 
 .by {
-  font-size: 11px;
-  font-weight: 600;
-  color: var(--wos-warn-ink);
-  letter-spacing: 0.01em;
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  font-size: 11.5px;
+  font-weight: 400;
+  color: var(--wl-ink-2);
+}
+
+.by::before {
+  content: '';
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--wl-amber);
+  flex: none;
 }
 
 /* Quiet warm confidence chip — "Analyst 0.6 sure". */
 .conf {
-  font-size: 10.5px;
+  font-size: 11px;
   font-weight: 500;
   padding: 2px 8px;
-  border-radius: var(--wos-r-pill);
-  background: var(--wos-warn-bg);
-  color: var(--wos-warn-ink);
+  border-radius: 999px;
+  background: var(--wl-amber-soft);
+  color: #8a5a12;
 }
 
 .chevron {
   margin-left: auto;
   border: 0;
   background: transparent;
-  color: var(--wos-ink-3);
+  color: var(--wl-muted);
   font-size: 14px;
   line-height: 1;
   cursor: pointer;
-  width: 22px;
-  height: 22px;
-  border-radius: 6px;
-  transition: transform 0.14s ease, background 0.12s ease;
+  width: 24px;
+  height: 24px;
+  border-radius: 999px;
+  transition: transform 0.15s var(--wl-ease-soft), background 0.15s var(--wl-ease-soft);
 }
 
 .chevron:hover {
-  background: rgba(0, 0, 0, 0.05);
-  color: var(--wos-ink-2);
+  background: rgba(27, 39, 48, 0.05);
+  color: var(--wl-ink);
 }
 
 .chevronOpen {
@@ -73,65 +77,64 @@
 
 /* Language leads — the line is the largest, darkest thing in the item. */
 .line {
-  font-size: 15px;
-  line-height: 1.45;
-  color: var(--wos-ink);
-  letter-spacing: -0.01em;
-  font-weight: 500;
+  font-family: var(--wl-serif);
+  font-size: 18px;
+  font-weight: 400;
+  line-height: 1.35;
+  color: var(--wl-ink);
 }
 
 .detail {
-  font-size: 12.5px;
+  font-size: 13px;
   line-height: 1.55;
-  color: var(--wos-ink-2);
-  padding: 8px 12px;
-  border-radius: var(--wos-r-sm);
-  background: rgba(0, 0, 0, 0.02);
-  box-shadow: inset 0 0 0 0.5px var(--wos-hair);
+  color: var(--wl-ink-2);
+  padding: 10px 12px;
+  border-radius: 12px;
+  background: #fff;
+  border: 1px solid var(--wl-line);
 }
 
 .actions {
   display: flex;
   align-items: center;
   gap: 8px;
-  margin-top: 2px;
+  margin-top: 4px;
 }
 
-/* THE single blue — the leaned-default primary decision action. */
+/* The leaned-default primary decision action — ink pill. */
 .primary {
   height: 32px;
   padding: 0 16px;
   border: 0;
-  border-radius: var(--wos-r-pill);
-  background: var(--wos-blue);
+  border-radius: 18px;
+  background: var(--wl-ink);
   color: #fff;
-  font: inherit;
-  font-size: 13px;
-  font-weight: 600;
-  cursor: pointer;
-  transition: background 0.14s ease;
-}
-
-.primary:hover {
-  background: #0060bf;
-}
-
-/* Quiet secondaries — no colour, they defer to the blue. */
-.secondary {
-  height: 32px;
-  padding: 0 13px;
-  border: 0;
-  border-radius: var(--wos-r-pill);
-  background: transparent;
-  color: var(--wos-ink-2);
   font: inherit;
   font-size: 13px;
   font-weight: 500;
   cursor: pointer;
-  transition: background 0.12s ease, color 0.12s ease;
+  transition: background 0.15s var(--wl-ease-soft);
+}
+
+.primary:hover {
+  background: #2c3b46;
+}
+
+/* Secondaries — hairline pills, they defer to the ink. */
+.secondary {
+  height: 32px;
+  padding: 0 14px;
+  border: 1px solid var(--wl-line);
+  border-radius: 18px;
+  background: rgba(255, 255, 255, 0.8);
+  color: var(--wl-ink);
+  font: inherit;
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background 0.15s var(--wl-ease-soft);
 }
 
 .secondary:hover {
-  background: rgba(0, 0, 0, 0.05);
-  color: var(--wos-ink);
+  background: #fff;
 }

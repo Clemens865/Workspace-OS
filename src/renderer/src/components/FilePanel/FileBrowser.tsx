@@ -389,7 +389,8 @@ export function FileBrowser({
 
       {view === 'list' && (
       <div className={styles.rows}>
-        {loading && <div className={styles.note}>Reading this folder…</div>}
+        {!root && <div className={styles.note}>No folder is open. Open one from the left, or from the project menu in the landscape.</div>}
+        {root && loading && <div className={styles.note}>Reading this folder…</div>}
         {error && <div className={styles.note}>Cannot read this folder — {error}</div>}
         {!loading && !error && rows.length === 0 && (
           <div className={styles.note}>
