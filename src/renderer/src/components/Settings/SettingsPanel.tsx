@@ -163,7 +163,7 @@ export function SettingsPanel({ onClose }: SettingsPanelProps): JSX.Element {
           <section className={styles.section}>
               <h3 className={styles.sectionTitle}>Terminal dock</h3>
               <p className={styles.hint}>
-                The integrated terminal + agent dock (toggle any time with ⌘J). Choose where it sits.
+                The integrated terminal + agent dock (toggle any time with ⌘J). Choose where it sits: docked at the bottom or right, or floating as a window you can move and resize, over the landscape too.
               </p>
               <div className={styles.segmented}>
                 <button
@@ -177,6 +177,12 @@ export function SettingsPanel({ onClose }: SettingsPanelProps): JSX.Element {
                   onClick={() => settings.set('terminalPlacement', 'right')}
                 >
                   Right
+                </button>
+                <button
+                  className={settings.terminalPlacement === 'float' ? styles.segOn : styles.segOff}
+                  onClick={() => settings.set('terminalPlacement', 'float')}
+                >
+                  Float
                 </button>
               </div>
             </section>

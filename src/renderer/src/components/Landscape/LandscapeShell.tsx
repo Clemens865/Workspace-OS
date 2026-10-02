@@ -183,12 +183,21 @@ export function LandscapeShell(): JSX.Element {
     }
   }, [showStage])
 
+  // An open terminal that docks (dropped on an edge, or Right/Bottom chosen)
+  // lives on the stage from then on: bring the stage forward, or it vanishes.
+  const placeWas = useRef(settings.terminalPlacement)
+  useEffect(() => {
+    if (settings.terminalOpen && placeWas.current === 'float' && settings.terminalPlacement !== 'float') showStage()
+    placeWas.current = settings.terminalPlacement
+  }, [settings.terminalPlacement, settings.terminalOpen, showStage])
+
   // ⌘J opens the terminal dock, which lives on the stage.
   const termWasOpen = useRef(settings.terminalOpen)
   useEffect(() => {
-    if (settings.terminalOpen && !termWasOpen.current) showStage()
+    // A docked terminal lives on the stage; a floating one opens right here.
+    if (settings.terminalOpen && !termWasOpen.current && settings.terminalPlacement !== 'float') showStage()
     termWasOpen.current = settings.terminalOpen
-  }, [settings.terminalOpen, showStage])
+  }, [settings.terminalOpen, settings.terminalPlacement, showStage])
 
   const openAgent = useCallback(
     (id: string) => {
@@ -248,6 +257,15 @@ export function LandscapeShell(): JSX.Element {
     openSurface('browser')
   }
 
+  // The dock's Terminal item: show or hide it (restored if it was minimised).
+  const toggleTerminal = (): void => {
+    if (settings.terminalOpen && !settings.terminalMinimized) settings.set('terminalOpen', false)
+    else {
+      settings.set('terminalMinimized', false)
+      settings.set('terminalOpen', true)
+    }
+  }
+
   const onDock = (id: DockId): void => {
     if (id === 'cases') setCaseFocus(null)
     if (id === 'inbox') setInboxTab('waiting')
@@ -262,7 +280,13 @@ export function LandscapeShell(): JSX.Element {
 
   return (
     <div className={`wl ${styles.root}`} data-shell="landscape" data-view={view}>
-      <WorkspaceShell stage={{ hidden: !stageShown, onLandscape: () => showLandscape(), onSurface: onStageSurface, railOpen: openedOnStage, nav: { waiting: inbox.length, onDock } }} />
+      <BackdropContext.Provider value={backdrop}>
+      <WorkspaceShell stage={{ hidden: !stageShown, onLandscape: () => showLandscape(), onSurface: onStageSurface, railOpen: openedOnStage,
+          onHome: () => setView('today'),
+          dock: <LandscapeDock variant="bar" active={null} onSelect={onDock} waiting={inbox.length} terminalOpen={settings.terminalOpen} onTerminal={toggleTerminal} />,
+        }}
+      />
+      </BackdropContext.Provider>
 
       <div className={`${styles.landscape} ${onStage ? styles.away : ''} ${backdrop ? styles.glassOn : ''}`} aria-hidden={onStage} data-testid="landscape-layer" data-quality={quality}>
         <div className={styles.horizon} aria-hidden />
@@ -365,7 +389,7 @@ export function LandscapeShell(): JSX.Element {
           </div>
         )}
 
-        <LandscapeDock active={activeDock} onSelect={onDock} waiting={inbox.length} />
+        <LandscapeDock active={activeDock} onSelect={onDock} waiting={inbox.length} terminalOpen={settings.terminalOpen} onTerminal={toggleTerminal} />
         </PreviewLive.Provider>
         </BackdropContext.Provider>
       </div>

@@ -26,10 +26,13 @@ export interface Settings {
    */
   landscapeQuality: 'auto' | 'full' | 'light' | 'off'
   /**
-   * Integrated Terminal Dock (new shell only). Where the dock sits when open —
-   * a bottom strip under the stage, or a right-hand column. Default 'bottom'.
+   * Integrated Terminal Dock. Where it sits when open: a bottom strip under
+   * the stage, a right-hand column, or a floating window that can be moved and
+   * resized anywhere, over the landscape too. Default 'bottom'.
    */
-  terminalPlacement: 'bottom' | 'right'
+  terminalPlacement: 'bottom' | 'right' | 'float'
+  /** The floating terminal's window, in CSS px (null until it first floats). */
+  terminalFloat: { x: number; y: number; w: number; h: number } | null
   /** Whether the Terminal Dock is currently open (toggled with ⌘J). Default off. */
   terminalOpen: boolean
   /**
@@ -69,6 +72,7 @@ const DEFAULTS: Settings = {
   startOn: 'landscape',
   landscapeQuality: 'auto',
   terminalPlacement: 'bottom',
+  terminalFloat: null,
   terminalOpen: false,
   terminalMinimized: false,
   lightModel: 'haiku',

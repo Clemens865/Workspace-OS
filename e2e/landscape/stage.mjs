@@ -102,7 +102,8 @@ try {
     await win.click('[data-testid="stage-landscape"]')
     await settle()
     s = await state()
-    check(`Landscape button returns from ${it.label}`, s.view === 'menu' && s.landscapeVisible, JSON.stringify(s))
+    // The stage's dock is the landscape's dock: its Overview leads to the team.
+    check(`the dock's Overview leads back from ${it.label}`, s.view === 'overview' && s.landscapeVisible, JSON.stringify(s))
   }
 
   // ── Dock stand-ins ──
@@ -157,7 +158,7 @@ try {
   })
   check('the stage topbar offers the landscape navigation', navBox > 100, `width ${navBox}`)
   const badges = await win.evaluate(() => ({
-    stage: document.querySelector('[data-stage-dock="inbox"] b')?.textContent ?? '',
+    stage: document.querySelector('[data-stage-dock="inbox"] [class*="badge"]')?.textContent ?? '',
     dock: document.querySelector('[data-dock="inbox"] b, [data-dock="inbox"] [class*="badge"]')?.textContent ?? '',
   }))
   check('stage Inbox badge matches the dock', badges.stage === badges.dock, JSON.stringify(badges))

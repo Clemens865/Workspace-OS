@@ -1,0 +1,205 @@
+/* The floating terminal. Above the landscape (70) and the stage chrome, below
+   toasts (190), ⌘K / ⌘P (200) and Settings (210). Never transformed: it moves
+   by left/top, so xterm's pointer mapping stays exact. */
+.frame {
+  position: fixed;
+  z-index: 120;
+  display: flex;
+  flex-direction: column;
+  padding: 0 7px 7px;
+  border-radius: 18px;
+  /* The rim. Over the landscape the Liquid Glass pane shows through it; over
+     the stage it is this frosted edge on its own. */
+  background: rgba(240, 244, 247, 0.62);
+  border: 1px solid rgba(255, 255, 255, 0.9);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.95),
+    0 0 0 1px rgba(27, 39, 48, 0.08),
+    0 28px 60px -24px rgba(30, 55, 70, 0.45);
+  animation: floatIn 0.45s var(--wl-ease) backwards;
+}
+
+@keyframes floatIn {
+  from {
+    opacity: 0;
+    translate: 0 12px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .frame {
+    animation: none;
+  }
+}
+
+.moving {
+  user-select: none;
+}
+
+.bar {
+  flex: none;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  height: 36px;
+  padding: 0 4px 0 8px;
+  cursor: grab;
+  color: var(--wl-ink-2);
+  font-size: 12.5px;
+  font-weight: 500;
+  letter-spacing: 0.02em;
+}
+
+.moving .bar {
+  cursor: grabbing;
+}
+
+.icon {
+  color: var(--wl-claude);
+}
+
+.name {
+  color: var(--wl-ink);
+}
+
+.flex {
+  flex: 1;
+}
+
+.btn {
+  display: grid;
+  place-items: center;
+  width: 26px;
+  height: 26px;
+  border: 0;
+  border-radius: 13px;
+  background: none;
+  color: var(--wl-muted);
+  cursor: pointer;
+}
+
+.btn:hover {
+  background: rgba(27, 39, 48, 0.06);
+  color: var(--wl-ink);
+}
+
+/* The terminal itself: opaque, so only the rim is glass. */
+.body {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  border-radius: 12px;
+  overflow: hidden;
+  background: var(--wl-paper-solid);
+  box-shadow: 0 0 0 1px rgba(27, 39, 48, 0.08);
+}
+
+.body > * {
+  flex: 1;
+  min-width: 0;
+}
+
+.min {
+  padding-bottom: 0;
+}
+
+.min .body {
+  /* Minimised keeps the terminal mounted (its sessions live on), at no size. */
+  flex: none;
+  height: 0;
+  box-shadow: none;
+}
+
+/* Resize grips on every edge and corner. */
+.handle {
+  position: absolute;
+  z-index: 2;
+}
+
+.handle[data-handle='n'],
+.handle[data-handle='s'] {
+  left: 14px;
+  right: 14px;
+  height: 8px;
+  cursor: ns-resize;
+}
+
+.handle[data-handle='n'] {
+  top: -4px;
+}
+
+.handle[data-handle='s'] {
+  bottom: -4px;
+}
+
+.handle[data-handle='e'],
+.handle[data-handle='w'] {
+  top: 14px;
+  bottom: 14px;
+  width: 8px;
+  cursor: ew-resize;
+}
+
+.handle[data-handle='e'] {
+  right: -4px;
+}
+
+.handle[data-handle='w'] {
+  left: -4px;
+}
+
+.handle[data-handle='ne'],
+.handle[data-handle='nw'],
+.handle[data-handle='se'],
+.handle[data-handle='sw'] {
+  width: 16px;
+  height: 16px;
+}
+
+.handle[data-handle='ne'] {
+  top: -5px;
+  right: -5px;
+  cursor: nesw-resize;
+}
+
+.handle[data-handle='sw'] {
+  bottom: -5px;
+  left: -5px;
+  cursor: nesw-resize;
+}
+
+.handle[data-handle='nw'] {
+  top: -5px;
+  left: -5px;
+  cursor: nwse-resize;
+}
+
+.handle[data-handle='se'] {
+  bottom: -5px;
+  right: -5px;
+  cursor: nwse-resize;
+}
+
+/* Where the window will dock if dropped now. */
+.snap {
+  position: fixed;
+  z-index: 119;
+  border-radius: 18px;
+  background: rgba(27, 39, 48, 0.06);
+  border: 1.5px dashed rgba(27, 39, 48, 0.25);
+  pointer-events: none;
+}
+
+.snap[data-zone='right'] {
+  top: 64px;
+  right: 8px;
+  bottom: 8px;
+  width: min(420px, 34vw);
+}
+
+.snap[data-zone='bottom'] {
+  left: 8px;
+  right: 8px;
+  bottom: 8px;
+  height: min(320px, 36vh);
+}

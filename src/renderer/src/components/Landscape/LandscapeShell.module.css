@@ -247,6 +247,63 @@
   color: var(--wl-ink);
 }
 
+/* The Terminal item, after a hairline: a toggle, not a place. */
+.dockSep {
+  align-self: center;
+  width: 1px;
+  height: 22px;
+  margin: 0 4px;
+  background: var(--wl-line);
+}
+
+.termOn {
+  color: var(--wl-ink);
+  background: rgba(27, 39, 48, 0.07);
+}
+
+/* The same dock in the stage's top bar: compact, inline, no glass (it sits
+   above documents and the browser). */
+.dockInline {
+  position: relative;
+  flex: none;
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  padding: 3px;
+  border-radius: 22px;
+  background: rgba(255, 255, 255, 0.6);
+  border: 1px solid rgba(255, 255, 255, 0.9);
+  box-shadow: 0 0 0 1px rgba(27, 39, 48, 0.05);
+  -webkit-app-region: no-drag;
+}
+
+.dockInline .dockGlow {
+  top: 3px;
+  bottom: 3px;
+  border-radius: 18px;
+}
+
+.dockInline .dockItem {
+  gap: 6px;
+  padding: 6px 12px;
+  border-radius: 18px;
+  font-size: 13.5px;
+}
+
+.dockInline .dockItem:hover {
+  background: rgba(255, 255, 255, 0.7);
+}
+
+.dockInline .badge {
+  min-width: 18px;
+  height: 18px;
+  font-size: 10.5px;
+}
+
+.dockInline .dockSep {
+  height: 18px;
+}
+
 /* ── The WebGL backdrop (mist landscape + Liquid Glass) ── */
 .canvas {
   position: absolute;

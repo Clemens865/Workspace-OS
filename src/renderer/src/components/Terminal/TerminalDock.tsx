@@ -132,7 +132,7 @@ export function TerminalDock({ context, resizeSignal, launchAgent, onAgentLaunch
     setTabs((prev) => prev.filter((t) => t.id !== id))
   }, [])
 
-  const setPlacement = (p: 'bottom' | 'right'): void => settings.set('terminalPlacement', p)
+  const setPlacement = (p: 'bottom' | 'right' | 'float'): void => settings.set('terminalPlacement', p)
 
   // The current surface's quick actions (data-driven, office-only gated).
   const actions = actionsForSurface(context)
@@ -294,6 +294,14 @@ export function TerminalDock({ context, resizeSignal, launchAgent, onAgentLaunch
             onClick={() => setPlacement('right')}
           >
             Right
+          </button>
+          <button
+            className={`${styles.segBtn} ${settings.terminalPlacement === 'float' ? styles.segOn : ''}`}
+            onClick={() => setPlacement('float')}
+            title="A window you can move and resize anywhere"
+            data-testid="terminal-float-btn"
+          >
+            Float
           </button>
         </div>
       </div>

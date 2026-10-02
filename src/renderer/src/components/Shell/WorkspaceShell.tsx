@@ -1,5 +1,6 @@
-import { useState, useCallback, useMemo, useEffect, useRef } from 'react'
-import { Search, ArrowUpRight, ArrowLeft, SquareTerminal, Maximize2, Minimize2, ChevronUp, ChevronDown, X, Mountain, Inbox, FolderOpen, BookOpen, MoreHorizontal } from 'lucide-react'
+import { useState, useCallback, useMemo, useEffect, useLayoutEffect, useRef } from 'react'
+import { createPortal } from 'react-dom'
+import { Search, ArrowUpRight, ArrowLeft, SquareTerminal, Maximize2, Minimize2, ChevronUp, ChevronDown, X } from 'lucide-react'
 import { Rail } from './Rail'
 import { Home } from './Home'
 import type { RailId, StageTab } from './shellModel'
@@ -20,6 +21,8 @@ import { ConnectorsView } from '../Connectors/ConnectorsView'
 import { CommandBar } from '../CommandBar/CommandBar'
 import { QuickOpen } from '../QuickOpen/QuickOpen'
 import { TerminalDock } from '../Terminal/TerminalDock'
+import { FloatingTerminal } from '../Terminal/FloatingTerminal'
+import { clampRect, parseRect, type Rect } from '../Terminal/floatModel'
 import { SearchPanel } from '../SearchPanel/SearchPanel'
 import { MemoryPanel } from '../MemoryPanel/MemoryPanel'
 import { TrashView } from '../Trash/TrashView'
@@ -52,16 +55,6 @@ import { actionManifest, ALL_ACTIONS, type SurfaceActionContext } from '../Termi
  * as here, the rail starts hidden (⌘B shows it), a Landscape button leads back,
  * and every surface change is reported so the landscape can step aside.
  */
-/** The landscape dock items the stage's topbar offers (Overview is the Landscape button). */
-export type StageDockId = 'inbox' | 'cases' | 'library' | 'menu'
-
-const STAGE_DOCK: { id: StageDockId; label: string; Icon: typeof Inbox }[] = [
-  { id: 'inbox', label: 'Inbox', Icon: Inbox },
-  { id: 'cases', label: 'Cases', Icon: FolderOpen },
-  { id: 'library', label: 'Library', Icon: BookOpen },
-  { id: 'menu', label: 'Menu', Icon: MoreHorizontal },
-]
-
 export interface StageHost {
   /** The landscape is showing: hide the rail and surfaces, keep modals usable. */
   hidden: boolean
@@ -76,10 +69,12 @@ export interface StageHost {
    */
   railOpen?: boolean
   /**
-   * The landscape's own navigation, offered in the stage's topbar so there is
-   * one way to move around (docs/landscape/ADOPTION.md, A2).
+   * The landscape's dock, in its top-bar form: the same component as the
+   * landscape's glass dock, so there is one navigation everywhere.
    */
-  nav?: { waiting: number; onDock: (id: StageDockId) => void }
+  dock?: React.ReactNode
+  /** Home lives in the landscape as Today: asking for it shows Today. */
+  onHome?: () => void
 }
 
 export function WorkspaceShell({ stage }: { stage?: StageHost } = {}): JSX.Element {
@@ -94,7 +89,11 @@ export function WorkspaceShell({ stage }: { stage?: StageHost } = {}): JSX.Eleme
   const filesTabs = useTabManager() // the Files surface's in-place preview (tree stays left)
   usePanelSizes() // reserved for a later increment; keeps the hook warm
 
-  const [rail, setRail] = useState<RailId>('home')
+  // Reached from the landscape, Home is the landscape's Today: the stage opens
+  // on Files instead of a second, older Home. Opened on the stage ("Open on:
+  // Stage"), the familiar workspace keeps its Home.
+  const homeInLandscape = !!stage?.onHome && !stage.railOpen
+  const [rail, setRail] = useState<RailId>(homeInLandscape ? 'files' : 'home')
 
   /**
    * WOS-011 — give one surface the whole window.
@@ -122,7 +121,15 @@ export function WorkspaceShell({ stage }: { stage?: StageHost } = {}): JSX.Eleme
    */
   const [browseFolder, setBrowseFolder] = useState<string | undefined>(undefined)
   const [tabs, setTabs] = useState<StageTab[]>([HOME_TAB])
-  const [activeTab, setActiveTab] = useState<string>(HOME_TAB.key)
+  const [activeTab, setActiveTab] = useState<string>(homeInLandscape ? 'files' : HOME_TAB.key)
+  // Without a Home tab, closing the last document lands on the surface the
+  // stage shows (Files by default), not on a tab that is not there.
+  useEffect(() => {
+    if (homeInLandscape && activeTab === HOME_TAB.key) {
+      setRail((r) => (r === 'home' ? 'files' : r))
+      setActiveTab((t) => (t === HOME_TAB.key ? (rail === 'home' ? 'files' : rail) : t))
+    }
+  }, [homeInLandscape, activeTab, rail])
   const [commandOpen, setCommandOpen] = useState(false)
   const [quickOpenOpen, setQuickOpenOpen] = useState(false)
   const [refreshSignal, setRefreshSignal] = useState(0)
@@ -206,10 +213,20 @@ export function WorkspaceShell({ stage }: { stage?: StageHost } = {}): JSX.Eleme
     else setRail('home')
   }, [])
 
+  // Where to return when a modal surface (Settings) closes: the last real one.
+  const lastRail = useRef<RailId>(rail)
+  useEffect(() => {
+    if (rail !== 'settings') lastRail.current = rail
+  }, [rail])
+
   const selectRail = useCallback((id: RailId) => {
+    if (id === 'home' && homeInLandscape) {
+      stage?.onHome?.()
+      return
+    }
     setRail(id)
     setActiveTab(id === 'home' ? HOME_TAB.key : id)
-  }, [])
+  }, [homeInLandscape, stage])
 
   const openSearchPanel = useCallback(() => setSearchOpen(true), [])
 
@@ -508,6 +525,55 @@ export function WorkspaceShell({ stage }: { stage?: StageHost } = {}): JSX.Eleme
   // in the same terminal rather than a fresh one. Only the height collapses.
   const dockMin = dockOpen && settings.terminalMinimized
   const dockRight = settings.terminalPlacement === 'right'
+  const dockFloat = settings.terminalPlacement === 'float'
+  const dockBottom = !dockRight && !dockFloat
+
+  /*
+   * ONE terminal, three places. The dock is rendered once, through a portal,
+   * into a node of its own; that node is then MOVED into the right column, the
+   * bottom strip or the floating window. Moving a DOM node keeps React's tree
+   * (and so the shell sessions, which die on unmount) intact: docking,
+   * undocking and floating never restart a terminal.
+   */
+  const dockNode = useMemo(() => {
+    const d = document.createElement('div')
+    d.className = styles.dockNode
+    return d
+  }, [])
+  const rightSlot = useRef<HTMLDivElement>(null)
+  const bottomSlot = useRef<HTMLDivElement>(null)
+  const [floatBody, setFloatBody] = useState<HTMLDivElement | null>(null)
+  // Hidden is not closed: once opened, the terminal stays mounted and is parked
+  // out of sight, so ⌘J (or the dock's Terminal) never ends a running shell.
+  // Only closing a tab does.
+  const parkSlot = useRef<HTMLDivElement>(null)
+  const [dockMounted, setDockMounted] = useState(dockOpen)
+  useEffect(() => {
+    if (dockOpen) setDockMounted(true)
+  }, [dockOpen])
+  const [floatRect, setFloatRect] = useState<Rect>(() => parseRect(settings.terminalFloat, { w: window.innerWidth, h: window.innerHeight }))
+  useLayoutEffect(() => {
+    if (!dockMounted) return
+    const target = !dockOpen ? parkSlot.current : dockFloat ? floatBody : dockRight ? rightSlot.current : bottomSlot.current
+    if (target && dockNode.parentElement !== target) {
+      target.appendChild(dockNode)
+      setDockResizeSignal((n) => n + 1)
+    }
+  })
+  // The window stays on screen when the app window shrinks.
+  useEffect(() => {
+    const onResize = (): void => setFloatRect((r) => clampRect(r, { w: window.innerWidth, h: window.innerHeight }))
+    window.addEventListener('resize', onResize)
+    return () => window.removeEventListener('resize', onResize)
+  }, [])
+  const onFloatRect = useCallback(
+    (r: Rect, done: boolean) => {
+      setFloatRect(r)
+      setDockResizeSignal((n) => n + 1)
+      if (done) settings.set('terminalFloat', r)
+    },
+    [settings],
+  )
   const dockCtx = { root, surface: rail, openFile: activeFilePath, folder: folderOf(activeFilePath) }
   const dock = (
     // Keyed by workspace: the dock's agent tabs belong to the open root.
@@ -596,31 +662,9 @@ export function WorkspaceShell({ stage }: { stage?: StageHost } = {}): JSX.Eleme
 
       <div className={styles.stage}>
         <div className={styles.topbar}>
-          {stage && (
-            <button
-              type="button"
-              className={styles.landscapeBtn}
-              onClick={stage.onLandscape}
-              title="Back to the landscape"
-              data-testid="stage-landscape"
-            >
-              <Mountain size={14} strokeWidth={1.9} />
-              <span>Landscape</span>
-            </button>
-          )}
-          {stage?.nav && (
-            <nav className={styles.stageNav} aria-label="Landscape" data-testid="stage-nav">
-              {STAGE_DOCK.map(({ id, label, Icon }) => (
-                <button key={id} type="button" className={styles.stageNavBtn} onClick={() => stage.nav?.onDock(id)} data-stage-dock={id}>
-                  <Icon size={14} strokeWidth={1.8} />
-                  <span>{label}</span>
-                  {id === 'inbox' && stage.nav!.waiting > 0 && <b className={styles.stageNavBadge}>{stage.nav!.waiting}</b>}
-                </button>
-              ))}
-            </nav>
-          )}
+          {stage?.dock}
           <div className={styles.tabs}>
-            {tabs.map((t) => (
+            {tabs.filter((t) => !(homeInLandscape && t.key === HOME_TAB.key)).map((t) => (
               <div
                 key={t.key}
                 className={`${styles.tab} ${activeTab === t.key ? styles.tabOn : ''}`}
@@ -642,7 +686,7 @@ export function WorkspaceShell({ stage }: { stage?: StageHost } = {}): JSX.Eleme
             ))}
             {/* A rail surface (Mail, Calendar …) is not a tab of its own; name it
                 anyway, so the topbar always says where you are. */}
-            {!tabs.some((t) => t.key === activeTab) && (
+            {(!tabs.some((t) => t.key === activeTab) || (homeInLandscape && activeTab === HOME_TAB.key)) && (
               <div className={`${styles.tab} ${styles.tabOn}`} data-testid="stage-surface-tab">
                 {RAIL_ITEMS.find((r) => r.id === rail)?.label ?? 'Workspace'}
               </div>
@@ -652,16 +696,19 @@ export function WorkspaceShell({ stage }: { stage?: StageHost } = {}): JSX.Eleme
             <Search size={13} /> Search or run…
             <span className={styles.cmdkKey}>⌘K</span>
           </button>
-          <button
-            className={`${styles.termToggle} ${dockOpen ? styles.termToggleOn : ''}`}
-            onClick={() => settings.set('terminalOpen', !settings.terminalOpen)}
-            title="Terminal — shell + agent (⌘J)"
-            aria-label="Toggle terminal"
-            aria-pressed={dockOpen}
-          >
-            <SquareTerminal size={15} strokeWidth={1.9} />
-            <span className={styles.termToggleLabel}>Terminal</span>
-          </button>
+          {/* Hosted in the landscape, the dock's Terminal item is the toggle. */}
+          {!stage?.dock && (
+            <button
+              className={`${styles.termToggle} ${dockOpen ? styles.termToggleOn : ''}`}
+              onClick={() => settings.set('terminalOpen', !settings.terminalOpen)}
+              title="Terminal — shell + agent (⌘J)"
+              aria-label="Toggle terminal"
+              aria-pressed={dockOpen}
+            >
+              <SquareTerminal size={15} strokeWidth={1.9} />
+              <span className={styles.termToggleLabel}>Terminal</span>
+            </button>
+            )}
 
           {/* Minimise is offered only while the dock is showing — a minimise
               button next to a hidden terminal describes nothing. */}
@@ -828,7 +875,7 @@ export function WorkspaceShell({ stage }: { stage?: StageHost } = {}): JSX.Eleme
           </div>
 
           {/* Settings → SettingsPanel (renders its own modal backdrop). */}
-          {rail === 'settings' && <SettingsPanel onClose={() => selectRail('home')} />}
+          {rail === 'settings' && <SettingsPanel onClose={() => selectRail(lastRail.current === 'settings' ? 'files' : lastRail.current)} />}
 
           {/* Placeholders for surfaces whose real components aren't wired yet. */}
           {isPlaceholder(rail) && (
@@ -857,16 +904,15 @@ export function WorkspaceShell({ stage }: { stage?: StageHost } = {}): JSX.Eleme
                 className={`${styles.dockRight} ${dockMin ? styles.dockCollapsed : ''}`}
                 style={{ width: dockMin ? 0 : dockSize }}
                 aria-hidden={dockMin}
-              >
-                {dock}
-              </div>
+                ref={rightSlot}
+              />
             </>
           )}
         </div>
 
         {/* Terminal Dock — BOTTOM strip (resizable). Minimised = the title bar
             only, with the dock itself collapsed but still mounted. */}
-        {dockOpen && !dockRight && (
+        {dockOpen && dockBottom && (
           <>
             {!dockMin && <div className={styles.dockHandleH} onMouseDown={startDockDrag('y')} />}
             {dockMin && dockBar}
@@ -874,12 +920,28 @@ export function WorkspaceShell({ stage }: { stage?: StageHost } = {}): JSX.Eleme
               className={`${styles.dockBottom} ${dockMin ? styles.dockCollapsed : ''}`}
               style={{ height: dockMin ? 0 : dockSize }}
               aria-hidden={dockMin}
-            >
-              {dock}
-            </div>
+              ref={bottomSlot}
+            />
           </>
         )}
       </div>
+
+      {/* The terminal, rendered once and moved between its places (see dockNode). */}
+      {dockMounted && createPortal(dock, dockNode)}
+      <div ref={parkSlot} className={styles.dockPark} aria-hidden />
+      {/* Floating: a direct child of the root, not of the stage, so it stays
+          visible (and above) while the landscape covers the stage. */}
+      {dockOpen && dockFloat && (
+        <FloatingTerminal
+          rect={floatRect}
+          minimized={settings.terminalMinimized}
+          onRect={onFloatRect}
+          onDock={(place) => settings.set('terminalPlacement', place)}
+          onMinimize={(min) => settings.set('terminalMinimized', min)}
+          onClose={() => settings.set('terminalOpen', false)}
+          bodyRef={setFloatBody}
+        />
+      )}
 
       {commandOpen && (
         <CommandBar onClose={() => setCommandOpen(false)} onOpenFile={openInStage} />

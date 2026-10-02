@@ -242,6 +242,25 @@
   display: flex;
 }
 
+/* The node the terminal lives in; it is moved between the right column, the
+   bottom strip and the floating window, and fills whichever holds it. */
+.dockNode {
+  display: flex;
+  flex: 1;
+  min-width: 0;
+  min-height: 0;
+}
+
+.dockPark {
+  display: none;
+}
+
+.dockNode > * {
+  flex: 1;
+  min-width: 0;
+  min-height: 0;
+}
+
 /* The dock must FILL its strip/column — otherwise TerminalDock hugs its
    intrinsic width and lands cramped in the corner. */
 .dockBottom > *,
