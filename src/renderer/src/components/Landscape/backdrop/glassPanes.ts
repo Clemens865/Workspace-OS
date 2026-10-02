@@ -143,6 +143,21 @@ export class GlassPanes {
     this.panes.delete(el)
   }
 
+  /** Where an element's pane is drawn, in CSS px (tests: does the glass follow its card?). */
+  box(el: HTMLElement): { top: number; left: number; visible: boolean } | null {
+    const p = this.panes.get(el)
+    if (!p) return null
+    const a = p.mesh.geometry.attributes.position?.array as Float32Array | undefined
+    if (!a || !a.length) return { top: NaN, left: NaN, visible: p.mesh.visible }
+    let top = Infinity
+    let left = Infinity
+    for (let i = 0; i < a.length; i += 3) {
+      left = Math.min(left, a[i])
+      top = Math.min(top, -a[i + 1])
+    }
+    return { top, left, visible: p.mesh.visible }
+  }
+
   /** Drop panes whose elements left the DOM. */
   prune(): void {
     for (const el of [...this.panes.keys()]) if (!el.isConnected) this.remove(el)

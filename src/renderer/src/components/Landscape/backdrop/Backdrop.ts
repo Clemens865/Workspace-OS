@@ -146,6 +146,11 @@ export class Backdrop {
     this.wake()
   }
 
+  /** Tests: where the glass behind an element is drawn. */
+  glassBox(el: HTMLElement): { top: number; left: number; visible: boolean } | null {
+    return this.glass.box(el)
+  }
+
   setTint(hex: string | null, amt = 1): void {
     if (hex) this.u.uTint.value.set(hex)
     this.target.tint = hex ? amt : 0

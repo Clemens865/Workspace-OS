@@ -44,6 +44,8 @@ export interface BackdropPerf {
   reset: () => void
   quality: () => Quality
   state: () => Record<string, number | boolean>
+  /** Where the glass behind an element is drawn (CSS px), or null if it has none. */
+  glassBox: (el: HTMLElement) => { top: number; left: number; visible: boolean } | null
 }
 
 /**
@@ -78,6 +80,7 @@ export function useBackdrop(canvas: RefObject<HTMLCanvasElement>, opts: { settin
       },
       quality: () => quality,
       state: () => b.debugState(),
+      glassBox: (el: HTMLElement) => b.glassBox(el),
     }
     ;(window as unknown as { __landscapePerf?: BackdropPerf }).__landscapePerf = perf
     const onMove = (e: PointerEvent): void => b.pointer(e.clientX, e.clientY)
@@ -113,6 +116,14 @@ export function useBackdrop(canvas: RefObject<HTMLCanvasElement>, opts: { settin
   }, [off, canvas])
 
   useEffect(() => backdrop?.setQuality(quality), [backdrop, quality])
+  // Glass is drawn behind the DOM: when any list scrolls (the Cases shelf, the
+  // Inbox, Today), the panes must follow their cards, or they stay behind.
+  useEffect(() => {
+    if (!backdrop) return
+    const onScroll = (): void => backdrop.followGlass(350)
+    document.addEventListener('scroll', onScroll, { capture: true, passive: true })
+    return () => document.removeEventListener('scroll', onScroll, { capture: true })
+  }, [backdrop])
   // The dark theme is night in the landscape: set at once on creation, eased on a switch.
   useEffect(() => {
     if (!backdrop) return
