@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 /**
  * ship — build the app, install it to /Applications, and publish the dmg + zip
- * to the (private) GitHub repo as a release.
+ * to the public GitHub repo as a release.
  *
  * Run this after a feature lands or a bug sweep is finished:
  *
@@ -134,8 +134,13 @@ log('Version')
 const pkgPath = path.join(ROOT, 'package.json')
 const pkg = JSON.parse(fs.readFileSync(pkgPath, 'utf-8'))
 const prev = pkg.version
-const [maj, min, pat] = prev.split('.').map(Number)
-const next = has('--no-bump') ? prev : `${maj}.${min}.${pat + 1}`
+// A prerelease (0.2.0-beta.1) ships as its own release (0.2.0), as semver
+// orders it; a release bumps the patch. Splitting on '.' alone turned
+// 0.2.0-beta.1 into 0.2.NaN.
+const m = /^(\d+)\.(\d+)\.(\d+)(-[0-9A-Za-z.-]+)?$/.exec(prev)
+if (!m) die(`cannot read version ${prev} in package.json`, 'Expected major.minor.patch, optionally with a -prerelease suffix.')
+const [maj, min, pat] = m.slice(1, 4).map(Number)
+const next = has('--no-bump') ? prev : m[4] ? `${maj}.${min}.${pat}` : `${maj}.${min}.${pat + 1}`
 const tag = `v${next}`
 
 if (tryCap(`git tag -l ${tag}`)) die(`tag ${tag} already exists`, 'Bump manually in package.json, or pass --no-bump if you meant to reuse it.')
