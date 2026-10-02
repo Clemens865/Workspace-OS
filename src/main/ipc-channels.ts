@@ -82,6 +82,10 @@ export const IPC = {
   BROWSER_NAVIGATE: 'browser:navigate',
   BROWSER_SCREENSHOT: 'browser:screenshot',
   BROWSER_THUMBNAIL: 'browser:thumbnail',
+  /** The in-app browser's downloads in flight or just finished (ADOPTION.md B5). */
+  BROWSER_DOWNLOADS: 'browser:downloads',
+  /** main → renderer: one download changed (started, progressed, finished). */
+  BROWSER_DOWNLOAD_EVENT: 'browser:download',
   BROWSER_EXTRACT: 'browser:extract',
   // Structured page perception (links-by-category, interactives, headings,
   // consent hint) via a FIXED read-only script. Deep-read builds on this.

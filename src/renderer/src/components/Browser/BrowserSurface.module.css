@@ -98,6 +98,13 @@
 /* One webview per tab, all mounted so state survives switches; only the active
  * one is shown (display toggled inline). Absolute-fill so hidden tabs take no
  * layout space and the visible one fills the host. */
+/* A background tab an agent drives: hidden on the stage, but the landscape's
+   `.stageHidden > .stage webview` rule keeps it painting under the landscape. */
+.webviewParked {
+  visibility: hidden;
+  pointer-events: none;
+}
+
 .webview {
   position: absolute;
   inset: 0;

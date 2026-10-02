@@ -114,6 +114,11 @@ try {
   await settle()
   const kept = await win.evaluate(() => window.__reviewStore.getSnapshot().runs.find((r) => r.runId === 'e2e-rev')?.status)
   check('Mark accepted keeps the run', kept === 'kept', kept)
+  // B6: the confirmation is a toast, since the item leaves the Inbox with the action.
+  const toastText = (await win.$$eval('[data-testid="toast"]', (els) => els.map((e) => e.textContent).join(' | ')).catch(() => '')) ?? ''
+  check('…and a toast confirms it', toastText.includes('Accepted'), toastText)
+  await win.waitForTimeout(4200)
+  check('…which fades on its own', !(await win.$('[data-testid="toast"]')))
 
   await win.click('[data-inbox="error:e2e-fail"]')
   await win.waitForTimeout(500)
@@ -154,6 +159,26 @@ try {
   const groups = await win.$$eval('[data-group]', (els) => els.map((e) => e.getAttribute('data-group')))
   check('…and regroups by agent', groups.includes(A), groups.join(','))
   await win.click('[data-switch="waiting"]')
+  await settle()
+
+  // ── B6: Routines and Create an agent from the Menu ──
+  await win.click('[data-dock="menu"]')
+  await settle()
+  await win.click('[data-menu-extra="routines"]')
+  await win.waitForTimeout(1200)
+  const routinesOn = await win.evaluate(() => [...document.querySelectorAll('[data-testid="review-feed"] button')].some((b) => /Routines/.test(b.textContent ?? '') && /On|on\b|active|Active/.test(b.className + (b.getAttribute('aria-pressed') ?? '') + (b.getAttribute('aria-selected') ?? ''))))
+  check('Menu → Routines opens the Agents surface on Routines', (await win.getAttribute('[data-shell="landscape"]', 'data-view')) === 'stage' && routinesOn)
+  await win.click('[data-testid="stage-landscape"]')
+  await settle()
+  await win.click('[data-dock="menu"]').catch(() => {})
+  await settle()
+  await win.click('[data-menu-extra="new-agent"]')
+  const foundry = await win.waitForSelector('[data-testid="foundry-modal"]', { timeout: 5000 }).catch(() => null)
+  check('Menu → Create an agent opens the Foundry', !!foundry)
+  await win.keyboard.press('Escape')
+  await settle()
+  if (await win.$('[data-testid="foundry-modal"]')) await win.click('[data-testid="foundry-modal"] button[aria-label*="lose"]').catch(() => {})
+  await win.click('[data-testid="stage-landscape"]').catch(() => {})
   await settle()
 
   // ── previews ──

@@ -288,6 +288,12 @@
   display: none;
 }
 
+/* Hidden but laid out (the browser): not painted, not clickable, still sized. */
+.parked {
+  visibility: hidden;
+  pointer-events: none;
+}
+
 /* ── Placeholder ("coming soon") surfaces ── */
 .placeholder {
   height: 100%;

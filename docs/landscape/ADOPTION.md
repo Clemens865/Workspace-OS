@@ -1,7 +1,9 @@
 # Goal: everything in the landscape design
 
-Status: plan, 2 Oct 2026. Branch `feat/landscape-adoption` (from `master` at v0.2.0).
-Follows [PLAN.md](PLAN.md) (the shell) and [PROGRESS.md](PROGRESS.md).
+Status: A1–A3 and B1–B5 done, B6 built, C (regression + ship) next. 2 Oct 2026.
+Branch `feat/landscape-adoption` (from `master` at v0.2.0).
+Follows [PLAN.md](PLAN.md) (the shell) and [PROGRESS.md](PROGRESS.md); the log of
+this goal is the "Adoption" section at the top of PROGRESS.md.
 
 **Goal.** Every surface of Workspace OS looks like it belongs to the Screen
 Landscape, and every function of the old Home, Files, Browser, Cockpit and the

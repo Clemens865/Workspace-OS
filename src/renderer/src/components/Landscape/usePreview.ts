@@ -27,8 +27,13 @@ export function useWorkingPreview(a: AgentPresence): { shot: BrowserShot | null;
   const live = useContext(PreviewLive)
   useEffect(() => outputStore.attach(), [])
   useSyncExternalStore(outputStore.subscribe, outputStore.getVersion, outputStore.getVersion)
-  const driver = useSyncExternalStore(browserDriver.subscribe, browserDriver.get, browserDriver.get)
-  const drives = a.status === 'working' && !!a.runId && driver?.runId === a.runId && Date.now() - driver.at < DRIVE_FRESH_MS
+  const latest = useSyncExternalStore(browserDriver.subscribe, browserDriver.get, browserDriver.get)
+  const own = browserDriver.forRun(a.runId)
+  // A run that drives its own tab always shows that tab; a run that drove the
+  // ACTIVE tab shows it only while it was the last to drive it.
+  const drives =
+    a.status === 'working' && !!own && Date.now() - own.at < DRIVE_FRESH_MS && (own.tab !== null || latest?.runId === a.runId)
+  const tab = own?.tab ?? undefined
   const [shot, setShot] = useState<BrowserShot | null>(null)
 
   useEffect(() => {
@@ -36,7 +41,7 @@ export function useWorkingPreview(a: AgentPresence): { shot: BrowserShot | null;
     let alive = true
     const take = (): void => {
       void window.workspace.browser
-        ?.thumbnail?.(420)
+        ?.thumbnail?.(420, tab)
         .then((r) => alive && r?.ok && setShot({ src: r.src, url: r.url, title: r.title, at: r.at }))
         .catch(() => {})
     }
@@ -46,7 +51,7 @@ export function useWorkingPreview(a: AgentPresence): { shot: BrowserShot | null;
       alive = false
       window.clearInterval(id)
     }
-  }, [drives, live])
+  }, [drives, live, tab])
 
   return { shot: drives ? shot : null, tail: a.status === 'working' ? (outputStore.get(a.runId) ?? null) : null }
 }

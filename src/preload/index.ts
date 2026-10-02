@@ -300,6 +300,12 @@ contextBridge.exposeInMainWorld('workspace', {
     screenshot: (destPath?: string, tab?: string) =>
       ipcRenderer.invoke(IPC.BROWSER_SCREENSHOT, { destPath, tab }),
     thumbnail: (width?: number, tab?: string) => ipcRenderer.invoke(IPC.BROWSER_THUMBNAIL, { width, tab }),
+    downloads: () => ipcRenderer.invoke(IPC.BROWSER_DOWNLOADS),
+    onDownload: (callback: (d: unknown) => void) => {
+      const h = (_e: Electron.IpcRendererEvent, d: unknown): void => callback(d)
+      ipcRenderer.on(IPC.BROWSER_DOWNLOAD_EVENT, h)
+      return () => ipcRenderer.removeListener(IPC.BROWSER_DOWNLOAD_EVENT, h)
+    },
     extract: (mode?: 'text' | 'links' | 'tables' | 'meta', tab?: string) =>
       ipcRenderer.invoke(IPC.BROWSER_EXTRACT, { mode, tab }),
     // Structured page perception (links-by-category, interactives, headings,

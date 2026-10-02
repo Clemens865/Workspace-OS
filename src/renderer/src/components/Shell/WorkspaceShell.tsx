@@ -796,7 +796,9 @@ export function WorkspaceShell({ stage }: { stage?: StageHost } = {}): JSX.Eleme
 
           {/* Browser → the in-app BrowserSurface (sandboxed webview). Kept
               mounted so the guest page's session/history survives rail switches. */}
-          <div className={`${styles.surface} ${rail === 'browser' ? '' : styles.hidden}`}>
+          {/* Parked rather than display:none, so its guests keep their size and an
+              agent's page can still be captured for the landscape (ADOPTION.md B5). */}
+          <div className={`${styles.surface} ${rail === 'browser' ? '' : styles.parked}`}>
             <BrowserSurface />
           </div>
 

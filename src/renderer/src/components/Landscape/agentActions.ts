@@ -69,6 +69,9 @@ export async function stop(runId: string | null): Promise<void> {
 /** The Agent Foundry lives on the Agents surface; open it there. */
 export function createAgent(): void {
   openRail('agents')
+  // The Foundry belongs to the Team roster: show that tab first, whichever
+  // tab the Agents surface was left on.
+  window.dispatchEvent(new CustomEvent('wos:agents-mode', { detail: { mode: 'team' } }))
   window.setTimeout(() => window.dispatchEvent(new CustomEvent('wos:new-agent', { detail: {} })), 350)
 }
 

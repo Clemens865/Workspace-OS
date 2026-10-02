@@ -8,6 +8,7 @@ import { PROVIDER_LABEL, STATUS_LABEL, type AgentPresence } from './presenceType
 import { ago } from './agentPresence'
 import * as act from './agentActions'
 import { pauseRun, resumeRun } from './pauseResume'
+import { toast } from './toastStore'
 import styles from './AgentFocus.module.css'
 
 /**
@@ -31,7 +32,7 @@ export function AgentFocus({ a }: { a: AgentPresence }): JSX.Element {
     setBusy(true)
     try {
       await fn()
-      if (done) setNote(done)
+      if (done) toast(done)
     } catch (e) {
       setNote((e as Error).message)
     } finally {

@@ -39,6 +39,8 @@ export interface BrowserTab {
   openerId?: string
   /** The group this tab belongs to, when it belongs to one. */
   groupId?: string
+  /** The agent driving this tab, by name (ADOPTION.md B5), when an agent opened or targeted it. */
+  owner?: string
 }
 
 export interface BrowserTabsState {

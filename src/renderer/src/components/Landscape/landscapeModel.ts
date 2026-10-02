@@ -73,3 +73,15 @@ export function unreachableRails(): RailId[] {
   const reached = new Set(menuGroups().flatMap((g) => g.items.map((i) => i.rail)))
   return RAIL_ITEMS.filter((r) => !r.placeholder && !reached.has(r.id)).map((r) => r.id)
 }
+
+/**
+ * Menu entries that are not a surface of their own but a place inside one
+ * (ADOPTION.md B6): the Agents surface's Routines, and the Foundry that
+ * builds a new agent. Listed under their group, after the surfaces.
+ */
+export type MenuExtraId = 'routines' | 'new-agent'
+
+export const MENU_EXTRAS: { id: MenuExtraId; group: string; label: string; hint: string }[] = [
+  { id: 'routines', group: 'Agents', label: 'Routines', hint: 'Agents that run on a schedule' },
+  { id: 'new-agent', group: 'Agents', label: 'Create an agent', hint: 'Describe a specialist; it is built for you' },
+]

@@ -15,6 +15,7 @@ import { TodayView } from './today/TodayView'
 import { HistoryView } from './HistoryView'
 import { LibraryView, type LibraryTab } from './library/LibraryView'
 import { ViewSwitch } from './ViewSwitch'
+import { Toasts } from './Toasts'
 import type { TodayGo } from './today/todayModel'
 import { greeting } from '../Shell/home/homeModel'
 import { LandscapeWorld, ADD_ID, type WorldMode } from './LandscapeWorld'
@@ -169,7 +170,9 @@ export function LandscapeShell(): JSX.Element {
   useEffect(() => {
     // Not 'wos:browser-navigate': that is an AGENT driving the browser. In the
     // landscape you watch it on the agent's screen; the stage stays put.
-    const events = ['wos:reveal-path', 'wos:knowledge-backlinks', 'wos:focus-agent', 'wos:launch-agent', 'wos:open-file']
+    // wos:open-rail too: asking for the rail the stage already shows changes
+    // nothing there, so it reports no surface change, but it still means "show me".
+    const events = ['wos:reveal-path', 'wos:knowledge-backlinks', 'wos:focus-agent', 'wos:launch-agent', 'wos:open-file', 'wos:open-rail']
     events.forEach((e) => window.addEventListener(e, showStage))
     const offTab = window.workspace?.browserTabs?.onOpenTab?.(showStage)
     const offArtifact = window.workspace?.agent?.onArtifact?.(showStage)
@@ -326,7 +329,19 @@ export function LandscapeShell(): JSX.Element {
           </div>
         </header>
 
-        {view === 'menu' && <LandscapeMenu onOpen={openSurface} />}
+        {view === 'menu' && (
+          <LandscapeMenu
+            onOpen={openSurface}
+            onExtra={(id) => {
+              if (id === 'new-agent') {
+                createAgent()
+                return
+              }
+              openSurface('agents')
+              window.setTimeout(() => window.dispatchEvent(new CustomEvent('wos:agents-mode', { detail: { mode: 'routines' } })), 120)
+            }}
+          />
+        )}
         {view === 'inbox' && inboxTab === 'waiting' && <InboxView items={inbox} onDismiss={dismiss} />}
         {view === 'inbox' && inboxTab === 'history' && (
           <HistoryView
@@ -354,6 +369,7 @@ export function LandscapeShell(): JSX.Element {
         </PreviewLive.Provider>
         </BackdropContext.Provider>
       </div>
+      <Toasts />
     </div>
   )
 }

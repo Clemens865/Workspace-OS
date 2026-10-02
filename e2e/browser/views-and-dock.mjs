@@ -45,6 +45,14 @@ const app = await electron.launch({
   env: { ...process.env, WORKSPACE_TEST_ROOT: WS },
 })
 const win = await app.firstWindow({ timeout: 20000 })
+
+/** The startup splash waits for Enter (or its button); dismiss it as a user would. */
+async function dismissSplash() {
+  for (let i = 0; i < 40 && (await win.$('[class*="_splash_"]')); i++) {
+    await win.keyboard.press('Enter').catch(() => {})
+    await win.waitForTimeout(400)
+  }
+}
 await win.waitForSelector('#root', { timeout: 20000 })
 await win.evaluate(() => {
   const K = 'workspace-os:settings'
@@ -60,6 +68,7 @@ await win.evaluate(() => {
 })
 await win.reload()
 await win.waitForSelector('#root', { timeout: 20000 })
+await dismissSplash()
 await win.waitForTimeout(1400)
 
 try {
@@ -145,6 +154,7 @@ try {
   check('the view choice is persisted', stored === 'column', String(stored))
   await win.reload()
   await win.waitForSelector('#root', { timeout: 20000 })
+  await dismissSplash()
   await win.waitForTimeout(1600)
   await win.evaluate(() => {
     const h = [...document.querySelectorAll('button,[role=tab],a,[role=button]')].find(

@@ -32,6 +32,16 @@ export function ReviewFeed({ onOpenFile, onWorkspaceChanged }: ReviewFeedProps):
   const { cards: mailCards } = useMailReviewStore()
   const [mode, setMode] = useState<ReviewMode>('feed')
 
+  // Anywhere can open a tab of this surface by name (the landscape Menu's Routines).
+  useEffect(() => {
+    const onMode = (e: Event): void => {
+      const m = (e as CustomEvent<{ mode?: ReviewMode }>).detail?.mode
+      if (m) setMode(m)
+    }
+    window.addEventListener('wos:agents-mode', onMode)
+    return () => window.removeEventListener('wos:agents-mode', onMode)
+  }, [])
+
   // Default to the Team roster when the user has saved specialist agents — it's
   // the "who's on my team" surface; the Feed/Fleet are the run-review surfaces.
   useEffect(() => {

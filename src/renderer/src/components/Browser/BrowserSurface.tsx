@@ -13,6 +13,9 @@ import {
 import { TAB_COMMAND_EVENT, type TabCommand, type TabInfo } from './browserTabCommands'
 import { detectSignInBlock } from './signInBlock'
 import styles from './BrowserSurface.module.css'
+import { browserDriver } from '../../lib/browserDriver'
+import { reviewStore } from '../Review/reviewStore'
+import { DownloadsButton } from './DownloadsButton'
 import { Omnibox } from './Omnibox'
 import { FindBar } from './FindBar'
 import { clampLevel, levelToPercent } from './zoom'
@@ -353,8 +356,12 @@ function BrowserPage({
   return (
     <webview
       ref={ref as React.Ref<HTMLElement>}
-      className={styles.webview}
-      style={{ display: active ? 'inline-flex' : 'none' }}
+      // Inactive tabs are parked, not removed from layout: a guest with no size
+      // has nothing to paint. A tab an agent drives is parked by class, so the
+      // landscape's rule can keep it painting (covered) for that agent's screen;
+      // every other background tab stays hidden and idle (ADOPTION.md B5).
+      className={`${styles.webview} ${!active && tab.owner ? styles.webviewParked : ''}`}
+      style={active ? { display: 'inline-flex' } : tab.owner ? { display: 'inline-flex' } : { display: 'inline-flex', visibility: 'hidden', pointerEvents: 'none' }}
       src={initialSrc.current as string}
       // FIRST request only — Electron uses it for the initial load and the page
       // governs its own referrers thereafter, which is what a real browser does.
@@ -650,6 +657,21 @@ export function BrowserSurface(): JSX.Element {
   // Live tab list for the command bus (read from the current model + nav state).
   const tabsRef = useRef<BrowserTab[]>(state.tabs)
   tabsRef.current = state.tabs
+
+  // A tab an agent opened or targeted carries that agent's name (ADOPTION.md
+  // B5), so the person can see whose page is whose.
+  useEffect(
+    () =>
+      browserDriver.subscribe(() => {
+        const d = browserDriver.get()
+        if (!d?.tab) return
+        const run = reviewStore.getSnapshot().runs.find((r) => r.runId === d.runId)
+        const owner = (run?.agentName ?? run?.sessionName ?? 'Agent').split(' — ')[0]
+        const tab = tabsRef.current.find((t) => t.id === d.tab)
+        if (tab && tab.owner !== owner) dispatch({ type: 'patch', id: tab.id, patch: { owner } })
+      }),
+    [],
+  )
 
   // A page chosen elsewhere (the landscape's Today) opens as its own tab, or
   // brings forward the tab that already shows it. The active tab is never
@@ -1082,6 +1104,7 @@ export function BrowserSurface(): JSX.Element {
             onToggleStar={toggleStar}
             inputRef={addrRef}
           />
+          <DownloadsButton />
         </form>
 
         {/*

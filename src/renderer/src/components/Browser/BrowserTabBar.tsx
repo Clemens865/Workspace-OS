@@ -137,7 +137,9 @@ export function BrowserTabBar({
                   onClose(tab.id)
                 }
               }}
-              title={labelFor(tab)}
+              title={tab.owner ? `${labelFor(tab)} · driven by ${tab.owner}` : labelFor(tab)}
+              data-owner={tab.owner}
+              data-tab-id={tab.id}
             >
               {tab.favicon ? (
                 <img
@@ -152,6 +154,7 @@ export function BrowserTabBar({
                 <Globe className={styles.globe} size={13} />
               )}
               <span className={styles.tabLabel}>{labelFor(tab)}</span>
+              {tab.owner && <span className={styles.owner}>{tab.owner}</span>}
               <button
                 type="button"
                 className={styles.tabClose}

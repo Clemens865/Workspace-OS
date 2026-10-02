@@ -452,6 +452,10 @@ export interface WorkspaceApi {
     screenshot: (destPath?: string, tab?: string) => Promise<{ ok: boolean; path?: string; error?: string }>
     /** A small JPEG of the guest page as a data URL, with when it was captured (landscape screens). */
     thumbnail: (width?: number, tab?: string) => Promise<{ ok: boolean; src: string; url: string; title: string; at: number }>
+    /** Downloads in flight or just finished (main keeps them a minute). */
+    downloads: () => Promise<BrowserDownload[]>
+    /** Fires whenever a download starts, progresses or ends. */
+    onDownload: (callback: (d: BrowserDownload) => void) => () => void
     extract: (
       mode?: 'text' | 'links' | 'tables' | 'meta',
       tab?: string,
@@ -1507,6 +1511,18 @@ export interface TrashEntry {
   isDirectory: boolean
   trashedAt: number
   storedPath: string
+}
+
+/** One download from the in-app browser (main/browser/downloads.ts). */
+export interface BrowserDownload {
+  id: string
+  filename: string
+  savePath: string
+  url: string
+  received: number
+  total: number
+  state: 'progressing' | 'completed' | 'cancelled' | 'interrupted'
+  startedAt: number
 }
 
 export interface SearchResult {

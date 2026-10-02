@@ -8,6 +8,7 @@ import { ago } from './agentPresence'
 import { KIND_LABEL, revisionPrompt, type InboxItem } from './inboxModel'
 import * as act from './agentActions'
 import { resumeRun } from './pauseResume'
+import { toast } from './toastStore'
 import styles from './InboxView.module.css'
 
 const TEXT_EXT = /\.(md|markdown|txt|csv|tsv|json|ya?ml|html?|xml|log|ts|tsx|js|py)$/i
@@ -95,7 +96,8 @@ export function InboxView({ items, onDismiss }: { items: InboxItem[]; onDismiss:
     setBusy(true)
     try {
       await fn()
-      setNote(done)
+      // The item usually leaves the Inbox with the action: confirm it where the eye goes next.
+      toast(done)
     } catch (e) {
       setNote((e as Error).message)
     } finally {

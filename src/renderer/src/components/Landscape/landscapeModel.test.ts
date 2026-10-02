@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { DOCK, menuGroups, unreachableRails } from './landscapeModel'
+import { DOCK, MENU_EXTRAS, menuGroups, unreachableRails } from './landscapeModel'
 import { RAIL_ITEMS } from '../Shell/shellModel'
 
 describe('landscape menu', () => {
@@ -19,6 +19,16 @@ describe('landscape menu', () => {
     for (const i of items) {
       expect(i.label).not.toBe('')
       expect(i.hint).not.toBe('')
+    }
+  })
+})
+
+describe('menu extras', () => {
+  it('sit in an existing group, each with a label and a hint', () => {
+    const groups = new Set(menuGroups().map((g) => g.title))
+    for (const e of MENU_EXTRAS) {
+      expect(groups.has(e.group)).toBe(true)
+      expect(e.label && e.hint).toBeTruthy()
     }
   })
 })

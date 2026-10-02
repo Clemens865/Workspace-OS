@@ -1,4 +1,6 @@
-import { app, session, type BrowserWindow, type DownloadItem } from 'electron'
+import { app, ipcMain, session, type BrowserWindow, type DownloadItem } from 'electron'
+import { IPC } from '../ipc-channels'
+import { ipcHandle } from '../ipc-registry'
 import fs from 'fs'
 import path from 'path'
 import { BROWSER_PARTITION } from '../security'
@@ -90,6 +92,8 @@ export function safeName(name: string): string {
 /** Registers the download handler on the browser partition. */
 export function registerDownloads(getWindow: () => BrowserWindow | null): void {
   const ses = session.fromPartition(BROWSER_PARTITION)
+  // The list the browser's Downloads button opens on (it then follows the events).
+  ipcHandle(ipcMain, IPC.BROWSER_DOWNLOADS, () => listDownloads())
 
   ses.on('will-download', (_event, item: DownloadItem) => {
     const id = `dl-${Date.now().toString(36)}-${++seq}`
@@ -111,7 +115,7 @@ export function registerDownloads(getWindow: () => BrowserWindow | null): void {
 
     const emit = (): void => {
       const win = getWindow()
-      if (win && !win.isDestroyed()) win.webContents.send('browser:download', { ...record })
+      if (win && !win.isDestroyed()) win.webContents.send(IPC.BROWSER_DOWNLOAD_EVENT, { ...record })
     }
     emit()
 

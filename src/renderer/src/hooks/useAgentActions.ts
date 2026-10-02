@@ -23,8 +23,12 @@ export function useAgentActions(getCtx: () => SurfaceActionContext): void {
     const api = window.workspace.agentActions
     if (!api) return
     const off = api.onInvoke(async ({ reqId, actionId, args, runId }) => {
-      browserDriver.record(runId, actionId)
+      const tab = typeof (args as { tab?: unknown } | undefined)?.tab === 'string' ? (args as { tab: string }).tab : undefined
+      browserDriver.record(runId, actionId, tab)
       const reply = await runAgentAction(actionId, getCtx, args)
+      // A tab the agent opened for itself is its own from now on.
+      const made = (reply.result as { tabId?: unknown } | undefined)?.tabId
+      if (actionId === 'browser.newTab' && typeof made === 'string') browserDriver.record(runId, actionId, made)
       api.result({ reqId, ...reply })
     })
     return off
