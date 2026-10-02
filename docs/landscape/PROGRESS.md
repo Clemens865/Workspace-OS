@@ -1,6 +1,7 @@
 # Screen Landscape shell: progress log
 
 Living log for the landscape shell. Plan and decisions: [PLAN.md](PLAN.md).
+**Status: implemented (phases 0–5 and 7) and tested; phase 6 deferred by the plan.**
 Approved design reference: [prototype/](prototype/). Newest entries first.
 
 Legend: ✅ done · 🟡 in progress · ⬜ not started
@@ -13,10 +14,54 @@ Legend: ✅ done · 🟡 in progress · ⬜ not started
 | 3 Visual layer (WebGL, Liquid Glass) | ✅ 2 Oct 2026 |
 | 4 Previews | ✅ 2 Oct 2026 |
 | 5 Inbox + Cases + files, pause/resume | ✅ 2 Oct 2026 |
-| 6 Optional new domain | ⬜ |
-| 7 Landscape only (backup tag, remove old shells) | ⬜ |
+| 6 Optional new domain | ⏸ deferred by the plan (after daily use) |
+| 7 Landscape only (backup tag, remove old shells) | ✅ 2 Oct 2026 |
 
 ---
+
+## 2 Oct 2026: phase 7, the landscape is the only shell ✅
+
+**Backup.** Tag `backup/shells-before-landscape` (local, at `5f5db72`) holds
+all three shells. Restore: `git checkout backup/shells-before-landscape`.
+Not pushed yet: `git push archive backup/shells-before-landscape` puts it on
+the private remote.
+
+**Changed**
+- `App.tsx` renders `LandscapeShell` directly; `WorkspaceShell` is only its
+  flat stage now.
+- Removed `components/Layout` (WorkspaceLayout, TitleBar), `ReviewRail` and
+  `lib/tabSession`, used by nothing else. (`AgentTerminal`, also only mounted
+  by the classic layout, stays for now: it belongs to the fleet session
+  subsystem and has its own tests; removing it is a separate clean-up.)
+- Settings: `newShell` / `landscapeShell` → `startOn` ("Open on: Landscape |
+  Stage"). Opened on the stage, the rail is shown (the familiar workspace);
+  reached from the landscape it stays tucked away (⌘B toggles).
+- Test hook `app:start-on` (`WOS_START_ON=stage`, env-gated like
+  `WORKSPACE_TEST_ROOT`): 102 e2e files that drive the stage set it; the
+  office harness passes it inside `launch()`.
+
+**Regression check** (real app, before = the backup tag, after = this branch)
+
+| Suite | Before | After |
+|---|---|---|
+| landscape (6 suites) | — | 99/99 |
+| browser/layout | 20/20 | 20/20 |
+| review, files-browser, views-and-dock, browser-tabs, double-load, history, address-sync, tab-groups, share-with-claude | pass | pass |
+| office A-ribbon, C-export, C-tail | — | pass |
+| smoke | 3 failing (classic panels) | same 3 |
+| cases | 6 failing (splash) | same 6 |
+| office B-writer | 4 fail + "Track changes" timeout | "Track changes" timeout only |
+| office D-calc | opening `D-calc.xlsx` times out | same |
+| browser phase2 | find matches=0 | same |
+| browser phase3 | 4 failing | same 4 |
+
+No suite got worse; every remaining failure is on the backup tag too.
+
+**Verified**: `npm test` 250 files, 2990 passed; typecheck clean;
+`npm run e2e:landscape` 99/99 (scrolling 2.76 ms GPU per frame).
+
+**Phase 6** (reviewed handoff, projects board, company memory) stays
+deferred, as the plan says: "only after phases 1–5 are used daily".
 
 ## 2 Oct 2026: phase 5, cases, case folders, sub-projects, pause/resume ✅
 

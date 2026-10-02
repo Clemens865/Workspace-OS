@@ -1,7 +1,8 @@
 # Screen Landscape → Workspace OS: analysis and plan
 
-Status: plan with decisions (section 9). Phase 0 done on `feat/landscape-shell`;
-progress is logged in [PROGRESS.md](PROGRESS.md). Updated 2 Oct 2026.
+Status: implemented on `feat/landscape-shell` (phases 0–5 and 7; phase 6
+deferred as planned). Progress and measurements: [PROGRESS.md](PROGRESS.md).
+Updated 2 Oct 2026.
 Sources: five read-only code analyses of this repo (shell, agents/runs, native
 views/security, surface mapping, repo/tests) plus the approved prototype, copied to
 [`prototype/`](prototype/) (open `prototype/index.html` through a local server; it
@@ -258,8 +259,8 @@ stores read with `useSyncExternalStore`, files under ~500 lines):
 | 3 ✅ | **Visual layer**: bundled WebGL backdrop, Liquid Glass lens shader, render-on-demand and pause rules, quality tiers | M | Section 3a budget met on a real Mac; reduced motion respected. |
 | 4 ✅ | **Previews**: tab ownership, browser thumbnails, doc thumbnails, terminal tails | M | Every non-idle screen shows a real or timestamped capture; nothing stale looks live. |
 | 5 ✅ | **Inbox + Cases + files**: unified needs-you queue, Revise, case folders (5a), sub-projects, pause/resume | L | Review → accept/revise → case history works end to end; outputs land in the case folder; pause → resume continues the same session. |
-| 6 | Optional new domain: handoff, projects, company memory | L | Only after phases 1–5 are used daily. |
-| 7 | **Landscape only**: backup tag, remove old shells and the setting | S | Parity checklist passed, e2e green, perf budget met, tag pushed. |
+| 6 ⏸ | Optional new domain: handoff, projects, company memory | L | Only after phases 1–5 are used daily. |
+| 7 ✅ | **Landscape only**: backup tag, remove old shells and the setting | S | Parity checklist passed, e2e green, perf budget met, tag pushed. |
 
 Phases 1 and 2 already deliver a usable agent-first shell without any WebGL.
 The visual layer comes after the structure is right, not before.
