@@ -749,6 +749,14 @@
   visibility: hidden;
 }
 
+/* …except a browser guest: Chromium does not paint a hidden webview, and an
+   agent driving the browser under the landscape should still be capturable for
+   its screen preview. It stays covered (and unclickable) under the opaque
+   landscape layer; it only paints while the Browser surface is the active one. */
+.stageHidden > .stage webview {
+  visibility: visible;
+}
+
 .landscapeBtn {
   display: inline-flex;
   align-items: center;

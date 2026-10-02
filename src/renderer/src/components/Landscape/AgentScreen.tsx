@@ -3,6 +3,8 @@ import { FileText, AlertTriangle } from 'lucide-react'
 import { PROVIDER_LABEL, STATUS_LABEL, type AgentPresence } from './presenceTypes'
 import { ago } from './agentPresence'
 import { useGlass } from './backdrop/useBackdrop'
+import { clock, useResultPreview, useWorkingPreview } from './usePreview'
+import { lastLines } from './previewStore'
 import styles from './LandscapeWorld.module.css'
 
 interface Props {
@@ -21,15 +23,7 @@ function Mini({ a }: { a: AgentPresence }): JSX.Element {
   const when = a.since ? ago(a.since) : null
   switch (a.status) {
     case 'working':
-      return (
-        <>
-          <div className={styles.mTask}>{a.task ?? 'Working'}</div>
-          {a.activity && <div className={styles.mActivity}>{a.activity}</div>}
-          <div className={styles.mFoot}>
-            <span className={styles.pulse} /> Working{when ? ` · ${when}` : ''}
-          </div>
-        </>
-      )
+      return <WorkingMini a={a} when={when} />
     case 'question':
       return (
         <>
@@ -44,18 +38,7 @@ function Mini({ a }: { a: AgentPresence }): JSX.Element {
         </>
       )
     case 'review':
-      return (
-        <>
-          <div className={styles.mDoc}>
-            <FileText size={15} /> {a.outputs[0]?.split('/').pop() ?? a.task ?? 'Result'}
-          </div>
-          {a.task && <div className={styles.mActivity}>{a.task}</div>}
-          <div className={styles.mFoot}>
-            <span className={styles.dot} /> {STATUS_LABEL.review}
-            {a.outputs.length > 1 ? ` · ${a.outputs.length} files` : ''}
-          </div>
-        </>
-      )
+      return <ReviewMini a={a} />
     case 'error':
     case 'interrupted':
       return (
@@ -88,6 +71,62 @@ function presence(el: HTMLElement): number {
   const sheet = el.closest<HTMLElement>('[data-depth]')
   if (!sheet || sheet.dataset.focused === 'true') return 0
   return Number(el.closest<HTMLElement>('[data-agent]')?.style.opacity || 1)
+}
+
+/** A working agent: the page its run is driving, or the lines it is writing, each with its time. */
+function WorkingMini({ a, when }: { a: AgentPresence; when: string | null }): JSX.Element {
+  const { shot, tail } = useWorkingPreview(a)
+  const lines = tail ? lastLines(tail.text, 4) : []
+  return (
+    <>
+      {shot ? (
+        <div className={styles.mShot} data-testid="screen-shot">
+          <img src={shot.src} alt="" />
+          <div className={styles.mShotUrl}>{shot.url.replace(/^https?:\/\//, '')}</div>
+        </div>
+      ) : (
+        <div className={styles.mTask}>{a.task ?? 'Working'}</div>
+      )}
+      {!shot && lines.length > 0 ? (
+        <div className={styles.mTail} data-testid="screen-tail">
+          {lines.map((l, i) => (
+            <div key={i}>{l}</div>
+          ))}
+        </div>
+      ) : (
+        !shot && a.activity && <div className={styles.mActivity}>{a.activity}</div>
+      )}
+      <div className={styles.mFoot}>
+        <span className={styles.pulse} /> Working
+        {shot ? ` · captured ${clock(shot.at)}` : tail ? ` · ${ago(tail.at)}` : when ? ` · ${when}` : ''}
+      </div>
+    </>
+  )
+}
+
+/** A finished run: its first result, small (an image, or the opening lines of a text). */
+function ReviewMini({ a }: { a: AgentPresence }): JSX.Element {
+  const preview = useResultPreview(a.outputs[0] ?? null)
+  return (
+    <>
+      <div className={styles.mDoc}>
+        <FileText size={15} /> {a.outputs[0]?.split('/').pop() ?? a.task ?? 'Result'}
+      </div>
+      {preview?.kind === 'image' ? (
+        <img className={styles.mImg} src={preview.src} alt="" data-testid="screen-result-image" />
+      ) : preview?.kind === 'text' ? (
+        <div className={styles.mText} data-testid="screen-result-text">
+          {preview.text}
+        </div>
+      ) : (
+        a.task && <div className={styles.mActivity}>{a.task}</div>
+      )}
+      <div className={styles.mFoot}>
+        <span className={styles.dot} /> {STATUS_LABEL.review}
+        {a.outputs.length > 1 ? ` · ${a.outputs.length} files` : ''}
+      </div>
+    </>
+  )
 }
 
 /** One agent's screen in the landscape: face, name grip, and its case tab, each on Liquid Glass. */

@@ -83,7 +83,7 @@ export async function handleRequest(
   req: ActionRequest,
   deps: {
     context: () => { actions: { id: string; agentHint: string }[]; allActionIds: string[]; surface: string | null; root: string | null; folder: string | null; openFile: string | null }
-    invoke: (actionId: string, args: unknown) => Promise<ActionReply>
+    invoke: (actionId: string, args: unknown, runId?: string) => Promise<ActionReply>
     /**
      * Case operations, handled in MAIN rather than forwarded.
      *
@@ -116,12 +116,14 @@ export async function handleRequest(
   if (req.cmd === 'run') {
     const id = req.actionId
     if (typeof id !== 'string' || !id) return { ok: false, error: 'run requires an actionId' }
+    let runId: string | undefined
     if (deps.grants) {
       const grant = deps.grants(req.token)
       if (!grant) return { ok: false, error: 'no run identity — wos-action only works inside an agent run started by Workspace OS' }
       // A run bound to a workspace may not act on another one; with no workspace
       // open (fresh launch, Close Workspace) there is nothing to protect.
       if (grant.root && ctx.root && grant.root !== ctx.root) return { ok: false, error: 'This run belongs to a different workspace. Start a new run here.' }
+      runId = grant.runId
       if (!allows(grant.scope, id)) {
         console.warn(`[action-bridge] refused ${id} for run ${grant.label}: outside its grant`)
         return { ok: false, error: `not granted: ${id} is outside what this agent was given` }
@@ -141,7 +143,9 @@ export async function handleRequest(
     }
     // Validate against the known set BEFORE touching the renderer.
     if (!ctx.allActionIds.includes(id)) return { ok: false, error: `unknown action: ${id}` }
-    return deps.invoke(id, req.args)
+    // The run travels with the action, so the app can tell whose work it is
+    // (the landscape shows the page a run is driving on that agent's screen).
+    return runId ? deps.invoke(id, req.args, runId) : deps.invoke(id, req.args)
   }
   return { ok: false, error: `unknown cmd: ${String((req as ActionRequest).cmd)}` }
 }
@@ -153,7 +157,7 @@ export function invokeGrantedAction(req: ActionRequest): Promise<ActionReply> {
 }
 
 /** Forward a `run` to the focused window's renderer executor; await its reply. */
-function invokeInRenderer(actionId: string, args: unknown): Promise<ActionReply> {
+function invokeInRenderer(actionId: string, args: unknown, runId?: string): Promise<ActionReply> {
   const win = BrowserWindow.getFocusedWindow() ?? BrowserWindow.getAllWindows()[0]
   if (!win || win.isDestroyed()) {
     return Promise.resolve({ ok: false, error: 'no window available to run the action' })
@@ -167,7 +171,7 @@ function invokeInRenderer(actionId: string, args: unknown): Promise<ActionReply>
       clearTimeout(timer)
       resolve(reply)
     })
-    win.webContents.send(IPC.AGENT_ACTION_INVOKE, { reqId, actionId, args })
+    win.webContents.send(IPC.AGENT_ACTION_INVOKE, { reqId, actionId, args, runId })
   })
 }
 

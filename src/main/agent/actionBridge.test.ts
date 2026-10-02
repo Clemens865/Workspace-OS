@@ -49,6 +49,15 @@ describe('actionBridge.handleRequest', () => {
     expect(reply).toEqual({ ok: true })
   })
 
+  it('passes the granted run id along, so the app knows whose action it is', async () => {
+    const invoke = vi.fn(async (): Promise<ActionReply> => ({ ok: true }))
+    await handleRequest(
+      { cmd: 'run', actionId: 'files.new-folder', args: { x: 1 }, token: 't' },
+      { context: () => ctx, invoke, grants: () => ({ runId: 'run-42', scope: 'all', label: 'Ada' }) },
+    )
+    expect(invoke).toHaveBeenCalledWith('files.new-folder', { x: 1 }, 'run-42')
+  })
+
   it('RELAYS a run `result` from the renderer verbatim (browser extract)', async () => {
     // The key change: a run reply now carries `result` (extracted data / a
     // screenshot path) end-to-end so `wos-action run` prints it for the agent.

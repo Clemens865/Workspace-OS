@@ -15,8 +15,13 @@ import { AgentFocus } from './AgentFocus'
 import { useAgentPresence } from './useAgentPresence'
 import { arrangeRows, teamSummary } from './agentPresence'
 import { createAgent } from './agentActions'
+import { InboxView } from './InboxView'
+import { deriveInbox } from './inboxModel'
+import { PreviewLive } from './usePreview'
 import { BackdropContext, useBackdrop } from './backdrop/useBackdrop'
 import styles from './LandscapeShell.module.css'
+
+const DISMISSED_KEY = 'workspace-os:landscape-dismissed'
 
 /** How long the landscape takes to step aside or return (matches the CSS). */
 const FADE_MS = 450
@@ -43,7 +48,26 @@ export function LandscapeShell(): JSX.Element {
   const lastLandscape = useRef<LandscapeOnly>('overview')
   const reduced = useMemo(() => window.matchMedia?.('(prefers-reduced-motion: reduce)').matches ?? false, [])
 
-  const { agents } = useAgentPresence()
+  const { agents, runs, hitl, jobs, codex } = useAgentPresence()
+  const [dismissed, setDismissed] = useState<Set<string>>(() => {
+    try {
+      return new Set(JSON.parse(localStorage.getItem(DISMISSED_KEY) ?? '[]') as string[])
+    } catch {
+      return new Set()
+    }
+  })
+  const dismiss = useCallback((key: string) => {
+    setDismissed((old) => {
+      const next = new Set(old).add(key)
+      try {
+        localStorage.setItem(DISMISSED_KEY, JSON.stringify([...next].slice(-200)))
+      } catch {
+        /* best effort */
+      }
+      return next
+    })
+  }, [])
+  const inbox = useMemo(() => deriveInbox({ runs, hitl, jobs, codex, dismissed }), [runs, hitl, jobs, codex, dismissed])
   const rows = useMemo(() => {
     const r = arrangeRows(agents)
     // The "Add agent" ghost closes the last row.
@@ -69,6 +93,23 @@ export function LandscapeShell(): JSX.Element {
   }, [backdrop, view])
 
   const showStage = useCallback(() => setView('stage'), [])
+  // The stage switches itself to Browser when an agent navigates; that switch
+  // must not pull the stage over the landscape.
+  const agentBrowsing = useRef(0)
+  useEffect(() => {
+    const quiet = (): void => {
+      agentBrowsing.current = performance.now() + 1500
+    }
+    window.addEventListener('wos:browser-navigate', quiet)
+    return () => window.removeEventListener('wos:browser-navigate', quiet)
+  }, [])
+  const onStageSurface = useCallback(
+    (rail: RailId) => {
+      if (rail === 'browser' && performance.now() < agentBrowsing.current) return
+      showStage()
+    },
+    [showStage],
+  )
   const showLandscape = useCallback((v?: LandscapeOnly) => setView(v ?? lastLandscape.current), [])
 
   useEffect(() => {
@@ -93,7 +134,9 @@ export function LandscapeShell(): JSX.Element {
   // Things that bring a surface forward without changing the stage's rail (it
   // may already be on that rail) must still reveal the stage.
   useEffect(() => {
-    const events = ['wos:browser-navigate', 'wos:reveal-path', 'wos:knowledge-backlinks', 'wos:focus-agent', 'wos:launch-agent', 'wos:open-file']
+    // Not 'wos:browser-navigate': that is an AGENT driving the browser. In the
+    // landscape you watch it on the agent's screen; the stage stays put.
+    const events = ['wos:reveal-path', 'wos:knowledge-backlinks', 'wos:focus-agent', 'wos:launch-agent', 'wos:open-file']
     events.forEach((e) => window.addEventListener(e, showStage))
     const offTab = window.workspace?.browserTabs?.onOpenTab?.(showStage)
     const offArtifact = window.workspace?.agent?.onArtifact?.(showStage)
@@ -144,7 +187,7 @@ export function LandscapeShell(): JSX.Element {
       if (e.key !== 'Escape' || e.defaultPrevented) return
       const t = e.target as HTMLElement | null
       if (t && (/INPUT|TEXTAREA|SELECT/.test(t.tagName) || t.isContentEditable)) return
-      if (view === 'agent' || view === 'menu') setView('overview')
+      if (view === 'agent' || view === 'menu' || view === 'inbox') setView('overview')
     }
     window.addEventListener('keydown', onKey)
     return () => window.removeEventListener('keydown', onKey)
@@ -158,20 +201,21 @@ export function LandscapeShell(): JSX.Element {
   const onDock = (id: DockId): void => {
     const item = DOCK.find((d) => d.id === id)
     if (item?.stage) openSurface(item.stage)
-    else showLandscape(id === 'menu' ? 'menu' : 'overview')
+    else showLandscape(id === 'menu' ? 'menu' : id === 'inbox' ? 'inbox' : 'overview')
   }
-  const activeDock: DockId | null = view === 'menu' ? 'menu' : view === 'overview' || view === 'agent' ? 'overview' : null
+  const activeDock: DockId | null = view === 'menu' ? 'menu' : view === 'inbox' ? 'inbox' : view === 'overview' || view === 'agent' ? 'overview' : null
   const onStage = view === 'stage'
   const worldMode: WorldMode = view === 'agent' ? 'focus' : view === 'overview' ? 'overview' : 'away'
 
   return (
     <div className={`wl ${styles.root}`} data-shell="landscape" data-view={view}>
-      <WorkspaceShell stage={{ hidden: !stageShown, onLandscape: () => showLandscape(), onSurface: showStage }} />
+      <WorkspaceShell stage={{ hidden: !stageShown, onLandscape: () => showLandscape(), onSurface: onStageSurface }} />
 
       <div className={`${styles.landscape} ${onStage ? styles.away : ''} ${backdrop ? styles.glassOn : ''}`} aria-hidden={onStage} data-testid="landscape-layer" data-quality={quality}>
         <div className={styles.horizon} aria-hidden />
         <canvas ref={canvas} className={`${styles.canvas} ${backdrop ? styles.canvasOn : ''}`} aria-hidden data-testid="landscape-canvas" />
         <BackdropContext.Provider value={backdrop}>
+        <PreviewLive.Provider value={!onStage}>
 
         <LandscapeWorld
           agents={agents}
@@ -195,9 +239,15 @@ export function LandscapeShell(): JSX.Element {
               </button>
             ) : (
               <>
-                <h1 className={styles.heading}>{view === 'menu' ? 'Menu' : 'Your team'}</h1>
+                <h1 className={styles.heading}>{view === 'menu' ? 'Menu' : view === 'inbox' ? `Inbox${inbox.length ? ` · ${inbox.length} waiting` : ''}` : 'Your team'}</h1>
                 <div className={styles.sub} data-testid="team-summary">
-                  {view === 'menu' ? 'Every part of the workspace, one click away' : agents.length ? teamSummary(agents) : 'No agents yet'}
+                  {view === 'menu'
+                    ? 'Every part of the workspace, one click away'
+                    : view === 'inbox'
+                      ? 'Questions, results to review, and anything that went wrong'
+                      : agents.length
+                        ? teamSummary(agents)
+                        : 'No agents yet'}
                 </div>
               </>
             )}
@@ -208,6 +258,7 @@ export function LandscapeShell(): JSX.Element {
         </header>
 
         {view === 'menu' && <LandscapeMenu onOpen={openSurface} />}
+        {view === 'inbox' && <InboxView items={inbox} onDismiss={dismiss} />}
 
         {(view === 'overview' || view === 'agent') && (
           <div className={styles.hint} aria-hidden>
@@ -219,7 +270,8 @@ export function LandscapeShell(): JSX.Element {
           </div>
         )}
 
-        <LandscapeDock active={activeDock} onSelect={onDock} />
+        <LandscapeDock active={activeDock} onSelect={onDock} waiting={inbox.length} />
+        </PreviewLive.Provider>
         </BackdropContext.Provider>
       </div>
     </div>

@@ -163,8 +163,8 @@ contextBridge.exposeInMainWorld('workspace', {
   // `wos-action run <id>` here (INVOKE); the app runs the SAME surfaceActions
   // registry a dock chip runs, then replies reqId-correlated (RESULT).
   agentActions: {
-    onInvoke: (callback: (payload: { reqId: string; actionId: string; args?: unknown }) => void) => {
-      const handler = (_e: Electron.IpcRendererEvent, payload: { reqId: string; actionId: string; args?: unknown }) =>
+    onInvoke: (callback: (payload: { reqId: string; actionId: string; args?: unknown; runId?: string }) => void) => {
+      const handler = (_e: Electron.IpcRendererEvent, payload: { reqId: string; actionId: string; args?: unknown; runId?: string }) =>
         callback(payload)
       ipcRenderer.on(IPC.AGENT_ACTION_INVOKE, handler)
       return () => ipcRenderer.removeListener(IPC.AGENT_ACTION_INVOKE, handler)
@@ -299,6 +299,7 @@ contextBridge.exposeInMainWorld('workspace', {
     navigate: (url: string, tab?: string) => ipcRenderer.invoke(IPC.BROWSER_NAVIGATE, { url, tab }),
     screenshot: (destPath?: string, tab?: string) =>
       ipcRenderer.invoke(IPC.BROWSER_SCREENSHOT, { destPath, tab }),
+    thumbnail: (width?: number, tab?: string) => ipcRenderer.invoke(IPC.BROWSER_THUMBNAIL, { width, tab }),
     extract: (mode?: 'text' | 'links' | 'tables' | 'meta', tab?: string) =>
       ipcRenderer.invoke(IPC.BROWSER_EXTRACT, { mode, tab }),
     // Structured page perception (links-by-category, interactives, headings,

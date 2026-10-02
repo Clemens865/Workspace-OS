@@ -1,5 +1,6 @@
 import { useEffect } from 'react'
 import { actionById, type SurfaceActionContext } from '../components/Terminal/surfaceActions'
+import { browserDriver } from '../lib/browserDriver'
 
 /**
  * AGENT→ACTION bridge — the renderer EXECUTOR.
@@ -21,7 +22,8 @@ export function useAgentActions(getCtx: () => SurfaceActionContext): void {
   useEffect(() => {
     const api = window.workspace.agentActions
     if (!api) return
-    const off = api.onInvoke(async ({ reqId, actionId, args }) => {
+    const off = api.onInvoke(async ({ reqId, actionId, args, runId }) => {
+      browserDriver.record(runId, actionId)
       const reply = await runAgentAction(actionId, getCtx, args)
       api.result({ reqId, ...reply })
     })

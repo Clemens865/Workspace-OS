@@ -141,6 +141,25 @@ export async function screenshot(wc: WebContents, destPath: unknown): Promise<{ 
   return { ok: true, path: target }
 }
 
+/**
+ * A small, time-stamped JPEG of the guest page, returned as a data URL (never
+ * written to disk) for the landscape's agent screens. Width is clamped so a
+ * caller cannot ask for a full-size capture through this path.
+ */
+export async function thumbnail(wc: WebContents, width: unknown): Promise<{ ok: true; src: string; url: string; title: string; at: number }> {
+  const w = Math.max(120, Math.min(640, Math.round(Number(width) || 480)))
+  // The landscape covers the browser while the agent drives it, and Chromium
+  // does not paint a hidden guest: keep it awake for the capture, and never
+  // let a capture that cannot complete hang the caller.
+  const image = await Promise.race([
+    wc.capturePage(undefined, { stayHidden: true, stayAwake: true }),
+    new Promise<never>((_, reject) => setTimeout(() => reject(new Error('capture timed out')), 2500)),
+  ])
+  if (image.isEmpty()) throw new Error('nothing to capture yet')
+  const small = image.resize({ width: w, quality: 'good' })
+  return { ok: true, src: `data:image/jpeg;base64,${small.toJPEG(72).toString('base64')}`, url: wc.getURL(), title: wc.getTitle(), at: Date.now() }
+}
+
 /** Run the FIXED extraction script for `mode` in the guest; return its JSON. */
 export async function extract(wc: WebContents, mode: ExtractMode): Promise<{ ok: true; mode: ExtractMode; data: unknown }> {
   const data = await wc.executeJavaScript(scriptForMode(mode), true)
@@ -388,6 +407,10 @@ export function registerBrowserHandlers(ipcMain: IpcMain): void {
   ipcHandle(ipcMain, IPC.BROWSER_SCREENSHOT, async (_e, arg: unknown) => {
     const a = arg as { destPath?: unknown; tab?: unknown }
     return screenshot(requireGuest(a?.tab), a?.destPath)
+  })
+  ipcHandle(ipcMain, IPC.BROWSER_THUMBNAIL, async (_e, arg: unknown) => {
+    const a = arg as { width?: unknown; tab?: unknown }
+    return thumbnail(requireGuest(a?.tab), a?.width)
   })
   ipcHandle(ipcMain, IPC.BROWSER_EXTRACT, async (_e, arg: unknown) => {
     const a = arg as { mode?: unknown; tab?: unknown }

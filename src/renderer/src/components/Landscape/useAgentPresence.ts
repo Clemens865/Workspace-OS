@@ -72,8 +72,17 @@ function useMinuteClock(): number {
   return t
 }
 
-/** Every roster agent with its one honest state, live. */
-export function useAgentPresence(): { agents: AgentPresence[]; loaded: boolean } {
+export interface LandscapeData {
+  agents: AgentPresence[]
+  runs: ReturnType<typeof useReviewStore>['runs']
+  hitl: ReturnType<typeof useReviewStore>['hitl']
+  jobs: JobLite[]
+  codex: CodexAsk[]
+  loaded: boolean
+}
+
+/** Every roster agent with its one honest state, live, plus the raw inputs (the Inbox reads them too). */
+export function useAgentPresence(): LandscapeData {
   const root = useWorkspaceRoot()
   const roster = useRoster(root)
   const review = useReviewStore()
@@ -87,5 +96,5 @@ export function useAgentPresence(): { agents: AgentPresence[]; loaded: boolean }
     // eslint-disable-next-line react-hooks/exhaustive-deps
     [roster, review, activity, jobs, codex, clock],
   )
-  return { agents, loaded: roster.length > 0 || agents.length > 0 }
+  return { agents, runs: review.runs, hitl: review.hitl, jobs, codex, loaded: roster.length > 0 || agents.length > 0 }
 }

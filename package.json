@@ -50,7 +50,7 @@
     "e2e:files-browser": "npm run rebuild:electron && npm run build && node e2e/files-browser.mjs || { npm run rebuild:node; exit 1; }; npm run rebuild:node",
     "e2e:views-dock": "npm run rebuild:electron && npm run build && node e2e/browser/views-and-dock.mjs || { npm run rebuild:node; exit 1; }; npm run rebuild:node",
     "e2e:shell-layout": "npm run rebuild:electron && npm run build && node e2e/browser/layout.mjs || { npm run rebuild:node; exit 1; }; npm run rebuild:node",
-    "e2e:landscape": "npm run rebuild:electron && npm run build && for t in shells stage presence perf; do node e2e/landscape/$t.mjs || { npm run rebuild:node; exit 1; }; done; npm run rebuild:node",
+    "e2e:landscape": "npm run rebuild:electron && npm run build && for t in shells stage presence inbox perf; do node e2e/landscape/$t.mjs || { npm run rebuild:node; exit 1; }; done; npm run rebuild:node",
     "e2e:browser": "npm run rebuild:electron && npm run build && for t in browser-tabs browser/double-load browser/history browser/phase2 browser/phase3 browser/tab-groups browser/share-with-claude browser/address-sync; do node e2e/$t.mjs || { npm run rebuild:node; exit 1; }; done; npm run rebuild:node",
     "e2e:workspace-switch": "npm run rebuild:electron && npm run build && node e2e/workspace-switch.mjs; npm run rebuild:node",
     "e2e:fd-pressure": "npm run rebuild:electron && npm run build && node e2e/fd-pressure.mjs; npm run rebuild:node",

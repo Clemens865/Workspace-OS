@@ -256,7 +256,7 @@ stores read with `useSyncExternalStore`, files under ~500 lines):
 | 1 ✅ | **Shell skeleton**: landscape layer (static CSS backdrop), glass dock, Menu, flat stage hosting all existing surfaces | M | Every rail surface reachable in ≤2 actions; ⌘K/⌘P/⌘J/⌘B work; `WOS_E2E_SHELL=landscape` smoke + shell-layout variant pass. |
 | 2 ✅ | **Agent presence + Team overview**: P0 data items, screens with honest status, carousel, focus → stage hand-off (LiveAgentZoom / terminal session) | M–L | Presence model unit-tested against real store fixtures; no hardcoded statuses; a blocked agent can be found, answered and left without getting lost (the design's own usability check). |
 | 3 ✅ | **Visual layer**: bundled WebGL backdrop, Liquid Glass lens shader, render-on-demand and pause rules, quality tiers | M | Section 3a budget met on a real Mac; reduced motion respected. |
-| 4 | **Previews**: tab ownership, browser thumbnails, doc thumbnails, terminal tails | M | Every non-idle screen shows a real or timestamped capture; nothing stale looks live. |
+| 4 ✅ | **Previews**: tab ownership, browser thumbnails, doc thumbnails, terminal tails | M | Every non-idle screen shows a real or timestamped capture; nothing stale looks live. |
 | 5 | **Inbox + Cases + files**: unified needs-you queue, Revise, case folders (5a), sub-projects, pause/resume | L | Review → accept/revise → case history works end to end; outputs land in the case folder; pause → resume continues the same session. |
 | 6 | Optional new domain: handoff, projects, company memory | L | Only after phases 1–5 are used daily. |
 | 7 | **Landscape only**: backup tag, remove old shells and the setting | S | Parity checklist passed, e2e green, perf budget met, tag pushed. |

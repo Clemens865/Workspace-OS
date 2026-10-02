@@ -289,3 +289,16 @@
 .glassOn .menuItem:hover {
   background: rgba(255, 255, 255, 0.3);
 }
+
+.badge {
+  min-width: 20px;
+  height: 20px;
+  padding: 0 6px;
+  border-radius: 10px;
+  display: grid;
+  place-items: center;
+  background: var(--wl-claude);
+  color: #fff;
+  font-size: 11px;
+  font-weight: 600;
+}

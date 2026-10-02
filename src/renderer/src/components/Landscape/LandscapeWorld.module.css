@@ -434,3 +434,86 @@
   background: linear-gradient(#fff, #f1f4f6);
   box-shadow: 0 8px 18px -8px rgba(30, 55, 70, 0.4), 0 1px 0 #fff inset;
 }
+
+/* ── Previews: always with their own time ── */
+.mShot {
+  position: absolute;
+  left: 10px;
+  right: 10px;
+  top: 10px;
+  bottom: 34px;
+  border-radius: 12px;
+  overflow: hidden;
+  background: #fff;
+  border: 1px solid var(--wl-line);
+}
+
+.mShot img {
+  width: 100%;
+  height: calc(100% - 20px);
+  object-fit: cover;
+  object-position: top;
+  display: block;
+}
+
+.mShotUrl {
+  height: 20px;
+  padding: 3px 8px;
+  font-size: 10px;
+  color: var(--wl-muted);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  border-top: 1px solid var(--wl-line);
+}
+
+.mTail {
+  position: absolute;
+  left: 14px;
+  right: 14px;
+  top: 84px;
+  bottom: 34px;
+  overflow: hidden;
+  font-family: var(--wl-mono);
+  font-size: 9.5px;
+  line-height: 1.45;
+  color: var(--wl-ink-2);
+  -webkit-mask-image: linear-gradient(transparent, #000 30%);
+  mask-image: linear-gradient(transparent, #000 30%);
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+}
+
+.mTail > div {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.mImg {
+  position: absolute;
+  left: 12px;
+  right: 12px;
+  top: 42px;
+  bottom: 34px;
+  width: calc(100% - 24px);
+  height: calc(100% - 76px);
+  object-fit: cover;
+  border-radius: 10px;
+}
+
+.mText {
+  position: absolute;
+  left: 14px;
+  right: 14px;
+  top: 44px;
+  bottom: 34px;
+  overflow: hidden;
+  font-size: 10.5px;
+  line-height: 1.5;
+  color: var(--wl-ink-2);
+  white-space: pre-wrap;
+  -webkit-mask-image: linear-gradient(#000 70%, transparent);
+  mask-image: linear-gradient(#000 70%, transparent);
+}

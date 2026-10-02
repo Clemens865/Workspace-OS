@@ -11,12 +11,53 @@ Legend: ✅ done · 🟡 in progress · ⬜ not started
 | 1 Shell skeleton | ✅ 2 Oct 2026 |
 | 2 Agent presence + Team overview | ✅ 2 Oct 2026 |
 | 3 Visual layer (WebGL, Liquid Glass) | ✅ 2 Oct 2026 |
-| 4 Previews | ⬜ |
-| 5 Inbox + Cases + files, pause/resume | ⬜ |
+| 4 Previews | ✅ 2 Oct 2026 |
+| 5 Inbox + Cases + files, pause/resume | 🟡 Inbox done |
 | 6 Optional new domain | ⬜ |
 | 7 Landscape only (backup tag, remove old shells) | ⬜ |
 
 ---
+
+## 2 Oct 2026: phase 4 (previews) ✅ and the Inbox (phase 5, part 1)
+
+**Previews, always with their own time**
+- Run identity now travels with agent actions: `actionBridge` passes the
+  granted run id to the renderer executor (`AGENT_ACTION_INVOKE` payload
+  `runId`, + test); `useAgentActions` records which run last drove the browser
+  (`lib/browserDriver.ts`). Tabs have no owner; "the run that drove it last"
+  is what the runtime can honestly say.
+- New `browser:thumbnail` IPC (`browserControl.thumbnail`): `capturePage` with
+  `stayHidden`/`stayAwake`, resized to ≤ 640 px, JPEG data URL, never written
+  to disk, 2.5 s timeout. The browser guest stays painted under the landscape
+  (`visibility: visible` on the webview inside the hidden stage; still covered
+  and unclickable).
+- An agent navigating no longer pulls the stage over the landscape; you watch
+  it on the agent's screen (links you open still show the browser).
+- `previewStore.ts` (+ tests): the last 1200 chars of each run's output.
+- Working screens show the page their run drives (refreshed every 2 s while
+  visible, "captured 10:24:31") or the last lines written ("just now");
+  finished screens show their first result (image, or a text's opening lines).
+  Office files show name and type: generating their thumbnails costs a full
+  LibreOffice conversion per change.
+
+**Inbox** (`inboxModel.ts` + 8 tests, `InboxView`)
+- One item per thing waiting: PTY approvals and Codex requests (first), recent
+  failures (latest per agent, 24 h, dismissable; interrupted jobs named as
+  such), every finished run awaiting review.
+- Cards fan in on the left; the chosen item opens on the right: Allow once /
+  for the session / Deny; Mark accepted, Revert, **Revise** (a background run
+  for the same agent with the original task, its files and your feedback; the
+  result comes back to the Inbox); Start again, Dismiss. Text results are
+  readable in place. ↑ ↓ move through items.
+- Dock Inbox opens it in the landscape, with a badge counting what waits.
+
+**Verified**
+- `npm test`: 246 files, 2974 passed. Typecheck: no new errors.
+- `npm run e2e:landscape`: shells 6/6, stage 31/31, presence 18/18, inbox 16/16
+  (throwaway workspace via `WORKSPACE_TEST_ROOT`), perf 7/7 (scrolling 2.86 ms).
+  Revise and Start again are checked for arming but not pressed: they start a
+  real agent run.
+- `npm run e2e:shell-layout` (current shell): 20/20.
 
 ## 2 Oct 2026: phase 3, the visual layer ✅
 

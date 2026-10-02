@@ -6,7 +6,7 @@
 import { RAIL_ITEMS, type RailId } from '../Shell/shellModel'
 
 /** Landscape-level views. `agent` is one screen in focus; `stage` is the flat stage hosting the classic surfaces. */
-export type LandscapeView = 'overview' | 'agent' | 'menu' | 'stage'
+export type LandscapeView = 'overview' | 'agent' | 'inbox' | 'menu' | 'stage'
 
 export type DockId = 'overview' | 'inbox' | 'cases' | 'library' | 'menu'
 
@@ -21,13 +21,13 @@ export interface DockItem {
 }
 
 /**
- * The dock, from the design: Overview · Inbox · Cases · Library · Menu. Inbox,
- * Cases and Library open their closest existing surface on the stage until
- * their landscape views land (PLAN.md §4, phases 2 and 5).
+ * The dock, from the design: Overview · Inbox · Cases · Library · Menu. Cases
+ * and Library open their closest existing surface on the stage until their
+ * landscape views land (PLAN.md §4).
  */
 export const DOCK: DockItem[] = [
   { id: 'overview', label: 'Overview', stage: null },
-  { id: 'inbox', label: 'Inbox', stage: 'agents' },
+  { id: 'inbox', label: 'Inbox', stage: null },
   { id: 'cases', label: 'Cases', stage: 'cockpit' },
   { id: 'library', label: 'Library', stage: 'knowledge' },
   { id: 'menu', label: 'Menu', stage: null },

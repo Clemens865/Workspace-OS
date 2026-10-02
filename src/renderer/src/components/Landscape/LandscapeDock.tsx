@@ -15,10 +15,12 @@ const ICONS: Record<DockId, typeof Home> = {
 interface Props {
   active: DockId | null
   onSelect: (id: DockId) => void
+  /** Items waiting in the Inbox (the badge). */
+  waiting?: number
 }
 
 /** The glass dock. A white pill glides to the active item (prototype: moveDockGlow). */
-export function LandscapeDock({ active, onSelect }: Props): JSX.Element {
+export function LandscapeDock({ active, onSelect, waiting = 0 }: Props): JSX.Element {
   const nav = useRef<HTMLElement>(null)
   const [glow, setGlow] = useState<{ left: number; width: number } | null>(null)
   useGlass(nav, { radius: 32, bezel: 26, thickness: 46, frost: 0.1 })
@@ -47,6 +49,11 @@ export function LandscapeDock({ active, onSelect }: Props): JSX.Element {
             onClick={() => onSelect(d.id)}
           >
             <Icon size={17} /> {d.label}
+            {d.id === 'inbox' && waiting > 0 && (
+              <span className={styles.badge} data-testid="inbox-badge">
+                {waiting}
+              </span>
+            )}
           </button>
         )
       })}

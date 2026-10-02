@@ -81,6 +81,7 @@ export const IPC = {
   // enum (no arbitrary agent JS); screenshots write only under a caller path.
   BROWSER_NAVIGATE: 'browser:navigate',
   BROWSER_SCREENSHOT: 'browser:screenshot',
+  BROWSER_THUMBNAIL: 'browser:thumbnail',
   BROWSER_EXTRACT: 'browser:extract',
   // Structured page perception (links-by-category, interactives, headings,
   // consent hint) via a FIXED read-only script. Deep-read builds on this.

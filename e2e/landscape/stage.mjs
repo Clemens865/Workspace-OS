@@ -6,7 +6,7 @@
  *   button returns to where the user was;
  * - ⌘K and ⌘P open over the landscape; ⌘J brings the stage forward with the
  *   terminal dock; ⌘B shows the stage's rail;
- * - the dock's Inbox / Cases / Library open their stand-in surfaces.
+ * - the dock's Inbox opens the landscape Inbox; Cases / Library open their stand-in surfaces.
  *
  * Every check reads real state: which layer is visible (computed visibility),
  * which rail button is current, whether an element has a non-zero box.
@@ -101,7 +101,11 @@ try {
   }
 
   // ── Dock stand-ins ──
-  for (const [dock, label] of [['inbox', 'Agents'], ['cases', 'Cockpit'], ['library', 'Knowledge']]) {
+  await win.click('[data-dock="inbox"]')
+  await settle()
+  s = await state()
+  check('dock inbox opens the Inbox in the landscape', s.view === 'inbox' && s.landscapeVisible, JSON.stringify(s))
+  for (const [dock, label] of [['cases', 'Cockpit'], ['library', 'Knowledge']]) {
     await win.click(`[data-dock="${dock}"]`)
     await settle()
     s = await state()

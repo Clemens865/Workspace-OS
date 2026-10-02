@@ -336,7 +336,7 @@ export interface WorkspaceApi {
    *  `wos-action run <id>` here; we run the surfaceActions registry + reply. */
   agentActions: {
     onInvoke: (
-      callback: (payload: { reqId: string; actionId: string; args?: unknown }) => void,
+      callback: (payload: { reqId: string; actionId: string; args?: unknown; runId?: string }) => void,
     ) => () => void
     result: (payload: { reqId: string; ok: boolean; result?: unknown; error?: string }) => void
   }
@@ -447,6 +447,8 @@ export interface WorkspaceApi {
   browser: {
     navigate: (url: string, tab?: string) => Promise<{ ok: boolean; url?: string; title?: string; error?: string }>
     screenshot: (destPath?: string, tab?: string) => Promise<{ ok: boolean; path?: string; error?: string }>
+    /** A small JPEG of the guest page as a data URL, with when it was captured (landscape screens). */
+    thumbnail: (width?: number, tab?: string) => Promise<{ ok: boolean; src: string; url: string; title: string; at: number }>
     extract: (
       mode?: 'text' | 'links' | 'tables' | 'meta',
       tab?: string,
