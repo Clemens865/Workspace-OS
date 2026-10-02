@@ -1,5 +1,5 @@
 import { useState, useSyncExternalStore } from 'react'
-import { ArrowUpRight, FileText, Play, Pause, Square, Check, X, RotateCcw, Plus, Trash2 } from 'lucide-react'
+import { ArrowUpRight, FileText, Play, Pause, Square, Check, X, RotateCcw, Plus } from 'lucide-react'
 import { AgentAvatar } from '../Agents/AgentAvatar'
 import { activityStore } from '../Review/activityStore'
 import { reviewStore } from '../Review/reviewStore'
@@ -12,6 +12,7 @@ import { toast } from './toastStore'
 import { SessionPane, useSessions } from './session/SessionPane'
 import { sessionStore } from '../../lib/sessions/sessionStore'
 import { useAgentScope } from './useAgentScope'
+import { AgentSettings } from './AgentSettings'
 
 /** Which session each agent's card shows, for this app run. */
 const chosen = new Map<string, string>()
@@ -59,7 +60,7 @@ export function AgentFocus({ a }: { a: AgentPresence }): JSX.Element {
     else chosen.delete(a.id)
     setPicked(id)
   }
-  const [confirmDelete, setConfirmDelete] = useState(false)
+  const [tab, setTab] = useState<'work' | 'settings'>('work')
   const scope = useAgentScope(a.id)
 
   return (
@@ -73,6 +74,13 @@ export function AgentFocus({ a }: { a: AgentPresence }): JSX.Element {
             {a.role ? ` · ${a.role}` : ''}
           </div>
         </div>
+        <div className={styles.tabs} role="tablist">
+          {(['work', 'settings'] as const).map((t) => (
+            <button key={t} role="tab" aria-selected={tab === t} className={tab === t ? styles.tabOn : undefined} onClick={() => setTab(t)} data-testid={`agent-tab-${t}`}>
+              {t === 'work' ? 'Work' : 'Settings'}
+            </button>
+          ))}
+        </div>
         <span className={styles.chip} data-status={a.status}>
           <span className={styles.chipDot} />
           {STATUS_LABEL[a.status]}
@@ -80,167 +88,154 @@ export function AgentFocus({ a }: { a: AgentPresence }): JSX.Element {
         </span>
       </header>
 
-      <div className={styles.columns}>
-        <div className={styles.work}>
-          <SessionPane
-            key={current ?? `new-${a.id}`}
-            sessionId={current}
-            agentName={a.id}
-            onCreated={choose}
-            onOpenCase={act.openCase}
-            placeholder={`What should ${a.name} do? Ask in your own words; @ adds a file.`}
-          />
-        </div>
+      {tab === 'settings' ? (
+        <AgentSettings name={a.id} scope={scope} />
+      ) : (
+        <div className={styles.columns}>
+          <div className={styles.work}>
+            <SessionPane
+              key={current ?? `new-${a.id}`}
+              sessionId={current}
+              agentName={a.id}
+              onCreated={choose}
+              onOpenCase={act.openCase}
+              placeholder={`What should ${a.name} do? Ask in your own words; @ adds a file.`}
+            />
+          </div>
 
-        <aside className={styles.side}>
-          {a.status !== 'idle' && (a.task || a.status === 'question' || a.status === 'review' || a.status === 'working' || a.status === 'paused') && (
-            <section>
-              <h3 className={styles.label}>Now</h3>
-              {a.task && <p className={styles.task}>{a.task}</p>}
-              {stakes && (
-                <p className={styles.stakes} data-testid="agent-stakes">
-                  {stakes}
-                </p>
-              )}
-              {a.status === 'question' && (
-                <div className={styles.ask}>
-                  <p className={styles.question}>{a.question}</p>
-                  {act.sessionOf(a.runId) ? (
-                    <div className={styles.row}>
-                      <button className={styles.primary} disabled={busy} onClick={() => run(() => act.approve(a.runId, 'once'), 'Approved once.')}>
-                        <Check size={14} /> Allow once
+          <aside className={styles.side}>
+            {a.status !== 'idle' && (a.task || a.status === 'question' || a.status === 'review' || a.status === 'working' || a.status === 'paused') && (
+              <section>
+                <h3 className={styles.label}>Now</h3>
+                {a.task && <p className={styles.task}>{a.task}</p>}
+                {stakes && (
+                  <p className={styles.stakes} data-testid="agent-stakes">
+                    {stakes}
+                  </p>
+                )}
+                {a.status === 'question' && (
+                  <div className={styles.ask}>
+                    <p className={styles.question}>{a.question}</p>
+                    {act.sessionOf(a.runId) ? (
+                      <div className={styles.row}>
+                        <button className={styles.primary} disabled={busy} onClick={() => run(() => act.approve(a.runId, 'once'), 'Approved once.')}>
+                          <Check size={14} /> Allow once
+                        </button>
+                        <button className={styles.btn} disabled={busy} onClick={() => run(() => act.approve(a.runId, 'session'), 'Allowed for this session.')}>
+                          For this session
+                        </button>
+                        <button className={styles.btn} disabled={busy} onClick={() => run(() => act.deny(a.runId), 'Denied.')}>
+                          <X size={14} /> Deny
+                        </button>
+                      </div>
+                    ) : (
+                      <p className={styles.hint}>Answer in the Codex request at the bottom right of the window.</p>
+                    )}
+                  </div>
+                )}
+                <div className={styles.row}>
+                  {a.status === 'review' && (
+                    <>
+                      <button className={styles.primary} disabled={busy} onClick={() => run(() => act.keep(a.runId), 'Kept.')}>
+                        <Check size={14} /> Keep
                       </button>
-                      <button className={styles.btn} disabled={busy} onClick={() => run(() => act.approve(a.runId, 'session'), 'Allowed for this session.')}>
-                        For this session
+                      {act.canRevert(a.runId) && (
+                        <button className={styles.btn} disabled={busy} onClick={() => run(() => act.revert(a.runId), 'Reverted to before the run.')}>
+                          <RotateCcw size={14} /> Revert
+                        </button>
+                      )}
+                    </>
+                  )}
+                  {a.status === 'working' && (
+                    <>
+                      <button className={styles.btn} disabled={busy} onClick={() => run(() => pauseRun(a.runId), 'Paused. Resume continues the same conversation.')} data-testid="agent-pause">
+                        <Pause size={13} /> Pause
                       </button>
-                      <button className={styles.btn} disabled={busy} onClick={() => run(() => act.deny(a.runId), 'Denied.')}>
-                        <X size={14} /> Deny
+                      <button className={styles.btn} disabled={busy} onClick={() => run(() => act.stop(a.runId), 'Stopping…')}>
+                        <Square size={13} /> Stop
                       </button>
-                    </div>
-                  ) : (
-                    <p className={styles.hint}>Answer in the Codex request at the bottom right of the window.</p>
+                    </>
+                  )}
+                  {a.status === 'paused' && (
+                    <>
+                      <button className={styles.primary} disabled={busy} onClick={() => run(() => resumeRun(a.runId), 'Resumed.')} data-testid="agent-resume">
+                        <Play size={14} /> Resume
+                      </button>
+                      <button className={styles.btn} disabled={busy} onClick={() => run(() => act.stopPaused(a.runId), 'Stopped.')}>
+                        <Square size={13} /> Stop
+                      </button>
+                    </>
                   )}
                 </div>
-              )}
-              <div className={styles.row}>
-                {a.status === 'review' && (
-                  <>
-                    <button className={styles.primary} disabled={busy} onClick={() => run(() => act.keep(a.runId), 'Kept.')}>
-                      <Check size={14} /> Keep
-                    </button>
-                    {act.canRevert(a.runId) && (
-                      <button className={styles.btn} disabled={busy} onClick={() => run(() => act.revert(a.runId), 'Reverted to before the run.')}>
-                        <RotateCcw size={14} /> Revert
-                      </button>
-                    )}
-                  </>
+                {trail.length > 0 && (
+                  <ol className={styles.steps}>
+                    {trail.slice(0, 4).map((st, i) => (
+                      <li key={`${st.at}-${i}`} className={i === 0 && a.status === 'working' ? styles.stepLive : undefined}>
+                        <span>{st.label}</span>
+                        <span className={styles.when}>{ago(st.at)}</span>
+                      </li>
+                    ))}
+                  </ol>
                 )}
-                {a.status === 'working' && (
-                  <>
-                    <button className={styles.btn} disabled={busy} onClick={() => run(() => pauseRun(a.runId), 'Paused. Resume continues the same conversation.')} data-testid="agent-pause">
-                      <Pause size={13} /> Pause
-                    </button>
-                    <button className={styles.btn} disabled={busy} onClick={() => run(() => act.stop(a.runId), 'Stopping…')}>
-                      <Square size={13} /> Stop
-                    </button>
-                  </>
-                )}
-                {a.status === 'paused' && (
-                  <>
-                    <button className={styles.primary} disabled={busy} onClick={() => run(() => resumeRun(a.runId), 'Resumed.')} data-testid="agent-resume">
-                      <Play size={14} /> Resume
-                    </button>
-                    <button className={styles.btn} disabled={busy} onClick={() => run(() => act.stopPaused(a.runId), 'Stopped.')}>
-                      <Square size={13} /> Stop
-                    </button>
-                  </>
-                )}
+              </section>
+            )}
+
+            <section>
+              <div className={styles.labelRow}>
+                <h3 className={styles.label}>Sessions</h3>
+                <button className={styles.linkBtn} onClick={() => choose(null)} data-testid="agent-start">
+                  <Plus size={13} /> New
+                </button>
               </div>
-              {trail.length > 0 && (
-                <ol className={styles.steps}>
-                  {trail.slice(0, 4).map((st, i) => (
-                    <li key={`${st.at}-${i}`} className={i === 0 && a.status === 'working' ? styles.stepLive : undefined}>
-                      <span>{st.label}</span>
-                      <span className={styles.when}>{ago(st.at)}</span>
+              {mine.length ? (
+                <ul className={styles.sessions} data-testid="agent-sessions">
+                  {mine.slice(0, 8).map((x) => (
+                    <li key={x.id}>
+                      <button className={`${styles.sessionRow} ${x.id === current ? styles.sessionOn : ''}`} onClick={() => choose(x.id)} data-session-row={x.id}>
+                        <span className={styles.sessionTitle}>{x.title}</span>
+                        <span className={styles.when}>
+                          {x.caseId ? 'case · ' : ''}
+                          {ago(x.lastAt)}
+                        </span>
+                      </button>
                     </li>
                   ))}
-                </ol>
+                </ul>
+              ) : (
+                <p className={styles.hint}>No sessions yet. Ask on the left to start one.</p>
               )}
             </section>
-          )}
 
-          <section>
-            <div className={styles.labelRow}>
-              <h3 className={styles.label}>Sessions</h3>
-              <button className={styles.linkBtn} onClick={() => choose(null)} data-testid="agent-start">
-                <Plus size={13} /> New
-              </button>
-            </div>
-            {mine.length ? (
-              <ul className={styles.sessions} data-testid="agent-sessions">
-                {mine.slice(0, 8).map((x) => (
-                  <li key={x.id}>
-                    <button className={`${styles.sessionRow} ${x.id === current ? styles.sessionOn : ''}`} onClick={() => choose(x.id)} data-session-row={x.id}>
-                      <span className={styles.sessionTitle}>{x.title}</span>
-                      <span className={styles.when}>
-                        {x.caseId ? 'case · ' : ''}
-                        {ago(x.lastAt)}
-                      </span>
-                    </button>
-                  </li>
-                ))}
-              </ul>
-            ) : (
-              <p className={styles.hint}>No sessions yet. Ask on the left to start one.</p>
+            {a.outputs.length > 0 && (
+              <section>
+                <h3 className={styles.label}>Latest results</h3>
+                <ul className={styles.files}>
+                  {a.outputs.slice(0, 4).map((p) => (
+                    <li key={p}>
+                      <button className={styles.file} onClick={() => act.openFile(p)}>
+                        <FileText size={14} /> {p.split('/').pop()}
+                        <ArrowUpRight size={13} className={styles.fileGo} />
+                      </button>
+                    </li>
+                  ))}
+                </ul>
+              </section>
             )}
-          </section>
 
-          {a.outputs.length > 0 && (
             <section>
-              <h3 className={styles.label}>Latest results</h3>
-              <ul className={styles.files}>
-                {a.outputs.slice(0, 4).map((p) => (
-                  <li key={p}>
-                    <button className={styles.file} onClick={() => act.openFile(p)}>
-                      <FileText size={14} /> {p.split('/').pop()}
-                      <ArrowUpRight size={13} className={styles.fileGo} />
-                    </button>
-                  </li>
-                ))}
-              </ul>
+              <h3 className={styles.label}>About</h3>
+              <p className={styles.idle}>{a.about || a.role || 'Ready when you are.'}</p>
             </section>
-          )}
 
-          <section>
-            <h3 className={styles.label}>About</h3>
-            <p className={styles.idle}>{a.about || a.role || 'Ready when you are.'}</p>
-          </section>
-
-          {note && (
-            <p className={styles.note} role="status">
-              {note}
-            </p>
-          )}
-
-          <div className={styles.danger}>
-            {confirmDelete ? (
-              <>
-                <span>Delete {a.name}? Its sessions and cases stay.</span>
-                <button className={styles.dangerBtn} disabled={busy} onClick={() => run(() => act.deleteAgent(a.id, scope), `${a.name} was deleted.`)} data-testid="agent-delete-confirm">
-                  Delete
-                </button>
-                <button className={styles.btn} onClick={() => setConfirmDelete(false)}>
-                  Cancel
-                </button>
-              </>
-            ) : (
-              <button className={styles.linkBtn} onClick={() => setConfirmDelete(true)} data-testid="agent-delete">
-                <Trash2 size={13} /> Delete agent
-              </button>
+            {note && (
+              <p className={styles.note} role="status">
+                {note}
+              </p>
             )}
-          </div>
-        </aside>
-      </div>
+
+          </aside>
+        </div>
+      )}
     </div>
   )
 }

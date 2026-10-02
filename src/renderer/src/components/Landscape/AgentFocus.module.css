@@ -354,3 +354,29 @@
   font-weight: 500;
   color: var(--wl-ink);
 }
+
+/* Work · Settings: the card is where you work with the agent and where you set it up. */
+.tabs {
+  display: inline-flex;
+  padding: 3px;
+  border-radius: 18px;
+  border: 1px solid var(--wl-line);
+  background: rgba(var(--wl-paper-rgb), 0.6);
+}
+
+.tabs button {
+  height: 30px;
+  padding: 0 14px;
+  border: 0;
+  border-radius: 15px;
+  background: none;
+  font: inherit;
+  font-size: 13px;
+  color: var(--wl-ink-2);
+  cursor: pointer;
+}
+
+.tabs .tabOn {
+  background: var(--wl-ink);
+  color: var(--wl-on-ink);
+}

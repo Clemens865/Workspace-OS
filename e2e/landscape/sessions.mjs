@@ -220,10 +220,33 @@ try {
   check('…to the trash (its file is gone from Cases/)', !fs.existsSync(path.join(ws, 'Cases', `${kept.id}.md`)))
   check('…and its sessions with it', !(await win.evaluate((id) => window.__sessionStore.list().some((s) => s.caseId === id), kept.id)))
 
-  // ── delete the agent ──
+  // ── the agent's settings, on its card ──
+  // Something another editor wrote into the file (Claude Code's own fields) must survive a save.
+  const agentFile = path.join(ws, '.claude', 'agents', 'quill-e2e-test-writer.md')
+  fs.writeFileSync(agentFile, fs.readFileSync(agentFile, 'utf8').replace(/\n---\n/, '\ncolor: green\n---\n'))
   await win.click('[data-dock="overview"]')
   await settle(1000)
   await win.evaluate((sel) => document.querySelector(sel)?.click(), face)
+  await win.waitForSelector('[data-testid="agent-tab-settings"]', { timeout: 6000 })
+  await win.click('[data-testid="agent-tab-settings"]')
+  await win.waitForSelector('[data-testid="agent-set-about"]', { timeout: 6000 })
+  check('Settings opens on the card with what the agent says about itself', (await win.inputValue('[data-testid="agent-set-about"]')) === 'Writes test answers')
+  await win.selectOption('[data-testid="agent-set-model"]', 'sonnet')
+  await win.click('[data-testid="agent-settings"] [data-mode="safe"]')
+  await win.fill('[data-testid="agent-set-about"]', 'Writes careful test answers')
+  await win.click('[data-testid="agent-set-save"]')
+  await settle(1200)
+  const md = fs.readFileSync(agentFile, 'utf8')
+  check('Save writes model, mode and about to the agent', /wos_model: sonnet/.test(md) && /wos_mode: safe/.test(md) && /description: Writes careful test answers/.test(md), md.slice(0, 300))
+  check('…and keeps what another editor put in the file', /color: green/.test(md), md.slice(0, 300))
+  check('…and the persona is untouched', md.includes('You write short answers.'))
+  await win.click('[data-testid="agent-tab-work"]')
+  await settle(600)
+  const about = (await win.textContent('[data-testid="agent-focus"]').catch(() => '')) ?? ''
+  check('the card shows the new About at once', about.includes('Writes careful test answers'), about.slice(-200))
+
+  // ── delete the agent (in its settings) ──
+  await win.click('[data-testid="agent-tab-settings"]')
   await win.waitForSelector('[data-testid="agent-delete"]', { timeout: 6000 })
   await win.click('[data-testid="agent-delete"]')
   await win.click('[data-testid="agent-delete-confirm"]')

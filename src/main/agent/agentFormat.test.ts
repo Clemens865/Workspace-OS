@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { parseAgentMd, serializeAgentMd } from './agentFormat'
+import { foreignFrontmatter, parseAgentMd, serializeAgentMd } from './agentFormat'
 
 describe('agentFormat — wos_model', () => {
   it('round-trips Codex picks alongside every existing Claude alias and persona field', () => {
@@ -24,5 +24,20 @@ describe('agentFormat — wos_model', () => {
     expect(md).toMatch(/^wos_model: opus$/m)
     expect(parseAgentMd(md, 'x').model).toBe('opus')
     expect(serializeAgentMd({ name: 'Nadia', persona: 'Research.' })).not.toMatch(/wos_model/)
+  })
+})
+
+describe('agentFormat — frontmatter another editor wrote', () => {
+  const md = `---\nname: Ada\ndescription: Reads things\ntools: Read, Grep\nwos_mode: safe\nhooks:\n  - one\n  - two\ncolor: blue\n---\n\nBe brief.\n`
+
+  it('keeps the lines the app does not own, with their continuation lines', () => {
+    expect(foreignFrontmatter(md)).toEqual(['tools: Read, Grep', 'hooks:', '  - one', '  - two', 'color: blue'])
+  })
+
+  it('a save writes them back and still reads as the same agent', () => {
+    const a = parseAgentMd(md, 'ada')
+    const out = serializeAgentMd({ ...a, description: 'Reads more', extra: foreignFrontmatter(md) })
+    expect(out).toContain('tools: Read, Grep\nhooks:\n  - one\n  - two\ncolor: blue\n---')
+    expect(parseAgentMd(out, 'ada')).toMatchObject({ name: 'Ada', description: 'Reads more', mode: 'safe', persona: 'Be brief.' })
   })
 })

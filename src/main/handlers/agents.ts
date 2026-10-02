@@ -8,7 +8,7 @@ import { IpcValidationError } from '../ipc-validator'
 import { getWorkspaceRoot } from '../workspace-root'
 import { CAPABILITY_CATALOG } from '../agent/capabilityCatalog'
 import { buildAgentSpec } from '../agent/foundry'
-import { parseAgentMd, serializeAgentMd } from '../agent/agentFormat'
+import { foreignFrontmatter, parseAgentMd, serializeAgentMd } from '../agent/agentFormat'
 
 /**
  * User-defined agents ("personas") for the IWE agent. Stored as native
@@ -103,8 +103,15 @@ export function registerAgentsHandlers(ipcMain: IpcMain): void {
     const a = payload as Partial<AgentFile> & { scope?: 'global' | 'project' }
     if (!a || typeof a.name !== 'string' || !a.name.trim()) throw new IpcValidationError('Agent name is required')
     const scope: 'global' | 'project' = a.scope === 'project' ? 'project' : 'global'
-    const md = serializeAgentMd({ ...a, name: a.name })
     const p = agentPath(a.name, scope)
+    // Keep what another editor (Claude Code itself) put in the frontmatter.
+    let extra: string[] = []
+    try {
+      extra = foreignFrontmatter(fs.readFileSync(p, 'utf-8'))
+    } catch {
+      /* a new agent */
+    }
+    const md = serializeAgentMd({ ...a, name: a.name, extra })
     fs.mkdirSync(path.dirname(p), { recursive: true })
     fs.writeFileSync(p, md, 'utf-8')
     return { name: a.name, path: p, scope }
