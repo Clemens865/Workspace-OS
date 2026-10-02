@@ -93,3 +93,31 @@ describe('revisionPrompt', () => {
     expect(p).toContain('What should change:\nShorter, and add week numbers')
   })
 })
+
+describe('deriveInbox — mail (ADOPTION.md B2)', () => {
+  const base = { runs: [], hitl: [], jobs: [], codex: [], dismissed: new Set<string>() }
+  const card = (id: string, status: string, createdAt = 1) => ({ id, subject: `Re ${id}`, fromLabel: 'Dana', reason: 'asks a question', status, createdAt })
+
+  it('mail waiting for a reply becomes an item, right after questions', () => {
+    const items = deriveInbox({ ...base, mail: [card('m1', 'triaged')] })
+    expect(items).toHaveLength(1)
+    expect(items[0]).toMatchObject({ key: 'mail:m1', kind: 'mail', who: 'Dana', title: 'Re m1', text: 'asks a question', mailId: 'm1' })
+  })
+
+  it('sent and dismissed mail is gone', () => {
+    expect(deriveInbox({ ...base, mail: [card('a', 'sent'), card('b', 'dismissed')] })).toHaveLength(0)
+  })
+
+  it('orders mail after a question and before a failure', () => {
+    const now = Date.now()
+    const items = deriveInbox(
+      {
+        ...base,
+        hitl: [{ sessionId: 's', sessionName: 'S', kind: 'command', question: 'Run it?', createdAt: now }],
+        mail: [card('m', 'triaged', now)],
+      },
+      now,
+    )
+    expect(items.map((i) => i.kind)).toEqual(['question', 'mail'])
+  })
+})

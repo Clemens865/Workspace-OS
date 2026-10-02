@@ -38,10 +38,21 @@ interface Pane {
   mesh: THREE.Mesh<THREE.BufferGeometry, THREE.ShaderMaterial>
   w: number
   h: number
+  /** The scroll box that clips the element (null = the window). */
+  clip: HTMLElement | null
 }
 
 const PAD = 3
 const GRID = 10
+
+/** The nearest ancestor that clips its content (a scroll box), if any. */
+export function scrollBox(el: HTMLElement): HTMLElement | null {
+  for (let p = el.parentElement; p && p !== document.body; p = p.parentElement) {
+    const s = getComputedStyle(p)
+    if (/(auto|scroll|hidden)/.test(s.overflowY + s.overflowX)) return p
+  }
+  return null
+}
 
 /** Bilinear interpolation of the four corners (TL, TR, BR, BL). */
 export function bilerp(c: [number, number][], u: number, v: number, k: 0 | 1): number {
@@ -108,13 +119,14 @@ export class GlassPanes {
         uFrost: { value: typeof opts.frost === 'number' ? opts.frost : 0.1 },
         uColor: { value: new THREE.Color(opts.color ?? '#ffffff') },
         uTinted: { value: opts.color ? 1 : 0 },
+        uClip: { value: new THREE.Vector4(-1e6, -1e6, 1e6, 1e6) },
       },
     })
     const mesh = new THREE.Mesh(new THREE.BufferGeometry(), mat)
     mesh.frustumCulled = false
     mesh.renderOrder = this.panes.size
     this.scene.add(mesh)
-    const p: Pane = { el, opts, marks, mesh, w: 0, h: 0 }
+    const p: Pane = { el, opts, marks, mesh, w: 0, h: 0, clip: scrollBox(el) }
     this.panes.set(el, p)
     this.update(p)
   }
@@ -159,6 +171,18 @@ export class GlassPanes {
       const r = m.getBoundingClientRect()
       return [r.left, r.top] as [number, number]
     })
+    // Clip to the scroll box the element lives in; hide it once it has left the box.
+    const U0 = p.mesh.material.uniforms
+    if (p.clip?.isConnected) {
+      const b = p.clip.getBoundingClientRect()
+      const xs = c.map((q) => q[0])
+      const ys = c.map((q) => q[1])
+      if (Math.max(...xs) <= b.left || Math.min(...xs) >= b.right || Math.max(...ys) <= b.top || Math.min(...ys) >= b.bottom) {
+        p.mesh.visible = false
+        return
+      }
+      U0.uClip.value.set(b.left, b.top, b.right, b.bottom)
+    }
     if (Math.abs(c[1][0] - c[0][0]) < 2) {
       p.mesh.visible = false
       return

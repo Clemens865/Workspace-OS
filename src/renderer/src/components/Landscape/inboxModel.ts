@@ -8,12 +8,24 @@
  *   interrupted a background job cut off (quit, crash), until restarted or dismissed
  *   paused      a run the person paused, until resumed or stopped
  *   review      a finished run awaiting Keep / Revert / Revise
+ *   mail        a mail the triage marked as needing a reply (ADOPTION.md B2),
+ *               until it is sent or dismissed
  */
 import type { ReviewRun, HitlItem } from '../Review/reviewModel'
 import type { CodexAsk, JobLite } from './agentPresence'
 import { shorten, splitName } from './agentPresence'
 
-export type InboxKind = 'question' | 'error' | 'interrupted' | 'paused' | 'review'
+export type InboxKind = 'question' | 'mail' | 'error' | 'interrupted' | 'paused' | 'review'
+
+/** A mail-review card, reduced to what the Inbox shows. */
+export interface MailLite {
+  id: string
+  subject: string
+  fromLabel: string
+  reason: string
+  status: string
+  createdAt: number
+}
 
 export interface InboxItem {
   key: string
@@ -33,15 +45,17 @@ export interface InboxItem {
   /** Can be rolled back (the run has a checkpoint). */
   revertible: boolean
   prompt: string | null
+  /** Mail-review card id (mail items only). */
+  mailId?: string
 }
 
 /** Errors older than this stop asking for attention (they stay in the feed). */
 export const ERROR_WINDOW_MS = 24 * 3_600_000
 
-const ORDER: Record<InboxKind, number> = { question: 0, error: 1, interrupted: 2, paused: 3, review: 4 }
+const ORDER: Record<InboxKind, number> = { question: 0, mail: 1, error: 2, interrupted: 3, paused: 4, review: 5 }
 
 export function deriveInbox(
-  inp: { runs: ReviewRun[]; hitl: HitlItem[]; jobs: JobLite[]; codex: CodexAsk[]; dismissed: Set<string> },
+  inp: { runs: ReviewRun[]; hitl: HitlItem[]; jobs: JobLite[]; codex: CodexAsk[]; dismissed: Set<string>; mail?: MailLite[] },
   now = Date.now(),
 ): InboxItem[] {
   const items: InboxItem[] = []
@@ -161,6 +175,28 @@ export function deriveInbox(
     })
   }
 
+  // Mail that needs a reply is the same kind of obligation as a run awaiting
+  // approval, so it joins the same list (as the Cockpit had it).
+  for (const m of inp.mail ?? []) {
+    if (m.status === 'sent' || m.status === 'dismissed') continue
+    items.push({
+      key: `mail:${m.id}`,
+      kind: 'mail',
+      agentName: null,
+      who: m.fromLabel || 'Mail',
+      title: m.subject || '(no subject)',
+      text: m.reason || null,
+      at: m.createdAt,
+      runId: null,
+      sessionId: null,
+      requestId: null,
+      files: [],
+      revertible: false,
+      prompt: null,
+      mailId: m.id,
+    })
+  }
+
   return items.sort((a, b) => ORDER[a.kind] - ORDER[b.kind] || b.at - a.at)
 }
 
@@ -179,6 +215,7 @@ export function revisionPrompt(original: string | null, files: string[], feedbac
 
 export const KIND_LABEL: Record<InboxKind, string> = {
   question: 'Needs your answer',
+  mail: 'Mail to answer',
   error: 'Needs attention',
   interrupted: 'Interrupted',
   paused: 'Paused',

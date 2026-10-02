@@ -44,6 +44,8 @@ const app = await electron.launch({ args: [path.join(root, 'out/main/index.js')]
 const win = await app.firstWindow({ timeout: 20000 })
 win.on('pageerror', (err) => console.log(`  [pageerror] ${err.message}`))
 await win.waitForSelector('#root', { timeout: 20000 })
+// The review and mail stores live in localStorage: save the user's, restore them after.
+const saved = await win.evaluate(() => JSON.stringify({ ...localStorage }))
 await win.evaluate(() => {
   const K = 'workspace-os:settings'
   let c = {}
@@ -121,6 +123,39 @@ try {
   check('Dismiss clears the failure; the Inbox is empty', count === '0', count)
   check('…and says so', ((await win.textContent('[data-testid="inbox-view"]')) ?? '').includes('Nothing is waiting on you'))
 
+  // ── mail waiting for a reply (ADOPTION.md B2) ──
+  await win.evaluate(() => {
+    const m = window.__mailReviewStore
+    m.reset()
+    m.ingestTriage('e2e-acct', 'INBOX', [{ folder: 'INBOX', uid: 9, subject: 'Can you send the deck?', from: { name: 'Dana', address: 'dana@example.com' }, reason: 'asks for a file', score: 80 }])
+  })
+  await settle()
+  const mailCard = await win.$('[data-inbox^="mail:"]')
+  check('mail waiting for a reply is in the Inbox', !!mailCard && (await mailCard.getAttribute('data-kind')) === 'mail')
+  if (mailCard) {
+    await mailCard.click()
+    await win.waitForTimeout(500)
+    const mainText = await win.textContent('[data-testid="inbox-main"]')
+    check('…with its subject and why it needs you', mainText.includes('Can you send the deck?') && mainText.includes('asks for a file'), mainText)
+    await win.click('[data-testid="inbox-dismiss-mail"]')
+    await settle()
+    const left = await win.evaluate(() => window.__mailReviewStore.getSnapshot().cards.find((c) => c.id.startsWith('e2e-acct'))?.status)
+    check('Dismiss resolves the mail card', left === 'dismissed', left)
+    check('…and it leaves the Inbox', !(await win.$('[data-inbox^="mail:"]')))
+  }
+
+  // ── History, the Inbox's second tab ──
+  await win.click('[data-switch="history"]')
+  await settle()
+  const hist = await win.textContent('[data-testid="history-view"]').catch(() => '')
+  check('History lists what happened, by day', /Today/i.test(hist) && hist.includes('Draft the launch plan'), hist.slice(0, 160))
+  await win.click('[data-lens="agent"]')
+  await win.waitForTimeout(400)
+  const groups = await win.$$eval('[data-group]', (els) => els.map((e) => e.getAttribute('data-group')))
+  check('…and regroups by agent', groups.includes(A), groups.join(','))
+  await win.click('[data-switch="waiting"]')
+  await settle()
+
   // ── previews ──
   await win.click('[data-dock="overview"]')
   await settle()
@@ -166,13 +201,12 @@ try {
   const txt = await win.textContent(`[data-agent="${A.replace(/"/g, '\\"')}"] [data-testid="screen-result-text"]`).catch(() => '')
   check('a finished text result previews its opening lines', txt.includes('Launch plan'), txt)
 } finally {
-  await win.evaluate(() => {
-    window.__reviewStore.reset()
-    const K = 'workspace-os:settings'
-    let c = {}
-    try { c = JSON.parse(localStorage.getItem(K) || '{}') } catch { /* ignore */ }
-    localStorage.setItem(K, JSON.stringify({ ...c }))
-  }).catch(() => {})
+  await win
+    .evaluate((saved) => {
+      localStorage.clear()
+      for (const [k, v] of Object.entries(JSON.parse(saved))) localStorage.setItem(k, v)
+    }, saved)
+    .catch(() => {})
   await app.close()
   fs.rmSync(ws, { recursive: true, force: true })
 }

@@ -6,7 +6,7 @@
 import { RAIL_ITEMS, type RailId } from '../Shell/shellModel'
 
 /** Landscape-level views. `agent` is one screen in focus; `stage` is the flat stage hosting the classic surfaces. */
-export type LandscapeView = 'overview' | 'agent' | 'inbox' | 'cases' | 'menu' | 'stage'
+export type LandscapeView = 'overview' | 'today' | 'agent' | 'inbox' | 'cases' | 'menu' | 'stage'
 
 export type DockId = 'overview' | 'inbox' | 'cases' | 'library' | 'menu'
 
@@ -39,7 +39,7 @@ export interface MenuGroup {
 }
 
 const HINTS: Partial<Record<RailId, string>> = {
-  home: 'The widget board: what happened, what needs you',
+  home: 'Today: what happened, what is next, what needs you',
   files: 'The workspace folder, previews and editors',
   mail: 'Inbox, sift and compose',
   calendar: 'Your calendars and invitations',

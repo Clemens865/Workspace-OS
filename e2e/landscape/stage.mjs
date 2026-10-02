@@ -90,6 +90,11 @@ try {
     await win.click(`[data-menu="${it.rail}"]`)
     await settle()
     s = await state()
+    // Home lives in the landscape now, as Today (docs/landscape/ADOPTION.md B1).
+    if (it.rail === 'home') {
+      check('Menu → Home opens Today in the landscape', s.view === 'today' && s.landscapeVisible, JSON.stringify(s))
+      continue
+    }
     const ok = s.view === 'stage' && !s.landscapeVisible && s.rail === it.label
     check(`Menu → ${it.label} opens it on the stage`, ok, JSON.stringify(s))
     // Settings is a modal on the stage; close it the way a user would.

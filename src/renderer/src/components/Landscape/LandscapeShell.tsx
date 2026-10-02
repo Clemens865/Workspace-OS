@@ -11,6 +11,10 @@ import { useSettings } from '../../hooks/useSettings'
 import { DOCK, type DockId, type LandscapeView } from './landscapeModel'
 import { LandscapeDock } from './LandscapeDock'
 import { LandscapeMenu } from './LandscapeMenu'
+import { TodayView } from './today/TodayView'
+import { HistoryView } from './HistoryView'
+import type { TodayGo } from './today/todayModel'
+import { greeting } from '../Shell/home/homeModel'
 import { LandscapeWorld, ADD_ID, type WorldMode } from './LandscapeWorld'
 import { AgentFocus } from './AgentFocus'
 import { useAgentPresence } from './useAgentPresence'
@@ -20,6 +24,7 @@ import { InboxView } from './InboxView'
 import { CasesView } from './CasesView'
 import { ProjectSwitcher } from './ProjectSwitcher'
 import { deriveInbox } from './inboxModel'
+import { useMailReviewStore } from '../Review/useMailReviewStore'
 import { PreviewLive } from './usePreview'
 import { BackdropContext, useBackdrop } from './backdrop/useBackdrop'
 import styles from './LandscapeShell.module.css'
@@ -55,6 +60,10 @@ export function LandscapeShell(): JSX.Element {
     })
   }, [])
   const [agentId, setAgentId] = useState<string | null>(null)
+  // A case to open when Cases is reached from Today's hero.
+  const [caseFocus, setCaseFocus] = useState<string | null>(null)
+  // The Inbox's two faces: what waits, and what happened (ADOPTION.md B2).
+  const [inboxTab, setInboxTab] = useState<'waiting' | 'history'>('waiting')
   // The stage stays visible until the landscape has fully faded back in.
   const [stageShown, setStageShown] = useState(false)
   const lastLandscape = useRef<LandscapeOnly>('overview')
@@ -79,7 +88,12 @@ export function LandscapeShell(): JSX.Element {
       return next
     })
   }, [])
-  const inbox = useMemo(() => deriveInbox({ runs, hitl, jobs, codex, dismissed }), [runs, hitl, jobs, codex, dismissed])
+  const mailReview = useMailReviewStore()
+  const mail = useMemo(
+    () => mailReview.cards.map((c) => ({ id: c.id, subject: c.source.subject, fromLabel: c.source.fromLabel, reason: c.source.reason, status: c.status, createdAt: c.createdAt })),
+    [mailReview.cards],
+  )
+  const inbox = useMemo(() => deriveInbox({ runs, hitl, jobs, codex, dismissed, mail }), [runs, hitl, jobs, codex, dismissed, mail])
   const rows = useMemo(() => {
     const r = arrangeRows(agents)
     // The "Add agent" ghost closes the last row.
@@ -136,6 +150,11 @@ export function LandscapeShell(): JSX.Element {
   /** Open a stage surface by name: the shell's own rail switch, then reveal it. */
   const openSurface = useCallback(
     (rail: RailId) => {
+      // Home lives in the landscape now, as Today (ADOPTION.md B1).
+      if (rail === 'home') {
+        setView('today')
+        return
+      }
       window.dispatchEvent(new CustomEvent('wos:open-rail', { detail: { rail } }))
       showStage()
     },
@@ -198,7 +217,7 @@ export function LandscapeShell(): JSX.Element {
       if (e.key !== 'Escape' || e.defaultPrevented) return
       const t = e.target as HTMLElement | null
       if (t && (/INPUT|TEXTAREA|SELECT/.test(t.tagName) || t.isContentEditable)) return
-      if (view === 'agent' || view === 'menu' || view === 'inbox' || view === 'cases') setView('overview')
+      if (view === 'agent' || view === 'menu' || view === 'inbox' || view === 'cases' || view === 'today') setView('overview')
     }
     window.addEventListener('keydown', onKey)
     return () => window.removeEventListener('keydown', onKey)
@@ -209,13 +228,29 @@ export function LandscapeShell(): JSX.Element {
     if (view === 'agent' && agentId && !agents.some((a) => a.id === agentId)) setView('overview')
   }, [view, agentId, agents])
 
+  const onTodayGo = (go: TodayGo): void => {
+    if (go.to === 'team') setView('overview')
+    else if (go.to === 'surface') openSurface(go.rail)
+    else {
+      setCaseFocus(go.to === 'case' ? (go.caseId ?? null) : null)
+      setView('cases')
+    }
+  }
+  // A page from Today opens as a tab in the stage browser.
+  const openUrl = (url: string): void => {
+    window.dispatchEvent(new CustomEvent('wos:browser-open', { detail: { url } }))
+    openSurface('browser')
+  }
+
   const onDock = (id: DockId): void => {
+    if (id === 'cases') setCaseFocus(null)
+    if (id === 'inbox') setInboxTab('waiting')
     const item = DOCK.find((d) => d.id === id)
     if (item?.stage) openSurface(item.stage)
     else showLandscape(id === 'menu' ? 'menu' : id === 'inbox' ? 'inbox' : id === 'cases' ? 'cases' : 'overview')
   }
   const activeDock: DockId | null =
-    view === 'menu' ? 'menu' : view === 'inbox' ? 'inbox' : view === 'cases' ? 'cases' : view === 'overview' || view === 'agent' ? 'overview' : null
+    view === 'menu' ? 'menu' : view === 'inbox' ? 'inbox' : view === 'cases' ? 'cases' : view === 'overview' || view === 'agent' || view === 'today' ? 'overview' : null
   const onStage = view === 'stage'
   const worldMode: WorldMode = view === 'agent' ? 'focus' : view === 'overview' ? 'overview' : 'away'
 
@@ -252,15 +287,19 @@ export function LandscapeShell(): JSX.Element {
             ) : (
               <>
                 <h1 className={styles.heading}>
-                  {view === 'menu' ? 'Menu' : view === 'inbox' ? `Inbox${inbox.length ? ` · ${inbox.length} waiting` : ''}` : view === 'cases' ? 'Your cases' : 'Your team'}
+                  {view === 'menu' ? 'Menu' : view === 'inbox' ? (inboxTab === 'history' ? 'History' : `Inbox${inbox.length ? ` · ${inbox.length} waiting` : ''}`) : view === 'cases' ? 'Your cases' : view === 'today' ? `${greeting(new Date().getHours())}.` : 'Your team'}
                 </h1>
                 <div className={styles.sub} data-testid="team-summary">
                   {view === 'menu'
                     ? 'Every part of the workspace, one click away'
                     : view === 'inbox'
-                      ? 'Questions, results to review, and anything that went wrong'
+                      ? inboxTab === 'history'
+                        ? 'Everything that happened here, newest first'
+                        : 'Questions, results to review, and anything that went wrong'
                       : view === 'cases'
                         ? 'Each thread of work with its documents, notes and status'
+                      : view === 'today'
+                        ? 'What happened, what is next, and what needs you'
                       : agents.length
                         ? teamSummary(agents)
                         : 'No agents yet'}
@@ -269,13 +308,42 @@ export function LandscapeShell(): JSX.Element {
             )}
           </div>
           <div className={styles.headerRight}>
+            {(view === 'overview' || view === 'today') && (
+              <div className={styles.switch} role="tablist" aria-label="Overview" data-testid="overview-switch">
+                <button type="button" role="tab" aria-selected={view === 'overview'} className={view === 'overview' ? styles.switchOn : ''} onClick={() => setView('overview')} data-switch="team">
+                  Team
+                </button>
+                <button type="button" role="tab" aria-selected={view === 'today'} className={view === 'today' ? styles.switchOn : ''} onClick={() => setView('today')} data-switch="today">
+                  Today
+                </button>
+              </div>
+            )}
+            {view === 'inbox' && (
+              <div className={styles.switch} role="tablist" aria-label="Inbox" data-testid="inbox-switch">
+                <button type="button" role="tab" aria-selected={inboxTab === 'waiting'} className={inboxTab === 'waiting' ? styles.switchOn : ''} onClick={() => setInboxTab('waiting')} data-switch="waiting">
+                  Waiting
+                </button>
+                <button type="button" role="tab" aria-selected={inboxTab === 'history'} className={inboxTab === 'history' ? styles.switchOn : ''} onClick={() => setInboxTab('history')} data-switch="history">
+                  History
+                </button>
+              </div>
+            )}
             <ProjectSwitcher />
           </div>
         </header>
 
         {view === 'menu' && <LandscapeMenu onOpen={openSurface} />}
-        {view === 'inbox' && <InboxView items={inbox} onDismiss={dismiss} />}
-        {view === 'cases' && <CasesView />}
+        {view === 'inbox' && inboxTab === 'waiting' && <InboxView items={inbox} onDismiss={dismiss} />}
+        {view === 'inbox' && inboxTab === 'history' && (
+          <HistoryView
+            onOpenCase={(id) => {
+              setCaseFocus(id)
+              setView('cases')
+            }}
+          />
+        )}
+        {view === 'cases' && <CasesView initialCase={caseFocus} />}
+        {view === 'today' && <TodayView onGo={onTodayGo} onOpenUrl={openUrl} />}
 
         {(view === 'overview' || view === 'agent') && (
           <div className={styles.hint} aria-hidden>

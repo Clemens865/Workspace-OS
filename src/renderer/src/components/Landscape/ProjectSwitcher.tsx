@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
-import { ChevronDown, Plus } from 'lucide-react'
+import { ChevronDown, FolderOpen, Plus } from 'lucide-react'
 import { useWorkspaceRoot } from '../../hooks/useWorkspaceRoot'
 import styles from './LandscapeShell.module.css'
 
@@ -24,13 +24,18 @@ export function ProjectSwitcher(): JSX.Element | null {
   const [list, setList] = useState<Project[]>([])
   const [name, setName] = useState('')
   const [error, setError] = useState<string | null>(null)
+  // Other workspaces opened before, and "Open folder…" (the old Home's switcher).
+  const [recents, setRecents] = useState<string[]>([])
   const box = useRef<HTMLDivElement>(null)
   const home = root ? homeFor(root, localStorage.getItem(HOME_KEY)) : null
 
   const load = useCallback(async () => {
-    if (!home) return
+    if (!home) {
+      setList([])
+      return
+    }
     try {
-      setList(await window.workspace.projects.list(home))
+      setList(home ? await window.workspace.projects.list(home) : [])
     } catch {
       setList([])
     }
@@ -41,6 +46,14 @@ export function ProjectSwitcher(): JSX.Element | null {
 
   useEffect(() => {
     if (!open) return
+    void window.workspace.fs
+      .recentWorkspaces()
+      .then(setRecents)
+      .catch(() => setRecents([]))
+  }, [open])
+
+  useEffect(() => {
+    if (!open) return
     const close = (e: PointerEvent): void => {
       if (!box.current?.contains(e.target as Node)) setOpen(false)
     }
@@ -48,13 +61,23 @@ export function ProjectSwitcher(): JSX.Element | null {
     return () => window.removeEventListener('pointerdown', close)
   }, [open])
 
-  if (!root || !home) return null
   const current = list.find((p) => p.path === root)
-  const label = !current || current.home ? 'All projects' : current.name
+  const label = !root ? 'Open a folder' : !current || current.home ? 'All projects' : current.name
+  const others = recents.filter((r) => r !== root && !list.some((p) => p.path === r)).slice(0, 6)
+
+  const openRecent = async (dir: string): Promise<void> => {
+    setOpen(false)
+    await window.workspace.fs.openWorkspace(dir)
+  }
+  const openFolder = async (): Promise<void> => {
+    setOpen(false)
+    const dir = await window.workspace.fs.openFolderDialog()
+    if (dir) await window.workspace.fs.openWorkspace(dir)
+  }
 
   const go = async (p: Project): Promise<void> => {
     setOpen(false)
-    if (p.path === root) return
+    if (p.path === root || !home) return
     try {
       localStorage.setItem(HOME_KEY, home)
     } catch {
@@ -65,6 +88,7 @@ export function ProjectSwitcher(): JSX.Element | null {
 
   const create = async (): Promise<void> => {
     setError(null)
+    if (!home) return
     try {
       const p = await window.workspace.projects.create(home, name.trim())
       setName('')
@@ -88,6 +112,7 @@ export function ProjectSwitcher(): JSX.Element | null {
               {p.home ? `All projects · ${p.name}` : p.name}
             </button>
           ))}
+          {root && (
           <label className={styles.projectNew}>
             <Plus size={14} />
             <input
@@ -100,7 +125,18 @@ export function ProjectSwitcher(): JSX.Element | null {
               data-testid="project-new"
             />
           </label>
+          )}
           {error && <div className={styles.projectError}>{error}</div>}
+          {others.length > 0 && <div className={styles.projectSection}>Recent workspaces</div>}
+          {others.map((dir) => (
+            <button key={dir} role="menuitem" className={styles.projectItem} onClick={() => void openRecent(dir)} data-recent={dir} title={dir}>
+              <span className={styles.projectDot} />
+              {dir.split('/').pop() || dir}
+            </button>
+          ))}
+          <button role="menuitem" className={styles.projectItem} onClick={() => void openFolder()} data-testid="project-open-folder">
+            <FolderOpen size={14} /> Open folder…
+          </button>
         </div>
       )}
     </div>

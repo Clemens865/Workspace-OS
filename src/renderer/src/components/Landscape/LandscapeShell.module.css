@@ -310,8 +310,56 @@
   gap: 12px;
 }
 
+/* Team | Today: the two faces of the overview (ADOPTION.md B1). */
+.switch {
+  display: inline-flex;
+  align-items: center;
+  height: 42px;
+  padding: 4px;
+  gap: 2px;
+  border-radius: 21px;
+  border: 1px solid var(--wl-line);
+  background: rgba(255, 255, 255, 0.55);
+}
+
+.switch button {
+  height: 32px;
+  padding: 0 16px;
+  border: 0;
+  border-radius: 16px;
+  background: none;
+  font: inherit;
+  font-size: 14px;
+  color: var(--wl-ink-2);
+  cursor: pointer;
+  transition: background 0.2s var(--wl-ease-soft), color 0.2s var(--wl-ease-soft);
+}
+
+.switch button:hover {
+  color: var(--wl-ink);
+}
+
+.switch .switchOn {
+  background: rgba(255, 255, 255, 0.95);
+  color: var(--wl-ink);
+  box-shadow: 0 0 0 1px rgba(27, 39, 48, 0.06);
+}
+
+.glassOn .switch {
+  background: rgba(255, 255, 255, 0.3);
+}
+
 .projects {
   position: relative;
+}
+
+.projectSection {
+  margin: 8px 10px 4px;
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--wl-muted);
 }
 
 .projectPill {

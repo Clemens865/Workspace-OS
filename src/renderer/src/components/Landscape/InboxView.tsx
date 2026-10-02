@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { ArrowUpRight, Check, FileText, Play, RotateCcw, Send, X } from 'lucide-react'
 import { reviewStore } from '../Review/reviewStore'
+import { mailReviewStore } from '../Review/mailReviewStore'
 import { AgentAvatar } from '../Agents/AgentAvatar'
 import { useGlass } from './backdrop/useBackdrop'
 import { ago } from './agentPresence'
@@ -215,6 +216,17 @@ export function InboxView({ items, onDismiss }: { items: InboxItem[]; onDismiss:
                 </button>
                 <button className={styles.btn} disabled={busy} onClick={() => run(() => act.stopPaused(item.runId), 'Stopped.')} data-testid="inbox-stop">
                   Stop
+                </button>
+              </>
+            )}
+
+            {item.kind === 'mail' && (
+              <>
+                <button className={styles.primary} onClick={() => act.openRail('mail')} data-testid="inbox-open-mail">
+                  <ArrowUpRight size={14} /> Answer in Mail
+                </button>
+                <button className={styles.btn} disabled={busy} onClick={() => run(() => mailReviewStore.dismiss(item.mailId!), 'Dismissed.')} data-testid="inbox-dismiss-mail">
+                  Dismiss
                 </button>
               </>
             )}

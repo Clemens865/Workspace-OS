@@ -52,10 +52,13 @@ function Folio({ c, selected, i, onPick }: { c: WorkCase; selected: boolean; i: 
  * work; files open on the stage, notes and status are written through the
  * cases API like everywhere else in the app.
  */
-export function CasesView(): JSX.Element {
+export function CasesView({ initialCase = null }: { initialCase?: string | null } = {}): JSX.Element {
   const [cases, setCases] = useState<WorkCase[] | null>(null)
   const [q, setQ] = useState('')
-  const [pick, setPick] = useState<string | null>(null)
+  const [pick, setPick] = useState<string | null>(initialCase)
+  useEffect(() => {
+    if (initialCase) setPick(initialCase)
+  }, [initialCase])
   const [tab, setTab] = useState<Tab>('overview')
   const [statuses, setStatuses] = useState<string[]>([])
   const [note, setNote] = useState('')

@@ -651,6 +651,21 @@ export function BrowserSurface(): JSX.Element {
   const tabsRef = useRef<BrowserTab[]>(state.tabs)
   tabsRef.current = state.tabs
 
+  // A page chosen elsewhere (the landscape's Today) opens as its own tab, or
+  // brings forward the tab that already shows it. The active tab is never
+  // replaced: it is the page the person was reading.
+  useEffect(() => {
+    const onOpen = (e: Event): void => {
+      const url = (e as CustomEvent<{ url?: unknown }>).detail?.url
+      if (typeof url !== 'string' || !url) return
+      const open = tabsRef.current.find((t) => t.url === url)
+      if (open) dispatch({ type: 'activate', id: open.id })
+      else dispatch({ type: 'add', url })
+    }
+    window.addEventListener('wos:browser-open', onOpen)
+    return () => window.removeEventListener('wos:browser-open', onOpen)
+  }, [])
+
   // TAB COMMAND BUS — agent-facing browser.* tab-management actions dispatch a
   // command here (create/list/close/activate). newTab pre-generates a stable id,
   // creates the tab, and stashes a resolver so onTabAttach can return the id once

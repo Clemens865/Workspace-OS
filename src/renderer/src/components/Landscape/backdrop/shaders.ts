@@ -126,15 +126,18 @@ export const SCREEN_FRAG = 'uniform sampler2D tLand; uniform vec2 uOut; void mai
  * opposite sides with a faint spectral fringe, a faint inner contour, the
  * cursor as the light, no shadow, opaque (fading weakens the lensing).
  */
-export const GLASS_VERT = `attribute vec2 aLocal; varying vec2 vLocal;
-  void main(){ vLocal = aLocal; gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.); }`
+export const GLASS_VERT = `attribute vec2 aLocal; varying vec2 vLocal; varying vec2 vScreen;
+  void main(){ vLocal = aLocal; vScreen = vec2(position.x, -position.y); gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.); }`
 export const GLASS_FRAG = /* glsl */ `
       precision highp float;
       uniform sampler2D tLand; uniform vec2 uOut, uHalf, uLight, uPointer; uniform vec3 uColor;
       uniform float uPR, uTime, uRadius, uBezel, uThick, uScale, uAlpha, uFrost, uTinted;
-      varying vec2 vLocal;
+      uniform vec4 uClip;                                              // CSS px: left, top, right, bottom of the scroll box
+      varying vec2 vLocal; varying vec2 vScreen;
       float sdRR(vec2 p, vec2 b, float r){ vec2 q = abs(p) - b + r; return length(max(q, 0.)) + min(max(q.x, q.y), 0.) - r; }
       void main(){
+        // a pane scrolled out of its container is clipped like the DOM it sits behind
+        if (vScreen.x < uClip.x || vScreen.y < uClip.y || vScreen.x > uClip.z || vScreen.y > uClip.w) discard;
         float d = sdRR(vLocal, uHalf, uRadius);                       // px, negative inside
         // outward normal, taken from a shape rounded at least as much as the bezel is deep, so the
         // bend turns smoothly round the corners instead of meeting along a mitred diagonal
