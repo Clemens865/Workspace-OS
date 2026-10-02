@@ -4,6 +4,9 @@
 // haiku again (the default is pushed to main at startup). The stream-json result
 // names the model that answered, and the run trailer carries it.
 import { launch, poll, makeReporter } from './office/_harness.mjs'
+// The landscape is the only shell (docs/landscape/PLAN.md, phase 7); these tests drive
+// the flat stage's surfaces, so the app opens on the stage.
+process.env.WOS_START_ON ??= 'stage'
 
 const R = makeReporter('agent model pick')
 const { app, win } = await launch()

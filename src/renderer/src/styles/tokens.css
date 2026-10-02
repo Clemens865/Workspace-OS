@@ -5,7 +5,7 @@
  * from the approved mockups (docs/design/prototype.html). It is imported AFTER
  * global.css in main.tsx, but it does NOT restyle existing components — the new
  * shell (WorkspaceShell) opts into these tokens via its own CSS module. The
- * legacy WorkspaceLayout is untouched (variables are additive; no element
+ * rest of the app is untouched (variables are additive; no element
  * selectors are overridden here).
  *
  * Restyling the existing panels to these tokens is a later increment.

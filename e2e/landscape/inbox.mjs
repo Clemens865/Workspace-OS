@@ -48,7 +48,7 @@ await win.evaluate(() => {
   const K = 'workspace-os:settings'
   let c = {}
   try { c = JSON.parse(localStorage.getItem(K) || '{}') } catch { /* fresh */ }
-  localStorage.setItem(K, JSON.stringify({ ...c, newShell: true, landscapeShell: true, terminalOpen: false }))
+  localStorage.setItem(K, JSON.stringify({ ...c, startOn: 'landscape', terminalOpen: false }))
   localStorage.removeItem('workspace-os:landscape-dismissed')
 })
 await win.reload()
@@ -171,7 +171,7 @@ try {
     const K = 'workspace-os:settings'
     let c = {}
     try { c = JSON.parse(localStorage.getItem(K) || '{}') } catch { /* ignore */ }
-    localStorage.setItem(K, JSON.stringify({ ...c, landscapeShell: false, newShell: true }))
+    localStorage.setItem(K, JSON.stringify({ ...c }))
   }).catch(() => {})
   await app.close()
   fs.rmSync(ws, { recursive: true, force: true })

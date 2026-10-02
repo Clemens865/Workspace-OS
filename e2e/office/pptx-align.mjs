@@ -7,6 +7,9 @@
 // → useLokActions.arrange → WosArrange; verifies via WosCapture geometry
 // (1/100 mm) plus canvas pixel probes.
 import { launch, newDoc, makeReporter, enginePresent, poll, shot } from './_harness.mjs'
+// The landscape is the only shell (docs/landscape/PLAN.md, phase 7); these tests drive
+// the flat stage's surfaces, so the app opens on the stage.
+process.env.WOS_START_ON ??= 'stage'
 
 if (!enginePresent()) { console.log('SKIP: engine or host not present'); process.exit(0) }
 

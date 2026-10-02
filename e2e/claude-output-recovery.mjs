@@ -6,6 +6,9 @@ import path from 'node:path'
 import os from 'node:os'
 import assert from 'node:assert/strict'
 import { fileURLToPath, pathToFileURL } from 'node:url'
+// The landscape is the only shell (docs/landscape/PLAN.md, phase 7); these tests drive
+// the flat stage's surfaces, so the app opens on the stage.
+process.env.WOS_START_ON ??= 'stage'
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..')
 const dir = await fs.mkdtemp(path.join(os.tmpdir(), 'wos-claude-recovery-'))

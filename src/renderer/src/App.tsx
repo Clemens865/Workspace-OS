@@ -1,18 +1,12 @@
 import { CodexRequests } from './components/AgentTerminal/CodexRequests'
-import { lazy, Suspense, useEffect, useState } from 'react'
-import { WorkspaceLayout } from './components/Layout/WorkspaceLayout'
-import { WorkspaceShell } from './components/Shell/WorkspaceShell'
+import { useEffect, useState } from 'react'
+import { LandscapeShell } from './components/Landscape/LandscapeShell'
 import { CalmCockpit } from './components/CalmCockpit/CalmCockpit'
 import { BugReporter } from './components/BugReport/BugReporter'
 import { Splash } from './components/Splash/Splash'
-import { useSettings } from './hooks/useSettings'
 import { useBackgroundRuns } from './components/Review/backgroundRuns'
 import { useBindWorkspaceScope } from './hooks/useWorkspaceScope'
 import { editCommandFor, resolveEditTarget, runOnTextEntry, runOnWebview, UNO_FOR } from './lib/editRouter'
-
-// Loaded only when the landscape shell is switched on, so its fonts, tokens and
-// (later) WebGL code cost nothing for anyone on the current shells.
-const LandscapeShell = lazy(() => import('./components/Landscape/LandscapeShell').then((m) => ({ default: m.LandscapeShell })))
 
 /**
  * Standalone preview escape hatch for the Calm Cockpit design prototype.
@@ -31,13 +25,10 @@ function cockpitPreviewEnabled(): boolean {
 }
 
 /**
- * Top-level switch — the reversibility guarantee for the redesign.
- *
- * `newShell` defaults to ON (see useSettings) since v0.1.117: the office
- * parity suite runs green on WorkspaceShell. Settings → Design → Classic
- * renders the previous WorkspaceLayout, kept UNCHANGED as the fallback.
- * `landscapeShell` (off by default, Settings → Design → Landscape) wins over
- * both while the Screen Landscape shell is being built.
+ * The app: the Screen Landscape shell (docs/landscape/PLAN.md). It hosts the
+ * surfaces on its flat stage (WorkspaceShell); the classic layout and the
+ * shell switch were removed in phase 7 and live on in git as the tag
+ * `backup/shells-before-landscape`.
  */
 export function App(): JSX.Element {
   // Design-prototype preview — checked before any hook, so it can't disturb
@@ -50,7 +41,6 @@ export function App(): JSX.Element {
     )
   }
 
-  const { newShell, landscapeShell } = useSettings()
   const bugOpen = useBugReporterShortcut()
   useEditRouter()
   // Agent tabs and the review feed belong to the open workspace, as cases do.
@@ -76,15 +66,7 @@ export function App(): JSX.Element {
   // you won't reach at the moment you actually need it.
   return (
     <>
-      {landscapeShell ? (
-        <Suspense fallback={null}>
-          <LandscapeShell />
-        </Suspense>
-      ) : newShell ? (
-        <WorkspaceShell />
-      ) : (
-        <WorkspaceLayout />
-      )}
+      <LandscapeShell />
       <CodexRequests />
       {bugOpen.open && <BugReporter onClose={bugOpen.close} surface={null} openFile={null} />}
       {splash && <Splash onDone={() => setSplash(false)} />}

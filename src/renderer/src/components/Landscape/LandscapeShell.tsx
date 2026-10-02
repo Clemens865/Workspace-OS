@@ -43,7 +43,11 @@ type LandscapeOnly = Exclude<LandscapeView, 'stage'>
  */
 export function LandscapeShell(): JSX.Element {
   const settings = useSettings()
-  const [view, setView] = useState<LandscapeView>('overview')
+  // Where the app opens: the person's setting, or the stage when a test asks (WOS_START_ON).
+  const [view, setView] = useState<LandscapeView>(() => (settings.startOn === 'stage' ? 'stage' : 'overview'))
+  useEffect(() => {
+    void window.workspace?.startOn?.().then((v) => v === 'stage' && setView('stage'))
+  }, [])
   const [agentId, setAgentId] = useState<string | null>(null)
   // The stage stays visible until the landscape has fully faded back in.
   const [stageShown, setStageShown] = useState(false)
@@ -83,12 +87,11 @@ export function LandscapeShell(): JSX.Element {
     visible: !(view === 'stage' && stageShown),
     reduced,
   })
-  const exitBtn = useRef<HTMLButtonElement>(null)
   const backBtn = useRef<HTMLButtonElement>(null)
-  // The header's two buttons are small glass pills (the shell renders the
+  // The header's back button is a small glass pill (the shell renders the
   // backdrop's provider, so it attaches them directly).
   useEffect(() => {
-    const els = [exitBtn.current, backBtn.current].filter((e): e is HTMLButtonElement => !!e)
+    const els = [backBtn.current].filter((e): e is HTMLButtonElement => !!e)
     if (!backdrop) return
     els.forEach((el) => backdrop.addGlass(el, { radius: 21, bezel: 12, thickness: 24, frost: 0.16 }))
     return () => els.forEach((el) => backdrop.removeGlass(el))
@@ -261,9 +264,6 @@ export function LandscapeShell(): JSX.Element {
           </div>
           <div className={styles.headerRight}>
             <ProjectSwitcher />
-            <button ref={exitBtn} className={styles.back} onClick={() => settings.set('landscapeShell', false)} data-testid="landscape-exit">
-              Back to the current shell
-            </button>
           </div>
         </header>
 

@@ -13,6 +13,9 @@
 import { launch, killAll, newDoc, save, docXml, type as typeText } from './_harness.mjs'
 import fs from 'fs'
 import path from 'path'
+// The landscape is the only shell (docs/landscape/PLAN.md, phase 7); these tests drive
+// the flat stage's surfaces, so the app opens on the stage.
+process.env.WOS_START_ON ??= 'stage'
 
 const TESTROOT = '/tmp/wos-test'
 

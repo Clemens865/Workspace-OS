@@ -929,6 +929,8 @@ contextBridge.exposeInMainWorld('workspace', {
    * Cases — a thread of work that outlives any one agent run: the subject, the
    * documents produced for it, the status, and the notes.
    */
+  /** Where the app opens when a test asks for it (WOS_START_ON); null = the person's own setting. */
+  startOn: (): Promise<'stage' | null> => ipcRenderer.invoke('app:start-on'),
   /** Sub-projects: marked subfolders of the workspace (docs/landscape/PLAN.md §5a). */
   projects: {
     list: (home?: string) => ipcRenderer.invoke('projects:list', home),

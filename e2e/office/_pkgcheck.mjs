@@ -1,5 +1,8 @@
 import { _electron as electron } from 'playwright'
 import path from 'path'; import fs from 'fs'; import { execSync } from 'child_process'; import { fileURLToPath } from 'url'
+// The landscape is the only shell (docs/landscape/PLAN.md, phase 7); these tests drive
+// the flat stage's surfaces, so the app opens on the stage.
+process.env.WOS_START_ON ??= 'stage'
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../..')
 const APP = path.join(root, 'release/mac-arm64/Workspace OS.app/Contents/MacOS/Workspace OS')
 const env = { ...process.env, WORKSPACE_TEST_ROOT: '/tmp/wos-test' }; delete env.WOS_LOK_INSTALL; delete env.WOS_LOK_FUND; delete env.WOS_LOK_HOST

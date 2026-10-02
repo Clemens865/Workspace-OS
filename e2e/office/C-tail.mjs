@@ -1,5 +1,8 @@
 // Phase C tail — Document properties + Print.
 import * as H from './_harness.mjs'
+// The landscape is the only shell (docs/landscape/PLAN.md, phase 7); these tests drive
+// the flat stage's surfaces, so the app opens on the stage.
+process.env.WOS_START_ON ??= 'stage'
 
 const r = H.makeReporter('PHASE C tail — Properties + Print')
 if (!H.enginePresent()) { console.log('SKIP: engine/host missing'); process.exit(0) }

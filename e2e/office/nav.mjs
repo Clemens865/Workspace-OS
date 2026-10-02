@@ -4,6 +4,9 @@
 import fs from 'fs'
 import path from 'path'
 import { launch, poll, shot, makeReporter } from './_harness.mjs'
+// The landscape is the only shell (docs/landscape/PLAN.md, phase 7); these tests drive
+// the flat stage's surfaces, so the app opens on the stage.
+process.env.WOS_START_ON ??= 'stage'
 
 const TESTROOT = '/tmp/wos-test'
 const NAV_FILE = 'nav-notes.md'

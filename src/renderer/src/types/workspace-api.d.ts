@@ -1135,6 +1135,8 @@ export interface WorkspaceApi {
     close: () => Promise<void>
   }
   /** Cases — the thread of work that binds a subject, its documents and its notes. */
+  /** Where the app opens when a test asks for it (WOS_START_ON); null = the person's own setting. */
+  startOn: () => Promise<'stage' | null>
   /** Sub-projects: subfolders marked with .workspace-os/project.json; home = the workspace or a parent. */
   projects: {
     list: (home?: string) => Promise<{ path: string; name: string; color: string | null; home: boolean }[]>

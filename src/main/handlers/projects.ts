@@ -17,6 +17,10 @@ function checkedHome(home: unknown): string {
 }
 
 export function registerProjectHandlers(ipcMain: IpcMain): void {
+  // Env-gated test hook, like WORKSPACE_TEST_ROOT: WOS_START_ON=stage opens the
+  // app on the flat stage instead of the landscape (the e2e suite drives the
+  // stage's surfaces). Inert unless the variable is set.
+  ipcHandle(ipcMain, 'app:start-on', () => (process.env['WOS_START_ON'] === 'stage' ? 'stage' : null))
   ipcHandle(ipcMain, 'projects:list', (_e, home: unknown) => listProjects(checkedHome(home)))
   ipcHandle(ipcMain, 'projects:create', (_e, home: unknown, name: unknown, color: unknown) => {
     if (typeof name !== 'string') throw new Error('Give the project a name.')

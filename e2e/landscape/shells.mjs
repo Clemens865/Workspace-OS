@@ -1,7 +1,9 @@
 /**
- * Landscape phase 0 exit test (docs/landscape/PLAN.md): the real app boots in
- * all three shells, Settings → Design switches between them, and the landscape
- * chunk brings its own fonts and token scope.
+ * Landscape phase 7 (docs/landscape/PLAN.md §2, §7): the landscape is the only
+ * shell. The app boots into it with no setting; its fonts and token scope
+ * load; Settings offers "Open on: Landscape | Stage" and the graphics quality,
+ * not a shell switch; "Open on: Stage" (and the test hook WOS_START_ON) opens
+ * on the flat stage, whose Landscape button leads back.
  *
  * Run: npm run e2e:landscape
  */
@@ -32,69 +34,68 @@ const check = (n, c, d) => {
   }
 }
 
+const env = { ...process.env }
+delete env.WOS_START_ON
 await killAll()
-const app = await electron.launch({ args: [path.join(root, 'out/main/index.js')], cwd: root })
-const win = await app.firstWindow({ timeout: 20000 })
+let app = await electron.launch({ args: [path.join(root, 'out/main/index.js')], cwd: root, env })
+let win = await app.firstWindow({ timeout: 20000 })
 win.on('pageerror', (err) => console.log(`  [pageerror] ${err.message}`))
 await win.waitForSelector('#root', { timeout: 20000 })
 
-/** Write the two shell flags, reload, and let the shell mount. */
-const useShell = async (flags) => {
-  await win.evaluate((f) => {
+const setSettings = (o) =>
+  win.evaluate((o) => {
     const K = 'workspace-os:settings'
     let c = {}
-    try { c = JSON.parse(localStorage.getItem(K) || '{}') } catch { /* corrupt: start fresh */ }
-    localStorage.setItem(K, JSON.stringify({ ...c, ...f }))
-  }, flags)
-  await win.reload()
-  await win.waitForSelector('#root', { timeout: 20000 })
-  await win.waitForTimeout(1600)
-}
-const rootHasContent = () => win.evaluate(() => (document.getElementById('root')?.children.length ?? 0) > 0)
+    try { c = JSON.parse(localStorage.getItem(K) || '{}') } catch { /* fresh */ }
+    localStorage.setItem(K, JSON.stringify({ ...c, ...o }))
+  }, o)
+const view = () => win.getAttribute('[data-shell="landscape"]', 'data-view')
 
 try {
-  // 1. Landscape
-  await useShell({ landscapeShell: true, newShell: true })
+  // Old shell flags left behind by earlier versions must not matter.
+  await setSettings({ newShell: false, landscapeShell: false, startOn: 'landscape' })
+  await win.reload()
   const land = await win.waitForSelector('[data-shell="landscape"]', { timeout: 15000 }).catch(() => null)
-  check('landscape shell mounts', !!land)
-  const scoped = await win.evaluate(() => {
-    const el = document.querySelector('[data-shell="landscape"]')
-    if (!el) return null
-    const cs = getComputedStyle(el)
-    return { ink: cs.getPropertyValue('--wl-ink').trim(), font: cs.fontFamily }
-  })
-  check('.wl token scope applies', scoped?.ink === '#1b2730', JSON.stringify(scoped))
+  check('boots into the landscape, whatever old shell flags say', !!land && (await view()) === 'overview')
+  const scoped = await win.evaluate(() => getComputedStyle(document.querySelector('[data-shell="landscape"]')).getPropertyValue('--wl-ink').trim())
+  check('.wl token scope applies', scoped === '#1b2730', scoped)
   await win.evaluate(() => document.fonts.ready)
-  const fonts = await win.evaluate(() => ({
-    serif: document.fonts.check('44px Newsreader'),
-    sans: document.fonts.check('15px Inter'),
-  }))
+  const fonts = await win.evaluate(() => ({ serif: document.fonts.check('44px Newsreader'), sans: document.fonts.check('15px Inter') }))
   check('Newsreader and Inter are bundled and load', fonts.serif && fonts.sans, JSON.stringify(fonts))
+  check('there is no "back to the current shell"', !(await win.$('[data-testid="landscape-exit"]')))
 
-  // Menu opens Settings, and Settings → Design offers the landscape option.
   await dismissSplash(win)
   await win.click('[data-dock="menu"]')
   await win.waitForTimeout(600)
   await win.click('[data-menu="settings"]')
-  const option = await win.waitForSelector('[data-testid="shell-landscape"]', { timeout: 5000 }).catch(() => null)
-  check('Menu → Settings shows the shell switch', !!option)
+  await win.waitForSelector('[data-testid="start-stage"]', { timeout: 5000 })
+  check('Settings offers "Open on", not a shell switch', !!(await win.$('[data-testid="start-landscape"]')) && !(await win.$('[data-testid="shell-landscape"]')))
+  check('…and the landscape graphics quality', !!(await win.$('[data-testid="landscape-quality-auto"]')))
+  await win.click('[data-testid="start-stage"]')
   await win.keyboard.press('Escape')
   await win.waitForTimeout(400)
+
+  await win.reload()
+  await win.waitForSelector('[data-shell="landscape"]', { timeout: 15000 })
+  await win.waitForTimeout(800)
+  check('"Open on: Stage" opens on the stage', (await view()) === 'stage')
+  await dismissSplash(win)
   await win.click('[data-testid="stage-landscape"]')
-  await win.waitForTimeout(600)
+  await win.waitForTimeout(700)
+  check("the stage's Landscape button leads to the landscape", (await view()) === 'overview')
+  await setSettings({ startOn: 'landscape' })
+  await win.waitForTimeout(800) // localStorage reaches disk asynchronously
+  await app.close()
 
-  // 2. Back to the current shell from inside the landscape.
-  await win.click('[data-testid="landscape-exit"]')
+  // The test hook: WOS_START_ON=stage opens on the stage regardless of the setting.
+  app = await electron.launch({ args: [path.join(root, 'out/main/index.js')], cwd: root, env: { ...env, WOS_START_ON: 'stage' } })
+  win = await app.firstWindow({ timeout: 20000 })
+  await win.waitForSelector('[data-shell="landscape"]', { timeout: 20000 })
   await win.waitForTimeout(1200)
-  const current = await win.evaluate(() => !document.querySelector('[data-shell="landscape"]') && !!document.querySelector('[data-expanded]'))
-  check('"Back to the current shell" lands in WorkspaceShell', current)
-
-  // 3. Classic still boots.
-  await useShell({ landscapeShell: false, newShell: false })
-  check('classic shell boots', (await rootHasContent()) && !(await win.$('[data-shell="landscape"]')))
+  check('WOS_START_ON=stage opens on the stage (e2e hook)', (await view()) === 'stage')
 } finally {
-  // Leave the default behind: the new shell, landscape off.
-  await useShell({ landscapeShell: false, newShell: true }).catch(() => {})
+  await setSettings({ startOn: 'landscape' }).catch(() => {})
+  await win.waitForTimeout(800).catch(() => {})
   await app.close()
 }
 

@@ -46,10 +46,8 @@ import { actionManifest, ALL_ACTIONS, type SurfaceActionContext } from '../Termi
  *   opened document → Canvas (the real office/pdf/monaco/… editor)
  *   ⌘K → CommandBar        ⌘P → QuickOpen
  *
- * The default shell (newShell, on by default); Settings → Design → Classic switches back.
- * When OFF, App renders the legacy WorkspaceLayout unchanged.
- *
- * With `stage` set, the Screen Landscape shell hosts this one as its flat stage
+ * Since phase 7 of docs/landscape/PLAN.md this is no longer a shell of its own:
+ * the Screen Landscape shell hosts it as its flat stage
  * (docs/landscape/PLAN.md §3): every surface, shortcut and modal stays exactly
  * as here, the rail starts hidden (⌘B shows it), a Landscape button leads back,
  * and every surface change is reported so the landscape can step aside.

@@ -70,6 +70,10 @@ export async function launch() {
     // found relative to it (packaged: process.resourcesPath). Point the shim
     // installer at the repo's copy so agent runs can reach the bridge in e2e.
     WOS_ACTION_DIR: process.env.WOS_ACTION_DIR ?? path.join(ROOT, 'resources/wos-action'),
+    // The landscape is the only shell (docs/landscape/PLAN.md, phase 7); the
+    // office tests drive the flat stage's surfaces, so the app opens on it.
+    // Set here, not at module level: other suites import killAll from this file.
+    WOS_START_ON: process.env.WOS_START_ON ?? 'stage',
   }
   let lastErr
   for (let attempt = 1; attempt <= 2; attempt++) {

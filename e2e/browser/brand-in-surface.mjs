@@ -5,6 +5,9 @@
 // address bar in front of it, and it is the only place this matters.
 import { _electron as electron } from 'playwright'
 import path from 'path'
+// The landscape is the only shell (docs/landscape/PLAN.md, phase 7); these tests drive
+// the flat stage's surfaces, so the app opens on the stage.
+process.env.WOS_START_ON ??= 'stage'
 const ROOT = process.cwd()
 const app = await electron.launch({
   args: [path.join(ROOT, 'out/main/index.js'), '--user-data-dir=/tmp/wos-brand'],

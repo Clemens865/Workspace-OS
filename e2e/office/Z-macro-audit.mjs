@@ -30,6 +30,9 @@ import { prepareCalc, runCalc } from './audit/calc.mjs'
 import { prepareWriter, runWriter } from './audit/writer.mjs'
 import { runImpress } from './audit/impress.mjs'
 import { R, MATRIX } from './audit/util.mjs'
+// The landscape is the only shell (docs/landscape/PLAN.md, phase 7); these tests drive
+// the flat stage's surfaces, so the app opens on the stage.
+process.env.WOS_START_ON ??= 'stage'
 
 const r = R
 if (!H.enginePresent()) { console.log('SKIP: engine/host missing'); process.exit(0) }

@@ -62,7 +62,7 @@ const perf = (fn) => win.evaluate((f) => {
 const fmt = (n) => (n == null ? 'n/a' : `${n.toFixed(2)} ms`)
 
 try {
-  await setSettings({ newShell: true, landscapeShell: true, landscapeQuality: 'full', terminalOpen: false })
+  await setSettings({ startOn: 'landscape', landscapeQuality: 'full', terminalOpen: false })
   await boot()
   const p0 = await perf()
   check('the WebGL backdrop is running', !!p0 && (await win.getAttribute('[data-testid="landscape-layer"]', 'data-quality')) === 'full', JSON.stringify(p0))
@@ -117,7 +117,7 @@ try {
   check('reduced motion: Auto resolves to Light', q === 'light', q)
   await win.emulateMedia({ reducedMotion: 'no-preference' })
 } finally {
-  await setSettings({ landscapeShell: false, newShell: true, landscapeQuality: 'auto' }).catch(() => {})
+  await setSettings({ landscapeQuality: 'auto' }).catch(() => {})
   await app.close()
 }
 

@@ -49,7 +49,7 @@ await win.evaluate(() => {
   const K = 'workspace-os:settings'
   let c = {}
   try { c = JSON.parse(localStorage.getItem(K) || '{}') } catch { /* start fresh */ }
-  localStorage.setItem(K, JSON.stringify({ ...c, newShell: true, landscapeShell: true, terminalOpen: false }))
+  localStorage.setItem(K, JSON.stringify({ ...c, startOn: 'landscape', terminalOpen: false }))
 })
 await win.reload()
 await win.waitForSelector('[data-shell="landscape"]', { timeout: 20000 })
@@ -166,7 +166,7 @@ try {
     const K = 'workspace-os:settings'
     let c = {}
     try { c = JSON.parse(localStorage.getItem(K) || '{}') } catch { /* ignore */ }
-    localStorage.setItem(K, JSON.stringify({ ...c, landscapeShell: false, newShell: true, terminalOpen: false }))
+    localStorage.setItem(K, JSON.stringify({ ...c, startOn: 'landscape', terminalOpen: false }))
   }).catch(() => {})
   await app.close()
 }

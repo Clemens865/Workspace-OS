@@ -33,6 +33,9 @@ const entry = path.join(SB, 'entry.mjs')
 fs.writeFileSync(entry, `
 import { buildPptxFromImages } from ${JSON.stringify(path.join(ROOT, 'src/main/office/pptx-from-images.ts'))}
 import fs from 'fs'
+// The landscape is the only shell (docs/landscape/PLAN.md, phase 7); these tests drive
+// the flat stage's surfaces, so the app opens on the stage.
+process.env.WOS_START_ON ??= 'stage'
 ;(async () => {
   const png = Buffer.from(${JSON.stringify(PNG_B64)}, 'base64')
   const buf = await buildPptxFromImages([{ png, title: 'Base' }])

@@ -6,6 +6,9 @@
 import fs from 'node:fs'
 import path from 'node:path'
 import { launch, newDoc, save, docXml, poll, makeReporter, enginePresent, shot, TESTROOT } from './_harness.mjs'
+// The landscape is the only shell (docs/landscape/PLAN.md, phase 7); these tests drive
+// the flat stage's surfaces, so the app opens on the stage.
+process.env.WOS_START_ON ??= 'stage'
 
 if (!enginePresent()) { console.log('SKIP: engine missing'); process.exit(0) }
 const R = makeReporter('AR transitions + animations')

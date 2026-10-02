@@ -10,6 +10,9 @@ import * as H from './office/_harness.mjs'
 import fs from 'fs'
 import path from 'path'
 import { fileURLToPath } from 'url'
+// The landscape is the only shell (docs/landscape/PLAN.md, phase 7); these tests drive
+// the flat stage's surfaces, so the app opens on the stage.
+process.env.WOS_START_ON ??= 'stage'
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
 const N = 20 // samples per scenario

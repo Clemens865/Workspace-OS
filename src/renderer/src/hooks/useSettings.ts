@@ -14,19 +14,12 @@ export interface Settings {
    */
   autoApproveReversible: boolean
   /**
-   * Redesign toggle (feat/shell-redesign). Default OFF — when off the app
-   * renders the existing WorkspaceLayout UNCHANGED; when on it renders the new
-   * WorkspaceShell (rail + Stage tabs + Home). Reversible: flip it back any time.
+   * Where the app opens: the Screen Landscape (the team, the Inbox, the
+   * Cases) or straight on the flat stage with the surfaces. The landscape is
+   * the only shell (docs/landscape/PLAN.md, phase 7); the two shells that came
+   * before it are kept in git as `backup/shells-before-landscape`.
    */
-  newShell: boolean
-  /**
-   * Screen Landscape shell (feat/landscape-shell). Default OFF. When on it wins
-   * over `newShell` and renders LandscapeShell. A separate flag rather than
-   * widening `newShell` into an enum, because the e2e suite writes `newShell`
-   * straight into localStorage; both flags go away when landscape becomes the
-   * only shell (docs/landscape/PLAN.md, phase 7).
-   */
-  landscapeShell: boolean
+  startOn: 'landscape' | 'stage'
   /**
    * Landscape graphics (docs/landscape/PLAN.md §3a). 'auto' = Full on mains
    * power, Light on battery or with reduced motion; 'off' = flat CSS, no WebGL.
@@ -73,8 +66,7 @@ const DEFAULTS: Settings = {
   agentMode: 'full',
   newFileFormat: 'md',
   autoApproveReversible: false,
-  newShell: true,
-  landscapeShell: false,
+  startOn: 'landscape',
   landscapeQuality: 'auto',
   terminalPlacement: 'bottom',
   terminalOpen: false,

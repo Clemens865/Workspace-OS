@@ -3,9 +3,7 @@ import { useAgentModels, refreshCodexModels } from '../../lib/agentModels'
 import { X, Check, AlertCircle, Sun, Moon } from 'lucide-react'
 import { useSettings } from '../../hooks/useSettings'
 import { useTheme } from '../../hooks/useTheme'
-import { ConnectorsPanel } from './ConnectorsPanel'
 import { BrandPanel } from './BrandPanel'
-import { AccountsPanel } from './AccountsPanel'
 import styles from './SettingsPanel.module.css'
 
 interface SettingsPanelProps {
@@ -126,37 +124,22 @@ export function SettingsPanel({ onClose }: SettingsPanelProps): JSX.Element {
           </section>
 
           <section className={styles.section}>
-            <h3 className={styles.sectionTitle}>Design</h3>
+            <h3 className={styles.sectionTitle}>Open on</h3>
             <p className={styles.hint}>
-              The new shell — a left rail, Stage tabs, and a Home that surfaces what needs you — is the
-              default. Classic brings back the previous layout; Landscape is the Screen Landscape shell,
-              in progress. Switch any time, nothing is lost.
+              Where Workspace OS opens: the landscape (your team, the Inbox, your cases) or straight on the stage
+              with your documents and apps. The Landscape button on the stage always leads back.
             </p>
             <div className={styles.segmented}>
-              <button
-                className={settings.landscapeShell ? styles.segOn : styles.segOff}
-                onClick={() => settings.set('landscapeShell', true)}
-                data-testid="shell-landscape"
-              >
+              <button className={settings.startOn !== 'stage' ? styles.segOn : styles.segOff} onClick={() => settings.set('startOn', 'landscape')} data-testid="start-landscape">
                 Landscape
               </button>
-              <button
-                className={!settings.landscapeShell && settings.newShell ? styles.segOn : styles.segOff}
-                onClick={() => { settings.set('landscapeShell', false); settings.set('newShell', true) }}
-              >
-                New
-              </button>
-              <button
-                className={!settings.landscapeShell && !settings.newShell ? styles.segOn : styles.segOff}
-                onClick={() => { settings.set('landscapeShell', false); settings.set('newShell', false) }}
-              >
-                Classic
+              <button className={settings.startOn === 'stage' ? styles.segOn : styles.segOff} onClick={() => settings.set('startOn', 'stage')} data-testid="start-stage">
+                Stage
               </button>
             </div>
           </section>
 
-          {settings.landscapeShell && (
-            <section className={styles.section}>
+          <section className={styles.section}>
               <h3 className={styles.sectionTitle}>Landscape graphics</h3>
               <p className={styles.hint}>
                 The mist landscape and Liquid Glass draw only when something changes and stop while you work on
@@ -176,10 +159,8 @@ export function SettingsPanel({ onClose }: SettingsPanelProps): JSX.Element {
                 ))}
               </div>
             </section>
-          )}
 
-          {settings.newShell && (
-            <section className={styles.section}>
+          <section className={styles.section}>
               <h3 className={styles.sectionTitle}>Terminal dock</h3>
               <p className={styles.hint}>
                 The integrated terminal + agent dock (toggle any time with ⌘J). Choose where it sits.
@@ -199,7 +180,6 @@ export function SettingsPanel({ onClose }: SettingsPanelProps): JSX.Element {
                 </button>
               </div>
             </section>
-          )}
 
           <section className={styles.section}>
             <h3 className={styles.sectionTitle}>Default agent mode</h3>
@@ -293,33 +273,24 @@ export function SettingsPanel({ onClose }: SettingsPanelProps): JSX.Element {
 
           <BrandPanel />
 
-          {/* In the new shell, connections have their own page on the rail; the
-              two Settings sections moved there. The legacy layout has no rail,
-              so it keeps them here. */}
-          {settings.newShell ? (
-            <section className={styles.section}>
-              <h3 className={styles.sectionTitle}>Connectors</h3>
-              <p className={styles.hint}>
-                Everything the workspace is signed into — MCP connectors, mail, calendar, Drive and the
-                sites your agents work on — lives on the Connectors page, with a status that says when a
-                sign-in needs renewing.
-              </p>
-              <button
-                className={styles.btn}
-                onClick={() => {
-                  onClose()
-                  window.dispatchEvent(new CustomEvent('wos:open-rail', { detail: { rail: 'connectors' } }))
-                }}
-              >
-                Open Connectors
-              </button>
-            </section>
-          ) : (
-            <>
-              <AccountsPanel />
-              <ConnectorsPanel />
-            </>
-          )}
+          {/* Connections have their own page (Menu → Connectors). */}
+          <section className={styles.section}>
+            <h3 className={styles.sectionTitle}>Connectors</h3>
+            <p className={styles.hint}>
+              Everything the workspace is signed into — MCP connectors, mail, calendar, Drive and the
+              sites your agents work on — lives on the Connectors page, with a status that says when a
+              sign-in needs renewing.
+            </p>
+            <button
+              className={styles.btn}
+              onClick={() => {
+                onClose()
+                window.dispatchEvent(new CustomEvent('wos:open-rail', { detail: { rail: 'connectors' } }))
+              }}
+            >
+              Open Connectors
+            </button>
+          </section>
 
           <section className={styles.section}>
             <h3 className={styles.sectionTitle}>Engine &amp; tools</h3>
