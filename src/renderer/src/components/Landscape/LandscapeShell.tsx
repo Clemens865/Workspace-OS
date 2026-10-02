@@ -13,6 +13,8 @@ import { LandscapeDock } from './LandscapeDock'
 import { LandscapeMenu } from './LandscapeMenu'
 import { TodayView } from './today/TodayView'
 import { HistoryView } from './HistoryView'
+import { LibraryView, type LibraryTab } from './library/LibraryView'
+import { ViewSwitch } from './ViewSwitch'
 import type { TodayGo } from './today/todayModel'
 import { greeting } from '../Shell/home/homeModel'
 import { LandscapeWorld, ADD_ID, type WorldMode } from './LandscapeWorld'
@@ -64,6 +66,7 @@ export function LandscapeShell(): JSX.Element {
   const [caseFocus, setCaseFocus] = useState<string | null>(null)
   // The Inbox's two faces: what waits, and what happened (ADOPTION.md B2).
   const [inboxTab, setInboxTab] = useState<'waiting' | 'history'>('waiting')
+  const [libraryTab, setLibraryTab] = useState<LibraryTab>('files')
   // The stage stays visible until the landscape has fully faded back in.
   const [stageShown, setStageShown] = useState(false)
   const lastLandscape = useRef<LandscapeOnly>('overview')
@@ -217,7 +220,7 @@ export function LandscapeShell(): JSX.Element {
       if (e.key !== 'Escape' || e.defaultPrevented) return
       const t = e.target as HTMLElement | null
       if (t && (/INPUT|TEXTAREA|SELECT/.test(t.tagName) || t.isContentEditable)) return
-      if (view === 'agent' || view === 'menu' || view === 'inbox' || view === 'cases' || view === 'today') setView('overview')
+      if (view === 'agent' || view === 'menu' || view === 'inbox' || view === 'cases' || view === 'today' || view === 'library') setView('overview')
     }
     window.addEventListener('keydown', onKey)
     return () => window.removeEventListener('keydown', onKey)
@@ -247,10 +250,10 @@ export function LandscapeShell(): JSX.Element {
     if (id === 'inbox') setInboxTab('waiting')
     const item = DOCK.find((d) => d.id === id)
     if (item?.stage) openSurface(item.stage)
-    else showLandscape(id === 'menu' ? 'menu' : id === 'inbox' ? 'inbox' : id === 'cases' ? 'cases' : 'overview')
+    else showLandscape(id === 'menu' ? 'menu' : id === 'inbox' ? 'inbox' : id === 'cases' ? 'cases' : id === 'library' ? 'library' : 'overview')
   }
   const activeDock: DockId | null =
-    view === 'menu' ? 'menu' : view === 'inbox' ? 'inbox' : view === 'cases' ? 'cases' : view === 'overview' || view === 'agent' || view === 'today' ? 'overview' : null
+    view === 'menu' ? 'menu' : view === 'inbox' ? 'inbox' : view === 'cases' ? 'cases' : view === 'library' ? 'library' : view === 'overview' || view === 'agent' || view === 'today' ? 'overview' : null
   const onStage = view === 'stage'
   const worldMode: WorldMode = view === 'agent' ? 'focus' : view === 'overview' ? 'overview' : 'away'
 
@@ -287,7 +290,7 @@ export function LandscapeShell(): JSX.Element {
             ) : (
               <>
                 <h1 className={styles.heading}>
-                  {view === 'menu' ? 'Menu' : view === 'inbox' ? (inboxTab === 'history' ? 'History' : `Inbox${inbox.length ? ` · ${inbox.length} waiting` : ''}`) : view === 'cases' ? 'Your cases' : view === 'today' ? `${greeting(new Date().getHours())}.` : 'Your team'}
+                  {view === 'menu' ? 'Menu' : view === 'inbox' ? (inboxTab === 'history' ? 'History' : `Inbox${inbox.length ? ` · ${inbox.length} waiting` : ''}`) : view === 'cases' ? 'Your cases' : view === 'library' ? 'Library' : view === 'today' ? `${greeting(new Date().getHours())}.` : 'Your team'}
                 </h1>
                 <div className={styles.sub} data-testid="team-summary">
                   {view === 'menu'
@@ -300,6 +303,8 @@ export function LandscapeShell(): JSX.Element {
                         ? 'Each thread of work with its documents, notes and status'
                       : view === 'today'
                         ? 'What happened, what is next, and what needs you'
+                      : view === 'library'
+                        ? 'Your files, your notes, and what your agents remember'
                       : agents.length
                         ? teamSummary(agents)
                         : 'No agents yet'}
@@ -309,24 +314,13 @@ export function LandscapeShell(): JSX.Element {
           </div>
           <div className={styles.headerRight}>
             {(view === 'overview' || view === 'today') && (
-              <div className={styles.switch} role="tablist" aria-label="Overview" data-testid="overview-switch">
-                <button type="button" role="tab" aria-selected={view === 'overview'} className={view === 'overview' ? styles.switchOn : ''} onClick={() => setView('overview')} data-switch="team">
-                  Team
-                </button>
-                <button type="button" role="tab" aria-selected={view === 'today'} className={view === 'today' ? styles.switchOn : ''} onClick={() => setView('today')} data-switch="today">
-                  Today
-                </button>
-              </div>
+              <ViewSwitch label="Overview" testid="overview-switch" value={view === 'today' ? 'today' : 'team'} onChange={(v) => setView(v === 'today' ? 'today' : 'overview')} items={[{ id: 'team', label: 'Team' }, { id: 'today', label: 'Today' }]} />
             )}
             {view === 'inbox' && (
-              <div className={styles.switch} role="tablist" aria-label="Inbox" data-testid="inbox-switch">
-                <button type="button" role="tab" aria-selected={inboxTab === 'waiting'} className={inboxTab === 'waiting' ? styles.switchOn : ''} onClick={() => setInboxTab('waiting')} data-switch="waiting">
-                  Waiting
-                </button>
-                <button type="button" role="tab" aria-selected={inboxTab === 'history'} className={inboxTab === 'history' ? styles.switchOn : ''} onClick={() => setInboxTab('history')} data-switch="history">
-                  History
-                </button>
-              </div>
+              <ViewSwitch label="Inbox" testid="inbox-switch" value={inboxTab} onChange={setInboxTab} items={[{ id: 'waiting', label: 'Waiting' }, { id: 'history', label: 'History' }]} />
+            )}
+            {view === 'library' && (
+              <ViewSwitch label="Library" testid="library-switch" value={libraryTab} onChange={setLibraryTab} items={[{ id: 'files', label: 'Files' }, { id: 'notes', label: 'Notes' }, { id: 'memory', label: 'Memory' }]} />
             )}
             <ProjectSwitcher />
           </div>
@@ -344,6 +338,7 @@ export function LandscapeShell(): JSX.Element {
         )}
         {view === 'cases' && <CasesView initialCase={caseFocus} />}
         {view === 'today' && <TodayView onGo={onTodayGo} onOpenUrl={openUrl} />}
+        {view === 'library' && <LibraryView tab={libraryTab} onSurface={openSurface} />}
 
         {(view === 'overview' || view === 'agent') && (
           <div className={styles.hint} aria-hidden>

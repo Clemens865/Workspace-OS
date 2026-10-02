@@ -114,14 +114,10 @@ try {
   await settle()
   s = await state()
   check('dock cases opens Cases in the landscape', s.view === 'cases' && s.landscapeVisible, JSON.stringify(s))
-  for (const [dock, label] of [['library', 'Knowledge']]) {
-    await win.click(`[data-dock="${dock}"]`)
-    await settle()
-    s = await state()
-    check(`dock ${dock} opens ${label} on the stage`, s.view === 'stage' && s.rail === label, JSON.stringify(s))
-    await win.click('[data-testid="stage-landscape"]')
-    await settle()
-  }
+  await win.click('[data-dock="library"]')
+  await settle()
+  s = await state()
+  check('dock library opens the Library in the landscape', s.view === 'library' && s.landscapeVisible, JSON.stringify(s))
   await win.click('[data-dock="overview"]')
   await settle()
 
@@ -182,7 +178,11 @@ try {
   await win.click('[data-stage-dock="library"]')
   await settle()
   s = await state()
-  check('stage topbar library opens Knowledge on the stage', s.view === 'stage' && s.rail === 'Knowledge', JSON.stringify(s))
+  check('stage topbar library opens the Library in the landscape', s.view === 'library' && s.landscapeVisible, JSON.stringify(s))
+  await win.keyboard.press(`${mod}+j`)
+  await settle()
+  await win.keyboard.press(`${mod}+j`)
+  await win.waitForTimeout(300)
 
   // ── ⌘B on the stage shows its rail ──
   const railWidth = () =>

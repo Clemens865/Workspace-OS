@@ -6,6 +6,7 @@ import { SearchIndex } from '../search/index-db'
 import { Indexer } from '../search/indexer'
 import { validateSearchQuery, validateFilePath, IpcValidationError } from '../ipc-validator'
 import { getWorkspaceRoot } from '../workspace-root'
+import { inRoot, scopeByPath, scopeGraph, stubsOf } from '../search/scope'
 
 let index: SearchIndex | null = null
 let indexer: Indexer | null = null
@@ -22,14 +23,15 @@ function ensureIndex(): SearchIndex {
 export function registerSearchHandlers(ipcMain: IpcMain): void {
   ipcHandle(ipcMain, IPC.SEARCH_QUERY, (_event, query: unknown) => {
     const q = validateSearchQuery(query)
-    return ensureIndex().query(q)
+    // One index serves every workspace ever opened: answer for the open one only.
+    return scopeByPath(ensureIndex().query(q), getWorkspaceRoot(), (r) => r.path)
   })
 
   // Go-to-symbol: substring search over the structural-symbol index (markdown
   // headings + code entities) built alongside the content index.
   ipcHandle(ipcMain, IPC.SEARCH_SYMBOLS, (_event, query: unknown) => {
     const q = validateSearchQuery(query)
-    return ensureIndex().searchSymbols(q)
+    return scopeByPath(ensureIndex().searchSymbols(q), getWorkspaceRoot(), (r) => r.path)
   })
 
   ipcHandle(ipcMain, IPC.SEARCH_INDEX_STATUS, () => {
@@ -61,28 +63,32 @@ export function registerSearchHandlers(ipcMain: IpcMain): void {
   // Path inputs are validated to stay within the workspace root (same guard the
   // metrics handler uses), so a compromised renderer can't probe arbitrary paths.
   ipcHandle(ipcMain, IPC.LINKS_BACKLINKS, (_event, filePath: unknown) => {
-    return ensureIndex().backlinksFor(requireWorkspacePath(filePath))
+    return scopeByPath(ensureIndex().backlinksFor(requireWorkspacePath(filePath)), getWorkspaceRoot(), (b) => b.path)
   })
 
   ipcHandle(ipcMain, IPC.LINKS_OUTGOING, (_event, filePath: unknown) => {
-    return ensureIndex().outgoingLinks(requireWorkspacePath(filePath))
+    const root = getWorkspaceRoot()
+    // A link that resolves into another workspace is, from here, not written yet.
+    return ensureIndex()
+      .outgoingLinks(requireWorkspacePath(filePath))
+      .map((l) => (l.resolvedPath && !inRoot(l.resolvedPath, root) ? { ...l, resolvedPath: null } : l))
   })
 
   ipcHandle(ipcMain, IPC.LINKS_STUBS, () => {
-    return ensureIndex().stubs()
+    return stubsOf(scopeGraph(ensureIndex().graph(), getWorkspaceRoot()))
   })
 
   // Whole-workspace [[wikilink]] graph (nodes = notes + stubs, edges = resolved
   // links). No input → nothing to validate; node ids are workspace file paths,
   // same exposure surface as the backlinks/outgoing handlers above.
   ipcHandle(ipcMain, IPC.LINKS_GRAPH, () => {
-    return ensureIndex().graph()
+    return scopeGraph(ensureIndex().graph(), getWorkspaceRoot())
   })
 
   // Related notes for the active file — link-graph proximity (direct links +
   // bibliographic coupling + co-citation). Path-validated like backlinks.
   ipcHandle(ipcMain, IPC.LINKS_RELATED, (_event, filePath: unknown) => {
-    return ensureIndex().relatedNotes(requireWorkspacePath(filePath))
+    return scopeByPath(ensureIndex().relatedNotes(requireWorkspacePath(filePath)), getWorkspaceRoot(), (r) => r.path)
   })
 
   ipcHandle(ipcMain, IPC.LINKS_RESOLVE, (_event, name: unknown) => {
@@ -90,7 +96,8 @@ export function registerSearchHandlers(ipcMain: IpcMain): void {
       throw new IpcValidationError('name must be a non-empty string')
     }
     if (name.length > 500) throw new IpcValidationError('name too long (max 500 chars)')
-    return ensureIndex().resolveName(name)
+    const hit = ensureIndex().resolveName(name)
+    return hit && inRoot(hit, getWorkspaceRoot()) ? hit : null
   })
 }
 
