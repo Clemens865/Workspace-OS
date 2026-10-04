@@ -52,3 +52,48 @@
 
 .text { margin: 5px 0 2px; font-size: 13px; line-height: 1.5; color: var(--wl-ink); }
 .source { margin: 0; font-size: 11px; color: var(--wl-faint); }
+
+/* Correcting, keeping, and what a memory said before. */
+.unconfirmed {
+  font-size: 11px;
+  color: var(--wl-amber-ink);
+}
+
+.act {
+  border: 0;
+  background: none;
+  padding: 0 4px;
+  font: inherit;
+  font-size: 12px;
+  color: var(--wl-ink-2);
+  cursor: pointer;
+}
+
+.act:hover {
+  color: var(--wl-ink);
+  text-decoration: underline;
+}
+
+.edit {
+  display: flex;
+  gap: 6px;
+  align-items: flex-start;
+  margin: 4px 0;
+}
+
+.link {
+  border: 0;
+  background: none;
+  padding: 0;
+  font: inherit;
+  color: inherit;
+  text-decoration: underline;
+  cursor: pointer;
+}
+
+.earlier {
+  margin: 4px 0 0;
+  padding-left: 14px;
+  font-size: 12px;
+  opacity: 0.8;
+}

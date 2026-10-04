@@ -59,7 +59,15 @@ export interface MemoryInput {
   scope?: MemoryScope
   /** Optional free tags/entities for filtering. */
   tags?: string[]
+  /**
+   * Who wrote it. The person's own memories count as confirmed; an agent's wait
+   * for the person to keep, correct or forget them (they are still recalled,
+   * marked as unconfirmed). Defaults to 'agent', the cautious side.
+   */
+  author?: MemoryAuthor
 }
+
+export type MemoryAuthor = 'you' | 'agent'
 
 export interface Memory {
   id: string
@@ -76,6 +84,12 @@ export interface Memory {
   lastUsedAt: number | null
   /** Set when a newer memory replaced this one; kept for history. */
   supersededBy: string | null
+  /** Who wrote it. */
+  author: MemoryAuthor
+  /** The person wrote it, or kept it when an agent proposed it. */
+  confirmed: boolean
+  /** When it stopped being true (a correction replaced it); null while current. */
+  endedAt: number | null
 }
 
 /** Tag separator. A visible, unlikely character rather than a comma, so a tag
@@ -150,6 +164,19 @@ export class MemoryStore {
     this.db = new Database(dbPath)
     this.db.pragma('journal_mode = WAL')
     this.db.exec(SCHEMA)
+    this.migrate()
+  }
+
+  /** Who wrote a memory, whether the person confirmed it, and when it was replaced. */
+  private migrate(): void {
+    const cols = new Set((this.db.prepare('PRAGMA table_info(memories)').all() as { name: string }[]).map((c) => c.name))
+    if (!cols.has('author')) {
+      this.db.exec(`ALTER TABLE memories ADD COLUMN author TEXT NOT NULL DEFAULT 'agent'`)
+      this.db.exec(`UPDATE memories SET author = 'you' WHERE source = 'you told me'`)
+    }
+    // Memories from before confirmation existed stay as they were: in use, nobody asked.
+    if (!cols.has('confirmed')) this.db.exec(`ALTER TABLE memories ADD COLUMN confirmed INTEGER NOT NULL DEFAULT 1`)
+    if (!cols.has('ended_at')) this.db.exec(`ALTER TABLE memories ADD COLUMN ended_at INTEGER`)
   }
 
   close(): void {
@@ -169,6 +196,9 @@ export class MemoryStore {
       reinforced: r.reinforced as number,
       lastUsedAt: (r.last_used_at as number) ?? null,
       supersededBy: (r.superseded_by as string) ?? null,
+      author: r.author === 'you' ? 'you' : 'agent',
+      confirmed: r.confirmed !== 0,
+      endedAt: (r.ended_at as number) ?? null,
     }
   }
 
@@ -193,20 +223,26 @@ export class MemoryStore {
       .prepare(`SELECT * FROM memories WHERE kind = ? AND superseded_by IS NULL`)
       .all(input.kind) as Record<string, unknown>[]
     const dup = existing.find((r) => normalize(String(r.text)) === norm)
+    const author: MemoryAuthor = input.author === 'you' ? 'you' : 'agent'
     if (dup) {
-      this.db.prepare(`UPDATE memories SET reinforced = reinforced + 1, updated_at = ?, source = ? WHERE id = ?`)
-        .run(now, input.source, dup.id)
+      // The person saying it again is the person confirming it.
+      this.db.prepare(`UPDATE memories SET reinforced = reinforced + 1, updated_at = ?, source = ?, confirmed = MAX(confirmed, ?) WHERE id = ?`)
+        .run(now, input.source, author === 'you' ? 1 : 0, dup.id)
       return this.get(dup.id as string)!
     }
 
     const id = crypto.randomUUID()
     const tags = (input.tags ?? []).map((t) => t.trim()).filter(Boolean).join(TAG_SEP)
-    this.db.prepare(
-      `INSERT INTO memories (id, kind, text, source, scope, tags, created_at, updated_at, reinforced)
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?, 1)`,
-    ).run(id, input.kind, text, input.source, scope, tags, now, now)
-    this.db.prepare(`INSERT INTO memory_fts (id, text, tags) VALUES (?, ?, ?)`).run(id, text, tags.split(TAG_SEP).join(' '))
+    this.insert({ id, kind: input.kind, text, source: input.source, scope, tags, author, now })
     return this.get(id)!
+  }
+
+  private insert(r: { id: string; kind: MemoryKind; text: string; source: string; scope: MemoryScope; tags: string; author: MemoryAuthor; now: number }): void {
+    this.db.prepare(
+      `INSERT INTO memories (id, kind, text, source, scope, tags, created_at, updated_at, reinforced, author, confirmed)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, 1, ?, ?)`,
+    ).run(r.id, r.kind, r.text, r.source, r.scope, r.tags, r.now, r.now, r.author, r.author === 'you' ? 1 : 0)
+    this.db.prepare(`INSERT INTO memory_fts (id, text, tags) VALUES (?, ?, ?)`).run(r.id, r.text, r.tags.split(TAG_SEP).join(' '))
   }
 
   get(id: string): Memory | null {
@@ -215,9 +251,9 @@ export class MemoryStore {
   }
 
   /** Every live memory, newest first. Superseded ones are excluded. */
-  list(opts: { kind?: MemoryKind; limit?: number } = {}): Memory[] {
+  list(opts: { kind?: MemoryKind; limit?: number; unconfirmed?: boolean } = {}): Memory[] {
     const rows = this.db.prepare(
-      `SELECT * FROM memories WHERE superseded_by IS NULL ${opts.kind ? 'AND kind = ?' : ''}
+      `SELECT * FROM memories WHERE superseded_by IS NULL ${opts.kind ? 'AND kind = ?' : ''} ${opts.unconfirmed ? 'AND confirmed = 0' : ''}
        ORDER BY updated_at DESC LIMIT ?`,
     ).all(...(opts.kind ? [opts.kind, opts.limit ?? 200] : [opts.limit ?? 200])) as Record<string, unknown>[]
     return rows.map((r) => this.row2mem(r))
@@ -231,11 +267,22 @@ export class MemoryStore {
    * "what do you know?" is a fair question and deserves an answer.
    */
   search(query: string, limit = 10): Memory[] {
-    const match = toMatchQuery(query)
-    const now = Date.now()
-    if (!match) {
+    if (!toMatchQuery(query)) {
+      const now = Date.now()
       return this.list({ limit }).sort((a, b) => score(b, 0, now) - score(a, 0, now)).slice(0, limit)
     }
+    return this.scored(query, limit).map((x) => x.m)
+  }
+
+  /**
+   * Only the memories that match the query, each with its score, so results
+   * from two stores can be merged by how well they fit. Nothing matching means
+   * nothing: an unrelated task gets no memories pushed at it.
+   */
+  scored(query: string, limit = 10): { m: Memory; s: number }[] {
+    const match = toMatchQuery(query)
+    if (!match) return []
+    const now = Date.now()
     let hits: { id: string; rank: number }[]
     try {
       hits = this.db.prepare(
@@ -244,7 +291,7 @@ export class MemoryStore {
     } catch {
       // A malformed MATCH must degrade to "no lexical hits", never crash the
       // surface that asked.
-      return this.list({ limit }).slice(0, limit)
+      return []
     }
     const out: { m: Memory; s: number }[] = []
     for (const h of hits) {
@@ -253,7 +300,28 @@ export class MemoryStore {
       // bm25 returns NEGATIVE numbers, better = more negative.
       out.push({ m, s: score(m, -h.rank, now) })
     }
-    return out.sort((a, b) => b.s - a.s).slice(0, limit).map((x) => x.m)
+    return out.sort((a, b) => b.s - a.s).slice(0, limit)
+  }
+
+  /**
+   * Live memories that say nearly the same thing (most of their words shared),
+   * so a writer can see what is already known before adding to it.
+   */
+  similar(text: string, limit = 3): Memory[] {
+    const words = (t: string): Set<string> => new Set(normalize(t).split(' ').filter((w) => w.length > 2))
+    const mine = words(text)
+    if (!mine.size) return []
+    const norm = normalize(text)
+    return this.scored(text, 20)
+      .map(({ m }) => {
+        const theirs = words(m.text)
+        const shared = [...mine].filter((w) => theirs.has(w)).length
+        return { m, j: shared / (mine.size + theirs.size - shared) }
+      })
+      .filter((x) => x.j >= 0.4 && normalize(x.m.text) !== norm)
+      .sort((a, b) => b.j - a.j)
+      .slice(0, limit)
+      .map((x) => x.m)
   }
 
   /** Mark memories as used — feeds recency without inventing a score. */
@@ -266,23 +334,76 @@ export class MemoryStore {
   }
 
   /**
-   * Replace a memory with a corrected one, keeping the old row as history.
-   * Correction is the common case — facts change — and losing the trail makes it
-   * impossible to see why the agent believed something.
+   * Correct a memory: the new text becomes the memory, the old one is kept as
+   * history with the time it stopped being true. Correction is the common case —
+   * facts change — and losing the trail makes it impossible to see why the agent
+   * believed something. The person's correction is confirmed; an agent's waits
+   * for the person, like anything an agent writes. The same text again is no
+   * correction (the person saying it confirms it).
    */
-  supersede(id: string, next: MemoryInput): Memory | null {
+  correct(id: string, text: string, author: MemoryAuthor = 'you', source?: string): Memory | null {
     const old = this.get(id)
-    if (!old) return null
-    const created = this.remember(next)
-    this.db.prepare(`UPDATE memories SET superseded_by = ?, updated_at = ? WHERE id = ?`).run(created.id, Date.now(), id)
-    return created
+    if (!old || old.supersededBy) return null
+    const next = text.trim()
+    if (!next) throw new Error('A memory needs text')
+    if (normalize(next) === normalize(old.text)) {
+      if (author === 'you') this.confirm(id)
+      return this.get(id)
+    }
+    const now = Date.now()
+    const nid = crypto.randomUUID()
+    const tx = this.db.transaction(() => {
+      this.insert({
+        id: nid,
+        kind: old.kind,
+        text: next,
+        source: source?.trim() || (author === 'you' ? 'you corrected it' : 'an agent corrected it'),
+        scope: old.scope,
+        tags: old.tags.join(TAG_SEP),
+        author,
+        now,
+      })
+      this.db.prepare(`UPDATE memories SET superseded_by = ?, ended_at = ?, updated_at = ? WHERE id = ?`).run(nid, now, now, id)
+      this.db.prepare(`DELETE FROM memory_fts WHERE id = ?`).run(id)
+    })
+    tx()
+    return this.get(nid)
+  }
+
+  /** Replace a memory with another (kept for callers that pass a full input). */
+  supersede(id: string, next: MemoryInput): Memory | null {
+    return this.correct(id, next.text, next.author ?? 'agent', next.source)
+  }
+
+  /** What a memory said before, newest first (each earlier version it replaced). */
+  history(id: string): Memory[] {
+    const out: Memory[] = []
+    let at = id
+    for (let i = 0; i < 50; i++) {
+      const r = this.db.prepare(`SELECT * FROM memories WHERE superseded_by = ?`).get(at) as Record<string, unknown> | undefined
+      if (!r) break
+      const m = this.row2mem(r)
+      out.push(m)
+      at = m.id
+    }
+    return out
+  }
+
+  /** The person keeps a memory an agent proposed. */
+  confirm(id: string): boolean {
+    return this.db.prepare(`UPDATE memories SET confirmed = 1 WHERE id = ?`).run(id).changes > 0
   }
 
   /** Delete outright. The forget button — deliberately real, not a soft flag. */
   forget(id: string): boolean {
-    const info = this.db.prepare(`DELETE FROM memories WHERE id = ?`).run(id)
-    this.db.prepare(`DELETE FROM memory_fts WHERE id = ?`).run(id)
-    return info.changes > 0
+    // Its earlier versions go with it: forgetting something means all of it.
+    const ids = [id, ...this.history(id).map((m) => m.id)]
+    let changed = 0
+    for (const x of ids) {
+      changed += this.db.prepare(`DELETE FROM memories WHERE id = ?`).run(x).changes
+      this.db.prepare(`DELETE FROM memory_fts WHERE id = ?`).run(x)
+    }
+    return changed > 0
   }
 
   stats(): { total: number; byKind: Record<string, number> } {

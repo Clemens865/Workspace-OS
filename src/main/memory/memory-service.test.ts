@@ -3,7 +3,7 @@ import fs from 'fs'
 import os from 'os'
 import path from 'path'
 import {
-  remember, search, list, forget, supersede, stats, closeAllStores,
+  remember, search, recall, correct, confirm, history, similar, list, forget, supersede, stats, closeAllStores,
   buildMemoryBlock, retrievalQueryFor, workspaceDbPath, globalDbPath,
 } from './memory-service'
 import type { Memory } from './memory-store'
@@ -105,9 +105,80 @@ describe('forget and supersede find the right store', () => {
   })
 })
 
+describe('memory you can trust', () => {
+  it('recall brings only what fits the task — nothing for an unrelated one', () => {
+    remember(ctx, { kind: 'fact', text: 'The Acme renewal is in March', source: 'run 1' })
+    expect(recall(ctx, 'when is the Acme renewal').map((m) => m.text)).toEqual(['The Acme renewal is in March'])
+    expect(recall(ctx, 'draft a haiku about autumn')).toEqual([])
+    expect(recall(ctx, '???')).toEqual([])
+  })
+
+  it('recall merges the two stores by fit, not by date', () => {
+    remember(ctx, { kind: 'fact', text: 'Acme renewal March contract signed', source: 'run 1' })
+    // Newer, global, and a weaker fit for the question.
+    remember(ctx, { kind: 'preference', text: 'Send the contract as PDF', source: 'you', scope: 'global' })
+    expect(recall(ctx, 'Acme renewal contract')[0].text).toBe('Acme renewal March contract signed')
+  })
+
+  it('an agent’s memory waits for the person; the person’s own is confirmed', () => {
+    const a = remember(ctx, { kind: 'fact', text: 'Dana leads procurement', source: 'run 7', author: 'agent' })
+    const y = remember(ctx, { kind: 'fact', text: 'Budget closes in May', source: 'you told me', author: 'you' })
+    expect([a.confirmed, y.confirmed]).toEqual([false, true])
+    expect(list(ctx, { unconfirmed: true }).map((m) => m.id)).toEqual([a.id])
+    expect(confirm(ctx, a.id)).toBe(true)
+    expect(list(ctx, { unconfirmed: true })).toEqual([])
+  })
+
+  it('the person saying the same thing again confirms an agent’s memory', () => {
+    const a = remember(ctx, { kind: 'fact', text: 'Dana leads procurement', source: 'run 7', author: 'agent' })
+    remember(ctx, { kind: 'fact', text: 'Dana leads procurement.', source: 'you told me', author: 'you' })
+    expect(list(ctx).find((m) => m.id === a.id)?.confirmed).toBe(true)
+  })
+
+  it('a correction keeps what it said before, with when it stopped being true', () => {
+    const m = remember(ctx, { kind: 'fact', text: 'The salary offer is 120k', source: 'run 1', author: 'agent' })
+    const fixed = correct(ctx, m.id, 'The salary offer is 128k', 'you')!
+    expect(fixed).toMatchObject({ text: 'The salary offer is 128k', confirmed: true, author: 'you', source: 'you corrected it' })
+    expect(list(ctx).map((x) => x.text)).toEqual(['The salary offer is 128k'])
+    const before = history(ctx, fixed.id)
+    expect(before.map((x) => x.text)).toEqual(['The salary offer is 120k'])
+    expect(before[0].endedAt).toBeGreaterThan(0)
+    // The old text no longer comes back for a question.
+    expect(recall(ctx, 'salary offer 120k').map((x) => x.text)).toEqual(['The salary offer is 128k'])
+  })
+
+  it('correcting to the same text keeps the memory (it used to replace itself and vanish)', () => {
+    const m = remember(ctx, { kind: 'fact', text: 'Owner is Dana', source: 'run 1', author: 'agent' })
+    const same = correct(ctx, m.id, 'Owner is Dana', 'you')!
+    expect(same.id).toBe(m.id)
+    expect(same.confirmed).toBe(true)
+    expect(list(ctx)).toHaveLength(1)
+  })
+
+  it('an agent’s correction waits for the person too', () => {
+    const m = remember(ctx, { kind: 'fact', text: 'Owner is Dana', source: 'you told me', author: 'you' })
+    expect(correct(ctx, m.id, 'Owner is Sam', 'agent')!.confirmed).toBe(false)
+  })
+
+  it('forgetting a memory forgets its earlier versions too', () => {
+    const m = remember(ctx, { kind: 'fact', text: 'Office in Linz', source: 'you', author: 'you' })
+    const n = correct(ctx, m.id, 'Office in Vienna', 'you')!
+    expect(forget(ctx, n.id)).toBe(true)
+    expect(history(ctx, n.id)).toEqual([])
+    expect(search(ctx, 'Linz')).toEqual([])
+  })
+
+  it('similar finds a memory that says nearly the same, not an unrelated one', () => {
+    remember(ctx, { kind: 'fact', text: 'Northwind offered a salary of 120k for the PM role', source: 'run 1' })
+    remember(ctx, { kind: 'fact', text: 'The team offsite is in Graz', source: 'run 2' })
+    expect(similar(ctx, 'Northwind offered 128k salary for the PM role').map((m) => m.text)).toEqual(['Northwind offered a salary of 120k for the PM role'])
+    expect(similar(ctx, 'Lunch is at noon')).toEqual([])
+  })
+})
+
 const mem = (o: Partial<Memory>): Memory => ({
   id: 'i', kind: 'fact', text: 't', source: 's', scope: 'workspace', tags: [],
-  createdAt: 0, updatedAt: 0, reinforced: 1, lastUsedAt: null, supersededBy: null, ...o,
+  createdAt: 0, updatedAt: 0, reinforced: 1, lastUsedAt: null, supersededBy: null, author: 'you', confirmed: true, endedAt: null, ...o,
 })
 
 describe('buildMemoryBlock', () => {
@@ -132,6 +203,18 @@ describe('buildMemoryBlock', () => {
     const block = buildMemoryBlock(many, 5)
     expect(block).toContain('fact 4')
     expect(block).not.toContain('fact 5')
+  })
+
+  it('marks what an agent noted and the person has not checked', () => {
+    expect(buildMemoryBlock([mem({ confirmed: false })])).toContain('[fact, unconfirmed]')
+    expect(buildMemoryBlock([mem({})])).toContain('[fact]')
+  })
+
+  it('says memory is evidence: the person now overrides it, and nothing is invented', () => {
+    const block = buildMemoryBlock([mem({})])
+    expect(block).toMatch(/not instructions or permissions/)
+    expect(block).toMatch(/person says now overrides/)
+    expect(block).toMatch(/Never present something as remembered/)
   })
 
   it('tells the agent these are fallible and to prefer what it can verify', () => {

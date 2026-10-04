@@ -29,7 +29,7 @@ import { headersHelperCommand } from '../install-mcp-token-cli'
 import { agentSockPath, AGENT_SOCK_ENV, invokeGrantedAction } from './actionBridge'
 import { agentActionGuide } from '../context/workspaceContext'
 import { KNOWLEDGE_GUIDANCE } from './knowledgeGuidance'
-import { search as searchMemory, markUsed, buildMemoryBlock, retrievalQueryFor } from '../memory/memory-service'
+import { recall as recallMemory, markUsed, buildMemoryBlock, retrievalQueryFor } from '../memory/memory-service'
 import { capabilityGuidanceBlock } from './capabilityCatalog'
 import { grants, AGENT_TOKEN_ENV } from './grants'
 import { claudeSettings } from './claudeSettings'
@@ -136,7 +136,7 @@ export async function launchRun(o: LaunchRunOptions): Promise<{ child: ChildProc
     let memoryBlock = ''
     try {
       const memCtx = { root: getWorkspaceRoot(), userDataDir: app.getPath('userData') }
-      const recalled = searchMemory(memCtx, retrievalQueryFor(String(prompt)), 12)
+      const recalled = recallMemory(memCtx, retrievalQueryFor(String(prompt)), 12)
       memoryBlock = buildMemoryBlock(recalled)
       if (recalled.length) markUsed(memCtx, recalled.map((m) => m.id))
     } catch {

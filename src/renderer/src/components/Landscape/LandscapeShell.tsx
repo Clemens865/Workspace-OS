@@ -29,6 +29,7 @@ import { InboxView } from './InboxView'
 import { CasesView } from './CasesView'
 import { ProjectSwitcher } from './ProjectSwitcher'
 import { deriveInbox } from './inboxModel'
+import { useMemoryInbox } from './useMemoryInbox'
 import { useMailReviewStore } from '../Review/useMailReviewStore'
 import { PreviewLive } from './usePreview'
 import { BackdropContext, useBackdrop } from './backdrop/useBackdrop'
@@ -99,7 +100,8 @@ export function LandscapeShell(): JSX.Element {
     () => mailReview.cards.map((c) => ({ id: c.id, subject: c.source.subject, fromLabel: c.source.fromLabel, reason: c.source.reason, status: c.status, createdAt: c.createdAt })),
     [mailReview.cards],
   )
-  const inbox = useMemo(() => deriveInbox({ runs, hitl, jobs, codex, dismissed, mail }), [runs, hitl, jobs, codex, dismissed, mail])
+  const memories = useMemoryInbox()
+  const inbox = useMemo(() => deriveInbox({ runs, hitl, jobs, codex, dismissed, mail, memories }), [runs, hitl, jobs, codex, dismissed, mail, memories])
   // Work in progress (cases and sessions) stands in front; the team behind it (SESSIONS.md).
   const work = useWork(runs)
   const screens = useMemo(() => [...agents, ...work.arc], [agents, work.arc])
