@@ -3,6 +3,7 @@ import fs from 'fs'
 import path from 'path'
 import crypto from 'crypto'
 import { askTerms, stem } from '../search/terms'
+import { dot } from './embed-core'
 
 /**
  * The workspace's OWN memory — the first memory this app writes rather than
@@ -187,6 +188,8 @@ export class MemoryStore {
     // Memories from before confirmation existed stay as they were: in use, nobody asked.
     if (!cols.has('confirmed')) this.db.exec(`ALTER TABLE memories ADD COLUMN confirmed INTEGER NOT NULL DEFAULT 1`)
     if (!cols.has('ended_at')) this.db.exec(`ALTER TABLE memories ADD COLUMN ended_at INTEGER`)
+    // Which model made `embedding` — vectors from different models never mix.
+    if (!cols.has('embed_model')) this.db.exec(`ALTER TABLE memories ADD COLUMN embed_model TEXT`)
   }
 
   close(): void {
@@ -346,6 +349,38 @@ export class MemoryStore {
       .sort((a, b) => b.j - a.j)
       .slice(0, limit)
       .map((x) => x.m)
+  }
+
+  /** Live memories with no vector from `model` yet (new ones, or made by another model). */
+  unembedded(model: string, limit = 64): { id: string; text: string }[] {
+    return this.db.prepare(
+      `SELECT id, text FROM memories WHERE superseded_by IS NULL AND (embedding IS NULL OR embed_model IS NOT ?) LIMIT ?`,
+    ).all(model, limit) as { id: string; text: string }[]
+  }
+
+  setEmbedding(id: string, vec: Float32Array, model: string): void {
+    this.db.prepare(`UPDATE memories SET embedding = ?, embed_model = ? WHERE id = ?`)
+      .run(Buffer.from(vec.buffer, vec.byteOffset, vec.byteLength), model, id)
+  }
+
+  /**
+   * The live memories closest in meaning to a question vector, at least `min`
+   * alike. An exact scan: a person's memory is hundreds of rows, not millions,
+   * and an exact answer needs no index to trust.
+   */
+  nearest(q: Float32Array, model: string, limit = 10, min = 0): { m: Memory; sim: number }[] {
+    const rows = this.db.prepare(
+      `SELECT * FROM memories WHERE superseded_by IS NULL AND embed_model = ? AND embedding IS NOT NULL`,
+    ).all(model) as Record<string, unknown>[]
+    const out: { m: Memory; sim: number }[] = []
+    for (const r of rows) {
+      const b = r.embedding as Buffer
+      const v = new Float32Array(Uint8Array.from(b).buffer) // a copy: a Buffer's offset need not be 4-aligned
+      if (v.length !== q.length) continue
+      const sim = dot(q, v)
+      if (sim >= min) out.push({ m: this.row2mem(r), sim })
+    }
+    return out.sort((a, b) => b.sim - a.sim).slice(0, limit)
   }
 
   /** Mark memories as used — feeds recency without inventing a score. */

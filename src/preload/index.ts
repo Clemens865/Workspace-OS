@@ -199,6 +199,7 @@ contextBridge.exposeInMainWorld('workspace', {
     listMemories: (opts?: unknown) => ipcRenderer.invoke('memory:list', opts),
     forget: (id: string) => ipcRenderer.invoke('memory:forget', id),
     memStats: () => ipcRenderer.invoke('memory:stats'),
+    meaning: () => ipcRenderer.invoke('memory:meaning'),
     correct: (id: string, text: string, author: 'you' | 'agent', source?: string) => ipcRenderer.invoke('memory:correct', id, text, author, source),
     confirm: (id: string) => ipcRenderer.invoke('memory:confirm', id),
     history: (id: string) => ipcRenderer.invoke('memory:history', id),

@@ -1,5 +1,5 @@
 {
- "about": "Memory recall set, adapted from TerminalOS tests/pilot/corpus (corpus-v1 + queries-v1, draft, unreviewed). Each chunk becomes one memory in the workspace its Space maps to (Personal -> home); `supersedes` becomes a correction of the older memory. Conversation scope does not exist here, so cedar-launch and resume-refresh share the home workspace. Kinds are what the app would file them as: standing wishes (theme, footer, resume rules) are preferences, the rest facts.",
+ "about": "Memory recall set, adapted from TerminalOS tests/pilot/corpus (corpus-v1 + queries-v1, draft, unreviewed). Each chunk becomes one memory in the workspace its Space maps to (Personal -> home); `supersedes` becomes a correction of the older memory. Conversation scope does not exist here, so cedar-launch and resume-refresh share the home workspace. Kinds are what the app would file them as: standing wishes (theme, footer, resume rules) are preferences, the rest facts. Off-topic questions (o1–o4) are added here: nothing in memory concerns them, so a run asking them must be told nothing.",
  "memories": [
   {
    "id": "c001",
@@ -510,6 +510,38 @@
    "class": "clarification",
    "workspace": "home",
    "text": "Change the budget.",
+   "expected": [],
+   "notAsCurrent": []
+  },
+  {
+   "id": "o1",
+   "class": "off-topic",
+   "workspace": "home",
+   "text": "Write a haiku about autumn leaves",
+   "expected": [],
+   "notAsCurrent": []
+  },
+  {
+   "id": "o2",
+   "class": "off-topic",
+   "workspace": "home",
+   "text": "Wie spät ist es gerade in Tokio?",
+   "expected": [],
+   "notAsCurrent": []
+  },
+  {
+   "id": "o3",
+   "class": "off-topic",
+   "workspace": "home",
+   "text": "Fix the padding on the login button in the settings screen",
+   "expected": [],
+   "notAsCurrent": []
+  },
+  {
+   "id": "o4",
+   "class": "off-topic",
+   "workspace": "home",
+   "text": "Translate this paragraph into French for me",
    "expected": [],
    "notAsCurrent": []
   }

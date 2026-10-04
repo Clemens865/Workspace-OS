@@ -107,6 +107,7 @@
     "@fontsource/inter": "^5.3.0",
     "@fontsource/jetbrains-mono": "^5.2.8",
     "@fontsource/newsreader": "^5.3.0",
+    "@huggingface/transformers": "^3.8.1",
     "@monaco-editor/react": "^4.6.0",
     "@tldraw/assets": "^5.2.5",
     "better-sqlite3": "^12.11.1",
@@ -148,12 +149,25 @@
     },
     "files": [
       "out/**/*",
-      "package.json"
+      "package.json",
+      "!**/node_modules/onnxruntime-web/**",
+      "!**/node_modules/onnxruntime-node/bin/napi-v3/linux/**",
+      "!**/node_modules/onnxruntime-node/bin/napi-v3/win32/**",
+      "!**/node_modules/onnxruntime-node/bin/napi-v3/darwin/x64/**",
+      "!**/node_modules/@huggingface/transformers/dist/*.map",
+      "!**/node_modules/@huggingface/transformers/dist/*web*",
+      "!**/node_modules/@huggingface/transformers/dist/ort-wasm*",
+      "!**/node_modules/@huggingface/transformers/dist/transformers.js",
+      "!**/node_modules/@huggingface/transformers/dist/transformers.min.js",
+      "!**/node_modules/@huggingface/transformers/src/**"
     ],
     "asarUnpack": [
       "**/node_modules/better-sqlite3/**",
       "**/node_modules/node-pty/**",
-      "**/node_modules/fsevents/**"
+      "**/node_modules/fsevents/**",
+      "**/node_modules/onnxruntime-node/**",
+      "**/node_modules/sharp/**",
+      "**/node_modules/@img/**"
     ],
     "mac": {
       "target": [

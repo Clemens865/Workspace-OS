@@ -393,6 +393,8 @@ export interface WorkspaceApi {
     similar: (text: string, scope?: 'workspace' | 'global') => Promise<WorkspaceMemory[]>
     forget: (id: string) => Promise<{ ok: boolean }>
     memStats: () => Promise<{ workspace: number; global: number }>
+    /** Whether recall also finds by meaning: off, idle (not needed yet), loading (first download), ready, or failed (words only). */
+    meaning: () => Promise<{ status: 'off' | 'idle' | 'loading' | 'ready' | 'failed' }>
 
     query: (opts?: { types?: PulseInsightType[]; search?: string; limit?: number }) => Promise<PulseInsight[]>
     recent: (limit?: number) => Promise<PulseInsight[]>

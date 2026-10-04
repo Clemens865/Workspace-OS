@@ -226,27 +226,27 @@ describe('buildMemoryBlock', () => {
 })
 
 describe('what a run is told', () => {
-  it('always carries the standing preferences, from the workspace and the person', () => {
+  it('always carries the standing preferences, from the workspace and the person', async () => {
     remember(ctx, { kind: 'preference', text: 'Warm neutrals, high contrast', source: 'you', author: 'you' })
     remember(ctx, { kind: 'preference', text: 'Answers in German', source: 'you', author: 'you', scope: 'global' })
     remember(ctx, { kind: 'preference', text: 'Unkept agent guess', source: 'run' })
     expect(profile(ctx).map((m) => m.text).sort()).toEqual(['Answers in German', 'Warm neutrals, high contrast'])
-    const run = forRun(ctx, 'Design me a new landing page section')
+    const run = await forRun(ctx, 'Design me a new landing page section')
     expect(run.profile).toHaveLength(2)
     expect(run.recalled).toHaveLength(0)
   })
 
-  it('does not list a preference twice when it also fits the task', () => {
+  it('does not list a preference twice when it also fits the task', async () => {
     remember(ctx, { kind: 'preference', text: 'Landing pages use warm neutrals', source: 'you', author: 'you' })
-    const run = forRun(ctx, 'landing page colours')
+    const run = await forRun(ctx, 'landing page colours')
     expect(run.profile).toHaveLength(1)
     expect(run.recalled).toHaveLength(0)
   })
 
-  it('shows a corrected memory with what it said before, marked as no longer true', () => {
+  it('shows a corrected memory with what it said before, marked as no longer true', async () => {
     const old = remember(ctx, { kind: 'fact', text: 'The launch budget is 8,000', source: 'call', author: 'you' })
     correct(ctx, old.id, 'The launch budget is 9,500', 'you')
-    const run = forRun(ctx, 'What was the budget before the update?')
+    const run = await forRun(ctx, 'What was the budget before the update?')
     expect(run.recalled.map((m) => m.text)).toEqual(['The launch budget is 9,500'])
     const block = buildMemoryBlock(run.recalled, 12, run)
     expect(block).toMatch(/The launch budget is 9,500[^\n]*\n\s+earlier, no longer true: The launch budget is 8,000 \(until \d{4}-\d{2}-\d{2}\)/)
