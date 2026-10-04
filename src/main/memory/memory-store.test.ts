@@ -35,12 +35,23 @@ describe('toMatchQuery', () => {
 
   it('neutralises input that would be an FTS5 syntax error', () => {
     // A bare AND / OR / apostrophe would otherwise throw and read as "search is broken".
-    expect(toMatchQuery("client's AND budget")).toBe('"client"* OR "and"* OR "budget"*')
+    expect(toMatchQuery("client's AND budget")).toBe('"client"* OR "budget"*')
+  })
+
+  it('drops the question words that would match every memory (English and German)', () => {
+    expect(toMatchQuery('What is our budget currently?')).toBe('"budget"*')
+    expect(toMatchQuery('Welches Budget haben wir aktuell?')).toBe('"budget"*')
+  })
+
+  it('matches a word by its stem, and a two-letter word only whole', () => {
+    expect(toMatchQuery('Has this launched yet?')).toBe('"launch"*')
+    expect(toMatchQuery('Wi-Fi password')).toBe('"wi" OR "fi" OR "password"*')
   })
 
   it('returns null when there is nothing searchable', () => {
     expect(toMatchQuery('   ')).toBeNull()
     expect(toMatchQuery('!!! ?')).toBeNull()
+    expect(toMatchQuery('what is it?')).toBeNull()
   })
 })
 
@@ -165,8 +176,40 @@ describe('correction and forgetting', () => {
     expect(store.search('temporary')).toHaveLength(0)
   })
 
+  it('two memories corrected to the same fact become one, with both as its history', () => {
+    const a = store.remember(fact('The budget is 8,000'))
+    const b = store.remember(fact('To restate: the budget is a one-time 8,000'))
+    const now1 = store.correct(a.id, 'The budget is now 9,500')!
+    const now2 = store.correct(b.id, 'The budget is now 9,500')!
+    expect(now2.id).toBe(now1.id) // no twin
+    expect(store.list().filter((m) => m.text.includes('9,500'))).toHaveLength(1)
+    expect(store.history(now1.id).map((m) => m.id).sort()).toEqual([a.id, b.id].sort())
+    expect(store.forget(now1.id)).toBe(true)
+    expect(store.get(a.id)).toBeNull()
+    expect(store.get(b.id)).toBeNull()
+  })
+
+  it('a single passing word does not recall a memory far weaker than the best fit', () => {
+    store.remember(fact('The launch budget is 9,500, one-time, no subscriptions'))
+    store.remember(fact('Our launch was in June'))
+    for (let i = 0; i < 6; i++) store.remember(fact(`Filler note number ${i} about nothing much`))
+    const hits = store.scored('budget subscriptions one-time launch', 10).map((x) => x.m.text)
+    expect(hits[0]).toContain('9,500')
+  })
+
   it('forget reports false for an unknown id', () => {
     expect(store.forget('nope')).toBe(false)
+  })
+})
+
+describe('preferences', () => {
+  it('are the confirmed standing wishes, most repeated first', () => {
+    store.remember({ kind: 'preference', text: 'Decks as PDF', source: 's', author: 'you' })
+    store.remember({ kind: 'preference', text: 'Warm neutrals, high contrast', source: 's', author: 'you' })
+    store.remember({ kind: 'preference', text: 'Warm neutrals, high contrast', source: 's', author: 'you' })
+    store.remember({ kind: 'preference', text: 'An agent guessed this', source: 's', author: 'agent' })
+    store.remember(fact('Not a preference'))
+    expect(store.preferences().map((m) => m.text)).toEqual(['Warm neutrals, high contrast', 'Decks as PDF'])
   })
 })
 
