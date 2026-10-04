@@ -68,6 +68,11 @@ export interface Settings {
    * ran a few turns, as a one-click offer; 'manual' only when you keep it.
    */
   sessionCases: 'always' | 'suggest' | 'manual'
+  /**
+   * When a session goes quiet, the light model reads it once and proposes what
+   * is worth remembering (to the Inbox, unconfirmed). On by default.
+   */
+  learnFromSessions: boolean
 }
 
 const KEY = 'workspace-os:settings'
@@ -85,6 +90,7 @@ const DEFAULTS: Settings = {
   agentModel: '',
   codexEffort: '',
   sessionCases: 'suggest',
+  learnFromSessions: true,
 }
 
 function read(): Settings {

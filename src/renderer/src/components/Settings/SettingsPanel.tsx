@@ -261,6 +261,18 @@ export function SettingsPanel({ onClose }: SettingsPanelProps): JSX.Element {
             </section>
 
             <section className={styles.section}>
+              <h3 className={styles.sectionTitle}>Learn from sessions</h3>
+              <p className={styles.hint}>
+                When a session has been quiet for a while, the light model reads it once and suggests what is worth
+                remembering: how you like things done, decisions, lasting facts. Suggestions wait in the Inbox until you keep them.
+              </p>
+              <div className={styles.segmented}>
+                <button className={settings.learnFromSessions ? styles.segOn : styles.segOff} onClick={() => settings.set('learnFromSessions', true)} data-testid="learn-sessions-on">On</button>
+                <button className={!settings.learnFromSessions ? styles.segOn : styles.segOff} onClick={() => settings.set('learnFromSessions', false)} data-testid="learn-sessions-off">Off</button>
+              </div>
+            </section>
+
+            <section className={styles.section}>
               <h3 className={styles.sectionTitle}>Approve undoable steps automatically</h3>
               <p className={styles.hint}>
                 Steps that can be undone (a checkpointed edit, a read-only web fetch) are approved for you and still logged.

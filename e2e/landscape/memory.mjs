@@ -13,6 +13,9 @@
  * - The meaning model loads in its worker; a run finds a German note for an
  *   English question it shares no word with, and an unrelated run still gets
  *   nothing.
+ * - A quiet session is read once by the light model; its proposal waits in the
+ *   Inbox, and once kept reaches every run. Off in Settings, nothing is read.
+ *   Tidy now runs the daily tidy.
  *
  * Run: npm run e2e:landscape
  */
@@ -54,6 +57,17 @@ process.stdin.setEncoding('utf8');
 process.stdin.on('data', (c) => { prompt += c; });
 process.stdin.on('end', () => {
   const run = (id, json) => { const r = spawnSync('wos-action', ['run', id, json], { encoding: 'utf8', env: process.env }); return (r.stdout || '') + (r.stderr || ''); };
+  // The light model reading a quiet session: answer like one, and log the call apart from runs.
+  if (prompt.includes('WORTH REMEMBERING')) {
+    const pf = ${JSON.stringify(path.join(tmp, 'proposals.json'))};
+    const seen = fs.existsSync(pf) ? JSON.parse(fs.readFileSync(pf, 'utf8')) : [];
+    seen.push(prompt);
+    fs.writeFileSync(pf, JSON.stringify(seen));
+    const memories = /always send decks as PDF/i.test(prompt) ? [{ kind: 'preference', text: 'Always send decks as PDF, never pptx' }] : [];
+    process.stdout.write(JSON.stringify({ type: 'assistant', message: { content: [{ type: 'text', text: JSON.stringify({ memories }) }] } }) + '\\n');
+    process.stdout.write(JSON.stringify({ type: 'result', is_error: false, result: 'ok' }) + '\\n');
+    return;
+  }
   const call = { prompt, system: args[args.indexOf('--append-system-prompt') + 1] || '' };
   if (prompt.includes('REMEMBER-A')) call.out = run('memory.remember', JSON.stringify({ text: 'Northwind offered a salary of 120k for the PM role', source: 'offer letter' }));
   if (prompt.includes('REMEMBER-B')) call.out = run('memory.remember', JSON.stringify({ text: 'Northwind offered 128k salary for the PM role', source: 'second call' }));
@@ -68,6 +82,7 @@ process.stdin.on('end', () => {
 )
 fs.chmodSync(fake, 0o755)
 const calls = () => (fs.existsSync(callsFile) ? JSON.parse(fs.readFileSync(callsFile, 'utf8')) : [])
+const proposalCalls = () => { const f = path.join(tmp, 'proposals.json'); return fs.existsSync(f) ? JSON.parse(fs.readFileSync(f, 'utf8')) : [] }
 
 const AGENT = 'Mnemo E2E — Note Keeper'
 await killAll()
@@ -196,6 +211,63 @@ try {
   check('a run finds the German note for the English question, sharing no word with it', /Die Kündigungsfrist beträgt drei Monate/.test(notice.system), notice.system.slice(-1200))
   const poem2 = await ask('Write a haiku about autumn leaves')
   check('…while an unrelated run still gets no memories, meaning or not', !/WHAT YOU REMEMBER/.test(poem2.system), poem2.system.slice(-900))
+  // ── memory learns from a session: the light model proposes, the Inbox asks, Keep makes it standing ──
+  const callsBefore = calls().length
+  const sid = await win.evaluate(async (name) => {
+    const s = window.__sessionStore.create({ agentName: name })
+    await window.__sessionStore.send(s.id, 'No — always send decks as PDF, never pptx')
+    return s.id
+  }, AGENT)
+  for (let i = 0; i < 60 && calls().length <= callsBefore; i++) await settle(300)
+  await settle(1500)
+  const learned = await win.evaluate((id) => window.__sessionStore.reflect(id), sid)
+  check('a quiet session is read once by the light model, with its asks', learned === 1 && proposalCalls().length === 1 && proposalCalls()[0].includes('always send decks as PDF'), `${learned} ${proposalCalls().length}`)
+  mem = await memories()
+  const pdf = mem.find((m) => m.text === 'Always send decks as PDF, never pptx')
+  check('…its proposal waits as the agent’s, not kept yet, traced to the session', !!pdf && pdf.author === 'agent' && !pdf.confirmed && pdf.kind === 'preference' && /^session “/.test(pdf.source), JSON.stringify(pdf))
+  check('…and reading it again asks the model nothing', (await win.evaluate((id) => window.__sessionStore.reflect(id), sid)) === 0 && proposalCalls().length === 1)
+  await win.click('[data-dock="inbox"]')
+  await settle(1000)
+  const pdfCard = `[data-inbox="memory:${pdf?.id}"]`
+  await win.waitForSelector(pdfCard, { timeout: 6000 }).catch(() => {})
+  check('the Inbox asks whether to remember it', !!(await win.$(pdfCard)))
+  if (await win.$(pdfCard)) {
+    await win.click(pdfCard)
+    await win.click('[data-testid="inbox-memory-keep"]')
+    await settle(1000)
+  }
+  const poem3 = await ask('Write a haiku about autumn leaves')
+  check('kept, it reaches every run as how this person likes things done', /HOW THIS PERSON LIKES THINGS DONE[\s\S]*\[preference\] Always send decks as PDF, never pptx/.test(poem3.system), poem3.system.slice(-900))
+
+  // Off in Settings: sessions are not read.
+  await win.evaluate(() => {
+    const K = 'workspace-os:settings'
+    localStorage.setItem(K, JSON.stringify({ ...JSON.parse(localStorage.getItem(K) || '{}'), learnFromSessions: false }))
+  })
+  await win.reload()
+  await win.waitForSelector('[data-shell="landscape"]', { timeout: 20000 })
+  for (let i = 0; i < 40 && (await win.$('[class*="_splash_"]')); i++) {
+    await win.keyboard.press('Enter').catch(() => {})
+    await settle(400)
+  }
+  const sid2 = await win.evaluate(async (name) => {
+    const s = window.__sessionStore.create({ agentName: name })
+    await window.__sessionStore.send(s.id, 'Again: always send decks as PDF')
+    return s.id
+  }, AGENT)
+  await settle(2500)
+  await win.evaluate((id) => window.__sessionStore.reflect(id), sid2)
+  check('with learning off in Settings, no session is sent to the model', proposalCalls().length === 1, String(proposalCalls().length))
+
+  // The daily tidy, by hand, from the Library.
+  await win.click('[data-dock="library"]')
+  await settle(800)
+  await win.click('[data-switch="memory"]')
+  await settle(800)
+  await win.click('[data-testid="library-memory"] [data-testid="memory-tidy-now"]')
+  await settle(1200)
+  const tidyLine = (await win.textContent('[data-testid="library-memory"] [data-testid="memory-tidy"]').catch(() => '')) ?? ''
+  check('Tidy now runs the daily tidy and says what it did', /^Tidied .*: /.test(tidyLine), tidyLine)
   check('every run carries the person’s standing preferences, whatever it is about', /HOW THIS PERSON LIKES THINGS DONE[^\n]*\n\s+- \[preference\] Keep every answer under five lines/.test(poem.system) && !/WHAT YOU REMEMBER/.test(poem.system), poem.system.slice(-900))
 } catch (e) {
   check('run completed', false, e.message)

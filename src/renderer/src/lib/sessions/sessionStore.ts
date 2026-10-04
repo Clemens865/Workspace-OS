@@ -11,7 +11,7 @@ import { reviewStore } from '../../components/Review/reviewStore'
 import { activityStore } from '../../components/Review/activityStore'
 import { appendStep, type TraceStep } from '../../components/AgentTerminal/runTraceModel'
 import { loadSettings } from '../../hooks/useSettings'
-import { caseOnFirstAsk, shouldSuggestCase, titleFromPrompt, trimMessages, turnNotes, type Session, type SessionMsg } from './sessionModel'
+import { caseOnFirstAsk, sessionDigest, shouldSuggestCase, titleFromPrompt, trimMessages, turnNotes, wantsReflection, type Session, type SessionMsg } from './sessionModel'
 
 /** What only the running app knows about a session. */
 export interface SessionLive {
@@ -50,8 +50,51 @@ function load(r: string | null): void {
     } catch {
       sessions = []
     }
+    // Sessions from before memory learned from them: only the last day's are
+    // read, so an update never sends a whole history to the model at once.
+    const dayAgo = Date.now() - 86_400_000
+    let marked = false
+    sessions = sessions.map((s) => {
+      if (s.reflectedTurns !== undefined || s.lastAt >= dayAgo) return s
+      marked = true
+      return { ...s, reflectedTurns: s.turns }
+    })
+    if (marked) save()
   }
   emit()
+}
+
+// ── memory learns from quiet sessions ──
+const reflecting = new Set<string>()
+
+/** Reads a session's new turns once and lets memory propose what is worth keeping (to the Inbox). */
+async function reflect(id: string): Promise<number> {
+  const s = sessions.find((x) => x.id === id)
+  if (!s || reflecting.has(id) || live.get(id)?.running) return 0
+  const upTo = s.turns
+  const digest = sessionDigest(s, s.reflectedTurns ?? 0)
+  if (!loadSettings().learnFromSessions || !digest.turns.length || !window.workspace?.memory?.propose) {
+    patch(id, { reflectedTurns: upTo })
+    return 0
+  }
+  reflecting.add(id)
+  try {
+    const res = await window.workspace.memory.propose(digest, loadSettings().lightModel.trim() || undefined)
+    if (res.proposed.length) window.dispatchEvent(new CustomEvent('wos:memory-changed'))
+    return res.proposed.length
+  } catch {
+    return 0 // no model reachable: this session is passed over rather than retried forever
+  } finally {
+    reflecting.delete(id)
+    if (sessions.some((x) => x.id === id)) patch(id, { reflectedTurns: upTo })
+  }
+}
+
+/** Every quiet session with turns memory has not read yet, a few at a time. */
+async function sweep(): Promise<void> {
+  const now = Date.now()
+  const due = sessions.filter((s) => wantsReflection(s, !!live.get(s.id)?.running, now)).slice(0, 3)
+  for (const s of due) await reflect(s.id)
 }
 function patch(id: string, p: Partial<Session> | ((s: Session) => Partial<Session>)): void {
   sessions = sessions.map((s) => (s.id === id ? { ...s, ...(typeof p === 'function' ? p(s) : p) } : s))
@@ -78,6 +121,7 @@ function start(): void {
   if (started || typeof window === 'undefined' || !window.workspace?.agent) return
   started = true
   void window.workspace.fs.getWorkspaceRoot().then((r) => load(r ?? null)).catch(() => load(null))
+  setInterval(() => void sweep(), 60_000)
   window.workspace.fs.onRootChanged((r) => load(r ?? null))
   const ag = window.workspace.agent
   ag.onOutput((runId, chunk) => {
@@ -259,6 +303,11 @@ export const sessionStore = {
   rename(id: string, title: string): void {
     const t = title.trim()
     if (t) patch(id, { title: t })
+  },
+
+  /** Lets memory learn from a session now, without waiting for it to go quiet. Resolves to how many it proposed. */
+  reflect(id: string): Promise<number> {
+    return reflect(id)
   },
 
   /** Deletes a session: its conversation here and the provider's resume key. Its case, if any, stays. */

@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { caseOnFirstAsk, outcomeLine, shouldSuggestCase, titleFromPrompt, trimMessages, turnNotes, workItems, type Session } from './sessionModel'
+import { caseOnFirstAsk, outcomeLine, QUIET_MS, sessionDigest, shouldSuggestCase, titleFromPrompt, trimMessages, turnNotes, wantsReflection, workItems, type Session } from './sessionModel'
 
 const s = (over: Partial<Session> = {}): Session => ({
   id: 'a',
@@ -78,5 +78,38 @@ describe('workItems', () => {
     const c1 = items[1]
     expect(c1.kind === 'case' && c1.sessions.map((x) => x.id)).toEqual(['a'])
     expect(c1.lastAt).toBe(50)
+  })
+})
+
+describe('what memory learns from', () => {
+  const base = { id: 's', title: 'Deck', agentName: 'Nadia', caseId: null, createdAt: 0, lastAt: 0, files: [], lastRunId: null }
+  const msgs = [
+    { role: 'user' as const, text: 'Make the deck', at: 1 },
+    { role: 'agent' as const, text: 'Working… ', at: 2 },
+    { role: 'agent' as const, text: 'Done: deck.pptx', at: 3 },
+    { role: 'system' as const, text: '[note]', at: 4 },
+    { role: 'user' as const, text: 'Always PDF please', at: 5 },
+    { role: 'agent' as const, text: 'Converted.', at: 6 },
+  ]
+
+  it('pairs each ask with what the agent answered, and only the turns not read yet', () => {
+    const s = { ...base, turns: 2, messages: msgs }
+    expect(sessionDigest(s).turns).toEqual([
+      { ask: 'Make the deck', outcome: 'Working… Done: deck.pptx' },
+      { ask: 'Always PDF please', outcome: 'Converted.' },
+    ])
+    expect(sessionDigest(s, 1).turns).toEqual([{ ask: 'Always PDF please', outcome: 'Converted.' }])
+    expect(sessionDigest(s, 2).turns).toEqual([])
+    expect(sessionDigest(s).agentName).toBe('Nadia')
+  })
+
+  it('waits until a session has been quiet, is not running, and has turns not read yet', () => {
+    const now = 1_000_000_000
+    const quiet = { ...base, turns: 2, messages: msgs, lastAt: now - QUIET_MS }
+    expect(wantsReflection(quiet, false, now)).toBe(true)
+    expect(wantsReflection(quiet, true, now)).toBe(false)
+    expect(wantsReflection({ ...quiet, lastAt: now - 1000 }, false, now)).toBe(false)
+    expect(wantsReflection({ ...quiet, reflectedTurns: 2 }, false, now)).toBe(false)
+    expect(wantsReflection({ ...quiet, reflectedTurns: 1 }, false, now)).toBe(true)
   })
 })
