@@ -615,16 +615,44 @@ const MEMORY_ACTIONS: SurfaceAction[] = [
     run: async (_ctx, args) => {
       const a = (args ?? {}) as { text?: string; kind?: string; source?: string; scope?: string; tags?: string[] }
       if (!a.text) throw new Error('memory.remember needs {"text": "..."}')
-      return window.workspace.memory.remember({
+      const scope = a.scope === 'global' ? ('global' as const) : ('workspace' as const)
+      // What is already known that says nearly the same, BEFORE this is added (so it is not its own match).
+      const alsoKnown = await window.workspace.memory.similar(a.text, scope).catch(() => [])
+      const remembered = await window.workspace.memory.remember({
         text: a.text,
         kind: (a.kind as 'fact' | 'preference' | 'decision' | 'entity') ?? 'fact',
         source: a.source || 'agent run',
-        ...(a.scope === 'global' ? { scope: 'global' as const } : {}),
+        author: 'agent',
+        ...(scope === 'global' ? { scope } : {}),
         ...(Array.isArray(a.tags) ? { tags: a.tags } : {}),
       })
+      window.dispatchEvent(new CustomEvent('wos:memory-changed'))
+      return {
+        remembered,
+        alsoKnown: alsoKnown.map((m) => ({ id: m.id, text: m.text, source: m.source })),
+        note: alsoKnown.length
+          ? 'Similar memories already exist. If yours replaces one that is out of date, run memory.correct {"id","text"} on it instead and leave a single, current memory.'
+          : 'Saved. The person will be asked to keep it.',
+      }
     },
     agentHint:
-      'remember something durable for next time — `wos-action run memory.remember \'{"text":"<the fact>","kind":"decision|fact|preference|entity","source":"<where you learned it>"}\'`. Record only what will still be true later, not this run\'s chatter. Add "scope":"global" for a fact about the PERSON rather than this project.',
+      'remember something durable for next time — `wos-action run memory.remember \'{"text":"<the fact>","kind":"decision|fact|preference|entity","source":"<where you learned it>"}\'`. Record only what will still be true later, not this run\'s chatter. Add "scope":"global" for a fact about the PERSON rather than this project. The answer lists similar memories already known.',
+  },
+  {
+    id: 'memory.correct',
+    label: 'Correct a memory',
+    surface: 'memory',
+    icon: Brain,
+    run: async (_ctx, args) => {
+      const a = (args ?? {}) as { id?: string; text?: string; source?: string }
+      if (!a.id || !a.text) throw new Error('memory.correct needs {"id": "...", "text": "..."}')
+      const m = await window.workspace.memory.correct(a.id, a.text, 'agent', a.source)
+      if (!m) throw new Error('no current memory with that id')
+      window.dispatchEvent(new CustomEvent('wos:memory-changed'))
+      return m
+    },
+    agentHint:
+      'replace a memory that is out of date — `wos-action run memory.correct \'{"id":"<id from memory.search>","text":"<what is true now>","source":"<where you learned it>"}\'`; the old text is kept as its history and the person is asked to keep the new one.',
   },
   {
     id: 'memory.search',

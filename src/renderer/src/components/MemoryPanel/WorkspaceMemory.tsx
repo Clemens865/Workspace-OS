@@ -22,6 +22,10 @@ export function WorkspaceMemoryView(): JSX.Element {
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [draft, setDraft] = useState('')
+  // The memory being corrected, and its text.
+  const [editing, setEditing] = useState<{ id: string; text: string } | null>(null)
+  // Earlier versions of a memory, when asked for.
+  const [earlier, setEarlier] = useState<{ id: string; list: Mem[] } | null>(null)
 
   const load = useCallback(async () => {
     setBusy(true); setError(null)
@@ -42,11 +46,42 @@ export function WorkspaceMemoryView(): JSX.Element {
   }, [query, kind])
 
   useEffect(() => { void load() }, [load])
+  // An agent remembering (or the Inbox keeping) something shows here at once.
+  useEffect(() => {
+    const on = (): void => void load()
+    window.addEventListener('wos:memory-changed', on)
+    return () => window.removeEventListener('wos:memory-changed', on)
+  }, [load])
+
+  const changed = useCallback(async () => {
+    window.dispatchEvent(new CustomEvent('wos:memory-changed'))
+    await load()
+  }, [load])
+
+  const saveCorrection = useCallback(async () => {
+    if (!editing?.text.trim()) return
+    setBusy(true); setError(null)
+    try {
+      await window.workspace.memory.correct(editing.id, editing.text, 'you')
+      setEditing(null)
+      setEarlier(null)
+      await changed()
+    } catch (e) {
+      setError((e as Error).message)
+    } finally {
+      setBusy(false)
+    }
+  }, [editing, changed])
+
+  const showEarlier = useCallback(async (id: string) => {
+    if (earlier?.id === id) return setEarlier(null)
+    setEarlier({ id, list: await window.workspace.memory.history(id) })
+  }, [earlier])
 
   const forget = useCallback(async (id: string) => {
     await window.workspace.memory.forget(id)
-    await load()
-  }, [load])
+    await changed()
+  }, [changed])
 
   const addOwn = useCallback(async () => {
     const text = draft.trim()
@@ -55,15 +90,15 @@ export function WorkspaceMemoryView(): JSX.Element {
     try {
       // Recorded as "you told me" — the highest-trust provenance there is, and
       // distinguishable from anything an agent inferred.
-      await window.workspace.memory.remember({ text, kind: 'fact', source: 'you told me' })
+      await window.workspace.memory.remember({ text, kind: 'fact', source: 'you told me', author: 'you' })
       setDraft('')
-      await load()
+      await changed()
     } catch (e) {
       setError((e as Error).message)
     } finally {
       setBusy(false)
     }
-  }, [draft, load])
+  }, [draft, changed])
 
   return (
     <div className={styles.root}>
@@ -110,18 +145,64 @@ export function WorkspaceMemoryView(): JSX.Element {
       ) : (
         <ul className={styles.list}>
           {items.map((m) => (
-            <li key={m.id} className={styles.item}>
+            <li key={m.id} className={styles.item} data-memory={m.id} data-confirmed={m.confirmed ? 'true' : 'false'}>
               <div className={styles.row}>
                 <span className={`${styles.kind} ${styles[`kind_${m.kind}`] ?? ''}`}>{m.kind}</span>
                 {m.scope === 'global' && <span className={styles.global}>personal</span>}
+                {!m.confirmed && <span className={styles.unconfirmed}>not kept yet</span>}
                 <span className={styles.spacer} />
                 {m.reinforced > 1 && <span className={styles.seen}>seen {m.reinforced}×</span>}
+                {!m.confirmed && (
+                  <button className={styles.act} title="Keep this" onClick={() => void window.workspace.memory.confirm(m.id).then(changed)} data-testid="memory-keep">
+                    Keep
+                  </button>
+                )}
+                <button className={styles.act} title="Correct this" onClick={() => setEditing({ id: m.id, text: m.text })} data-testid="memory-correct">
+                  Correct
+                </button>
                 <button className={styles.forget} title="Forget this" onClick={() => void forget(m.id)}>×</button>
               </div>
-              <p className={styles.text}>{m.text}</p>
+              {editing?.id === m.id ? (
+                <div className={styles.edit}>
+                  <textarea
+                    className={styles.input}
+                    value={editing.text}
+                    rows={2}
+                    autoFocus
+                    onChange={(e) => setEditing({ id: m.id, text: e.target.value })}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); void saveCorrection() }
+                      if (e.key === 'Escape') setEditing(null)
+                    }}
+                    data-testid="memory-correct-text"
+                  />
+                  <button className={styles.add} disabled={busy || !editing.text.trim()} onClick={() => void saveCorrection()} data-testid="memory-correct-save">Save</button>
+                </div>
+              ) : (
+                <p className={styles.text}>{m.text}</p>
+              )}
               {/* Provenance is shown, always: a memory you cannot trace is one
                   you cannot judge. */}
-              <p className={styles.source}>from {m.source}</p>
+              <p className={styles.source}>
+                from {m.source}
+                {' · '}
+                <button className={styles.link} onClick={() => void showEarlier(m.id)} data-testid="memory-earlier">
+                  {earlier?.id === m.id ? 'hide earlier' : 'earlier versions'}
+                </button>
+              </p>
+              {earlier?.id === m.id && (
+                <ul className={styles.earlier} data-testid="memory-history">
+                  {earlier.list.length ? (
+                    earlier.list.map((h) => (
+                      <li key={h.id}>
+                        <s>{h.text}</s> <span className={styles.source}>until {new Date(h.endedAt ?? h.updatedAt).toLocaleDateString()}</span>
+                      </li>
+                    ))
+                  ) : (
+                    <li className={styles.source}>No earlier versions.</li>
+                  )}
+                </ul>
+              )}
             </li>
           ))}
         </ul>

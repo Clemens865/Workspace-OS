@@ -33,6 +33,11 @@ export interface WorkspaceMemory {
   reinforced: number
   lastUsedAt: number | null
   supersededBy: string | null
+  /** Who wrote it; an agent's memory waits for the person to keep it. */
+  author: 'you' | 'agent'
+  confirmed: boolean
+  /** When a correction replaced it (history rows only). */
+  endedAt: number | null
 }
 
 /** A calendar source the user connected (never carries the password). */
@@ -374,9 +379,18 @@ export interface WorkspaceApi {
       source?: string
       scope?: 'workspace' | 'global'
       tags?: string[]
+      author?: 'you' | 'agent'
     }) => Promise<WorkspaceMemory>
     search: (query: string, limit?: number) => Promise<WorkspaceMemory[]>
-    listMemories: (opts?: { kind?: string; limit?: number }) => Promise<WorkspaceMemory[]>
+    listMemories: (opts?: { kind?: string; limit?: number; unconfirmed?: boolean }) => Promise<WorkspaceMemory[]>
+    /** Correct a memory; the old text stays as its history. Returns the memory as it now reads. */
+    correct: (id: string, text: string, author: 'you' | 'agent', source?: string) => Promise<WorkspaceMemory | null>
+    /** The person keeps a memory an agent proposed. */
+    confirm: (id: string) => Promise<{ ok: boolean }>
+    /** What it said before, newest first. */
+    history: (id: string) => Promise<WorkspaceMemory[]>
+    /** Memories that say nearly the same thing. */
+    similar: (text: string, scope?: 'workspace' | 'global') => Promise<WorkspaceMemory[]>
     forget: (id: string) => Promise<{ ok: boolean }>
     memStats: () => Promise<{ workspace: number; global: number }>
 

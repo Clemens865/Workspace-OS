@@ -63,20 +63,39 @@ export function registerMemoryHandlers(ipcMain: IpcMain): void {
   // external database.
   const ctx = (): mem.MemoryContext => ({ root: getWorkspaceRoot(), userDataDir: app.getPath('userData') })
 
+  const KINDS = ['fact', 'preference', 'decision', 'entity'] as const
+  type Kind = (typeof KINDS)[number]
+  const authorOf = (a: unknown): 'you' | 'agent' => (a === 'you' ? 'you' : 'agent')
+  const memoryText = (t: unknown): string => {
+    if (typeof t !== 'string' || !t.trim()) throw new IpcValidationError('A memory needs text')
+    if (t.length > 2000) throw new IpcValidationError('That memory is too long — keep one idea per memory')
+    return t.trim()
+  }
+  const memoryId = (id: unknown): string => {
+    if (typeof id !== 'string' || !id) throw new IpcValidationError('Which memory?')
+    return id
+  }
+
   ipcHandle(ipcMain, 'memory:remember', (_e, input: unknown) => {
     const i = (input ?? {}) as Record<string, unknown>
-    if (typeof i.text !== 'string' || !i.text.trim()) throw new IpcValidationError('A memory needs text')
-    if (i.text.length > 2000) throw new IpcValidationError('That memory is too long — keep one idea per memory')
-    const kinds = ['fact', 'preference', 'decision', 'entity']
-    const kind = kinds.includes(String(i.kind)) ? (i.kind as mem.MemoryContext extends never ? never : 'fact') : 'fact'
+    const kind: Kind = KINDS.includes(i.kind as Kind) ? (i.kind as Kind) : 'fact'
     return mem.remember(ctx(), {
-      kind: kind as 'fact',
-      text: i.text.trim(),
+      kind,
+      text: memoryText(i.text),
       source: typeof i.source === 'string' && i.source.trim() ? i.source.trim().slice(0, 300) : 'you told me',
+      author: authorOf(i.author),
       ...(i.scope === 'global' ? { scope: 'global' as const } : {}),
       ...(Array.isArray(i.tags) ? { tags: (i.tags as unknown[]).filter((t): t is string => typeof t === 'string').slice(0, 20) } : {}),
     })
   })
+
+  // Correct (the old version stays as history), keep (confirm), what it said before, and what is already known.
+  ipcHandle(ipcMain, 'memory:correct', (_e, id: unknown, text: unknown, author: unknown, source: unknown) =>
+    mem.correct(ctx(), memoryId(id), memoryText(text), authorOf(author), typeof source === 'string' ? source.slice(0, 300) : undefined),
+  )
+  ipcHandle(ipcMain, 'memory:confirm', (_e, id: unknown) => ({ ok: mem.confirm(ctx(), memoryId(id)) }))
+  ipcHandle(ipcMain, 'memory:history', (_e, id: unknown) => mem.history(ctx(), memoryId(id)))
+  ipcHandle(ipcMain, 'memory:similar', (_e, text: unknown, scope: unknown) => mem.similar(ctx(), memoryText(text), scope === 'global' ? 'global' : 'workspace'))
 
   ipcHandle(ipcMain, 'memory:search', (_e, query: unknown, limit: unknown) => {
     const q = typeof query === 'string' ? query : ''
@@ -85,9 +104,10 @@ export function registerMemoryHandlers(ipcMain: IpcMain): void {
   })
 
   ipcHandle(ipcMain, 'memory:list', (_e, opts: unknown) => {
-    const o = (opts ?? {}) as { kind?: unknown; limit?: unknown }
+    const o = (opts ?? {}) as { kind?: unknown; limit?: unknown; unconfirmed?: unknown }
     return mem.list(ctx(), {
       ...(typeof o.kind === 'string' ? { kind: o.kind as 'fact' } : {}),
+      ...(o.unconfirmed === true ? { unconfirmed: true } : {}),
       limit: typeof o.limit === 'number' ? Math.min(500, Math.max(1, o.limit)) : 200,
     })
   })

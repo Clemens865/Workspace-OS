@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
-import { ArrowUpRight, Check, FileText, Play, RotateCcw, Send, X } from 'lucide-react'
+import { ArrowUpRight, Check, FileText, Pencil, Play, RotateCcw, Send, Trash2, X } from 'lucide-react'
 import { reviewStore } from '../Review/reviewStore'
 import { mailReviewStore } from '../Review/mailReviewStore'
 import { AgentAvatar } from '../Agents/AgentAvatar'
@@ -65,6 +65,8 @@ export function InboxView({ items, onDismiss }: { items: InboxItem[]; onDismiss:
   const [feedback, setFeedback] = useState('')
   const [busy, setBusy] = useState(false)
   const [note, setNote] = useState<string | null>(null)
+  // Correcting a memory: its text, editable, until saved.
+  const [fixing, setFixing] = useState<string | null>(null)
   const main = useRef<HTMLDivElement>(null)
   useGlass(main, item ? { radius: 26, bezel: 24, thickness: 46, frost: 0.82 } : null)
   const preview = useTextPreview(item?.kind === 'review' ? (item.files.find((f) => TEXT_EXT.test(f)) ?? null) : null)
@@ -72,7 +74,12 @@ export function InboxView({ items, onDismiss }: { items: InboxItem[]; onDismiss:
   useEffect(() => {
     setFeedback('')
     setNote(null)
+    setFixing(null)
   }, [item?.key])
+
+  const memoryDone = (): void => {
+    window.dispatchEvent(new CustomEvent('wos:memory-changed'))
+  }
 
   // ↑ ↓ move through the cards.
   useEffect(() => {
@@ -145,8 +152,15 @@ export function InboxView({ items, onDismiss }: { items: InboxItem[]; onDismiss:
             </div>
           </header>
 
-          <h2 className={styles.title}>{item.title}</h2>
+          {item.kind === 'memory' && fixing !== null ? (
+            <textarea className={styles.memoryEdit} value={fixing} onChange={(e) => setFixing(e.target.value)} rows={3} autoFocus data-testid="inbox-memory-text" />
+          ) : (
+            <h2 className={styles.title}>{item.title}</h2>
+          )}
           {item.text && <p className={styles.sub}>{item.text}</p>}
+          {item.kind === 'memory' && (
+            <p className={styles.hint}>An agent noted this to remember. Until you keep it, agents use it as unconfirmed.</p>
+          )}
 
           {item.kind === 'review' && (
             <div className={styles.body}>
@@ -232,6 +246,35 @@ export function InboxView({ items, onDismiss }: { items: InboxItem[]; onDismiss:
                 </button>
               </>
             )}
+
+            {item.kind === 'memory' &&
+              (fixing !== null ? (
+                <>
+                  <button
+                    className={styles.primary}
+                    disabled={busy || !fixing.trim()}
+                    onClick={() => run(async () => { await window.workspace.memory.correct(item.memoryId!, fixing, 'you'); memoryDone() }, 'Corrected. The earlier version is kept as its history.')}
+                    data-testid="inbox-memory-save"
+                  >
+                    <Check size={14} /> Save correction
+                  </button>
+                  <button className={styles.btn} onClick={() => setFixing(null)}>
+                    Cancel
+                  </button>
+                </>
+              ) : (
+                <>
+                  <button className={styles.primary} disabled={busy} onClick={() => run(async () => { await window.workspace.memory.confirm(item.memoryId!); memoryDone() }, 'Kept in memory.')} data-testid="inbox-memory-keep">
+                    <Check size={14} /> Keep
+                  </button>
+                  <button className={styles.btn} disabled={busy} onClick={() => setFixing(item.title)} data-testid="inbox-memory-correct">
+                    <Pencil size={13} /> Correct
+                  </button>
+                  <button className={styles.btn} disabled={busy} onClick={() => run(async () => { await window.workspace.memory.forget(item.memoryId!); memoryDone() }, 'Forgotten.')} data-testid="inbox-memory-forget">
+                    <Trash2 size={13} /> Forget
+                  </button>
+                </>
+              ))}
 
             {(item.kind === 'error' || item.kind === 'interrupted') && (
               <>

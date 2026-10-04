@@ -322,3 +322,20 @@
   color: var(--wl-muted);
   line-height: 1.5;
 }
+
+/* Correcting a memory in place: the same serif, now editable. */
+.memoryEdit {
+  margin: 22px 0 0;
+  width: 100%;
+  box-sizing: border-box;
+  padding: 10px 14px;
+  border: 1px solid var(--wl-line);
+  border-radius: 14px;
+  background: rgba(var(--wl-paper-rgb), 0.6);
+  color: var(--wl-ink);
+  font-family: var(--wl-serif);
+  font-size: 24px;
+  line-height: 1.25;
+  resize: vertical;
+  outline: none;
+}

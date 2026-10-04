@@ -10,12 +10,14 @@
  *   review      a finished run awaiting Keep / Revert / Revise
  *   mail        a mail the triage marked as needing a reply (ADOPTION.md B2),
  *               until it is sent or dismissed
+ *   memory      something an agent noted to remember, until the person keeps,
+ *               corrects or forgets it (it is recalled meanwhile, as unconfirmed)
  */
 import type { ReviewRun, HitlItem } from '../Review/reviewModel'
 import type { CodexAsk, JobLite } from './agentPresence'
 import { shorten, splitName } from './agentPresence'
 
-export type InboxKind = 'question' | 'mail' | 'error' | 'interrupted' | 'paused' | 'review'
+export type InboxKind = 'question' | 'mail' | 'error' | 'interrupted' | 'paused' | 'review' | 'memory'
 
 /** A mail-review card, reduced to what the Inbox shows. */
 export interface MailLite {
@@ -25,6 +27,16 @@ export interface MailLite {
   reason: string
   status: string
   createdAt: number
+}
+
+/** An agent's memory waiting for the person, reduced to what the Inbox shows. */
+export interface MemoryLite {
+  id: string
+  text: string
+  kind: string
+  source: string
+  scope: 'workspace' | 'global'
+  at: number
 }
 
 export interface InboxItem {
@@ -47,15 +59,17 @@ export interface InboxItem {
   prompt: string | null
   /** Mail-review card id (mail items only). */
   mailId?: string
+  /** The memory waiting to be kept (memory items only). */
+  memoryId?: string
 }
 
 /** Errors older than this stop asking for attention (they stay in the feed). */
 export const ERROR_WINDOW_MS = 24 * 3_600_000
 
-const ORDER: Record<InboxKind, number> = { question: 0, mail: 1, error: 2, interrupted: 3, paused: 4, review: 5 }
+const ORDER: Record<InboxKind, number> = { question: 0, mail: 1, error: 2, interrupted: 3, paused: 4, review: 5, memory: 6 }
 
 export function deriveInbox(
-  inp: { runs: ReviewRun[]; hitl: HitlItem[]; jobs: JobLite[]; codex: CodexAsk[]; dismissed: Set<string>; mail?: MailLite[] },
+  inp: { runs: ReviewRun[]; hitl: HitlItem[]; jobs: JobLite[]; codex: CodexAsk[]; dismissed: Set<string>; mail?: MailLite[]; memories?: MemoryLite[] },
   now = Date.now(),
 ): InboxItem[] {
   const items: InboxItem[] = []
@@ -197,6 +211,27 @@ export function deriveInbox(
     })
   }
 
+  // What an agent noted to remember waits for the person to keep it: the
+  // workspace's memory is theirs, so nothing settles into it unseen.
+  for (const m of inp.memories ?? []) {
+    items.push({
+      key: `memory:${m.id}`,
+      kind: 'memory',
+      agentName: null,
+      who: m.scope === 'global' ? 'Memory · about you' : 'Memory',
+      title: m.text,
+      text: `${m.kind} · from ${m.source}`,
+      at: m.at,
+      runId: null,
+      sessionId: null,
+      requestId: null,
+      files: [],
+      revertible: false,
+      prompt: null,
+      memoryId: m.id,
+    })
+  }
+
   return items.sort((a, b) => ORDER[a.kind] - ORDER[b.kind] || b.at - a.at)
 }
 
@@ -220,4 +255,5 @@ export const KIND_LABEL: Record<InboxKind, string> = {
   interrupted: 'Interrupted',
   paused: 'Paused',
   review: 'Ready for review',
+  memory: 'To remember?',
 }
