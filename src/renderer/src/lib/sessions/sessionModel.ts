@@ -33,6 +33,28 @@ export interface Session {
   messages: SessionMsg[]
   /** The person said "not now" to keeping it as a case. */
   suggestDismissed?: boolean
+  /** How many turns memory has already learned from (see sessionDigest). */
+  reflectedTurns?: number
+}
+
+/** A session's turns since `from`, as asks and what the agent answered, for memory to learn from. */
+export function sessionDigest(s: Session, from = 0): { title: string; agentName: string | null; turns: { ask: string; outcome: string }[] } {
+  const turns: { ask: string; outcome: string }[] = []
+  for (const m of s.messages) {
+    if (m.role === 'user') turns.push({ ask: m.text, outcome: '' })
+    else if (m.role === 'agent' && turns.length) turns[turns.length - 1].outcome += m.text
+  }
+  // Messages are trimmed to the newest, so count turns from the end.
+  const fresh = Math.max(0, s.turns - from)
+  return { title: s.title, agentName: s.agentName, turns: fresh ? turns.slice(-fresh) : [] }
+}
+
+/** Learn from a session once it has been quiet this long after its last turn. */
+export const QUIET_MS = 10 * 60_000
+
+/** Whether memory should learn from a session now. */
+export function wantsReflection(s: Session, running: boolean, now: number): boolean {
+  return !running && s.turns > (s.reflectedTurns ?? 0) && now - s.lastAt >= QUIET_MS
 }
 
 /** A title from the first ask: its opening words, no trailing punctuation, at most 6 words / 60 chars. */

@@ -112,7 +112,7 @@ export const MEANING_MARGIN = 0.01
 /** Rank fusion constant (Reciprocal Rank Fusion's usual 60). */
 const RRF_K = 60
 
-function storesOf(ctx: MemoryContext): MemoryStore[] {
+export function storesOf(ctx: MemoryContext): MemoryStore[] {
   return [...(ctx.root ? [open(workspaceDbPath(ctx.root))] : []), open(globalDbPath(ctx.userDataDir))]
 }
 

@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from 'react'
-import type { WorkspaceMemory as Mem } from '../../types/workspace-api'
+import type { WorkspaceMemory as Mem, MemoryTidyReport } from '../../types/workspace-api'
 import styles from './WorkspaceMemory.module.css'
 
 const KINDS = ['fact', 'preference', 'decision', 'entity'] as const
@@ -9,6 +9,17 @@ const MEANING_NOTE: Record<string, string> = {
   loading: 'Getting ready to find memories by meaning, not only by words (a one-time download)…',
   ready: 'Finds memories by meaning as well as by words, in English and German.',
   failed: 'Finds memories by words only: the meaning model could not be loaded.',
+}
+
+/** What the daily tidy last did, in a line. */
+function tidiedLine(t: MemoryTidyReport | null): string {
+  if (!t) return 'Tidied daily: repeats folded, unkept suggestions let go after 30 days.'
+  const did = [
+    t.folded && `folded ${t.folded} repeat${t.folded === 1 ? '' : 's'}`,
+    t.letGo && `let ${t.letGo} unkept suggestion${t.letGo === 1 ? '' : 's'} go`,
+    t.imported && `brought in ${t.imported} decision${t.imported === 1 ? '' : 's'} from Pulse`,
+  ].filter(Boolean)
+  return `Tidied ${new Date(t.at).toLocaleDateString()}: ${did.length ? did.join(', ') : 'nothing to do'}.`
 }
 
 /**
@@ -25,6 +36,7 @@ export function WorkspaceMemoryView(): JSX.Element {
   const [items, setItems] = useState<Mem[]>([])
   const [stats, setStats] = useState<{ workspace: number; global: number } | null>(null)
   const [meaning, setMeaning] = useState<string>('off')
+  const [tidied, setTidied] = useState<MemoryTidyReport | null>(null)
   const [query, setQuery] = useState('')
   const [kind, setKind] = useState<string>('')
   const [busy, setBusy] = useState(false)
@@ -45,6 +57,7 @@ export function WorkspaceMemoryView(): JSX.Element {
         window.workspace.memory.memStats(),
       ])
       void window.workspace.memory.meaning().then((m) => setMeaning(m.status)).catch(() => {})
+      void window.workspace.memory.lastTidy().then(setTidied).catch(() => {})
       setItems(kind ? rows.filter((r) => r.kind === kind) : rows)
       setStats(s)
     } catch (e) {
@@ -125,6 +138,19 @@ export function WorkspaceMemoryView(): JSX.Element {
           {MEANING_NOTE[meaning]}
         </p>
       )}
+
+      <p className={styles.source} data-testid="memory-tidy">
+        {tidiedLine(tidied)}
+        {' · '}
+        <button
+          className={styles.link}
+          disabled={busy}
+          onClick={() => void window.workspace.memory.tidy().then(setTidied).then(changed)}
+          data-testid="memory-tidy-now"
+        >
+          Tidy now
+        </button>
+      </p>
 
       <div className={styles.tell}>
         <input

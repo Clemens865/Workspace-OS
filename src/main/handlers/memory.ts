@@ -7,6 +7,9 @@ import { getWorkspaceRoot } from '../workspace-root'
 import path from 'path'
 import * as mem from '../memory/memory-service'
 import { workerEmbedder } from '../memory/embedder'
+import { proposeFromSession, type SessionTurn } from '../memory/proposals'
+import { tidy, tidyDue, lastTidy, type OutsideDecision } from '../memory/tidy'
+import { runProviderOneShot } from '../agent/providerText'
 import { PulseMemory, type MemoryQuery, type PulseInsightType } from '../memory/pulse-memory'
 
 /**
@@ -116,6 +119,59 @@ export function registerMemoryHandlers(ipcMain: IpcMain): void {
   })
 
   ipcHandle(ipcMain, 'memory:meaning', () => ({ status: mem.embedderStatus() }))
+
+  // ── memory that fills and tidies itself ──
+  // A quiet session, read once by the person's light model: what is worth
+  // remembering goes to the Inbox, unconfirmed. The model is the person's
+  // setting passed through, never a name in source.
+  ipcHandle(ipcMain, 'memory:propose', async (_e, digest: unknown, model: unknown) => {
+    const d = (digest ?? {}) as Record<string, unknown>
+    const str = (v: unknown, n: number): string => (typeof v === 'string' ? v.slice(0, n) : '')
+    const turns: SessionTurn[] = (Array.isArray(d.turns) ? d.turns : [])
+      .slice(-12)
+      .map((t) => (t ?? {}) as Record<string, unknown>)
+      .map((t) => ({ ask: str(t.ask, 4000), outcome: str(t.outcome, 6000) }))
+      .filter((t) => t.ask.trim())
+    const alias = typeof model === 'string' && model.trim() ? model.trim().slice(0, 64) : undefined
+    // The workspace the session ran in, held across the model call (the person may switch meanwhile).
+    const res = await proposeFromSession(ctx(), { title: str(d.title, 120) || 'a session', agentName: str(d.agentName, 80) || null, turns }, (prompt) =>
+      runProviderOneShot(prompt, { timeoutMs: 120_000, label: 'Remembering the session', model: alias }),
+    )
+    void mem.embedPending(ctx()).catch(() => {})
+    return { proposed: res.proposed, skipped: res.skipped }
+  })
+
+  // Decisions noted in Pulse for this workspace, for the tidy to offer.
+  const pulseDecisions = (root: string): OutsideDecision[] => {
+    try {
+      if (ensureMemory().status() !== 'available') return []
+      return ensureMemory()
+        .query({ project: root, types: ['decision'], limit: 20 })
+        .map((i) => ({ text: i.text, at: Date.parse(i.timestamp) || 0 }))
+        .sort((a, b) => a.at - b.at)
+    } catch {
+      return []
+    }
+  }
+  const runTidy = async (): Promise<unknown> => {
+    const c = ctx()
+    if (!c.root) return null
+    return tidy(c, { outside: pulseDecisions(c.root) })
+  }
+  ipcHandle(ipcMain, 'memory:tidy', () => runTidy())
+  ipcHandle(ipcMain, 'memory:lastTidy', () => lastTidy(ctx()))
+  // Once a day, checked hourly (and soon after start): no model, nothing the person would not do.
+  const tidyIfDue = (): void => {
+    try {
+      if (tidyDue(ctx())) void runTidy().catch(() => {})
+    } catch {
+      /* no workspace, or the store is busy: next hour */
+    }
+  }
+  if (process.env.WOS_NO_TIDY !== '1') {
+    setTimeout(tidyIfDue, 2 * 60_000).unref()
+    setInterval(tidyIfDue, 60 * 60_000).unref()
+  }
 
   ipcHandle(ipcMain, 'memory:list', (_e, opts: unknown) => {
     const o = (opts ?? {}) as { kind?: unknown; limit?: unknown; unconfirmed?: unknown }

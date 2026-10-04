@@ -21,6 +21,14 @@ export interface CaseViewResult {
 }
 
 /** A memory the workspace itself recorded (distinct from a Pulse insight). */
+/** What the last tidy did. */
+export interface MemoryTidyReport {
+  at: number
+  folded: number
+  letGo: number
+  imported: number
+}
+
 export interface WorkspaceMemory {
   id: string
   kind: 'fact' | 'preference' | 'decision' | 'entity'
@@ -395,6 +403,14 @@ export interface WorkspaceApi {
     memStats: () => Promise<{ workspace: number; global: number }>
     /** Whether recall also finds by meaning: off, idle (not needed yet), loading (first download), ready, or failed (words only). */
     meaning: () => Promise<{ status: 'off' | 'idle' | 'loading' | 'ready' | 'failed' }>
+    /** A quiet session, read once by the light model: what is new and worth keeping goes to the Inbox, unconfirmed. */
+    propose: (
+      digest: { title: string; agentName: string | null; turns: { ask: string; outcome: string }[] },
+      model?: string,
+    ) => Promise<{ proposed: WorkspaceMemory[]; skipped: number }>
+    /** The daily tidy, now: exact repeats folded, unkept agent proposals let go after 30 days, Pulse decisions offered. */
+    tidy: () => Promise<MemoryTidyReport | null>
+    lastTidy: () => Promise<MemoryTidyReport | null>
 
     query: (opts?: { types?: PulseInsightType[]; search?: string; limit?: number }) => Promise<PulseInsight[]>
     recent: (limit?: number) => Promise<PulseInsight[]>

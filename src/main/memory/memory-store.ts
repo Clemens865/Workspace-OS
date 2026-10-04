@@ -122,6 +122,8 @@ const SCHEMA = `
   CREATE VIRTUAL TABLE IF NOT EXISTS memory_fts USING fts5(
     id UNINDEXED, text, tags
   );
+  -- Small bookkeeping (when the store was last tidied, and what that did).
+  CREATE TABLE IF NOT EXISTS meta (key TEXT PRIMARY KEY, value TEXT NOT NULL);
 `
 
 /** Normalised form used to detect "we already know this". */
@@ -470,6 +472,43 @@ export class MemoryStore {
       frontier = next
     }
     return out.sort((a, b) => (b.endedAt ?? 0) - (a.endedAt ?? 0) || b.createdAt - a.createdAt)
+  }
+
+  /**
+   * Fold a memory into another that says the same: it becomes the other's
+   * history, the other is seen once more (and kept, if either was).
+   */
+  fold(id: string, intoId: string): boolean {
+    const from = this.get(id)
+    const into = this.get(intoId)
+    if (!from || !into || from.supersededBy || into.supersededBy || id === intoId) return false
+    const now = Date.now()
+    this.db.transaction(() => {
+      this.db.prepare(`UPDATE memories SET superseded_by = ?, ended_at = ?, updated_at = ? WHERE id = ?`).run(intoId, now, now, id)
+      this.db.prepare(`DELETE FROM memory_fts WHERE id = ?`).run(id)
+      this.db.prepare(`UPDATE memories SET reinforced = reinforced + ?, confirmed = MAX(confirmed, ?) WHERE id = ?`)
+        .run(from.reinforced, from.confirmed ? 1 : 0, intoId)
+    })()
+    return true
+  }
+
+  /** Agent memories the person never kept, written before `before`. */
+  unkeptBefore(before: number): Memory[] {
+    return (this.db.prepare(`SELECT * FROM memories WHERE superseded_by IS NULL AND confirmed = 0 AND author = 'agent' AND created_at < ?`)
+      .all(before) as Record<string, unknown>[]).map((r) => this.row2mem(r))
+  }
+
+  /** Every live memory (for the tidy pass). */
+  allLive(): Memory[] {
+    return (this.db.prepare(`SELECT * FROM memories WHERE superseded_by IS NULL ORDER BY created_at`).all() as Record<string, unknown>[]).map((r) => this.row2mem(r))
+  }
+
+  getMeta(key: string): string | null {
+    return (this.db.prepare(`SELECT value FROM meta WHERE key = ?`).get(key) as { value: string } | undefined)?.value ?? null
+  }
+
+  setMeta(key: string, value: string): void {
+    this.db.prepare(`INSERT INTO meta (key, value) VALUES (?, ?) ON CONFLICT(key) DO UPDATE SET value = excluded.value`).run(key, value)
   }
 
   /** The person keeps a memory an agent proposed. */
