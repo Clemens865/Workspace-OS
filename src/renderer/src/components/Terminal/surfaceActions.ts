@@ -256,9 +256,29 @@ const KNOWLEDGE_ACTIONS: SurfaceAction[] = [
     surface: 'knowledge',
     icon: Search,
     primary: true,
-    // Reuse the existing workspace search palette (same event as Files search).
-    run: () => openQuickOpen(),
-    agentHint: 'search the knowledge base / workspace for a note',
+    // A person clicking it gets the search palette; an agent asking gets the hits.
+    run: (_ctx, args) => {
+      const a = (args ?? {}) as { query?: string; limit?: number }
+      if (!a.query) return openQuickOpen()
+      return window.workspace.knowledge.search(a.query, a.limit)
+    },
+    agentHint:
+      'search every file in the workspace, Word/Excel/PowerPoint/PDF included — `wos-action run knowledge.search \'{"query":"<question>"}\'`; returns files with the words around each match and the page/slide/sheet.',
+  },
+  {
+    id: 'knowledge.read',
+    label: 'Read as text',
+    surface: 'knowledge',
+    icon: FileText,
+    // Agent-only: one file's text as the index read it (office files included).
+    appliesTo: () => false,
+    run: (_ctx, args) => {
+      const a = (args ?? {}) as { path?: string; offset?: number }
+      if (!a.path) throw new Error('knowledge.read needs {"path": "<workspace-relative path>"}')
+      return window.workspace.knowledge.read(a.path, a.offset)
+    },
+    agentHint:
+      'read a Word/Excel/PowerPoint/PDF file as text — `wos-action run knowledge.read \'{"path":"<path>"}\'`; long files come in parts (pass "offset").',
   },
   {
     id: 'knowledge.new-note',

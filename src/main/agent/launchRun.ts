@@ -28,6 +28,7 @@ import { resolveMcpInjection } from '../mcp/mcp-runtime'
 import { headersHelperCommand } from '../install-mcp-token-cli'
 import { agentSockPath, AGENT_SOCK_ENV, invokeGrantedAction } from './actionBridge'
 import { agentActionGuide } from '../context/workspaceContext'
+import { KNOWLEDGE_GUIDANCE } from './knowledgeGuidance'
 import { search as searchMemory, markUsed, buildMemoryBlock, retrievalQueryFor } from '../memory/memory-service'
 import { capabilityGuidanceBlock } from './capabilityCatalog'
 import { grants, AGENT_TOKEN_ENV } from './grants'
@@ -514,6 +515,7 @@ function buildSystemPrompt(
   // works.
   if (memoryBlock) lines.push(memoryBlock)
   lines.push(
+    KNOWLEDGE_GUIDANCE,
     'To REMEMBER something durable for next time, run `wos-action run memory.remember \'{"text":"<the fact>","kind":"decision|fact|preference|entity","source":"<where you learned it>"}\'`. Record only what will still be true later — a decision and its reason, a stable fact, a preference — never this run\'s chatter. Add "scope":"global" for a fact about the PERSON rather than this project. Use `wos-action run memory.search \'{"query":"<topic>"}\'` before asking the user something they may already have told you.',
   )
   // Safe mode's Bash grants are prefix patterns; say so, or the agent writes a

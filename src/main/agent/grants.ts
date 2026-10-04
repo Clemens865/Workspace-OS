@@ -42,8 +42,11 @@ const SURFACE_PREFIXES: Record<string, readonly string[]> = {
   knowledge: ['knowledge.', 'memory.'],
 }
 
-/** Every identified run may do these, whatever its grant. */
-const BASELINE: readonly string[] = ['memory.search']
+/**
+ * Every identified run may do these, whatever its grant: reads of what the run
+ * can already read (its memory, the workspace's own files through the index).
+ */
+const BASELINE: readonly string[] = ['memory.search', 'knowledge.search', 'knowledge.read']
 
 export type GrantScope = 'all' | ReadonlySet<string>
 

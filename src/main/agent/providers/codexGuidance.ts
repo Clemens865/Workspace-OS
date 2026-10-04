@@ -1,4 +1,5 @@
 import fs from 'fs'
+import { KNOWLEDGE_GUIDANCE } from '../knowledgeGuidance'
 import path from 'path'
 import { docgenResourceDir } from '../../docgen'
 import { agentActionGuide } from '../../context/workspaceContext'
@@ -22,6 +23,7 @@ export function codexGuidance(root: string, activeFile: string | null, agent: Ag
     'DOCUMENT TRANSPORT: create files with `wos-action run document.generate \'{"format":"xlsx","name":"Budget.xlsx","spec":{"sheets":[{"name":"Budget","rows":[["Item","Amount"],["Example",100]]}]}}\'`. For pptx/docx use their specs below. For html/md provide `content` instead of `spec`. This operation creates a NEW file and refuses to overwrite an original. If the name exists, choose a new name. Returned path is the deliverable.',
     safe ? 'SAFE MODE: your shell is read-only. Do NOT write a spec or run wos-gen directly. Send the spec inline to document.generate above; main performs the granted artifact operation. Other direct shell writes will fail. You may read and use granted app operations.' : 'FULL MODE: edits within the workspace are allowed. Requests for additional permissions go to the user. Do not retry a denied operation through another mechanism.',
     'For live data use `wos-action run document.data \'{"operation":"metric:list","args":[]}\'`; `document.data` exposes the validated metric/range/collection operations, not arbitrary IPC. Ask `document.data` with operation "help" for its exact operations.',
+    KNOWLEDGE_GUIDANCE,
     'To remember or recall facts use `wos-action run memory.remember \'{"text":"...","kind":"fact","source":"..."}\'` or `wos-action run memory.search \'{"query":"..."}\'`. Respect a refused capability.',
     'Use the installed Codex skills when applicable. A skill’s file-writing recipe must respect the Safe/Full transport rules above. Subagents must use Codex’s supported subagent tools and inherit only the parent’s grant.',
     schemas,

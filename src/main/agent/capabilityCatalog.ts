@@ -176,11 +176,11 @@ export const CAPABILITY_CATALOG: readonly Capability[] = [
   {
     id: 'knowledge',
     label: 'Knowledge Base',
-    description: 'Search notes, follow [[wikilinks]], and capture findings.',
+    description: 'Search and read every file in the workspace, remember what matters, and capture findings as notes.',
     surface: 'knowledge',
-    actions: ['knowledge.search', 'knowledge.note', 'knowledge.links'],
+    actions: ['knowledge.search', 'knowledge.read', 'knowledge.new-note', 'memory.remember'],
     guidance:
-      'Knowledge base: search the workspace notes and their [[wikilink]] graph with `wos-action run knowledge.search --query "<terms>"`, follow related/backlinks with `wos-action run knowledge.links --note "<note>"`, and capture a finding as a note with `wos-action run knowledge.note`. Prefer linking new notes into the existing graph.',
+      'Knowledge: search the whole workspace, office files included, with `wos-action run knowledge.search \'{"query":"<question>"}\'` and read a file as text with `wos-action run knowledge.read \'{"path":"<path>"}\'`; cite the file and page/slide/sheet. Capture a lasting finding in memory with `wos-action run memory.remember` and, when it deserves a page, as a markdown note that links related notes with [[Note name]].',
     toolMode: 'safe',
   },
 ] as const

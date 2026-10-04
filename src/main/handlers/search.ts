@@ -1,5 +1,7 @@
 import { IpcMain, app } from 'electron'
+import fs from 'fs/promises'
 import path from 'path'
+import { extractText } from '../search/extract'
 import { IPC } from '../ipc-channels'
 import { ipcHandle } from '../ipc-registry'
 import { SearchIndex } from '../search/index-db'
@@ -63,6 +65,34 @@ export function registerSearchHandlers(ipcMain: IpcMain): void {
     if (resolved !== root && !resolved.startsWith(root + path.sep)) return
     ensureIndex()
     indexer?.prioritize(resolved)
+  })
+
+  // ── Knowledge: an agent asks the workspace (wos-action knowledge.search / .read) ──
+  // Ranked any-word search over every indexed file's text (office files too), and
+  // one file's text as the index read it, so an agent can cite and quote a
+  // .docx/.xlsx/.pptx/.pdf it cannot read itself.
+  ipcHandle(ipcMain, 'knowledge:search', (_event, query: unknown, limit: unknown) => {
+    const q = validateSearchQuery(query)
+    const n = typeof limit === 'number' && limit > 0 ? Math.min(25, Math.floor(limit)) : 8
+    const root = getWorkspaceRoot()
+    return scopeByPath(ensureIndex().ask(q, n, under()), root, (h) => h.path).map((h) => ({ ...h, path: root ? path.relative(root, h.path) : h.path }))
+  })
+
+  ipcHandle(ipcMain, 'knowledge:read', async (_event, filePath: unknown, offset: unknown) => {
+    const root = getWorkspaceRoot()
+    if (!root) throw new IpcValidationError('No workspace is open')
+    const abs = validateFilePath(typeof filePath === 'string' && !path.isAbsolute(filePath) ? path.join(root, filePath) : filePath, root)
+    const stat = await fs.stat(abs)
+    const known = ensureIndex().text(abs)
+    // The index's copy when it is current; otherwise read the file now (and queue it).
+    let text = known && known.mtimeMs === stat.mtimeMs ? known.content : null
+    if (text === null) {
+      text = (await extractText(abs)) ?? ''
+      indexer?.prioritize(abs)
+    }
+    const from = typeof offset === 'number' && offset > 0 ? Math.floor(offset) : 0
+    const PAGE = 40_000
+    return { path: path.relative(root, abs), text: text.slice(from, from + PAGE), offset: from, total: text.length, more: from + PAGE < text.length }
   })
 
   // ── Knowledge base ([[wikilink]] graph) ────────────────────────────────────
