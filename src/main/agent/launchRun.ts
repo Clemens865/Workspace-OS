@@ -136,7 +136,7 @@ export async function launchRun(o: LaunchRunOptions): Promise<{ child: ChildProc
     let memoryBlock = ''
     try {
       const memCtx = { root: getWorkspaceRoot(), userDataDir: app.getPath('userData') }
-      const mem = memoryForRun(memCtx, String(prompt), 12)
+      const mem = await memoryForRun(memCtx, String(prompt), 12)
       memoryBlock = buildMemoryBlock(mem.recalled, 12, mem)
       const used = [...mem.profile, ...mem.recalled].map((m) => m.id)
       if (used.length) markUsed(memCtx, used)

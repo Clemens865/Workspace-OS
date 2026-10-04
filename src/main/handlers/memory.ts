@@ -4,7 +4,9 @@ import { ipcHandle, registerCleanup } from '../ipc-registry'
 import { app } from 'electron'
 import { IpcValidationError } from '../ipc-validator'
 import { getWorkspaceRoot } from '../workspace-root'
+import path from 'path'
 import * as mem from '../memory/memory-service'
+import { workerEmbedder } from '../memory/embedder'
 import { PulseMemory, type MemoryQuery, type PulseInsightType } from '../memory/pulse-memory'
 
 /**
@@ -63,6 +65,15 @@ export function registerMemoryHandlers(ipcMain: IpcMain): void {
   // external database.
   const ctx = (): mem.MemoryContext => ({ root: getWorkspaceRoot(), userDataDir: app.getPath('userData') })
 
+  // Recall by meaning too: the model runs in a worker and is downloaded once, on
+  // first need, into the app's own folder (WOS_NO_MEANING=1 keeps memory word-only).
+  if (process.env.WOS_NO_MEANING !== '1') mem.setEmbedder(workerEmbedder(path.join(app.getPath('userData'), 'models')))
+  // A new or corrected memory gets its meaning vector behind the scenes.
+  const embedSoon = <T,>(v: T): T => {
+    void mem.embedPending(ctx()).catch(() => {})
+    return v
+  }
+
   const KINDS = ['fact', 'preference', 'decision', 'entity'] as const
   type Kind = (typeof KINDS)[number]
   const authorOf = (a: unknown): 'you' | 'agent' => (a === 'you' ? 'you' : 'agent')
@@ -79,19 +90,19 @@ export function registerMemoryHandlers(ipcMain: IpcMain): void {
   ipcHandle(ipcMain, 'memory:remember', (_e, input: unknown) => {
     const i = (input ?? {}) as Record<string, unknown>
     const kind: Kind = KINDS.includes(i.kind as Kind) ? (i.kind as Kind) : 'fact'
-    return mem.remember(ctx(), {
+    return embedSoon(mem.remember(ctx(), {
       kind,
       text: memoryText(i.text),
       source: typeof i.source === 'string' && i.source.trim() ? i.source.trim().slice(0, 300) : 'you told me',
       author: authorOf(i.author),
       ...(i.scope === 'global' ? { scope: 'global' as const } : {}),
       ...(Array.isArray(i.tags) ? { tags: (i.tags as unknown[]).filter((t): t is string => typeof t === 'string').slice(0, 20) } : {}),
-    })
+    }))
   })
 
   // Correct (the old version stays as history), keep (confirm), what it said before, and what is already known.
   ipcHandle(ipcMain, 'memory:correct', (_e, id: unknown, text: unknown, author: unknown, source: unknown) =>
-    mem.correct(ctx(), memoryId(id), memoryText(text), authorOf(author), typeof source === 'string' ? source.slice(0, 300) : undefined),
+    embedSoon(mem.correct(ctx(), memoryId(id), memoryText(text), authorOf(author), typeof source === 'string' ? source.slice(0, 300) : undefined)),
   )
   ipcHandle(ipcMain, 'memory:confirm', (_e, id: unknown) => ({ ok: mem.confirm(ctx(), memoryId(id)) }))
   ipcHandle(ipcMain, 'memory:history', (_e, id: unknown) => mem.history(ctx(), memoryId(id)))
@@ -100,8 +111,11 @@ export function registerMemoryHandlers(ipcMain: IpcMain): void {
   ipcHandle(ipcMain, 'memory:search', (_e, query: unknown, limit: unknown) => {
     const q = typeof query === 'string' ? query : ''
     const n = typeof limit === 'number' && Number.isFinite(limit) ? Math.min(50, Math.max(1, limit)) : 10
-    return mem.search(ctx(), q, n)
+    // A question finds by words and meaning; no words at all lists the newest.
+    return mem.toMatchQuery(q) ? mem.recallMeaning(ctx(), q, n) : mem.search(ctx(), q, n)
   })
+
+  ipcHandle(ipcMain, 'memory:meaning', () => ({ status: mem.embedderStatus() }))
 
   ipcHandle(ipcMain, 'memory:list', (_e, opts: unknown) => {
     const o = (opts ?? {}) as { kind?: unknown; limit?: unknown; unconfirmed?: unknown }

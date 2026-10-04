@@ -21,7 +21,9 @@ export default defineConfig({
           index: resolve(__dirname, 'src/main/index.ts'),
           // Search-index extraction worker — run via worker_threads so heavy
           // PDF/docx/xlsx parsing never stalls the main process.
-          extractWorker: resolve(__dirname, 'src/main/search/extract-worker.ts')
+          extractWorker: resolve(__dirname, 'src/main/search/extract-worker.ts'),
+          // Memory embedding worker — the meaning model loads and runs here.
+          embedWorker: resolve(__dirname, 'src/main/memory/embed-worker.ts')
         }
       }
     }

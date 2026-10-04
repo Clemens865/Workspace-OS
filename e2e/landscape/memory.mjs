@@ -10,6 +10,9 @@
  * - The Library's Memory panel corrects in place and shows earlier versions.
  * - A run is told what a corrected memory said before, and always gets the
  *   person's standing preferences.
+ * - The meaning model loads in its worker; a run finds a German note for an
+ *   English question it shares no word with, and an unrelated run still gets
+ *   nothing.
  *
  * Run: npm run e2e:landscape
  */
@@ -180,6 +183,19 @@ try {
   check('a run gets the corrected memory with what it said before, as no longer true', /\[fact\] Northwind offered a salary of 128k[^\n]*\n\s+earlier, no longer true: Northwind offered a salary of 120k/.test(after.system), after.system.slice(-1200))
   await win.evaluate(() => window.workspace.memory.remember({ kind: 'preference', text: 'Keep every answer under five lines', source: 'you told me', author: 'you' }))
   const poem = await ask('Write a haiku about autumn leaves')
+  // ── by meaning: the model loads in its worker; a German note answers an English question ──
+  await win.evaluate(() => window.workspace.memory.remember({ kind: 'fact', text: 'Die Kündigungsfrist beträgt drei Monate zum Quartalsende', source: 'Vertrag', author: 'you' }))
+  let meaning = 'idle'
+  for (let i = 0; i < 600 && meaning !== 'ready' && meaning !== 'failed'; i++) {
+    meaning = (await win.evaluate(() => window.workspace.memory.meaning())).status
+    if (meaning !== 'ready') await settle(500)
+  }
+  check('the meaning model loads in its worker (downloaded once)', meaning === 'ready', meaning)
+  await settle(1500) // the new memory's vector
+  const notice = await ask('Northwind notice period when quitting')
+  check('a run finds the German note for the English question, sharing no word with it', /Die Kündigungsfrist beträgt drei Monate/.test(notice.system), notice.system.slice(-1200))
+  const poem2 = await ask('Write a haiku about autumn leaves')
+  check('…while an unrelated run still gets no memories, meaning or not', !/WHAT YOU REMEMBER/.test(poem2.system), poem2.system.slice(-900))
   check('every run carries the person’s standing preferences, whatever it is about', /HOW THIS PERSON LIKES THINGS DONE[^\n]*\n\s+- \[preference\] Keep every answer under five lines/.test(poem.system) && !/WHAT YOU REMEMBER/.test(poem.system), poem.system.slice(-900))
 } catch (e) {
   check('run completed', false, e.message)

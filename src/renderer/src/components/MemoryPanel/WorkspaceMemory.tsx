@@ -4,6 +4,13 @@ import styles from './WorkspaceMemory.module.css'
 
 const KINDS = ['fact', 'preference', 'decision', 'entity'] as const
 
+// How recall finds things right now (nothing to say before it is needed).
+const MEANING_NOTE: Record<string, string> = {
+  loading: 'Getting ready to find memories by meaning, not only by words (a one-time download)…',
+  ready: 'Finds memories by meaning as well as by words, in English and German.',
+  failed: 'Finds memories by words only: the meaning model could not be loaded.',
+}
+
 /**
  * What the workspace has LEARNED — the write side of memory, shown next to the
  * read-only Pulse history.
@@ -17,6 +24,7 @@ const KINDS = ['fact', 'preference', 'decision', 'entity'] as const
 export function WorkspaceMemoryView(): JSX.Element {
   const [items, setItems] = useState<Mem[]>([])
   const [stats, setStats] = useState<{ workspace: number; global: number } | null>(null)
+  const [meaning, setMeaning] = useState<string>('off')
   const [query, setQuery] = useState('')
   const [kind, setKind] = useState<string>('')
   const [busy, setBusy] = useState(false)
@@ -36,6 +44,7 @@ export function WorkspaceMemoryView(): JSX.Element {
           : window.workspace.memory.listMemories({ ...(kind ? { kind } : {}), limit: 200 }),
         window.workspace.memory.memStats(),
       ])
+      void window.workspace.memory.meaning().then((m) => setMeaning(m.status)).catch(() => {})
       setItems(kind ? rows.filter((r) => r.kind === kind) : rows)
       setStats(s)
     } catch (e) {
@@ -110,6 +119,12 @@ export function WorkspaceMemoryView(): JSX.Element {
           </span>
         )}
       </div>
+
+      {MEANING_NOTE[meaning] && (
+        <p className={styles.source} data-testid="memory-meaning" data-status={meaning}>
+          {MEANING_NOTE[meaning]}
+        </p>
+      )}
 
       <div className={styles.tell}>
         <input
