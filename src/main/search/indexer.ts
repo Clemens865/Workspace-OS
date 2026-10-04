@@ -18,7 +18,7 @@ const INDEXABLE = new Set([
   'txt', 'md', 'csv', 'tsv', 'json', 'yaml', 'yml', 'toml', 'xml', 'html',
   'ts', 'tsx', 'js', 'jsx', 'py', 'rs', 'go', 'java', 'c', 'cpp', 'h',
   'css', 'scss', 'sh', 'bash', 'sql', 'ini', 'env',
-  'docx', 'xlsx', 'xls', 'ods', 'pdf',
+  'docx', 'xlsx', 'xls', 'ods', 'pdf', 'pptx',
 ])
 
 // Files we never read content from — large/generated/low-signal. They're still

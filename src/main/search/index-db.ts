@@ -1,6 +1,7 @@
 import Database from 'better-sqlite3'
 import type { SymbolEntry, SymbolKind } from './symbols'
 import { scoreRelated, type RelatedNote, type RelatedEdge } from './related'
+import { EXTRACT_VERSION, EXTRACTED_TYPES, locate } from './extract'
 
 export type { RelatedNote } from './related'
 
@@ -77,6 +78,17 @@ export interface Stub {
   refCount: number
 }
 
+/** One hit for an agent's question: where it is, the words around it, and how well it fits. */
+export interface KnowledgeHit {
+  path: string
+  name: string
+  snippet: string
+  /** "Page 3", "Slide 2", "Sheet: Budget" — when the file has such marks. */
+  location: string | null
+  /** Higher is better (negated bm25). */
+  score: number
+}
+
 export interface IndexStats {
   indexed: number
 }
@@ -126,6 +138,25 @@ function baseNoExt(filePath: string): string {
 }
 
 /** Escapes a user query into a safe FTS5 prefix-match expression. */
+// Words that carry no meaning in a question, English and German (the person writes both).
+const STOP = new Set(
+  (
+    'a an and are as at be but by can could did do does for from had has have how i if in into is it its me my no not of on or our so than that the their them then there these they this to was we were what when where which who why will with would you your ' +
+    'about after all also any been before being both each few more most other over same some such only own very just should now ' +
+    'der die das den dem des ein eine einen einem einer eines und oder aber ist sind war waren wird werden wurde hat haben hatte mit von zu zur zum im in am an auf aus bei für fur über uber unter nach vor wie was wer wo wann warum welche welcher welches ich du er sie es wir ihr mein meine dein sein ihre unser nicht kein keine auch noch nur schon so dass als wenn ob bitte'
+  ).split(' '),
+)
+
+/** The meaningful words of a question, for an any-word ranked search (at most 12). */
+export function askTerms(raw: string): string[] {
+  const words = raw
+    .toLowerCase()
+    .replace(/[^\p{L}\p{N}]+/gu, ' ')
+    .split(' ')
+    .filter((w) => w.length >= 2 && !STOP.has(w))
+  return [...new Set(words)].slice(0, 12)
+}
+
 function toFtsQuery(raw: string): string {
   const tokens = raw
     .toLowerCase()
@@ -213,6 +244,13 @@ export class SearchIndex {
       tx()
     }
     this.db.exec('CREATE INDEX IF NOT EXISTS idx_files_name_key ON files(name_key)')
+    // Office files indexed by an older extractor are read again (their mtime no longer matches).
+    this.db.exec('CREATE TABLE IF NOT EXISTS meta (key TEXT PRIMARY KEY, value TEXT NOT NULL)')
+    const v = Number((this.db.prepare("SELECT value FROM meta WHERE key = 'extract_version'").get() as { value: string } | undefined)?.value ?? 0)
+    if (v < EXTRACT_VERSION) {
+      this.db.prepare(`UPDATE files SET mtime_ms = -1 WHERE ext IN (${EXTRACTED_TYPES.map(() => '?').join(',')})`).run(...EXTRACTED_TYPES)
+      this.db.prepare("INSERT OR REPLACE INTO meta (key, value) VALUES ('extract_version', ?)").run(String(EXTRACT_VERSION))
+    }
   }
 
   /** Returns the stored mtime for a path, or null if not indexed. */
@@ -548,6 +586,44 @@ export class SearchIndex {
       snippet: r.snippet,
       matchType: r.name.toLowerCase().includes(q) ? 'filename' : 'content',
     }))
+  }
+
+  /**
+   * An agent's question against the workspace: any of its meaningful words,
+   * ranked by bm25 (a name match counts more), each hit with the words around
+   * it and where in the file it is. Scoped like query().
+   */
+  ask(raw: string, limit = 8, under?: string[]): KnowledgeHit[] {
+    const terms = askTerms(raw)
+    if (!terms.length) return []
+    const scope = underClause('path', under)
+    const rows = this.db
+      .prepare(
+        `SELECT path, name,
+                snippet(file_fts, 2, '«', '»', '…', 24) AS snippet,
+                bm25(file_fts, 0.0, 4.0, 1.0) AS rank,
+                content
+         FROM file_fts
+         WHERE file_fts MATCH ?${scope.sql}
+         ORDER BY rank
+         LIMIT ?`,
+      )
+      .all(terms.map((t) => `"${t}"*`).join(' OR '), ...scope.params, limit) as Array<{ path: string; name: string; snippet: string; rank: number; content: string }>
+    return rows.map((r) => ({
+      path: r.path,
+      name: r.name,
+      snippet: r.snippet,
+      location: locate(r.content, terms),
+      score: Math.round(-r.rank * 100) / 100,
+    }))
+  }
+
+  /** The indexed text of one file, and the mtime it was read at (null: not indexed). */
+  text(filePath: string): { content: string; mtimeMs: number } | null {
+    const row = this.db
+      .prepare('SELECT t.content AS content, f.mtime_ms AS mtime FROM file_fts t JOIN files f ON f.path = t.path WHERE t.path = ?')
+      .get(filePath) as { content: string; mtime: number } | undefined
+    return row ? { content: row.content, mtimeMs: row.mtime } : null
   }
 
   stats(): IndexStats {

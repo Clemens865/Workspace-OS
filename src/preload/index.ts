@@ -763,6 +763,11 @@ contextBridge.exposeInMainWorld('workspace', {
     },
   },
 
+  knowledge: {
+    search: (query: string, limit?: number) => ipcRenderer.invoke('knowledge:search', query, limit),
+    read: (filePath: string, offset?: number) => ipcRenderer.invoke('knowledge:read', filePath, offset),
+  },
+
   agents: {
     list: () => ipcRenderer.invoke(IPC.AGENTS_LIST),
     read: (name: string, scope?: 'global' | 'project') => ipcRenderer.invoke(IPC.AGENTS_READ, name, scope),

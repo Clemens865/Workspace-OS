@@ -987,6 +987,11 @@ export interface WorkspaceApi {
     /** Clear that site's session data from the partition + drop the entry. */
     signout: (domain: string) => Promise<{ ok: boolean }>
   }
+  /** An agent asks the workspace: ranked search over every file's text, and one file's text with its place marks. */
+  knowledge: {
+    search: (query: string, limit?: number) => Promise<{ path: string; name: string; snippet: string; location: string | null; score: number }[]>
+    read: (filePath: string, offset?: number) => Promise<{ path: string; text: string; offset: number; total: number; more: boolean }>
+  }
   agents: {
     list: () => Promise<{ name: string; description: string; scope: 'global' | 'project'; mode?: 'full' | 'safe'; capabilities?: string[]; surface?: string; model?: string }[]>
     read: (name: string, scope?: 'global' | 'project') => Promise<{ name: string; description: string; scope: 'global' | 'project'; mode?: 'full' | 'safe'; persona: string; skills: string[]; capabilities?: string[]; surface?: string; model?: string }>
