@@ -2,6 +2,9 @@ import Database from 'better-sqlite3'
 import type { SymbolEntry, SymbolKind } from './symbols'
 import { scoreRelated, type RelatedNote, type RelatedEdge } from './related'
 import { EXTRACT_VERSION, EXTRACTED_TYPES, locate } from './extract'
+import { askTerms } from './terms'
+
+export { askTerms } from './terms'
 
 export type { RelatedNote } from './related'
 
@@ -138,25 +141,6 @@ function baseNoExt(filePath: string): string {
 }
 
 /** Escapes a user query into a safe FTS5 prefix-match expression. */
-// Words that carry no meaning in a question, English and German (the person writes both).
-const STOP = new Set(
-  (
-    'a an and are as at be but by can could did do does for from had has have how i if in into is it its me my no not of on or our so than that the their them then there these they this to was we were what when where which who why will with would you your ' +
-    'about after all also any been before being both each few more most other over same some such only own very just should now ' +
-    'der die das den dem des ein eine einen einem einer eines und oder aber ist sind war waren wird werden wurde hat haben hatte mit von zu zur zum im in am an auf aus bei für fur über uber unter nach vor wie was wer wo wann warum welche welcher welches ich du er sie es wir ihr mein meine dein sein ihre unser nicht kein keine auch noch nur schon so dass als wenn ob bitte'
-  ).split(' '),
-)
-
-/** The meaningful words of a question, for an any-word ranked search (at most 12). */
-export function askTerms(raw: string): string[] {
-  const words = raw
-    .toLowerCase()
-    .replace(/[^\p{L}\p{N}]+/gu, ' ')
-    .split(' ')
-    .filter((w) => w.length >= 2 && !STOP.has(w))
-  return [...new Set(words)].slice(0, 12)
-}
-
 function toFtsQuery(raw: string): string {
   const tokens = raw
     .toLowerCase()

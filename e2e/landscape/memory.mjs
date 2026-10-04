@@ -8,6 +8,8 @@
  * - A run gets only the memories that fit its task (none for an unrelated one),
  *   with the rule that memory is evidence, not instructions.
  * - The Library's Memory panel corrects in place and shows earlier versions.
+ * - A run is told what a corrected memory said before, and always gets the
+ *   person's standing preferences.
  *
  * Run: npm run e2e:landscape
  */
@@ -172,6 +174,13 @@ try {
     const h = (await win.textContent(`[data-testid="library-memory"] [data-memory="${latest.id}"] [data-testid="memory-history"]`).catch(() => '')) ?? ''
     check('…and shows what it said before', h.includes('Northwind offered 128k salary'), h)
   }
+
+  // ── what a run is told: the person's standing wishes always, a corrected memory with its past ──
+  const after = await ask('What salary did Northwind offer?')
+  check('a run gets the corrected memory with what it said before, as no longer true', /\[fact\] Northwind offered a salary of 128k[^\n]*\n\s+earlier, no longer true: Northwind offered a salary of 120k/.test(after.system), after.system.slice(-1200))
+  await win.evaluate(() => window.workspace.memory.remember({ kind: 'preference', text: 'Keep every answer under five lines', source: 'you told me', author: 'you' }))
+  const poem = await ask('Write a haiku about autumn leaves')
+  check('every run carries the person’s standing preferences, whatever it is about', /HOW THIS PERSON LIKES THINGS DONE[^\n]*\n\s+- \[preference\] Keep every answer under five lines/.test(poem.system) && !/WHAT YOU REMEMBER/.test(poem.system), poem.system.slice(-900))
 } catch (e) {
   check('run completed', false, e.message)
 } finally {

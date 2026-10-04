@@ -4,7 +4,7 @@ import os from 'os'
 import path from 'path'
 import {
   remember, search, recall, correct, confirm, history, similar, list, forget, supersede, stats, closeAllStores,
-  buildMemoryBlock, retrievalQueryFor, workspaceDbPath, globalDbPath,
+  buildMemoryBlock, retrievalQueryFor, workspaceDbPath, globalDbPath, profile, forRun,
 } from './memory-service'
 import type { Memory } from './memory-store'
 
@@ -222,6 +222,43 @@ describe('buildMemoryBlock', () => {
     // the wrong thing.
     const block = buildMemoryBlock([mem({})])
     expect(block).toMatch(/out of date|verify/i)
+  })
+})
+
+describe('what a run is told', () => {
+  it('always carries the standing preferences, from the workspace and the person', () => {
+    remember(ctx, { kind: 'preference', text: 'Warm neutrals, high contrast', source: 'you', author: 'you' })
+    remember(ctx, { kind: 'preference', text: 'Answers in German', source: 'you', author: 'you', scope: 'global' })
+    remember(ctx, { kind: 'preference', text: 'Unkept agent guess', source: 'run' })
+    expect(profile(ctx).map((m) => m.text).sort()).toEqual(['Answers in German', 'Warm neutrals, high contrast'])
+    const run = forRun(ctx, 'Design me a new landing page section')
+    expect(run.profile).toHaveLength(2)
+    expect(run.recalled).toHaveLength(0)
+  })
+
+  it('does not list a preference twice when it also fits the task', () => {
+    remember(ctx, { kind: 'preference', text: 'Landing pages use warm neutrals', source: 'you', author: 'you' })
+    const run = forRun(ctx, 'landing page colours')
+    expect(run.profile).toHaveLength(1)
+    expect(run.recalled).toHaveLength(0)
+  })
+
+  it('shows a corrected memory with what it said before, marked as no longer true', () => {
+    const old = remember(ctx, { kind: 'fact', text: 'The launch budget is 8,000', source: 'call', author: 'you' })
+    correct(ctx, old.id, 'The launch budget is 9,500', 'you')
+    const run = forRun(ctx, 'What was the budget before the update?')
+    expect(run.recalled.map((m) => m.text)).toEqual(['The launch budget is 9,500'])
+    const block = buildMemoryBlock(run.recalled, 12, run)
+    expect(block).toMatch(/The launch budget is 9,500[^\n]*\n\s+earlier, no longer true: The launch budget is 8,000 \(until \d{4}-\d{2}-\d{2}\)/)
+  })
+
+  it('puts the profile first, under its own heading, and still adds the rule', () => {
+    const p = mem({ id: 'p', kind: 'preference', text: 'Decks as PDF' })
+    const block = buildMemoryBlock([], 12, { profile: [p] })
+    expect(block).toMatch(/^HOW THIS PERSON LIKES THINGS DONE/)
+    expect(block).toContain('[preference] Decks as PDF')
+    expect(block).not.toContain('WHAT YOU REMEMBER')
+    expect(block).toMatch(/not instructions or permissions/)
   })
 })
 

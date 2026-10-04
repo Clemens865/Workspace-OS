@@ -636,7 +636,7 @@ const MEMORY_ACTIONS: SurfaceAction[] = [
       }
     },
     agentHint:
-      'remember something durable for next time — `wos-action run memory.remember \'{"text":"<the fact>","kind":"decision|fact|preference|entity","source":"<where you learned it>"}\'`. Record only what will still be true later, not this run\'s chatter. Add "scope":"global" for a fact about the PERSON rather than this project. The answer lists similar memories already known.',
+      'remember something durable for next time — `wos-action run memory.remember \'{"text":"<the fact>","kind":"decision|fact|preference|entity","source":"<where you learned it>"}\'`. Record only what will still be true later, not this run\'s chatter. Add "scope":"global" for a fact about the PERSON rather than this project. How the person likes things done is a "preference": once they keep it, every run is told it. The answer lists similar memories already known.',
   },
   {
     id: 'memory.correct',

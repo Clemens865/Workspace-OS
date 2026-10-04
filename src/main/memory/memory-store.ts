@@ -2,6 +2,7 @@ import Database from 'better-sqlite3'
 import fs from 'fs'
 import path from 'path'
 import crypto from 'crypto'
+import { askTerms, stem } from '../search/terms'
 
 /**
  * The workspace's OWN memory — the first memory this app writes rather than
@@ -131,15 +132,24 @@ export function normalize(text: string): string {
  * Turn a user query into an FTS5 MATCH expression.
  *
  * Raw input cannot go in: an apostrophe or a bare `AND` is a syntax error that
- * would surface as "search is broken". Terms are quoted and OR-ed so a
- * multi-word query behaves like a search box rather than requiring every word.
+ * would surface as "search is broken". Only the meaningful words count (a
+ * question's "what" and "the" would otherwise match every memory), each as a
+ * quoted stem prefix, OR-ed so a question behaves like a search box rather than
+ * requiring every word.
  */
 export function toMatchQuery(raw: string): string | null {
-  const terms = raw.toLowerCase().match(/[\p{L}\p{N}]+/gu) ?? []
-  const useful = terms.filter((t) => t.length > 1).slice(0, 12)
+  const useful = askTerms(raw)
   if (useful.length === 0) return null
-  return useful.map((t) => `"${t}"*`).join(' OR ')
+  // A two-letter word ("wi" of Wi-Fi) as a prefix would match half the language.
+  return [...new Set(useful.map(stem))].map((t) => (t.length < 3 ? `"${t}"` : `"${t}"*`)).join(' OR ')
 }
+
+/**
+ * How close to the best match a hit must come to be recalled at all. A memory
+ * sharing one passing word with the question is noise in an agent's
+ * instructions, not help.
+ */
+export const RELEVANCE_CUTOFF = 0.15
 
 /**
  * Rank a candidate for retrieval.
@@ -260,6 +270,18 @@ export class MemoryStore {
   }
 
   /**
+   * The person's standing preferences: the ones they wrote or kept, most
+   * repeated first. These go into every run, whatever its words.
+   */
+  preferences(limit = 8): Memory[] {
+    const rows = this.db.prepare(
+      `SELECT * FROM memories WHERE superseded_by IS NULL AND kind = 'preference' AND confirmed = 1
+       ORDER BY reinforced DESC, updated_at DESC LIMIT ?`,
+    ).all(limit) as Record<string, unknown>[]
+    return rows.map((r) => this.row2mem(r))
+  }
+
+  /**
    * Retrieve the memories most relevant to a query.
    *
    * Lexical for now (FTS5), ranked by {@link score}. A query with no usable
@@ -294,7 +316,9 @@ export class MemoryStore {
       return []
     }
     const out: { m: Memory; s: number }[] = []
+    const best = hits.length ? -hits[0].rank : 0
     for (const h of hits) {
+      if (-h.rank < best * RELEVANCE_CUTOFF) break
       const m = this.get(h.id)
       if (!m || m.supersededBy) continue
       // bm25 returns NEGATIVE numbers, better = more negative.
@@ -351,6 +375,19 @@ export class MemoryStore {
       return this.get(id)
     }
     const now = Date.now()
+    // Already known as said now (two old memories corrected to the same fact):
+    // the old one folds into it rather than making a twin.
+    const same = (this.db.prepare(`SELECT * FROM memories WHERE kind = ? AND superseded_by IS NULL AND id != ?`).all(old.kind, id) as Record<string, unknown>[])
+      .find((r) => normalize(String(r.text)) === normalize(next))
+    if (same) {
+      const tx = this.db.transaction(() => {
+        this.db.prepare(`UPDATE memories SET superseded_by = ?, ended_at = ?, updated_at = ? WHERE id = ?`).run(same.id, now, now, id)
+        this.db.prepare(`DELETE FROM memory_fts WHERE id = ?`).run(id)
+        this.db.prepare(`UPDATE memories SET reinforced = reinforced + 1, updated_at = ?, confirmed = MAX(confirmed, ?) WHERE id = ?`).run(now, author === 'you' ? 1 : 0, same.id)
+      })
+      tx()
+      return this.get(same.id as string)
+    }
     const nid = crypto.randomUUID()
     const tx = this.db.transaction(() => {
       this.insert({
@@ -375,18 +412,29 @@ export class MemoryStore {
     return this.correct(id, next.text, next.author ?? 'agent', next.source)
   }
 
-  /** What a memory said before, newest first (each earlier version it replaced). */
+  /**
+   * What a memory said before, newest first: every earlier version it replaced,
+   * including ones that were folded into it.
+   */
   history(id: string): Memory[] {
     const out: Memory[] = []
-    let at = id
-    for (let i = 0; i < 50; i++) {
-      const r = this.db.prepare(`SELECT * FROM memories WHERE superseded_by = ?`).get(at) as Record<string, unknown> | undefined
-      if (!r) break
-      const m = this.row2mem(r)
-      out.push(m)
-      at = m.id
+    const seen = new Set([id])
+    let frontier = [id]
+    const stmt = this.db.prepare(`SELECT * FROM memories WHERE superseded_by = ?`)
+    while (frontier.length && out.length < 50) {
+      const next: string[] = []
+      for (const at of frontier) {
+        for (const r of stmt.all(at) as Record<string, unknown>[]) {
+          const m = this.row2mem(r)
+          if (seen.has(m.id)) continue
+          seen.add(m.id)
+          out.push(m)
+          next.push(m.id)
+        }
+      }
+      frontier = next
     }
-    return out
+    return out.sort((a, b) => (b.endedAt ?? 0) - (a.endedAt ?? 0) || b.createdAt - a.createdAt)
   }
 
   /** The person keeps a memory an agent proposed. */
