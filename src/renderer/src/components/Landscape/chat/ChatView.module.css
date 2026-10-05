@@ -612,3 +612,72 @@
   font-size: 12px;
   color: var(--wl-muted);
 }
+
+/* "Beside your work": take the chat to the side of the stage. */
+.besideBtn {
+  position: absolute;
+  top: 12px;
+  right: 16px;
+  z-index: 2;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  height: 28px;
+  padding: 0 11px;
+  border: 1px solid var(--wl-line);
+  border-radius: 14px;
+  background: rgba(var(--wl-paper-rgb), 0.9);
+  font: inherit;
+  font-size: 12.5px;
+  color: var(--wl-ink-2);
+  cursor: pointer;
+}
+
+.besideBtn:hover {
+  color: var(--wl-ink);
+  background: rgb(var(--wl-paper-rgb));
+}
+
+/* ── the chat beside the stage ── */
+.side {
+  position: relative;
+  flex: none;
+  width: clamp(320px, 30vw, 440px);
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  border-left: 1px solid var(--wl-line);
+  background: var(--wl-paper-solid);
+  font-family: var(--wl-sans);
+}
+
+.side .thread {
+  padding: 18px 18px 8px;
+}
+
+.side .composer {
+  padding: 8px 12px 12px;
+}
+
+.side .reply,
+.side .you {
+  max-width: 100%;
+}
+
+.sideHead {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 10px 10px 10px 12px;
+  border-bottom: 1px solid var(--wl-line);
+}
+
+.sideTitle {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 13px;
+  color: var(--wl-ink);
+}

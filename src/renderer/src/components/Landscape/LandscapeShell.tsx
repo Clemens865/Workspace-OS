@@ -10,6 +10,7 @@ import type { RailId } from '../Shell/shellModel'
 import { useSettings } from '../../hooks/useSettings'
 import { DOCK, type DockId, type LandscapeView } from './landscapeModel'
 import { ChatView } from './chat/ChatView'
+import { chatSide } from './chat/chatSideStore'
 import { LandscapeDock } from './LandscapeDock'
 import { LandscapeMenu } from './LandscapeMenu'
 import { TodayView } from './today/TodayView'
@@ -72,6 +73,8 @@ export function LandscapeShell(): JSX.Element {
   // The Inbox's two faces: what waits, and what happened (ADOPTION.md B2).
   const [inboxTab, setInboxTab] = useState<'waiting' | 'history'>('waiting')
   const [libraryTab, setLibraryTab] = useState<LibraryTab>('files')
+  // The conversation Chat opens with (back from beside the stage).
+  const [chatFocus, setChatFocus] = useState<string | null>(null)
   // The stage stays visible until the landscape has fully faded back in.
   const [stageShown, setStageShown] = useState(false)
   const lastLandscape = useRef<LandscapeOnly>('overview')
@@ -304,6 +307,11 @@ export function LandscapeShell(): JSX.Element {
       <BackdropContext.Provider value={backdrop}>
       <WorkspaceShell stage={{ hidden: !stageShown, onLandscape: () => showLandscape(), onSurface: onStageSurface, railOpen: openedOnStage,
           onHome: () => setView('today'),
+          onChatHome: (sid) => {
+            chatSide.close()
+            setChatFocus(sid)
+            setView('chat')
+          },
           dock: <LandscapeDock variant="bar" active={null} onSelect={onDock} waiting={inbox.length} terminalOpen={settings.terminalOpen} onTerminal={toggleTerminal} />,
         }}
       />
@@ -402,7 +410,21 @@ export function LandscapeShell(): JSX.Element {
         {view === 'cases' && <CasesView initialCase={caseFocus} />}
         {view === 'today' && <TodayView onGo={onTodayGo} onOpenUrl={openUrl} />}
         {view === 'library' && <LibraryView tab={libraryTab} onSurface={openSurface} />}
-        {view === 'chat' && <ChatView onOpenUrl={openUrl} />}
+        {view === 'chat' && (
+          <ChatView
+            key={chatFocus ?? 'chat'}
+            initialSession={chatFocus}
+            onOpenUrl={(url, sid) => {
+              // The page opens in the browser with the conversation beside it.
+              chatSide.show(sid)
+              openUrl(url)
+            }}
+            onBeside={(sid) => {
+              chatSide.show(sid)
+              setView('stage')
+            }}
+          />
+        )}
 
         {(view === 'overview' || view === 'agent') && (
           <div className={styles.hint} aria-hidden>
