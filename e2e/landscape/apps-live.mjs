@@ -145,7 +145,9 @@ try {
       await settle(2500)
     }
     const ticking = await fr.evaluate(() => document.body.innerText)
-    check('…and it responds: Start runs the timer', !!start && !/25:00/.test(ticking.split('\n').find((l) => /\d\d:\d\d/.test(l)) ?? '25:00'), ticking.slice(0, 200))
+    // Minutes and seconds may be separate elements ("24\n:\n58"): read the clock with the gaps closed.
+    const clock = /\d{1,2}\s*:\s*\d\d/.exec(ticking)?.[0].replace(/\s+/g, '') ?? '25:00'
+    check('…and it responds: Start runs the timer', !!start && clock !== '25:00', ticking.slice(0, 200))
   }
   await fr.evaluate(() => wos.storage.keys()).then((k) => console.log(`  storage keys: ${JSON.stringify(k)}`))
 } catch (e) {
