@@ -1,6 +1,7 @@
 import { spawn } from 'child_process'
 import { resolveClaudeBinary } from '../handlers/agent'
 import { claudeSettings } from './claudeSettings'
+import { modelArgs } from './modelPick'
 
 /**
  * A small, focused one-shot `claude -p` runner for internal, non-interactive
@@ -69,8 +70,10 @@ export function runClaudeJson(opts: {
   cwd?: string
   timeoutMs?: number
   allowedTools?: string[]
+  /** Model alias; unset = the CLI's default. */
+  model?: string
 }): Promise<ClaudeRunResult> {
-  const { prompt, systemPrompt, cwd, timeoutMs = 60_000, allowedTools = [] } = opts
+  const { prompt, systemPrompt, cwd, timeoutMs = 60_000, allowedTools = [], model } = opts
   const binary = resolveClaudeBinary()
 
   const args = [
@@ -80,6 +83,7 @@ export function runClaudeJson(opts: {
     '--verbose',
     ...(allowedTools.length ? ['--allowedTools', ...allowedTools] : []),
     ...(systemPrompt ? ['--append-system-prompt', systemPrompt] : []),
+    ...modelArgs(model),
     '-p',
   ]
 
