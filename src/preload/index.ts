@@ -776,6 +776,20 @@ contextBridge.exposeInMainWorld('workspace', {
     read: (filePath: string, offset?: number) => ipcRenderer.invoke('knowledge:read', filePath, offset),
   },
 
+  wiki: {
+    add: (paths: string[], opts?: { wait?: boolean; again?: boolean }) => ipcRenderer.invoke('wiki:add', paths, opts),
+    status: () => ipcRenderer.invoke('wiki:status'),
+    changes: (limit?: number) => ipcRenderer.invoke('wiki:changes', limit),
+    sources: () => ipcRenderer.invoke('wiki:sources'),
+    undo: (id: string) => ipcRenderer.invoke('wiki:undo', id),
+    check: () => ipcRenderer.invoke('wiki:check'),
+    onChanged: (cb: () => void) => {
+      const handler = (): void => cb()
+      ipcRenderer.on('wiki:changed', handler)
+      return () => ipcRenderer.removeListener('wiki:changed', handler)
+    },
+  },
+
   agents: {
     list: () => ipcRenderer.invoke(IPC.AGENTS_LIST),
     read: (name: string, scope?: 'global' | 'project') => ipcRenderer.invoke(IPC.AGENTS_READ, name, scope),

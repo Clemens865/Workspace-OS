@@ -183,6 +183,21 @@ describe('SearchIndex', () => {
       expect(out.ambiguous).toBe(true)
     })
 
+    it('resolves a name to the nearest file, so a link never lands in another workspace', () => {
+      note('/a/ws1/Wiki/Anna Berg.md')
+      index.setLinks('/z/ws2/Wiki/Northwind.md', [{ targetName: 'Anna Berg', position: 0, snippet: '[[Anna Berg]]' }])
+      // Only another workspace has the page: resolved there for now (the handlers scope it out)…
+      expect(index.outgoingLinks('/z/ws2/Wiki/Northwind.md')[0].resolvedPath).toBe('/a/ws1/Wiki/Anna Berg.md')
+      // …until this workspace gets its own: the link moves to it, and is not ambiguous.
+      note('/z/ws2/Wiki/Anna Berg.md')
+      expect(index.outgoingLinks('/z/ws2/Wiki/Northwind.md')[0]).toMatchObject({ resolvedPath: '/z/ws2/Wiki/Anna Berg.md', ambiguous: false })
+      expect(index.backlinksFor('/a/ws1/Wiki/Anna Berg.md')).toHaveLength(0)
+      expect(index.resolveName('anna berg', '/z/ws2/x')).toBe('/z/ws2/Wiki/Anna Berg.md')
+      // Removed again: back to the one that is left.
+      index.remove('/z/ws2/Wiki/Anna Berg.md')
+      expect(index.outgoingLinks('/z/ws2/Wiki/Northwind.md')[0].resolvedPath).toBe('/a/ws1/Wiki/Anna Berg.md')
+    })
+
     it('replaces links on re-index and clears them on remove', () => {
       note('/ws/A.md')
       note('/ws/B.md')

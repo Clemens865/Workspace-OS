@@ -1,6 +1,17 @@
 import { useEffect, useRef } from 'react'
 import type { TreeNode } from '../../types/fs'
 import styles from './ContextMenu.module.css'
+import { toast } from '../Landscape/toastStore'
+
+/** The app reads the file (or the folder's documents) and writes its pages in Wiki/; Library → Notes shows the progress. */
+async function addToWiki(target: string): Promise<void> {
+  try {
+    const r = await window.workspace.wiki.add([target])
+    toast(r.queued ? `Adding ${r.queued === 1 ? 'it' : `${r.queued} files`} to the wiki. Library → Notes shows the pages.` : 'Already in the wiki, and unchanged.')
+  } catch (e) {
+    toast(e instanceof Error ? e.message.replace(/^Error invoking remote method '[^']+': (Error: )?/, '') : 'Could not add that to the wiki.')
+  }
+}
 
 interface ContextMenuProps {
   node: TreeNode
@@ -55,6 +66,7 @@ export function ContextMenu({ node, x, y, isStarred, onClose, onRename, onDelete
       {node.isDirectory && <div className={styles.separator} />}
       {!node.isDirectory && item(isStarred ? 'Unstar' : 'Star', onToggleStar)}
       {!node.isDirectory && item('Start a case from this file', () => onStartCase(node))}
+      {item('Add to the wiki', () => void addToWiki(node.path))}
       {item('Rename', () => onRename(node))}
       {item('Reveal in Finder', () => onReveal(node))}
       <div className={styles.separator} />

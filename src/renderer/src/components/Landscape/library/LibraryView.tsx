@@ -9,6 +9,7 @@ import { useWorkspaceRoot } from '../../../hooks/useWorkspaceRoot'
 import { useWorkspaceLibrary } from '../../../hooks/useWorkspaceLibrary'
 import { useGlass } from '../backdrop/useBackdrop'
 import { relPath, searchFiles, shelves, type LibraryFile } from './libraryModel'
+import { WikiSection } from './WikiSection'
 import styles from './LibraryView.module.css'
 
 export type LibraryTab = 'files' | 'notes' | 'memory'
@@ -127,12 +128,17 @@ function NotesTab({ onSurface }: { onSurface: (rail: RailId) => void }): JSX.Ele
   const [nodes, setNodes] = useState<GraphNode[] | null>(null)
   useEffect(() => {
     let live = true
-    void window.workspace.links
-      .graph()
-      .then((g) => live && setNodes(g.nodes))
-      .catch(() => live && setNodes([]))
+    const read = (): void =>
+      void window.workspace.links
+        .graph()
+        .then((g) => live && setNodes(g.nodes))
+        .catch(() => live && setNodes([]))
+    read()
+    // The wiki says it changed once the index has read its pages.
+    const off = window.workspace.wiki.onChanged(read)
     return () => {
       live = false
+      off()
     }
   }, [root])
   const notes = (nodes ?? []).filter((n) => n.kind === 'note').sort((a, b) => b.degree - a.degree || a.name.localeCompare(b.name))
@@ -147,6 +153,7 @@ function NotesTab({ onSurface }: { onSurface: (rail: RailId) => void }): JSX.Ele
         </button>
       </div>
       <div className={styles.scroll}>
+        {root && <WikiSection root={root} pages={notes.filter((n) => relPath(n.id, root).startsWith('Wiki/') && relPath(n.id, root) !== 'Wiki/Index.md').length} />}
         {notes.length > 0 && (
           <ul className={styles.list}>
             {notes.map((n) => (

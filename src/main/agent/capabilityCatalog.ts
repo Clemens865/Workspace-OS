@@ -178,9 +178,9 @@ export const CAPABILITY_CATALOG: readonly Capability[] = [
     label: 'Knowledge Base',
     description: 'Search and read every file in the workspace, remember what matters, and capture findings as notes.',
     surface: 'knowledge',
-    actions: ['knowledge.search', 'knowledge.read', 'knowledge.new-note', 'memory.remember'],
+    actions: ['knowledge.search', 'knowledge.read', 'knowledge.new-note', 'memory.remember', 'knowledge.wiki-add'],
     guidance:
-      'Knowledge: search the whole workspace, office files included, with `wos-action run knowledge.search \'{"query":"<question>"}\'` and read a file as text with `wos-action run knowledge.read \'{"path":"<path>"}\'`; cite the file and page/slide/sheet. Capture a lasting finding in memory with `wos-action run memory.remember` and, when it deserves a page, as a markdown note that links related notes with [[Note name]].',
+      'Knowledge: search the whole workspace, office files included, with `wos-action run knowledge.search \'{"query":"<question>"}\'` and read a file as text with `wos-action run knowledge.read \'{"path":"<path>"}\'`; cite the file and page/slide/sheet. Capture a lasting finding in memory with `wos-action run memory.remember`. When a file you made or found deserves a place in the workspace wiki, add it with `wos-action run knowledge.wiki-add \'{"path":"<path>"}\'`: the app writes or updates the pages in Wiki/ from it (never write Wiki/ pages yourself).',
     toolMode: 'safe',
   },
 ] as const

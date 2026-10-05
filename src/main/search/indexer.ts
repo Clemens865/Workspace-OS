@@ -83,6 +83,23 @@ export class Indexer {
     this.pump()
   }
 
+  /**
+   * Bring these files up to date in the index now and resolve when done, so a
+   * writer (the wiki) can say "ready" only once search and the graph see it.
+   * A file that is gone is dropped from the index.
+   */
+  async indexNow(paths: readonly string[]): Promise<void> {
+    for (const p of paths) {
+      try {
+        await fs.stat(p)
+      } catch {
+        this.index.remove(p)
+        continue
+      }
+      await this.indexOne(p)
+    }
+  }
+
   status(): IndexerStatus {
     const queued = (this.queue.length - this.head) + (this.prioQueue.length - this.prioHead)
     return {

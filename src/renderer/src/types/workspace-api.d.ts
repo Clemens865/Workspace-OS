@@ -22,6 +22,36 @@ export interface CaseViewResult {
 
 /** A memory the workspace itself recorded (distinct from a Pulse insight). */
 /** What the last tidy did. */
+export interface WikiAddResult {
+  source: string
+  created: string[]
+  updated: string[]
+  kept: { title: string; why: string }[]
+  error?: string
+}
+export interface WikiStatus {
+  busy: boolean
+  current: string | null
+  queued: number
+  finished: number
+  failed: { source: string; error: string }[]
+}
+export interface WikiChange {
+  id: string
+  at: number
+  source: string
+  created: string[]
+  updated: string[]
+  kept: { title: string; why: string }[]
+}
+export interface WikiCheck {
+  pages: number
+  changed: string[]
+  missing: string[]
+  unlinked: string[]
+  wanted: { title: string; refs: number }[]
+}
+
 export interface MemoryTidyReport {
   at: number
   folded: number
@@ -1023,6 +1053,17 @@ export interface WorkspaceApi {
   knowledge: {
     search: (query: string, limit?: number) => Promise<{ path: string; name: string; snippet: string; location: string | null; score: number }[]>
     read: (filePath: string, offset?: number) => Promise<{ path: string; text: string; offset: number; total: number; more: boolean }>
+  }
+  /** The wiki that keeps itself: pages in Wiki/ written from the files added to it. */
+  wiki: {
+    add: (paths: string[], opts?: { wait?: boolean; again?: boolean }) => Promise<{ queued: number; unchanged: number; left: number; results?: WikiAddResult[] }>
+    status: () => Promise<WikiStatus>
+    changes: (limit?: number) => Promise<WikiChange[]>
+    /** Workspace-relative paths of the files the wiki was written from. */
+    sources: () => Promise<string[]>
+    undo: (id: string) => Promise<{ ok: boolean; restored: string[]; left: string[] }>
+    check: () => Promise<WikiCheck | null>
+    onChanged: (cb: () => void) => () => void
   }
   agents: {
     list: () => Promise<{ name: string; description: string; scope: 'global' | 'project'; mode?: 'full' | 'safe'; capabilities?: string[]; surface?: string; model?: string }[]>
