@@ -1082,6 +1082,13 @@ export interface WorkspaceApi {
     load: (slug: string, theme: 'light' | 'dark') => Promise<{ manifest: WosAppManifest; html: string }>
     manifest: (slug: string) => Promise<WosAppManifest>
     lint: (slug: string) => Promise<{ rule: 'colour' | 'font' | 'network' | 'storage' | 'class'; detail: string }[]>
+    /** The app harness: the idea becomes Apps/<slug>/BRIEF.md; null for an app that already has files or a brief (throws when no usable brief came back). */
+    brief: (slug: string, idea: string) => Promise<{ brief: string; checks: number } | null>
+    /** The app harness: the running app (a screenshot of `rect`) and its files, against its brief. Null when nothing usable came back. */
+    review: (
+      slug: string,
+      rect: { x: number; y: number; width: number; height: number } | null,
+    ) => Promise<{ checks: { check: string; met: boolean; note: string }[]; looks: string[]; next: string[] } | null>
     /** Saves the app as a .wosapp file (its own files, not its data); the file name, or null if cancelled. */
     export: (slug: string) => Promise<string | null>
     /** Picks and checks a .wosapp file; what it is and asks for, to confirm. */

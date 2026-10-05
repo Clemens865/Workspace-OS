@@ -1,6 +1,6 @@
 {
   "name": "SVG Generator",
-  "description": "Describe an icon or illustration and get a clean SVG in the style you pick. Keeps your recent ones; save any as a file.",
+  "description": "Describe a logo, icon, illustration or product diagram and get a designed SVG in the format, style and palette you pick; an art director pass looks at the drawing and redraws it better. Save as SVG or PNG.",
   "icon": "✦",
   "permissions": ["ai"],
   "entry": "index.html"

@@ -790,6 +790,8 @@ contextBridge.exposeInMainWorld('workspace', {
     load: (slug: string, theme: 'light' | 'dark') => ipcRenderer.invoke('apps:load', slug, theme),
     manifest: (slug: string) => ipcRenderer.invoke('apps:manifest', slug),
     lint: (slug: string) => ipcRenderer.invoke('apps:lint', slug),
+    brief: (slug: string, idea: string) => ipcRenderer.invoke('apps:brief', slug, idea),
+    review: (slug: string, rect: { x: number; y: number; width: number; height: number } | null) => ipcRenderer.invoke('apps:review', slug, rect),
     export: (slug: string) => ipcRenderer.invoke('apps:export', slug),
     importPick: () => ipcRenderer.invoke('apps:importPick'),
     importConfirm: (token: string) => ipcRenderer.invoke('apps:importConfirm', token),

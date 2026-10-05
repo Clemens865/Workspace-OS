@@ -244,6 +244,39 @@
   color: var(--wl-muted);
 }
 
+/* Next steps the app harness offers under its review line. */
+.suggest {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  margin-top: 8px;
+}
+
+.suggestBtn {
+  max-width: 460px;
+  padding: 7px 14px;
+  border: 1px solid var(--wl-line);
+  border-radius: 14px;
+  background: rgba(var(--wl-paper-rgb), 0.8);
+  font: inherit;
+  font-size: 13px;
+  color: var(--wl-ink);
+  text-align: left;
+  cursor: pointer;
+  transition: background 0.15s var(--wl-ease-soft);
+}
+
+.suggestBtn:hover:not(:disabled) {
+  background: rgb(var(--wl-paper-rgb));
+  border-color: rgba(var(--wl-ink-rgb), 0.25);
+}
+
+.suggestBtn:disabled {
+  opacity: 0.5;
+  cursor: default;
+}
+
 .typing {
   color: var(--wl-muted);
   letter-spacing: 0.2em;

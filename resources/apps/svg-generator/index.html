@@ -10,21 +10,40 @@
       <aside class="wos-side wos-stack">
         <div>
           <label class="wos-label" for="what">What should it show?</label>
-          <textarea id="what" class="wos-textarea" placeholder="A paper plane taking off over a cloud"></textarea>
+          <textarea id="what" class="wos-textarea" placeholder="A four-step deploy flow: cards with line icons joined by dashed arrows, a timeline below, the last step highlighted"></textarea>
         </div>
         <div>
-          <span class="wos-label">Style</span>
-          <div class="wos-segment" id="styles">
-            <button data-style="line" class="on">Line</button>
-            <button data-style="flat">Flat</button>
-            <button data-style="duotone">Duotone</button>
-            <button data-style="sketch">Sketch</button>
+          <span class="wos-label">Format</span>
+          <div class="wos-segment" id="formats">
+            <button data-v="square" class="on">Square</button>
+            <button data-v="wide">Wide</button>
+            <button data-v="banner">Banner</button>
           </div>
         </div>
         <div>
-          <span class="wos-label">Colour</span>
-          <div class="wos-row" id="colours"></div>
+          <label class="wos-label" for="style">Style</label>
+          <select id="style" class="wos-select">
+            <option value="logo">Logo mark</option>
+            <option value="icon">Line icon</option>
+            <option value="flat" selected>Flat illustration</option>
+            <option value="isometric">Isometric</option>
+            <option value="diagram">Product diagram</option>
+            <option value="duotone">Duotone</option>
+            <option value="sketch">Ink sketch</option>
+          </select>
         </div>
+        <div>
+          <span class="wos-label">Palette</span>
+          <div id="palettes" class="palettes"></div>
+        </div>
+        <div>
+          <label class="wos-label" for="detail">Detail · <span id="detail-text">Considered</span></label>
+          <input id="detail" class="wos-range" type="range" min="1" max="3" step="1" value="2">
+        </div>
+        <label class="wos-row director">
+          <input id="director" type="checkbox" checked>
+          <span><strong>Art director</strong><br><span class="wos-muted wos-small">It looks at its own drawing and redraws it better. Takes longer.</span></span>
+        </label>
         <button id="go" class="wos-btn primary">Generate</button>
         <div id="error" class="wos-error" hidden></div>
         <div>
@@ -33,20 +52,27 @@
         </div>
       </aside>
       <main class="wos-main stage">
-        <div id="empty" class="wos-empty">Describe something on the left, and its SVG appears here.</div>
+        <div id="empty" class="wos-empty">Describe something on the left, pick a format, style and palette, and its SVG appears here.</div>
         <div id="result" class="result" hidden>
+          <div class="wos-segment" id="versions" hidden>
+            <button data-v="draft">Draft</button>
+            <button data-v="final" class="on">Art director's version</button>
+          </div>
           <div class="canvas"><img id="preview" alt="Generated SVG"></div>
           <div class="wos-row actions">
             <button id="save" class="wos-btn">Save as SVG…</button>
+            <button id="save-png" class="wos-btn">Save as PNG…</button>
+            <button id="refine" class="wos-btn ghost">Refine again</button>
             <button id="again" class="wos-btn ghost">Another take</button>
             <button id="code" class="wos-btn ghost">Show the code</button>
           </div>
           <pre id="source" class="source" hidden></pre>
         </div>
-        <div id="busy" class="busy" hidden><div class="wos-spinner"></div><span class="wos-muted">Drawing…</span></div>
+        <div id="busy" class="busy" hidden><div class="wos-spinner"></div><span id="busy-text" class="wos-muted">Drawing…</span></div>
       </main>
     </div>
   </div>
+  <script src="palettes.js"></script>
   <script src="app.js"></script>
 </body>
 </html>

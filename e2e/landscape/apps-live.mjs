@@ -88,15 +88,22 @@ try {
   await win.waitForSelector('[data-testid="chat-stop"]', { timeout: 20000 })
   const t0 = Date.now()
   await win.waitForSelector('[data-testid="chat-stop"]', { state: 'detached', timeout: 15 * 60_000 })
-  // The design check may send one fix turn: wait for its verdict.
-  for (let i = 0; i < 1200; i++) {
-    const t = (await win.textContent('[data-testid="chat-thread"]')) ?? ''
-    if (!/Fixing…/.test(t) || /all fixed|still off/.test(t)) break
+  // The harness after the build: design check (one fix), review (one fix), then next steps. Done when the
+  // next steps show, or when nothing has run for 30 s (a review that gave nothing).
+  for (let quiet = 0, i = 0; i < 3600 && quiet < 60; i++) {
+    if (await win.$('[data-testid="chat-suggest"]')) break
+    quiet = (await win.$('[data-testid="chat-stop"]')) ? 0 : quiet + 1
     await settle(500)
   }
-  await win.waitForSelector('[data-testid="chat-stop"]', { state: 'detached', timeout: 15 * 60_000 })
-  console.log(`  (built in ${Math.round((Date.now() - t0) / 1000)} s)`)
-  console.log(`  design check: ${((await win.textContent('[data-testid="chat-thread"]')) ?? '').match(/Design check:[^.]*\./g)?.join(' | ') ?? 'clean on the first build'}`)
+  const thread = (await win.textContent('[data-testid="chat-thread"]')) ?? ''
+  console.log(`  (built, checked and reviewed in ${Math.round((Date.now() - t0) / 1000)} s)`)
+  console.log(`  harness: ${thread.match(/(Product brief written[^.]*\.|No brief this time[^;]*;|Design check:[^.]*\.|Review:[^.]*\.)/g)?.join(' | ') ?? 'nothing said'}`)
+  const brief = fs.existsSync(path.join(ws, 'Apps', slug, 'BRIEF.md')) ? fs.readFileSync(path.join(ws, 'Apps', slug, 'BRIEF.md'), 'utf8') : ''
+  const checks = (brief.match(/^\s*-\s*\[[ xX]?\]/gm) ?? []).length
+  check('the idea became a product brief with acceptance checks', /^# \S/m.test(brief) && checks >= 6, `${checks} checks`)
+  const next = await win.$$eval('[data-suggest]', (els) => els.map((e) => e.getAttribute('data-suggest')))
+  check('the running app was reviewed against it, and three next steps are offered', /Review: \d+ of \d+ checks? met/.test(thread) && next.length === 3, JSON.stringify(next))
+  console.log(`  next: ${next.join(' | ')}`)
   await settle(1500)
   const reply = (await win.textContent('[data-testid="chat-thread"] [data-role="agent"]:last-child').catch(() => '')) ?? ''
   console.log(`  reply: ${reply.slice(0, 300)}`)
@@ -132,13 +139,15 @@ try {
   check('it loads in its sandbox with a working face and no errors', ui.buttons.length >= 2 && (!pomodoro || /25|start/i.test(ui.text + ui.buttons.join(' '))) && errors.length === 0, JSON.stringify({ errors, ui }))
   if (process.env.WOS_SHOT_DIR) await win.screenshot({ path: path.join(process.env.WOS_SHOT_DIR, `app-live-${slug}.png`) })
   if (pomodoro) {
-    const start = await fr.$('button:has-text("Start")')
+    const start = await fr.$('button:has-text("Start"), button:has-text("Resume")')
     if (start) {
       await start.click()
       await settle(2500)
     }
     const ticking = await fr.evaluate(() => document.body.innerText)
-    check('…and it responds: Start runs the timer', !!start && !/25:00/.test(ticking.split('\n').find((l) => /\d\d:\d\d/.test(l)) ?? '25:00'), ticking.slice(0, 200))
+    // Minutes and seconds may be separate elements ("24\n:\n58"): read the clock with the gaps closed.
+    const clock = /\d{1,2}\s*:\s*\d\d/.exec(ticking)?.[0].replace(/\s+/g, '') ?? '25:00'
+    check('…and it responds: Start runs the timer', !!start && clock !== '25:00', ticking.slice(0, 200))
   }
   await fr.evaluate(() => wos.storage.keys()).then((k) => console.log(`  storage keys: ${JSON.stringify(k)}`))
 } catch (e) {

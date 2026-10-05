@@ -7,12 +7,20 @@
     linear-gradient(45deg, rgba(var(--ink-rgb), 0.03) 25%, transparent 25%, transparent 75%, rgba(var(--ink-rgb), 0.03) 75%) 0 0 / 22px 22px,
     linear-gradient(45deg, rgba(var(--ink-rgb), 0.03) 25%, transparent 25%, transparent 75%, rgba(var(--ink-rgb), 0.03) 75%) 11px 11px / 22px 22px;
 }
-.canvas img { width: min(100%, 420px); height: auto; max-height: 420px; }
+.canvas img { width: 100%; max-width: 760px; height: clamp(240px, 52vh, 520px); object-fit: contain; }
 .source { max-height: 240px; overflow: auto; margin: 0; padding: 14px; border-radius: var(--radius); background: rgba(var(--ink-rgb), 0.05); white-space: pre-wrap; word-break: break-all; }
 .busy { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; gap: 10px; background: rgba(var(--paper-rgb), 0.7); }
-.swatch { width: 26px; height: 26px; padding: 0; border: 2px solid transparent; border-radius: 50%; cursor: pointer; }
-.swatch.on { border-color: var(--ink); }
+.palettes { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
+.palette { display: flex; flex-direction: column; align-items: flex-start; gap: 6px; padding: 8px 10px; border: 1px solid var(--line); border-radius: 12px; background: var(--paper); color: var(--ink); font: inherit; text-align: left; cursor: pointer; }
+.palette:hover { border-color: rgba(var(--ink-rgb), 0.25); }
+.palette.on { border-color: var(--ink); }
+.palette .dots { display: flex; gap: 3px; }
+.palette .dots i { width: 14px; height: 14px; border-radius: 50%; border: 1px solid rgba(var(--ink-rgb), 0.12); }
+.palette .dots i.none { background: repeating-linear-gradient(45deg, rgba(var(--ink-rgb), 0.15) 0 2px, transparent 2px 5px) !important; }
+.director { flex-wrap: nowrap; align-items: flex-start; gap: 10px; cursor: pointer; }
+.director > span { flex: 1; min-width: 0; }
+.director input { margin-top: 3px; }
 .recent { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; }
-.recent button { aspect-ratio: 1; padding: 8px; border: 1px solid var(--line); border-radius: 12px; background: var(--paper); cursor: pointer; }
+.recent button { aspect-ratio: 1; padding: 6px; border: 1px solid var(--line); border-radius: 12px; background: var(--paper); cursor: pointer; }
 .recent button:hover { border-color: rgba(var(--ink-rgb), 0.25); }
 .recent img { width: 100%; height: 100%; object-fit: contain; }

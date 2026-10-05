@@ -23,7 +23,7 @@ Icons: small inline SVGs (viewBox 0 0 24 24, line style); inside a .wos-btn, or 
 Library "hairline" (add "libraries": ["hairline"] to app.json): 19 interactive isometric line figures that answer the pointer, already themed in the kit's ink and paper. window.hairline.<name>(element, { intensity: 0..1, label, onRead }) draws one into the element (5:4, at its width) and returns { update(options), destroy() }. Names: riffle (a tray of cards), terrain (pillars), exploded (an app window in layers), phosphor (dot matrix), slow (crates on a belt), turntable, keyboard, elevator, phone, laptop, terminal, cabinet (server rack), branches (commit graph), vault, lockers, padlock, patch (patch panel), dish, router. Good for an empty state, a header or a moment of delight; one per view, not as decoration everywhere.`
 
 const BRIDGE = `THE BRIDGE (window.wos, the app's only way out of its sandbox):
-- await wos.ai.complete(prompt, { system, json, web }) → string, or parsed JSON with json: true. Needs "ai" in app.json permissions; web: true (web lookup) needs "ai.web".
+- await wos.ai.complete(prompt, { system, json, web, images }) → string, or parsed JSON with json: true. Needs "ai" in app.json permissions; web: true (web lookup) needs "ai.web". images: up to 4 PNG/JPEG/WebP data: URLs the model looks at first; render what the app generated (an SVG drawn into a <canvas>, then canvas.toDataURL('image/png')) and send it back with a critique-and-improve prompt.
 - await wos.storage.get(key) / set(key, value) / remove(key) / keys() → the app's own saved data (JSON values, 5 MB in all). Save state here so the app reopens as it was.
 - await wos.files.save(name, data, { encoding: 'utf8' | 'base64' }) → the person picks where; null if they cancel.
 - await wos.files.open({ accept: ['.svg', '.png'], as: 'text' | 'base64' }) → { name, data } or null.
@@ -37,6 +37,7 @@ export function buildAppBuilderPrompt(slug: string, workspaceRoot: string): stri
     `- Apps/${slug}/app.json: {"name": "<short name>", "description": "<one sentence: what it does>", "icon": "<one emoji>", "permissions": [<"ai" and/or "ai.web", only if the app uses them>], "libraries": [<"hairline", only if used>], "entry": "index.html"}. Keep name, description and icon true to the app as it grows.`,
     `- Apps/${slug}/index.html, and beside it app.js and style.css (linked as <script src="app.js"></script> and <link rel="stylesheet" href="style.css">; they are inlined for the sandbox). More files are fine for a bigger app.`,
     'Read the existing files before you change them, and change them with small edits; rewrite a file only when most of it changes.',
+    `- Apps/${slug}/BRIEF.md, when it is there, is the product brief (written from the person's idea before the first build): build the whole app it describes and meet every acceptance check in it. When the person changes direction, update the brief with a small edit so it stays true. After each turn the app is reviewed against it.`,
     '',
     'THE SANDBOX the app runs in:',
     '- No network at all: no CDN scripts, fonts or images, no fetch. Write everything yourself in plain HTML, CSS and JavaScript (modern browser, ES2022). If a library would help, write the small part you need.',
@@ -49,6 +50,8 @@ export function buildAppBuilderPrompt(slug: string, workspaceRoot: string): stri
     'THE LOOK: every app looks like Workspace OS. Use the kit below for every colour, font, radius and control; never hard-code colours or other fonts (on a <canvas>, read the tokens with getComputedStyle(document.documentElement) and redraw on wos.onTheme). Calm and spacious: generous whitespace, hairline borders (--line), headings in the serif, no heavy shadows, no gradients, no emoji as decoration (one emoji as the app icon is fine).',
     '',
     KIT,
+    '',
+    'AI INSIDE THE APP: when the app asks the model to make something (a drawing, a diagram, a text, a plan), the system prompt it sends decides the quality. Write it as a demanding expert brief: the role (senior illustrator, editor, analyst), the standard (professional, specific, never "keep it simple"), the concrete rules of the craft (palette, composition, hierarchy, detail; structure, tone), and the exact output format. For anything visual, add a second pass: render the result, send it back as an image with "critique this as an art director and return an improved version", and show the improved one. The kit rule above is for the app\'s own interface; what the AI makes for the person may use its own palette.',
     '',
     'QUALITY: the app must work on its first load with no console errors: wire every button, give every empty board or list a .wos-empty hint saying what to do first, show errors with .wos-error, keep work across reloads with wos.storage (save right after each change is finished, never on a timer: an app that is closed gets no time to save later), and support the keyboard where people expect it (Delete, Escape, Cmd+Z / Cmd+Shift+Z for undo/redo in editors). For a canvas or board app: pointer events for drag, pan and zoom, selection, undo/redo, and export through wos.files.save (SVG or PNG).',
     '',

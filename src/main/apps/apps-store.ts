@@ -267,14 +267,15 @@ export function lintApp(root: string, slug: string): LintFinding[] {
   }
   for (const f of files) {
     const raw = fs.readFileSync(path.join(dir, f), 'utf8')
-    // A file may say it only NAMES a forbidden thing (a checker's own list): "wos-design-check: names storage, network".
+    // A file may say it only NAMES a forbidden thing (a checker's own list): "wos-design-check: names storage, network",
+    // or holds the colours of what the app DRAWS (a drawing's palettes, not its interface): "wos-design-check: names colour".
     const names = new Set((/wos-design-check:\s*names\s+([a-z ,]+)/.exec(raw)?.[1] ?? '').split(/[\s,]+/).filter(Boolean))
     // Comments say nothing about the app's looks.
     const text = raw.replace(/\/\*[\s\S]*?\*\/|<!--[\s\S]*?-->/g, '')
     // A colour, not an HTML entity (&#039;) or an id like #add-note.
     const colours = [...new Set(text.match(/(?<![&\w])#(?:[0-9a-f]{8}|[0-9a-f]{6}|[0-9a-f]{3,4})(?![\w-])/gi) ?? [])]
-    if (colours.length) add('colour', `${f}: hard-coded colours ${colours.slice(0, 8).join(' ')}; use the kit tokens (--ink, --muted, --line, --paper, --accent, --swatch-1…6 and their -soft fills)`)
-    if (/\brgba?\(\s*\d/i.test(text)) add('colour', `${f}: rgb()/rgba() with numbers; tint with rgba(var(--ink-rgb), …) or rgba(var(--paper-rgb), …)`)
+    if (colours.length && !names.has('colour')) add('colour', `${f}: hard-coded colours ${colours.slice(0, 8).join(' ')}; use the kit tokens (--ink, --muted, --line, --paper, --accent, --swatch-1…6 and their -soft fills)`)
+    if (!names.has('colour') && /\brgba?\(\s*\d/i.test(text)) add('colour', `${f}: rgb()/rgba() with numbers; tint with rgba(var(--ink-rgb), …) or rgba(var(--paper-rgb), …)`)
     // CSS declarations and the style property: a font named in an exported SVG's markup is the drawing's, not the app's.
     for (const m of text.matchAll(/(?:font-family\s*:|fontFamily\s*=)\s*['"]?([^;'"\n]+)/gi)) {
       if (!/^\s*(var\(--|inherit)/.test(m[1])) add('font', `${f}: font-family ${m[1].trim().slice(0, 40)}; use var(--sans), var(--serif) or var(--mono)`)

@@ -112,6 +112,13 @@ describe('the design check', () => {
     expect(rules).toEqual(['class', 'colour', 'colour', 'font', 'network', 'storage'])
     expect(lintApp(root, 'bad').find((f) => f.rule === 'colour')?.detail).toContain('#fff9e6 #999')
   })
+
+  it('lets a file of drawing palettes hold colours, and only that file', () => {
+    write('Apps/draw/palettes.js', "// wos-design-check: names colour\nconst P = [{ bg: '#3a3e2c', accent: 'rgb(212, 240, 74)' }]")
+    expect(lintApp(root, 'draw')).toEqual([])
+    write('Apps/draw/style.css', '.side { background: #3a3e2c }')
+    expect(lintApp(root, 'draw').map((f) => f.detail)).toEqual([expect.stringContaining('style.css: hard-coded colours #3a3e2c')])
+  })
 })
 
 describe('the built-in apps', () => {

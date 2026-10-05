@@ -64,12 +64,23 @@ process.stdin.on('end', () => {
   const file = ${JSON.stringify(callsFile)};
   const calls = fs.existsSync(file) ? JSON.parse(fs.readFileSync(file, 'utf8')) : [];
   const system = args[args.indexOf('--append-system-prompt') + 1] || '';
-  calls.push({ prompt, args, system, cwd: process.cwd() });
+  let files = [];
+  try { files = fs.readdirSync(process.cwd()).slice(0, 8); } catch {}
+  calls.push({ prompt, args, system, cwd: process.cwd(), files });
   fs.writeFileSync(file, JSON.stringify(calls));
   let text = 'Done.';
-  if (system.includes('You are the AI inside "SVG Generator"')) text = '<svg viewBox="0 0 256 256"><circle cx="128" cy="128" r="80" fill="#d97757"/></svg>';
+  if (system.includes('You are the AI inside "SVG Generator"')) text = prompt.includes('Critique it as an art director') ? '<svg viewBox="0 0 512 512"><rect width="512" height="512" fill="#383c2b"/><circle id="refined" cx="256" cy="256" r="120" fill="#d4f04a"/></svg>' : '<svg viewBox="0 0 512 512"><circle cx="256" cy="256" r="160" fill="#d97757"/></svg>';
+  // The app harness: the product brief, then the review of the running app.
+  else if (system.includes('You are the product lead')) text = '# Counter\\nCounts, and remembers.\\n## Core jobs\\n- Count\\n## Acceptance checks\\n- [ ] Pressing +1 raises the count\\n- [ ] The count survives a reload\\n- [ ] The count has a label\\n## Later\\n- Add a reset';
+  else if (system.includes('demanding QA lead')) {
+    const first = !calls.slice(0, -1).some((c) => (c.system || '').includes('demanding QA lead'));
+    text = JSON.stringify({ checks: [{ check: 'Pressing +1 raises the count', met: true }, { check: 'The count has a label', met: !first, note: first ? 'no label next to the number' : '' }], looks: [], next: ['Add a reset button', 'Count in steps of five', 'Show a history of counts'] });
+  }
   // A resumed turn carries no system prompt: the fix request is known by its words.
-  if (prompt.includes("design check found")) {
+  if (prompt.includes('review of the running app against its brief')) {
+    fs.writeFileSync(path.join(process.cwd(), 'Apps', 'new-app', 'index.html'), ${JSON.stringify(COUNTER.replace('<h1 id="n">', '<p class="wos-label">Clicks</p><h1 id="n">'))});
+    text = 'Added a label above the count.';
+  } else if (prompt.includes("design check found")) {
     fs.writeFileSync(path.join(process.cwd(), 'Apps', 'new-app', 'style.css'), 'h1 { color: var(--ink) }');
     text = 'Fixed: the heading now uses the ink token.';
   } else if (system.includes('You build and change ONE app')) {
@@ -152,6 +163,14 @@ try {
   check('its AI call reaches the model as that app, with no tools, outside the workspace', !!ai && /You are the AI inside "SVG Generator"/.test(ai.system) && /Draw: A sun over hills/.test(ai.prompt) && !ai.args.includes('--allowedTools') && ai.cwd !== ws && !ai.cwd.startsWith(ws), ai && JSON.stringify({ cwd: ai.cwd, args: ai.args.slice(0, 12) }))
   await shot('app-svg.png')
   check('…the SVG shows, and is kept in the app’s own storage', /circle/.test(decodeURIComponent((await f.getAttribute('#preview', 'src')) ?? '')) && /circle/.test(fs.readFileSync(path.join(ws, 'Apps/svg-generator/data/store.json'), 'utf8')))
+  check('…it asks as a designer, in the format and palette picked, not "keep it simple"', /senior brand designer/.test(ai.system) && !/keep it simple/i.test(ai.system) && /viewBox="0 0 512 512"/.test(ai.prompt) && /Palette \(Night olive\)/.test(ai.prompt) && ai.args[ai.args.indexOf('--setting-sources') + 1] === '', ai.prompt)
+  // The art director: the drawing, rendered, goes back to the model as an image it alone may read.
+  await until(async () => /refined/.test(decodeURIComponent((await f.getAttribute('#preview', 'src').catch(() => '')) ?? '')), 15000)
+  const director = calls().slice(before).find((c) => /Critique it as an art director/.test(c.prompt))
+  const dTools = director ? director.args.slice(director.args.indexOf('--allowedTools') + 1, director.args.indexOf('--allowedTools') + 2) : []
+  check('…the art director looks at the rendered drawing and its better version is shown', !!director && director.files.includes('image-1.png') && dTools[0] === 'Read(./**)' && /image-1\.png/.test(director.prompt) && !director.cwd.startsWith(ws) && !(await f.isHidden('#versions')), director && JSON.stringify({ files: director.files, tools: dTools }))
+  await f.click('#versions [data-v="draft"]')
+  check('…and the draft is still there to compare', !/refined/.test(decodeURIComponent((await f.getAttribute('#preview', 'src')) ?? '')))
 
   // ── the sandbox holds ──
   const probe = await f.evaluate(async (port) => {
@@ -180,17 +199,33 @@ try {
   await win.click('[data-testid="chat-view"] textarea')
   await win.keyboard.type('A counter that remembers its count')
   await win.keyboard.press('Enter')
-  await until(() => calls().length > b)
-  const build = calls()[b]
+  // The brief comes first now; the build is the builder's call.
+  const isBuild = (c) => /You build and change ONE app/.test(c.system)
+  await until(() => calls().slice(b).some(isBuild), 20000)
+  const build = calls().slice(b).find(isBuild)
   const allowed = build ? build.args.slice(build.args.indexOf('--allowedTools') + 1) : []
   check('the builder runs with the app brief, may edit only that app’s folder, and loads no settings', !!build && /You build and change ONE app/.test(build.system) && build.args[build.args.indexOf('--setting-sources') + 1] === '' && allowed.includes('Edit(./Apps/new-app/**)') && !allowed.some((t) => /^(Write|Edit|Bash)$/.test(t)) && !build.args.includes('--mcp-config'), build && build.args.join(' '))
   check('…and is told the sandbox, the bridge and the design kit', !!build && /No network at all/.test(build.system) && /wos\.storage\.get/.test(build.system) && /\.wos-btn/.test(build.system))
+  const briefCall = calls().slice(b).find((c) => /You are the product lead/.test(c.system))
+  check('a new app starts from a product brief, and the build is held to it', !!briefCall && /A counter that remembers its count/.test(briefCall.prompt) && /^# Counter/.test(fs.readFileSync(path.join(ws, 'Apps/new-app/BRIEF.md'), 'utf8')) && /Apps\/new-app\/BRIEF\.md: read it first/.test(build?.prompt ?? '') && /Product brief written \(BRIEF\.md\): 3 acceptance checks/.test((await win.textContent('[data-testid="chat-thread"]')) ?? ''), build?.prompt)
   // The design check finds the hard-coded red, and the builder fixes it once, on its own.
   const fixed = await until(async () => /Design check: all fixed/.test((await win.textContent('[data-testid="chat-thread"]')) ?? ''), 20000)
   const fixCall = calls().find((c) => /design check found/.test(c.prompt))
   check('the design check catches a hard-coded colour, and the builder fixes it on its own', fixed && /#ff0000/.test(fixCall?.prompt ?? '') && /Design check: 1 thing to fix \(colour\)/.test((await win.textContent('[data-testid="chat-thread"]')) ?? '') && fs.readFileSync(path.join(ws, 'Apps/new-app/style.css'), 'utf8').includes('var(--ink)'), (await win.textContent('[data-testid="chat-thread"]'))?.slice(-400))
-  await until(async () => !(await win.$('[data-testid="chat-stop"]')), 10000)
-  await settle(800)
+  // The review: the running app (a screenshot) against the brief, one fix, then three next steps.
+  const offered = await until(async () => !!(await win.$('[data-testid="chat-suggest"]')), 40000)
+  const reviewCall = calls().find((c) => /demanding QA lead/.test(c.system))
+  const thread = (await win.textContent('[data-testid="chat-thread"]')) ?? ''
+  check('the review looks at a screenshot of the running app with its brief, and sends what is missing back once', offered && reviewCall?.files.includes('image-1.png') && /The count has a label/.test(reviewCall?.prompt ?? '') && /Review: 1 of 2 checks met\. Fixing…/.test(thread) && /Clicks/.test(fs.readFileSync(path.join(ws, 'Apps/new-app/index.html'), 'utf8')), thread.slice(-500))
+  const chips = await win.$$eval('[data-suggest]', (els) => els.map((e) => e.getAttribute('data-suggest')))
+  check('…then offers three next steps to click', chips.length === 3 && chips[0] === 'Add a reset button', JSON.stringify(chips))
+  await shot('app-harness.png')
+  const n = calls().length
+  await win.click('[data-suggest="Add a reset button"]')
+  await until(() => calls().slice(n).some((c) => c.prompt.includes('Add a reset button')), 10000)
+  check('…and a click asks for it', /Add a reset button/.test((await win.textContent('[data-testid="chat-thread"]')) ?? '') && calls().slice(n).some((c) => c.prompt.includes('Add a reset button')))
+  await until(async () => !(await win.$('[data-testid="chat-stop"]')) && calls().filter((c) => /demanding QA lead/.test(c.system)).length >= 2, 40000)
+  await settle(1500)
   f = await appFrame()
   const counter = await until(async () => /Count: 0/.test((await f.textContent('#n').catch(() => '')) ?? ''), 8000)
   check('the app reloads beside the chat as it is built', counter)

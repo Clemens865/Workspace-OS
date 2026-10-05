@@ -72,12 +72,15 @@ export function runClaudeJson(opts: {
   allowedTools?: string[]
   /** Model alias; unset = the CLI's default. */
   model?: string
+  /** Load no settings files: the person's allow rules must not widen allowedTools (app answers, the app harness). */
+  isolated?: boolean
 }): Promise<ClaudeRunResult> {
-  const { prompt, systemPrompt, cwd, timeoutMs = 60_000, allowedTools = [], model } = opts
+  const { prompt, systemPrompt, cwd, timeoutMs = 60_000, allowedTools = [], model, isolated = false } = opts
   const binary = resolveClaudeBinary()
 
   const args = [
     '--settings', claudeSettings(),
+    ...(isolated ? ['--setting-sources', ''] : []),
     '--output-format', 'stream-json',
     '--include-partial-messages',
     '--verbose',
