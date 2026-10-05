@@ -39,6 +39,11 @@ fs.mkdirSync(ws)
 const outside = path.join(tmp, 'Quarterly notes.txt')
 fs.writeFileSync(outside, 'Revenue grew 12 percent in Q3.\n')
 const callsFile = path.join(tmp, 'calls.json')
+// A page to ask about, served locally (no network in a test).
+const http = await import('http')
+const server = http.createServer((_q, r) => r.end('<!doctype html><title>Bakery</title><h1>Brot</h1><p>Fresh sourdough every morning.</p>'))
+await new Promise((ok) => server.listen(0, '127.0.0.1', ok))
+const pageUrl = `http://127.0.0.1:${server.address().port}/`
 const fake = path.join(tmp, 'claude.cjs')
 const REPLY = '## Plan\\n\\n- **first** step\\n\\n```js\\nlet a = 1\\n```\\n\\nRaw: <img src=x onerror="window.__pwned=1">\\n\\nSee [the site](https://example.com).'
 fs.writeFileSync(
@@ -88,6 +93,7 @@ await win.evaluate((ws) => {
   let c = {}
   try { c = JSON.parse(localStorage.getItem(K) || '{}') } catch { /* fresh */ }
   localStorage.setItem(K, JSON.stringify({ ...c, startOn: 'landscape', terminalOpen: false, sessionCases: 'manual', agentModel: '', learnFromSessions: false }))
+  localStorage.setItem('workspace-os:browser-assistant', JSON.stringify({ open: true, width: 340 }))
   const t = Date.now() - 3 * 86_400_000
   localStorage.setItem(`wos:sessions:${ws}`, JSON.stringify([{ id: 'sold1', title: 'An older session', agentName: null, caseId: null, createdAt: t, lastAt: t, turns: 1, files: [], lastRunId: null, messages: [{ role: 'user', text: 'about the garden', at: t }] }]))
 }, ws)
@@ -183,11 +189,56 @@ try {
   const found = await win.$$eval('[data-chat-item]', (els) => els.map((e) => e.getAttribute('data-chat-item')))
   check('search finds a chat by what was said in it', found.length === 1 && found[0] === chat?.id, JSON.stringify(found))
 
-  // ── a web link opens in the in-app browser ──
+  // ── beside your work: the same conversation next to the stage ──
   await win.fill('[data-testid="chat-search"]', '')
+  await settle(300)
+  await win.click('[data-testid="chat-beside"]')
+  await until(async () => (await win.getAttribute('[data-shell="landscape"]', 'data-view')) === 'stage', 5000)
+  const side = '[data-testid="chat-side"]'
+  await win.waitForSelector(side, { timeout: 5000 }).catch(() => {})
+  check('"Beside your work" puts the same conversation beside the stage', (await win.getAttribute(side, 'data-session').catch(() => null)) === chat?.id && /MAKE-PAGE please/.test((await win.textContent(side)) ?? ''))
+  const n = calls().length
+  await win.click(`${side} textarea`)
+  await win.keyboard.type('One more thing from the side')
+  await win.keyboard.press('Enter')
+  await until(() => calls().length > n)
+  const fromSide = calls()[n]
+  check('…a message there continues it (same Claude conversation)', fromSide?.args.includes('--resume') && /One more thing from the side/.test(fromSide.prompt), fromSide?.args.join(' '))
+  await until(async () => !(await win.$(`${side} [data-testid="chat-stop"]`)), 8000)
+  await win.click('[data-testid="chat-side-home"]')
+  await until(async () => !!(await win.$('[data-testid="chat-view"]')), 5000)
+  check('"Chat" takes it home: the Chat view, on this conversation, with the side message', !(await win.$(side)) && /One more thing from the side/.test((await win.textContent(thread).catch(() => '')) ?? '') && !!(await win.$(`[data-chat-item="${chat?.id}"][class*="historyOn"]`)))
+
+  // ── a web link opens in the in-app browser, the chat beside it ──
   await win.click(`${thread} [data-chat-link="https://example.com"]`)
   await until(async () => (await win.getAttribute('[data-shell="landscape"]', 'data-view')) === 'stage', 5000)
-  check('a web link in a reply opens in the in-app browser', (await win.getAttribute('[data-shell="landscape"]', 'data-view')) === 'stage')
+  check('a web link in a reply opens the in-app browser with the chat beside it', (await win.getAttribute('[data-shell="landscape"]', 'data-view')) === 'stage' && (await win.getAttribute(side, 'data-session').catch(() => null)) === chat?.id)
+  await win.click('[data-testid="stage-chat"]')
+  await settle(300)
+  const hidden = !(await win.$(side))
+  await win.click('[data-testid="stage-chat"]')
+  await settle(300)
+  check('the stage\'s Chat button hides and shows it', hidden && !!(await win.$(side)))
+
+  // ── asking about a page starts a chat beside it ──
+  await win.evaluate((url) => window.dispatchEvent(new CustomEvent('wos:browser-open', { detail: { url } })), pageUrl)
+  const asked = await until(async () => !!(await win.$('textarea[placeholder^="Ask about this page"]:not([disabled])')), 15000)
+  if (asked) {
+    const m = calls().length
+    await win.fill('textarea[placeholder^="Ask about this page"]', 'What do they sell?')
+    await win.keyboard.press('Enter')
+    await until(() => calls().length > m)
+    const pageCall = calls()[m]
+    const sideId = await win.getAttribute(side, 'data-session').catch(() => null)
+    check('a question about the page opens a new chat beside it, told the page', !!sideId && sideId !== chat?.id && /in the in-app browser: http:\/\/127\.0\.0\.1/.test(pageCall?.prompt ?? '') && /Fresh sourdough/.test(pageCall?.prompt ?? '') && /talking with the person in the Chat/.test(pageCall?.system ?? ''), (pageCall?.prompt ?? '').slice(0, 300))
+    const kept = await win.evaluate((id) => window.__sessionStore.get(id), sideId)
+    if (shots) {
+      await until(async () => !(await win.$(`${side} [data-testid="chat-stop"]`)), 8000)
+      await settle(800)
+      await win.screenshot({ path: path.join(shots, 'chat-side.png') })
+    }
+    check('…saved in the chat history under the question', kept?.kind === 'chat' && kept.title === 'What do they sell' && kept.messages[0]?.text === 'What do they sell?', JSON.stringify(kept && { kind: kept.kind, title: kept.title, first: kept.messages[0]?.text }))
+  } else check('the browser\'s page assistant is there to ask', false)
 } catch (e) {
   check('run completed', false, e.message)
 } finally {
@@ -198,6 +249,7 @@ try {
     }, saved)
     .catch(() => {})
   await app.close()
+  server.close()
   fs.rmSync(tmp, { recursive: true, force: true })
 }
 console.log(`\n${total - fails}/${total} passed`)

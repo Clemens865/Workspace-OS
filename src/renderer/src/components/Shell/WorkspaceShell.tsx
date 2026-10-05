@@ -1,6 +1,6 @@
 import { useState, useCallback, useMemo, useEffect, useLayoutEffect, useRef } from 'react'
 import { createPortal } from 'react-dom'
-import { Search, ArrowUpRight, ArrowLeft, SquareTerminal, Maximize2, Minimize2, ChevronUp, ChevronDown, X } from 'lucide-react'
+import { Search, ArrowUpRight, ArrowLeft, SquareTerminal, Maximize2, Minimize2, ChevronUp, ChevronDown, X, MessageCircle } from 'lucide-react'
 import { Rail } from './Rail'
 import { Home } from './Home'
 import type { RailId, StageTab } from './shellModel'
@@ -20,6 +20,8 @@ import { SettingsPanel } from '../Settings/SettingsPanel'
 import { ConnectorsView } from '../Connectors/ConnectorsView'
 import { CommandBar } from '../CommandBar/CommandBar'
 import { QuickOpen } from '../QuickOpen/QuickOpen'
+import { ChatSide } from '../Landscape/chat/ChatSide'
+import { chatSide, useChatSide } from '../Landscape/chat/chatSideStore'
 import { TerminalDock } from '../Terminal/TerminalDock'
 import { FloatingTerminal } from '../Terminal/FloatingTerminal'
 import { clampRect, parseRect, type Rect } from '../Terminal/floatModel'
@@ -75,9 +77,12 @@ export interface StageHost {
   dock?: React.ReactNode
   /** Home lives in the landscape as Today: asking for it shows Today. */
   onHome?: () => void
+  /** The chat beside the stage goes back to Chat (with this conversation). */
+  onChatHome?: (sessionId: string | null) => void
 }
 
 export function WorkspaceShell({ stage }: { stage?: StageHost } = {}): JSX.Element {
+  const sideChat = useChatSide()
   const root = useWorkspaceRoot()
   const library = useWorkspaceLibrary(root)
 
@@ -724,6 +729,22 @@ export function WorkspaceShell({ stage }: { stage?: StageHost } = {}): JSX.Eleme
             </button>
           )}
 
+          {/* The chat beside the stage: the same conversation as in Chat, next to the work. */}
+          {stage && (
+            <button
+              type="button"
+              className={`${styles.termToggle} ${sideChat.open ? styles.termToggleOn : ''}`}
+              onClick={() => chatSide.toggle()}
+              title="Chat beside your work"
+              aria-label="Chat beside your work"
+              aria-pressed={sideChat.open}
+              data-testid="stage-chat"
+            >
+              <MessageCircle size={15} strokeWidth={1.9} />
+              <span className={styles.termToggleLabel}>Chat</span>
+            </button>
+          )}
+
           {/* WOS-011: the discoverable way in. The shortcut is shown rather
               than required — nobody finds ⌃⌘F by guessing. */}
           <button
@@ -889,6 +910,8 @@ export function WorkspaceShell({ stage }: { stage?: StageHost } = {}): JSX.Eleme
             </div>
           )}
         </div>
+
+          {stage && <ChatSide onHome={(id: string | null) => stage.onChatHome?.(id)} />}
 
           {/* Terminal Dock — RIGHT column (resizable). Additive: only mounts
               when open + placement=right, so the layout is unchanged otherwise.
