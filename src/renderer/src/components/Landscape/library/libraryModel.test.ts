@@ -44,3 +44,10 @@ describe('relPath', () => {
     expect(relPath('/elsewhere/x', '/w')).toBe('/elsewhere/x')
   })
 })
+
+describe('the New shelf leaves app files out', () => {
+  it('shows what the person made, not what an app carries', () => {
+    const s = shelves([{ path: '/ws/Artifacts/page.html', at: 2 }, { path: '/ws/Apps/hairline/skill/rules.md', at: 3 }], [], [])
+    expect(s[0].files.map((f) => f.path)).toEqual(['/ws/Artifacts/page.html'])
+  })
+})

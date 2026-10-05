@@ -46,7 +46,10 @@ export function scopeByPath<T>(items: T[], root: string | null, key: (t: T) => s
  */
 export function scopeGraph(g: Graph, root: string | null): Graph {
   if (!root) return { ...g, nodes: [], edges: [] }
-  const notes = new Set(g.nodes.filter((n) => n.kind === 'note' && inRoot(n.id, root)).map((n) => n.id))
+  // An app's own files (Apps/<app>/…: its skill texts, licences) and the app's working folder are not notes.
+  const base = root.replace(/[/\\]+$/, '')
+  const owned = (p: string): boolean => p.startsWith(`${base}/Apps/`) || p.startsWith(`${base}/.workspace-os/`)
+  const notes = new Set(g.nodes.filter((n) => n.kind === 'note' && inRoot(n.id, root) && !owned(n.id)).map((n) => n.id))
   const edges = g.edges.filter((e) => notes.has(e.source) && (notes.has(e.target) || e.target.startsWith('stub:')))
   const stubs = new Set(edges.filter((e) => e.target.startsWith('stub:')).map((e) => e.target))
   const degree = new Map<string, number>()

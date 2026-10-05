@@ -77,3 +77,18 @@ describe('inRoot through a symlink', () => {
     }
   })
 })
+
+describe('scopeGraph leaves apps out', () => {
+  it('drops the files apps carry (Apps/…) and the app’s own folder from the notes', () => {
+    const g = {
+      nodes: [
+        { id: '/ws/Notes/a.md', name: 'a.md', kind: 'note' as const, degree: 0 },
+        { id: '/ws/Apps/hairline/skill/rules.md', name: 'rules.md', kind: 'note' as const, degree: 0 },
+        { id: '/ws/.workspace-os/x.md', name: 'x.md', kind: 'note' as const, degree: 0 },
+      ],
+      edges: [],
+      truncated: false,
+    }
+    expect(scopeGraph(g, '/ws').nodes.map((n) => n.id)).toEqual(['/ws/Notes/a.md'])
+  })
+})

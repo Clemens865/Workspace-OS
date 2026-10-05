@@ -75,7 +75,8 @@ export function shelves(
       })
       .map((p) => ({ path: p, name: base(p), why }))
   const out = [
-    { title: 'New', files: take([...created].sort((a, b) => b.at - a.at).map((c) => c.path), 'new') },
+    // An app's own files (Apps/<app>/…) are the app's, not new work of the person's: Apps shows them.
+    { title: 'New', files: take([...created].sort((a, b) => b.at - a.at).map((c) => c.path).filter((p) => !/[/\\]Apps[/\\]/.test(p)), 'new') },
     { title: 'Opened recently', files: take([...recent].sort((a, b) => b.ts - a.ts).map((r) => r.path), 'opened') },
     { title: 'Starred', files: take(starred, 'starred') },
   ]
