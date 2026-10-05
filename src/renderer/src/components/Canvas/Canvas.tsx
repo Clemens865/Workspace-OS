@@ -117,7 +117,9 @@ export function Canvas({ tabManager, library, onRefresh }: CanvasProps): JSX.Ele
               {showPreview && (
                 <div className={styles.mdPreviewPane}>
                   <Suspense fallback={<div className={styles.loading}>Loading…</div>}>
-                    <MarkdownPreview source={mdSource} />
+                    {/* Keyed by file: a new document gets a new frame, whose first page is that document
+                        (a frame whose page is swapped at the same size does not repaint; see MarkdownPreview). */}
+                    <MarkdownPreview key={activeFilePath} source={mdSource} />
                   </Suspense>
                 </div>
               )}
