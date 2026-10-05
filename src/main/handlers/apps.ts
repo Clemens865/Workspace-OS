@@ -61,6 +61,8 @@ function templates(): apps.AppManifest[] {
 const running = new Map<string, number>()
 const MAX_AI_PER_APP = 2
 const MAX_PROMPT = 60_000
+// Long code answers (a Hairline figure, a whole board) take minutes; this only stops a run that hangs.
+export const APP_AI_TIMEOUT_MS = 30 * 60_000
 
 async function aiComplete(m: apps.AppManifest, a: Record<string, unknown>): Promise<unknown> {
   const web = a.web === true
@@ -81,7 +83,7 @@ async function aiComplete(m: apps.AppManifest, a: Record<string, unknown>): Prom
     ]
       .filter(Boolean)
       .join('\n')
-    const r = await runProviderJson({ prompt, systemPrompt: system, cwd: os.tmpdir(), timeoutMs: 180_000, allowedTools: web ? ['WebSearch', 'WebFetch'] : [] })
+    const r = await runProviderJson({ prompt, systemPrompt: system, cwd: os.tmpdir(), timeoutMs: APP_AI_TIMEOUT_MS, allowedTools: web ? ['WebSearch', 'WebFetch'] : [] })
     if (r.timedOut) throw new Error('The answer took too long')
     const text = r.text.trim()
     if (!text) throw new Error('No answer came back')

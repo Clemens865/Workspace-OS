@@ -17,6 +17,17 @@ describe('internal provider dispatch preserves Claude', () => {
     expect(f.json).toHaveBeenCalledWith(jsonOpts)
     expect(f.codex).not.toHaveBeenCalled()
   })
+  it('runs app and foundry answers on the Claude model picked in Settings', async () => {
+    f.json.mockResolvedValue({ text: 'json', code: 0, timedOut: false })
+    for (const pick of ['sonnet', 'claude:sonnet']) {
+      f.model = pick
+      await runProviderJson({ prompt: 'figure', timeoutMs: 5 })
+      expect(f.json).toHaveBeenLastCalledWith({ prompt: 'figure', timeoutMs: 5, model: 'sonnet' })
+    }
+    f.model = 'claude:'
+    await runProviderJson({ prompt: 'figure' })
+    expect(f.json).toHaveBeenLastCalledWith({ prompt: 'figure' })
+  })
   it('runs all internal tasks on Codex when selected without spawning Claude', async () => {
     f.model = 'codex:test-model'; f.codex.mockResolvedValue({ text: ' answer ', code: 0, timedOut: false })
     expect(await runProviderOneShot('draft', { model: 'haiku', label: 'Draft', timeoutMs: 1000 })).toBe('answer')

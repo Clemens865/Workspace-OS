@@ -18,6 +18,7 @@ export function runProviderOneShot(prompt: string, opts: OneShotOptions): Promis
 
 export function runProviderJson(opts: Parameters<typeof runClaudeJson>[0]): Promise<ClaudeRunResult> {
   const pick = parseModelPick(getProviderModel())
-  if (pick.provider === 'claude') return runClaudeJson(opts)
+  // The model picked in Settings, as the agent runs use it (unset = the CLI's default).
+  if (pick.provider === 'claude') return runClaudeJson(pick.model ? { ...opts, model: pick.model } : opts)
   return runCodexText({ ...opts, model: pick.model, allowRead: !!opts.allowedTools?.length })
 }
