@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from 'react'
 import { ArrowUpRight, X } from 'lucide-react'
 import { FileThumb } from '../../FilePanel/FileThumb'
+import { useWorkspaceRoot } from '../../../hooks/useWorkspaceRoot'
 import { chatMarkdown } from '../../../lib/chatMarkdown'
 import { artifactKind, baseName, csvRows } from './chatModel'
 import styles from './ChatView.module.css'
@@ -15,6 +16,9 @@ const MIME: Record<string, string> = { png: 'image/png', jpg: 'image/jpeg', jpeg
  */
 export function ArtifactPanel({ path, stamp, onClose }: { path: string; stamp: number; onClose: () => void }): JSX.Element {
   const kind = artifactKind(path)
+  const root = useWorkspaceRoot()
+  // A page of the workspace runs from wos-app:// (its scripts may run there; srcdoc would inherit the app's no-inline policy).
+  const pageSrc = kind === 'html' && root && path.startsWith(root.replace(/\/+$/, '') + '/') ? `wos-app://file/?path=${encodeURIComponent(path.slice(root.replace(/\/+$/, '').length + 1))}&v=${stamp}` : null
   const [text, setText] = useState<string | null>(null)
   const [img, setImg] = useState<string | null>(null)
   const [error, setError] = useState<string | null>(null)
@@ -69,7 +73,11 @@ export function ArtifactPanel({ path, stamp, onClose }: { path: string; stamp: n
         {error ? (
           <p className={styles.quiet}>Could not read it: {error}</p>
         ) : kind === 'html' ? (
-          text !== null && <iframe className={styles.frame} sandbox="allow-scripts" srcDoc={text} title={baseName(path)} data-testid="chat-artifact-frame" />
+          pageSrc ? (
+            <iframe className={styles.frame} sandbox="allow-scripts allow-modals" src={pageSrc} title={baseName(path)} data-testid="chat-artifact-frame" />
+          ) : (
+            text !== null && <iframe className={styles.frame} sandbox="allow-scripts" srcDoc={text} title={baseName(path)} data-testid="chat-artifact-frame" />
+          )
         ) : kind === 'svg' ? (
           text !== null && <img className={styles.picture} src={`data:image/svg+xml;charset=utf-8,${encodeURIComponent(text)}`} alt={baseName(path)} />
         ) : kind === 'image' ? (

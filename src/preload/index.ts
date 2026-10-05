@@ -226,8 +226,8 @@ contextBridge.exposeInMainWorld('workspace', {
     },
   },
   agent: {
-    run: (runId: string, prompt: string, contextFiles: string[], activeFile?: string | null, mode?: 'full' | 'safe', agentName?: string | null, conversationId?: string, model?: string | null, resumeOnly?: boolean, profile?: 'work' | 'chat') =>
-      ipcRenderer.invoke(IPC.AGENT_RUN, { runId, prompt, contextFiles, activeFile, mode, agentName, conversationId, model, resumeOnly, profile }),
+    run: (runId: string, prompt: string, contextFiles: string[], activeFile?: string | null, mode?: 'full' | 'safe', agentName?: string | null, conversationId?: string, model?: string | null, resumeOnly?: boolean, profile?: 'work' | 'chat' | 'app', app?: string) =>
+      ipcRenderer.invoke(IPC.AGENT_RUN, { runId, prompt, contextFiles, activeFile, mode, agentName, conversationId, model, resumeOnly, profile, app }),
     setDefaultModel: (model: string) => ipcRenderer.invoke('agent:set-default-model', model),
     listModels: () => ipcRenderer.invoke('agent:list-models'),
     cancel: (runId: string) => ipcRenderer.invoke(IPC.AGENT_CANCEL, runId),
@@ -779,6 +779,18 @@ contextBridge.exposeInMainWorld('workspace', {
   chat: {
     /** A dropped or pasted file, as bytes: written into the workspace's uploads. */
     upload: (name: string, data: Uint8Array) => ipcRenderer.invoke('chat:upload', name, data),
+  },
+  apps: {
+    list: () => ipcRenderer.invoke('apps:list'),
+    templates: () => ipcRenderer.invoke('apps:templates'),
+    install: (id: string) => ipcRenderer.invoke('apps:install', id),
+    create: (name: string, description?: string) => ipcRenderer.invoke('apps:create', name, description),
+    duplicate: (slug: string) => ipcRenderer.invoke('apps:duplicate', slug),
+    reveal: (slug: string) => ipcRenderer.invoke('apps:reveal', slug),
+    load: (slug: string, theme: 'light' | 'dark') => ipcRenderer.invoke('apps:load', slug, theme),
+    manifest: (slug: string) => ipcRenderer.invoke('apps:manifest', slug),
+    lint: (slug: string) => ipcRenderer.invoke('apps:lint', slug),
+    call: (slug: string, method: string, args: unknown) => ipcRenderer.invoke('apps:call', slug, method, args),
   },
   sessions: {
     load: () => ipcRenderer.invoke('sessions:load'),

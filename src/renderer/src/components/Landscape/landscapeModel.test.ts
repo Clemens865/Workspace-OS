@@ -35,7 +35,7 @@ describe('menu extras', () => {
 
 describe('landscape dock', () => {
   it('follows the design order', () => {
-    expect(DOCK.map((d) => d.id)).toEqual(['overview', 'chat', 'inbox', 'cases', 'library', 'menu'])
+    expect(DOCK.map((d) => d.id)).toEqual(['overview', 'chat', 'apps', 'inbox', 'cases', 'library', 'menu'])
   })
 
   it('points stage items at real surfaces', () => {

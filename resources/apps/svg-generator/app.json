@@ -1,0 +1,7 @@
+{
+  "name": "SVG Generator",
+  "description": "Describe an icon or illustration and get a clean SVG in the style you pick. Keeps your recent ones; save any as a file.",
+  "icon": "✦",
+  "permissions": ["ai"],
+  "entry": "index.html"
+}

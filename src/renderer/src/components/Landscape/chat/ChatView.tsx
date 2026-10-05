@@ -1,11 +1,12 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
-import { PanelRight, Plus, Search } from 'lucide-react'
+import { LayoutGrid, PanelRight, Plus, Search } from 'lucide-react'
 import { sessionStore } from '../../../lib/sessions/sessionStore'
 import { useSessions } from '../session/SessionPane'
 import { useWorkspaceRoot } from '../../../hooks/useWorkspaceRoot'
 import { useGlass } from '../backdrop/useBackdrop'
 import { ChatThread } from './ChatThread'
 import { ArtifactPanel } from './ArtifactPanel'
+import { AppHost } from '../apps/AppHost'
 import { ChatComposer, useAttachments } from './ChatComposer'
 import { artifactKind, historyGroups, linkTarget } from './chatModel'
 import styles from './ChatView.module.css'
@@ -20,6 +21,8 @@ interface Props {
   onBeside: (sessionId: string | null) => void
   /** Open with this conversation (back from beside the stage). */
   initialSession?: string | null
+  /** Open an app (the builder's "Open in Apps"). */
+  onOpenApp?: (slug: string) => void
 }
 
 /**
@@ -29,7 +32,7 @@ interface Props {
  * and what it made on the right. Files come in by the clip, by dropping them
  * from Finder or by pasting; the run reads them where they land.
  */
-export function ChatView({ onOpenUrl, onBeside, initialSession = null }: Props): JSX.Element {
+export function ChatView({ onOpenUrl, onBeside, initialSession = null, onOpenApp }: Props): JSX.Element {
   useSessions()
   const root = useWorkspaceRoot()
   const panel = useRef<HTMLDivElement>(null)
@@ -66,7 +69,7 @@ export function ChatView({ onOpenUrl, onBeside, initialSession = null }: Props):
 
   return (
     <div className={styles.chat} data-testid="chat-view">
-      <div ref={panel} className={`${styles.panel} ${artifact ? styles.withArtifact : ''}`}>
+      <div ref={panel} className={`${styles.panel} ${artifact || session?.app ? styles.withArtifact : ''}`}>
         <nav className={styles.history} aria-label="Conversations" data-testid="chat-history">
           <button
             type="button"
@@ -90,7 +93,7 @@ export function ChatView({ onOpenUrl, onBeside, initialSession = null }: Props):
                 {g.items.map((s) => (
                   <button key={s.id} type="button" className={`${styles.historyItem} ${s.id === activeId ? styles.historyOn : ''}`} onClick={() => setActiveId(s.id)} data-chat-item={s.id} title={s.title}>
                     <span className={styles.historyTitle}>{s.title}</span>
-                    {s.kind !== 'chat' && <span className={styles.historyAgent}>{s.agentName ? s.agentName.split(' — ')[0] : 'Session'}</span>}
+                    {s.app ? <span className={styles.historyAgent}>App</span> : s.kind !== 'chat' && <span className={styles.historyAgent}>{s.agentName ? s.agentName.split(' — ')[0] : 'Session'}</span>}
                     {sessionStore.live(s.id).running && <span className={styles.dot} aria-label="working" />}
                   </button>
                 ))}
@@ -104,11 +107,34 @@ export function ChatView({ onOpenUrl, onBeside, initialSession = null }: Props):
           <button type="button" className={styles.besideBtn} onClick={() => onBeside(activeId)} title="Keep this chat beside your work (the browser, a document…)" data-testid="chat-beside">
             <PanelRight size={14} /> Beside your work
           </button>
-          <ChatThread session={session} live={live} openArtifact={artifact} onArtifact={(p) => (previewable(p) ? setArtifact(p) : window.dispatchEvent(new CustomEvent('wos:open-file', { detail: { path: p } })))} onLink={onLink} />
+          <ChatThread
+            session={session}
+            live={live}
+            openArtifact={artifact}
+            onArtifact={(p) => (previewable(p) ? setArtifact(p) : window.dispatchEvent(new CustomEvent('wos:open-file', { detail: { path: p } })))}
+            onLink={onLink}
+            welcome={session?.app ? { title: 'What should this app do?', text: 'Describe it in your own words: what you do with it, what you see, what it remembers. It is built beside this chat in the Workspace OS look, and you can keep changing it here.' } : undefined}
+          />
           <ChatComposer session={session} att={att} onCreated={setActiveId} />
         </section>
 
-        {artifact && <ArtifactPanel path={artifact} stamp={session?.lastAt ?? 0} onClose={() => setArtifact(null)} />}
+        {session?.app ? (
+          // The app this chat builds, live: it reloads when a turn ends or a file changes.
+          <aside className={styles.artifact} data-testid="chat-app-preview" data-app={session.app}>
+            <div className={styles.artifactHead}>
+              <LayoutGrid size={15} />
+              <span className={styles.artifactName}>{live.running ? 'Building…' : 'Live preview'}</span>
+              <button type="button" className={styles.ghostBtn} onClick={() => onOpenApp?.(session.app!)} data-testid="chat-app-open">
+                Open in Apps
+              </button>
+            </div>
+            <div className={styles.artifactBody} style={{ display: 'flex' }}>
+              <AppHost slug={session.app} version={`${session.lastAt}-${session.files.length}`} />
+            </div>
+          </aside>
+        ) : (
+          artifact && <ArtifactPanel path={artifact} stamp={session?.lastAt ?? 0} onClose={() => setArtifact(null)} />
+        )}
       </div>
     </div>
   )

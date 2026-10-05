@@ -22,6 +22,19 @@ export interface CaseViewResult {
 
 /** A memory the workspace itself recorded (distinct from a Pulse insight). */
 /** What the last tidy did. */
+export interface WosAppManifest {
+  slug: string
+  name: string
+  description: string
+  icon: string
+  permissions: ('ai' | 'ai.web')[]
+  entry: string
+  from?: string
+}
+export interface WosApp extends WosAppManifest {
+  updatedAt: number
+}
+
 export interface WikiAddResult {
   source: string
   created: string[]
@@ -454,7 +467,7 @@ export interface WorkspaceApi {
     onQuestion: (callback: (question: any) => void) => () => void
   }
   agent: {
-    run: (runId: string, prompt: string, contextFiles: string[], activeFile?: string | null, mode?: 'full' | 'safe', agentName?: string | null, conversationId?: string, model?: string | null, resumeOnly?: boolean, profile?: 'work' | 'chat') => Promise<{ pid: number; checkpointId: string | null; provider?: 'claude' | 'codex'; model?: string }>
+    run: (runId: string, prompt: string, contextFiles: string[], activeFile?: string | null, mode?: 'full' | 'safe', agentName?: string | null, conversationId?: string, model?: string | null, resumeOnly?: boolean, profile?: 'work' | 'chat' | 'app', app?: string) => Promise<{ pid: number; checkpointId: string | null; provider?: 'claude' | 'codex'; model?: string }>
     /** Default model alias for every run path (mirrors Settings → Agent model); '' = the CLI's default. */
     setDefaultModel: (model: string) => Promise<void>
     listModels: () => Promise<{ codex: { id: string; label: string; hint: string; efforts?: string[] }[]; status?: { available: boolean; account: string; error?: string } }>
@@ -1056,6 +1069,19 @@ export interface WorkspaceApi {
   }
   chat: {
     upload: (name: string, data: Uint8Array) => Promise<{ path: string; name: string; size: number }>
+  }
+  /** Apps made in Workspace OS: folders in Apps/, run sandboxed with the wos bridge. */
+  apps: {
+    list: () => Promise<WosApp[]>
+    templates: () => Promise<(WosAppManifest & { added: boolean })[]>
+    install: (id: string) => Promise<string>
+    create: (name: string, description?: string) => Promise<string>
+    duplicate: (slug: string) => Promise<string>
+    reveal: (slug: string) => Promise<void>
+    load: (slug: string, theme: 'light' | 'dark') => Promise<{ manifest: WosAppManifest; html: string }>
+    manifest: (slug: string) => Promise<WosAppManifest>
+    lint: (slug: string) => Promise<{ rule: 'colour' | 'font' | 'network' | 'storage' | 'class'; detail: string }[]>
+    call: (slug: string, method: string, args: unknown) => Promise<unknown>
   }
   /** Sessions and chats, saved per workspace in .workspace-os/sessions.json. */
   sessions: {

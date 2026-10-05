@@ -22,13 +22,15 @@ interface Props {
   onArtifact: (path: string) => void
   /** A link in a reply: data-chat-link's value. */
   onLink: (href: string) => void
+  /** What an empty conversation says (the app builder has its own). */
+  welcome?: { title: string; text: string }
 }
 
 /**
  * The conversation: the person's messages (with what they attached), the
  * replies as formatted text, and under each reply the things it made.
  */
-export function ChatThread({ session, live, openArtifact, onArtifact, onLink }: Props): JSX.Element {
+export function ChatThread({ session, live, openArtifact, onArtifact, onLink, welcome }: Props): JSX.Element {
   const log = useRef<HTMLDivElement>(null)
   const last = session?.messages[session.messages.length - 1]
   useEffect(() => {
@@ -58,8 +60,8 @@ export function ChatThread({ session, live, openArtifact, onArtifact, onLink }: 
     return (
       <div ref={log} className={styles.thread} data-testid="chat-thread">
         <div className={styles.welcome}>
-          <h2 className={styles.welcomeTitle}>What’s on your mind?</h2>
-          <p className={styles.quiet}>Ask anything. Attach files or drop them here, ask it to look something up in the browser, or to make a page, a diagram or a document. What it makes opens beside the chat.</p>
+          <h2 className={styles.welcomeTitle}>{welcome?.title ?? 'What’s on your mind?'}</h2>
+          <p className={styles.quiet}>{welcome?.text ?? 'Ask anything. Attach files or drop them here, ask it to look something up in the browser, or to make a page, a diagram or a document. What it makes opens beside the chat.'}</p>
         </div>
       </div>
     )

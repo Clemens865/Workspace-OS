@@ -24,6 +24,8 @@ export interface Session {
   agentName: string | null
   /** 'chat': a conversation started in Chat (light brief, artifacts beside it). Absent: a work session. */
   kind?: 'chat'
+  /** A chat that builds this app (Apps/<slug>/): it runs as the app builder, with the app live beside it. */
+  app?: string
   /** The case it lives in, once it is one. */
   caseId: string | null
   createdAt: number

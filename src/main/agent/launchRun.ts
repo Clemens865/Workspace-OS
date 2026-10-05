@@ -32,6 +32,7 @@ import { KNOWLEDGE_GUIDANCE } from './knowledgeGuidance'
 import { forRun as memoryForRun, markUsed, buildMemoryBlock } from '../memory/memory-service'
 import { capabilityGuidanceBlock } from './capabilityCatalog'
 import { buildChatSystemPrompt } from './chatProfile'
+import { appBuilderArgs, buildAppBuilderPrompt } from './appBuilderProfile'
 import { grants, AGENT_TOKEN_ENV } from './grants'
 import { claudeSettings } from './claudeSettings'
 import { ClaudeFailureTracker } from './claudeFailure'
@@ -94,8 +95,10 @@ export interface LaunchRunOptions {
    * or 'all' for the legacy full grant of a plain dock run. See ./grants.ts.
    */
   capabilities: readonly string[] | 'all'
-  /** 'chat': a conversation (./chatProfile.ts) — light brief, safe tools plus web lookup, nothing auto-opens. */
-  profile?: 'work' | 'chat'
+  /** 'chat': a conversation (./chatProfile.ts) — light brief, safe tools plus web lookup, nothing auto-opens. 'app': the app builder (./appBuilderProfile.ts). */
+  profile?: 'work' | 'chat' | 'app'
+  /** For 'app': the app (Apps/<slug>/) the builder may write, and nothing else. */
+  appSlug?: string
   sink: RunSink
 }
 
@@ -132,6 +135,9 @@ export async function launchRun(o: LaunchRunOptions): Promise<{ child: ChildProc
     const id = o.runId
     const cwd = getWorkspaceRoot() ?? os.homedir()
     const chat = o.profile === 'chat'
+    const appSlug = o.profile === 'app' && o.appSlug && /^[a-z0-9][a-z0-9-]{0,63}$/.test(o.appSlug) ? o.appSlug : null
+    if (o.profile === 'app' && !appSlug) throw new Error('Which app should be built?')
+    if (appSlug && (o.provider ?? 'claude') !== 'claude') throw new Error('The app builder runs on Claude. Pick a Claude model in Settings to build apps.')
 
     // MEMORY: retrieve what we know that is relevant to THIS prompt and inject it.
     // A store nothing reads is a diary nobody opens — this is the point of the
@@ -256,7 +262,7 @@ export async function launchRun(o: LaunchRunOptions): Promise<{ child: ChildProc
               const artifacts = changedArtifacts(cwd, beforeFiles)
               if (artifacts.length) sink.artifacts(artifacts)
               const deliverable = artifacts.find((a) => a.type === 'office') ?? artifacts.find((a) => a.type === 'page')
-              if (deliverable && !chat) sink.artifact(deliverable.path)
+              if (deliverable && !chat && !appSlug) sink.artifact(deliverable.path)
             } finally { grants.revoke(id); sink.done(code, checkpointId) }
           },
         })
@@ -274,14 +280,19 @@ export async function launchRun(o: LaunchRunOptions): Promise<{ child: ChildProc
     // user sees an agent that "did research" with nothing happening on screen —
     // no visible tabs, no screenshots, no logged-in session.
     const inAppBrowserOnly = agent?.capabilities?.includes('research') ?? false
-    const permArgs = permissionArgs(safeMode || chat ? 'safe' : 'full', mcpAllowTools, { inAppBrowserOnly, webInSafe: chat })
+    // The builder writes its one app folder and nothing else: no connectors (and none of their secrets), no shell, no settings files.
+    if (appSlug) {
+      mcpArgs = []
+      for (const key of injectedSecretKeys) delete childEnv[key]
+    }
+    const permArgs = appSlug ? appBuilderArgs(appSlug) : permissionArgs(safeMode || chat ? 'safe' : 'full', mcpAllowTools, { inAppBrowserOnly, webInSafe: chat })
 
     // First turn establishes the system context (persona + IWE grounding). On a
     // resumed turn the conversation already carries it, so re-appending would
     // bloat it — pass --resume instead and skip the system prompt.
     const continuityArgs = resumeId
       ? ['--resume', resumeId]
-      : ['--append-system-prompt', chat ? buildChatSystemPrompt(cwd, memoryBlock) : buildSystemPrompt(cwd, openFile, agent?.persona, agent?.capabilities, safeMode, memoryBlock)]
+      : ['--append-system-prompt', appSlug ? buildAppBuilderPrompt(appSlug, cwd) : chat ? buildChatSystemPrompt(cwd, memoryBlock) : buildSystemPrompt(cwd, openFile, agent?.persona, agent?.capabilities, safeMode, memoryBlock)]
 
     // On a resumed turn the system prompt (with the original open file) isn't
     // re-sent; nudge the agent with the *current* open file so it stays accurate.
@@ -393,7 +404,7 @@ export async function launchRun(o: LaunchRunOptions): Promise<{ child: ChildProc
       // previewing a local file the agent just wrote.
       const deliverable = artifacts.find((a) => a.type === 'office') ?? artifacts.find((a) => a.type === 'page')
       // A chat shows what it made beside the conversation instead.
-      if (deliverable && !chat) sink.artifact(deliverable.path)
+      if (deliverable && !chat && !appSlug) sink.artifact(deliverable.path)
       if (idle) clearTimeout(idle)
       grants.revoke(id)
       sink.done(failures.failure ? (code || 1) : (code ?? 1), checkpointId, failures.failure ?? undefined)

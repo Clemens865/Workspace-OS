@@ -188,8 +188,8 @@
   display: flex;
   flex-direction: column;
   gap: 18px;
-  /* A reading column: wide panels keep the conversation centred. */
-  padding: 26px max(24px, calc((100% - 820px) / 2)) 12px;
+  /* A reading column: wide panels keep the conversation centred; the top clears "Beside your work". */
+  padding: 52px max(24px, calc((100% - 820px) / 2)) 12px;
 }
 
 .welcome {
