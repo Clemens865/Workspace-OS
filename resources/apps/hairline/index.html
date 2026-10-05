@@ -1,0 +1,99 @@
+<!doctype html>
+<html>
+<head>
+  <title>Hairline</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div class="wos-app">
+    <div class="wos-header">
+      <h1 class="wos-title">Hairline</h1>
+      <div class="wos-segment" id="tabs">
+        <button data-tab="gallery" class="on">Figures</button>
+        <button data-tab="make">Make one</button>
+      </div>
+    </div>
+
+    <main class="wos-main" id="gallery">
+      <section id="mine-section" hidden>
+        <span class="wos-label">Yours</span>
+        <div class="figures" id="mine"></div>
+      </section>
+      <span class="wos-label">The nineteen</span>
+      <div class="figures" id="grid"></div>
+      <p class="wos-muted wos-small credit">Figures and their engine: hairline by Lucas Marques (MIT).</p>
+    </main>
+
+    <main class="wos-main focus" id="focus" hidden>
+      <button class="wos-btn ghost small" id="back"><svg viewBox="0 0 24 24"><path d="M15 6l-6 6 6 6"/></svg> All figures</button>
+      <div class="focus-body">
+        <div class="stage-card wos-card"><div id="big" class="big"></div><div class="readout wos-muted wos-small" id="readout"></div></div>
+        <aside class="wos-stack controls">
+          <h2 id="name"></h2>
+          <p class="wos-muted" id="what"></p>
+          <div>
+            <label class="wos-label" for="intensity">Intensity <span id="intensity-value">0.50</span></label>
+            <input id="intensity" class="wos-range" type="range" min="0" max="1" step="0.01" value="0.5">
+          </div>
+          <div class="wos-row">
+            <button class="wos-btn primary" id="save">Save as a page…</button>
+            <button class="wos-btn" id="snippet">Show the code</button>
+          </div>
+          <pre id="code" class="code" hidden></pre>
+        </aside>
+      </div>
+    </main>
+
+    <main class="wos-main" id="make" hidden>
+      <div class="focus-body">
+        <div class="stage-card wos-card">
+          <div id="make-empty" class="wos-empty">Describe an object and what the pointer does to it. Your figure is drawn here, in the same lines as the nineteen.</div>
+          <div id="make-stage" class="frame-wrap" hidden></div>
+          <div class="readout wos-muted wos-small" id="make-readout"></div>
+        </div>
+        <aside class="wos-stack controls">
+          <div id="idea-box">
+            <label class="wos-label" for="idea">Your idea</label>
+            <textarea id="idea" class="wos-textarea" placeholder="A sales funnel whose stages widen toward the pointer"></textarea>
+          </div>
+          <div id="change-box" hidden>
+            <label class="wos-label" for="change">What should change?</label>
+            <textarea id="change" class="wos-textarea" placeholder="Make the stages taller, and let the bright edge follow the pointer"></textarea>
+          </div>
+          <div class="wos-row">
+            <button class="wos-btn primary" id="make-go">Draw it</button>
+            <button class="wos-btn" id="make-new" hidden>Start a new one</button>
+          </div>
+          <div id="make-busy" class="wos-row" hidden><div class="wos-spinner"></div><span class="wos-muted wos-small" id="make-status">Drawing…</span></div>
+          <div id="make-problems" class="wos-error" hidden></div>
+          <div id="make-result" class="wos-stack" hidden>
+            <div>
+              <h3 id="make-name"></h3>
+              <p class="wos-muted wos-small" id="make-means"></p>
+            </div>
+            <div>
+              <label class="wos-label" for="make-intensity">Intensity</label>
+              <input id="make-intensity" class="wos-range" type="range" min="0" max="1" step="0.01" value="0.5">
+            </div>
+            <div class="wos-row">
+              <button class="wos-btn primary" id="make-keep">Keep it</button>
+              <button class="wos-btn" id="make-page">Save as a page…</button>
+              <button class="wos-btn ghost" id="make-delete" hidden>Delete</button>
+            </div>
+          </div>
+        </aside>
+      </div>
+    </main>
+  </div>
+
+  <!-- The figure engine and the rules a new figure is made to (hairline's hairline-create skill, MIT). Read as text. -->
+  <script type="text/plain" id="hl-kernel" src="skill/kernel.js"></script>
+  <script type="text/plain" id="hl-rules" src="skill/rules.md"></script>
+  <script type="text/plain" id="hl-concepts" src="skill/concepts.md"></script>
+  <script type="text/plain" id="hl-example-terrain" src="skill/example-terrain.js"></script>
+  <script type="text/plain" id="hl-example-riffle" src="skill/example-riffle.js"></script>
+  <script src="validate.js"></script>
+  <script src="app.js"></script>
+  <script src="maker.js"></script>
+</body>
+</html>

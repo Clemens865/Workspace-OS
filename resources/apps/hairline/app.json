@@ -1,0 +1,12 @@
+{
+  "name": "Hairline",
+  "description": "Nineteen isometric line figures that answer the pointer, and new ones you describe (hairline, by Lucas Marques). Tune them, save one as a page.",
+  "icon": "◇",
+  "permissions": [
+    "ai"
+  ],
+  "libraries": [
+    "hairline"
+  ],
+  "entry": "index.html"
+}

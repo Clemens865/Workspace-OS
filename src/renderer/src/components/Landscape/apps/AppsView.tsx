@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
-import { ArrowLeft, Copy, FolderOpen, MessageCircle, Plus } from 'lucide-react'
+import { ArrowLeft, Copy, Download, FolderOpen, MessageCircle, Plus, Upload } from 'lucide-react'
 import type { WosApp, WosAppManifest } from '../../../types/workspace-api'
 import { useWorkspaceRoot } from '../../../hooks/useWorkspaceRoot'
 import { useGlass } from '../backdrop/useBackdrop'
@@ -67,6 +67,40 @@ export function AppsView({ onBuild, initialApp = null }: Props): JSX.Element {
     }
   }
 
+  const exportApp = async (slug: string): Promise<void> => {
+    try {
+      const name = await window.workspace.apps.export(slug)
+      if (name) toast(`Saved as ${name}. It holds the app, not its data.`)
+    } catch (e) {
+      toast(reason(e))
+    }
+  }
+  // Import: the file is read and checked first; the person sees what it may do, then adds it.
+  const [offer, setOffer] = useState<{ token: string; manifest: WosAppManifest; files: number } | null>(null)
+  const pickImport = async (): Promise<void> => {
+    try {
+      const o = await window.workspace.apps.importPick()
+      if (o) setOffer(o)
+    } catch (e) {
+      toast(reason(e))
+    }
+  }
+  const confirmImport = async (): Promise<void> => {
+    if (!offer) return
+    try {
+      const slug = await window.workspace.apps.importConfirm(offer.token)
+      setOffer(null)
+      await load()
+      setOpen(slug)
+    } catch (e) {
+      toast(reason(e))
+    }
+  }
+  const asks = (m: WosAppManifest): string => {
+    const p = [m.permissions.includes('ai') && 'use AI', m.permissions.includes('ai.web') && 'look things up on the web'].filter(Boolean)
+    return p.length ? `It may ${p.join(' and ')}, and keep its own data.` : 'It asks for nothing beyond keeping its own data.'
+  }
+
   const current = list?.find((a) => a.slug === open)
 
   if (!root) {
@@ -97,6 +131,9 @@ export function AppsView({ onBuild, initialApp = null }: Props): JSX.Element {
               <button type="button" className={styles.ghost} onClick={() => void duplicate(open)} data-testid="apps-duplicate">
                 <Copy size={14} /> Duplicate
               </button>
+              <button type="button" className={styles.ghost} onClick={() => void exportApp(open)} title="Save it as a file to share (without its data)" data-testid="apps-export">
+                <Upload size={14} /> Export
+              </button>
               <button type="button" className={styles.ghost} onClick={() => void window.workspace.apps.reveal(open)} title="Show its folder in Finder">
                 <FolderOpen size={14} />
               </button>
@@ -109,10 +146,31 @@ export function AppsView({ onBuild, initialApp = null }: Props): JSX.Element {
           <div className={styles.scroll}>
             <div className={styles.head}>
               <p className={styles.count}>{list === null ? 'Reading your apps…' : list.length ? `${list.length} app${list.length === 1 ? '' : 's'} in this workspace` : 'Your apps'}</p>
+              <button type="button" className={styles.ghost} onClick={() => void pickImport()} title="Add an app from a .wosapp file" data-testid="apps-import">
+                <Download size={14} /> Import…
+              </button>
               <button type="button" className={styles.primary} onClick={() => onBuild(null)} data-testid="apps-new">
                 <Plus size={15} /> New app
               </button>
             </div>
+            {offer && (
+              <div className={styles.offer} data-testid="apps-import-offer">
+                <Icon icon={offer.manifest.icon} />
+                <div className={styles.offerText}>
+                  <span className={styles.cardName}>Add “{offer.manifest.name}”?</span>
+                  <span className={styles.cardText}>
+                    {offer.manifest.description ? `${offer.manifest.description} ` : ''}
+                    {asks(offer.manifest)} Like every app, it runs sandboxed: no network, no access to your files beyond the ones you pick.
+                  </span>
+                </div>
+                <button type="button" className={styles.ghost} onClick={() => setOffer(null)}>
+                  Cancel
+                </button>
+                <button type="button" className={styles.primary} onClick={() => void confirmImport()} data-testid="apps-import-confirm">
+                  Add it
+                </button>
+              </div>
+            )}
             <div className={styles.grid} data-testid="apps-grid">
               {(list ?? []).map((a) => (
                 <button key={a.slug} type="button" className={styles.card} onClick={() => setOpen(a.slug)} data-app-card={a.slug}>

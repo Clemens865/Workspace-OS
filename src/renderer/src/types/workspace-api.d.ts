@@ -28,6 +28,7 @@ export interface WosAppManifest {
   description: string
   icon: string
   permissions: ('ai' | 'ai.web')[]
+  libraries: 'hairline'[]
   entry: string
   from?: string
 }
@@ -1081,6 +1082,11 @@ export interface WorkspaceApi {
     load: (slug: string, theme: 'light' | 'dark') => Promise<{ manifest: WosAppManifest; html: string }>
     manifest: (slug: string) => Promise<WosAppManifest>
     lint: (slug: string) => Promise<{ rule: 'colour' | 'font' | 'network' | 'storage' | 'class'; detail: string }[]>
+    /** Saves the app as a .wosapp file (its own files, not its data); the file name, or null if cancelled. */
+    export: (slug: string) => Promise<string | null>
+    /** Picks and checks a .wosapp file; what it is and asks for, to confirm. */
+    importPick: () => Promise<{ token: string; manifest: WosAppManifest; files: number; bytes: number } | null>
+    importConfirm: (token: string) => Promise<string>
     call: (slug: string, method: string, args: unknown) => Promise<unknown>
   }
   /** Sessions and chats, saved per workspace in .workspace-os/sessions.json. */

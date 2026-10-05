@@ -44,6 +44,12 @@
   --swatch-4: #5b6ee1; --swatch-4-soft: #e2e6fa;
   --swatch-5: #a35fb8; --swatch-5-soft: #f1e3f5;
   --swatch-6: #7a8893; --swatch-6-soft: #e9edf0;
+  /* Hairline figures (the "hairline" library) drawn in the kit's ink, on its paper. */
+  --hairline-plate: var(--paper);
+  --hairline-hi: var(--ink);
+  --hairline-edge: var(--ink-2);
+  --hairline-mid: var(--muted);
+  --hairline-lo: var(--faint);
   color-scheme: light;
 }
 
