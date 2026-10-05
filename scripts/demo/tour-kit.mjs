@@ -181,3 +181,9 @@ export async function appFrame(win, scope = '[data-testid="apps-view"]') {
   await sleep(500)
   return f
 }
+
+/** A dock item, from whichever dock is on screen: the landscape's, or the stage's top bar. */
+export async function dockTo(win, id, settle = 1400) {
+  const onStage = (await win.getAttribute('[data-shell="landscape"]', 'data-view').catch(() => null)) === 'stage'
+  return tap(win, win.locator(onStage ? `[data-stage-dock="${id}"]` : `[data-dock="${id}"]`), { settle })
+}

@@ -12,7 +12,7 @@ import fs from 'fs'
 import path from 'path'
 import { spawnSync } from 'child_process'
 import { hideCursor } from './stagecraft.mjs'
-import { ASSETS, ROOT, appFrame, drag, launch, point, seed, sleep, tap, type, until } from './tour-kit.mjs'
+import { ASSETS, ROOT, appFrame, dockTo, drag, launch, point, seed, sleep, tap, type, until } from './tour-kit.mjs'
 
 const OUT = path.join(ROOT, 'build', 'demo')
 const RAW = path.join(OUT, 'tour-raw')
@@ -23,7 +23,7 @@ seed()
 const t0 = Date.now()
 const { app, win } = await launch(RAW)
 const $ = (sel) => win.locator(sel)
-const dock = (id) => tap(win, $(`[data-dock="${id}"]`), { settle: 1400 })
+const dock = (id) => dockTo(win, id)
 const busy = () => win.locator('[data-testid="chat-stop"]').count().then((n) => n > 0)
 const replied = async () => {
   await until(busy, 4000)
@@ -155,8 +155,8 @@ await sleep(1500)
 await dock('menu')
 await sleep(2000)
 await dock('overview')
-await tap(win, $('[data-dock="terminal"]'), { settle: 2500 })
-await tap(win, $('[data-dock="terminal"]'), { settle: 1200 })
+await dock('terminal')
+await dock('terminal')
 await hideCursor(win)
 await sleep(1200)
 

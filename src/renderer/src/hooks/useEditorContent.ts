@@ -9,6 +9,9 @@ import type { CodeEditor } from '../components/Canvas/renderers/MonacoRenderer'
  */
 export function useEditorContent(editor: CodeEditor | null, enabled: boolean, delay = 180): string {
   const [text, setText] = useState('')
+  // Another editor (another file): its text, never the last file's, so a preview
+  // never shows the old document first.
+  useEffect(() => setText(''), [editor])
 
   useEffect(() => {
     if (!editor || !enabled) return
