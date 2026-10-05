@@ -66,6 +66,13 @@ import { mainWindow, setMainWindow } from './main-window'
 const rendererUrl = process.env['ELECTRON_RENDERER_URL']
 const isDev = !!rendererUrl
 
+// Env-gated (recordings and tests): a scratch profile instead of the person's
+// own. Redirecting HOME does not do it on macOS, where Electron keeps userData
+// under the real home whatever HOME says. Set before the single-instance lock,
+// which lives in userData too. Inert unless the variable is set; the
+// standalone CLIs read the same variable (userdata-path.ts).
+if (process.env['WOS_USERDATA_DIR']) app.setPath('userData', process.env['WOS_USERDATA_DIR'])
+
 // Only one instance may run — a second would fight over the named Docker
 // container and clobber shared workspace state.
 if (!app.requestSingleInstanceLock()) {
