@@ -1,0 +1,52 @@
+.ill { height: 100%; }
+.topbar { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; padding: 10px 14px; border-bottom: 1px solid var(--line); }
+.topbar .spacer { flex: 1; }
+.tools .wos-btn.on { background: rgba(var(--ink-rgb), 0.1); }
+.zoom { min-width: 44px; text-align: center; color: var(--ink-2); font-variant-numeric: tabular-nums; }
+.ai-bar { display: flex; align-items: center; gap: 8px; padding: 10px 14px; border-bottom: 1px solid var(--line); }
+.ai-bar .wos-input { flex: 1; }
+#error { margin: 10px 14px 0; }
+
+.body { flex: 1; min-height: 0; display: grid; grid-template-columns: minmax(0, 1fr) 272px; }
+.canvas-wrap { position: relative; min-height: 0; overflow: hidden; background: rgba(var(--ink-rgb), 0.04); }
+#canvas { display: block; width: 100%; height: 100%; outline: none; touch-action: none; user-select: none; }
+.board { fill: var(--paper); stroke: var(--line); }
+.board-grid { pointer-events: none; }
+.grid-line { fill: none; stroke: rgba(var(--ink-rgb), 0.07); stroke-width: 0.5; }
+.hint { position: absolute; left: 12px; bottom: 10px; pointer-events: none; }
+.measure { position: absolute; width: 0; height: 0; overflow: hidden; visibility: hidden; }
+
+/* The editor's own marks: selection, handles, previews. In the accent, thin at any zoom. */
+.sel-box { fill: none; stroke: var(--accent); stroke-width: 1; vector-effect: non-scaling-stroke; pointer-events: none; }
+.handle { fill: var(--paper); stroke: var(--accent); stroke-width: 1; vector-effect: non-scaling-stroke; }
+.marquee { fill: rgba(var(--ink-rgb), 0.05); stroke: var(--accent); stroke-width: 1; stroke-dasharray: 4 3; vector-effect: non-scaling-stroke; pointer-events: none; }
+.preview { fill: none; stroke: var(--accent); stroke-width: 1; vector-effect: non-scaling-stroke; pointer-events: none; }
+.pen-dot { fill: var(--paper); stroke: var(--accent); stroke-width: 1; vector-effect: non-scaling-stroke; }
+.hit { fill: none; stroke: transparent; }
+.locked { pointer-events: none; }
+
+.panel { display: flex; flex-direction: column; min-height: 0; overflow-y: auto; border-left: 1px solid var(--line); background: var(--paper); }
+#props { flex: none; padding: 14px 16px; border-bottom: 1px solid var(--line); }
+.prop-row { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.prop-row label, .prop label { display: block; margin-bottom: 4px; font-size: 11px; color: var(--muted); }
+.prop-row .wos-input, .prop .wos-input { padding: 6px 9px; font-size: 13px; }
+.swatches { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; }
+.swatch { width: 22px; height: 22px; padding: 0; border: 1px solid var(--line); border-radius: 50%; cursor: pointer; }
+.swatch.on { outline: 2px solid var(--ink); outline-offset: 2px; }
+.swatch.none { background: linear-gradient(135deg, transparent 45%, var(--danger) 45%, var(--danger) 55%, transparent 55%), var(--paper); }
+.picker { width: 26px; height: 26px; padding: 0; border: 1px solid var(--line); border-radius: 50%; background: none; cursor: pointer; overflow: hidden; }
+
+.layers { flex: 1 0 auto; min-height: 160px; display: flex; flex-direction: column; padding: 12px 10px 10px 16px; }
+.layers-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 6px; }
+.layers-head .wos-label { margin: 0; }
+.layer-list { flex: 1; min-height: 0; overflow: auto; margin: 0; padding: 0; list-style: none; }
+.layer { display: flex; align-items: center; gap: 6px; padding: 4px 6px; border-radius: 8px; cursor: pointer; font-size: 13px; color: var(--ink-2); }
+.layer:hover { background: rgba(var(--ink-rgb), 0.05); }
+.layer.on { background: rgba(var(--ink-rgb), 0.09); color: var(--ink); }
+.layer .nm { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.layer .lb { width: 22px; height: 22px; padding: 0; border: 0; border-radius: 6px; background: none; color: var(--muted); cursor: pointer; }
+.layer .lb:hover { background: rgba(var(--ink-rgb), 0.08); color: var(--ink); }
+.layer .lb svg { width: 14px; height: 14px; stroke: currentColor; fill: none; stroke-width: 1.75; }
+.layer .ty { width: 16px; color: var(--faint); font-size: 11px; text-align: center; }
+.layer input { flex: 1; min-width: 0; padding: 2px 6px; border: 1px solid var(--line); border-radius: 6px; font: inherit; background: var(--paper); color: var(--ink); }
+.text-edit { position: absolute; z-index: 3; min-width: 120px; padding: 2px 4px; border: 1px solid var(--accent); border-radius: 4px; background: var(--paper); color: var(--ink); font-family: var(--sans); outline: none; }

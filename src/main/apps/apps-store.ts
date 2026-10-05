@@ -1,4 +1,5 @@
 import fs from 'fs'
+import os from 'os'
 import path from 'path'
 
 /**
@@ -19,6 +20,9 @@ export const APPS_DIR = 'Apps'
 /** What an app may ask for beyond its own storage and the person's file dialogs. */
 export const PERMISSIONS = ['ai', 'ai.web'] as const
 export type Permission = (typeof PERMISSIONS)[number]
+/** Libraries bundled in the kit (resources/apps-kit/libs/) that an app may ask for in app.json. */
+export const LIBRARIES = ['hairline'] as const
+export type Library = (typeof LIBRARIES)[number]
 
 export interface AppManifest {
   slug: string
@@ -27,6 +31,8 @@ export interface AppManifest {
   /** One emoji or up to two letters, for the card. */
   icon: string
   permissions: Permission[]
+  /** Kit libraries loaded before the app's own scripts (e.g. "hairline" → window.hairline). */
+  libraries: Library[]
   entry: string
   /** Where it came from (a built-in template id), if anywhere. */
   from?: string
@@ -66,7 +72,7 @@ export function readManifestAt(dir: string, slug: string): AppManifest | null {
   try {
     raw = JSON.parse(fs.readFileSync(path.join(dir, 'app.json'), 'utf8')) as Record<string, unknown>
   } catch {
-    return fs.existsSync(path.join(dir, 'index.html')) ? { slug, name: slug, description: '', icon: slug.slice(0, 2).toUpperCase(), permissions: [], entry: 'index.html' } : null
+    return fs.existsSync(path.join(dir, 'index.html')) ? { slug, name: slug, description: '', icon: slug.slice(0, 2).toUpperCase(), permissions: [], libraries: [], entry: 'index.html' } : null
   }
   const str = (v: unknown, n: number): string => (typeof v === 'string' ? v.trim().slice(0, n) : '')
   const entry = str(raw.entry, 80) || 'index.html'
@@ -76,6 +82,7 @@ export function readManifestAt(dir: string, slug: string): AppManifest | null {
     description: str(raw.description, 240),
     icon: str(raw.icon, 4) || slug.slice(0, 2).toUpperCase(),
     permissions: (Array.isArray(raw.permissions) ? raw.permissions : []).filter((p): p is Permission => PERMISSIONS.includes(p as Permission)),
+    libraries: (Array.isArray(raw.libraries) ? raw.libraries : []).filter((l): l is Library => LIBRARIES.includes(l as Library)),
     entry: /^[\w.-]+\.html?$/.test(entry) ? entry : 'index.html',
     ...(typeof raw.from === 'string' ? { from: str(raw.from, 64) } : {}),
   }
@@ -125,6 +132,8 @@ export interface Kit {
   /** The kit stylesheet with its fonts already inlined as data: URLs. */
   css: string
   bridge: string
+  /** The bundled libraries' code, by name. */
+  libs?: Partial<Record<Library, string>>
 }
 
 /** Reads the kit once: its CSS with the font files embedded. */
@@ -136,7 +145,15 @@ export function loadKit(kitDir: string): Kit {
       return 'local(none)'
     }
   })
-  return { css, bridge: fs.readFileSync(path.join(kitDir, 'bridge.js'), 'utf8') }
+  const libs: Partial<Record<Library, string>> = {}
+  for (const l of LIBRARIES) {
+    try {
+      libs[l] = fs.readFileSync(path.join(kitDir, 'libs', `${l}.js`), 'utf8')
+    } catch {
+      /* not bundled: an app asking for it gets a clear error in its console */
+    }
+  }
+  return { css, bridge: fs.readFileSync(path.join(kitDir, 'bridge.js'), 'utf8'), libs }
 }
 
 /** The app as one page: CSP, kit, bridge, then the app with its own files inlined. */
@@ -148,8 +165,9 @@ export function composeApp(root: string, slug: string, kit: Kit, theme: 'light' 
   // The app's own scripts and stylesheets, inlined; anything else is dropped (the CSP would refuse it anyway).
   html = html.replace(/<script\b([^>]*)\bsrc=["']([^"']+)["']([^>]*)>\s*<\/script>/gi, (_m, a: string, ref: string, b: string) => {
     const f = ownFile(dir, ref)
-    const type = /type=["']module["']/i.test(a + b) ? ' type="module"' : ''
-    return f ? `<script${type}>\n${safeScript(fs.readFileSync(f, 'utf8'))}\n</script>` : ''
+    // Its id and type stay (type="text/plain" carries a file the app reads as text, e.g. a kernel or a rules file).
+    const attrs = `${a} ${b}`.match(/\b(?:id|type)=["'][\w./-]+["']/gi)?.join(' ') ?? ''
+    return f ? `<script${attrs ? ` ${attrs}` : ''}>\n${safeScript(fs.readFileSync(f, 'utf8'))}\n</script>` : ''
   })
   html = html.replace(/<link\b[^>]*\brel=["']stylesheet["'][^>]*>/gi, (tag) => {
     const ref = /href=["']([^"']+)["']/i.exec(tag)?.[1] ?? ''
@@ -163,6 +181,7 @@ export function composeApp(root: string, slug: string, kit: Kit, theme: 'light' 
     `<style data-wos-kit>\n${kit.css}\n</style>`,
     `<script>window.__WOS_APP__=${info}</script>`,
     `<script data-wos-bridge>\n${safeScript(kit.bridge)}\n</script>`,
+    ...manifest.libraries.map((l) => (kit.libs?.[l] ? `<script data-wos-lib="${l}">\n${safeScript(kit.libs[l]!)}\n</script>` : `<script>console.error('The ${l} library is not in this build')</script>`)),
   ].join('\n')
   // The kit goes first in <head>, so the app's own styles come after it and can refine it.
   if (/<head[^>]*>/i.test(html)) html = html.replace(/<head[^>]*>/i, (h) => `${h}\n${head}`)
@@ -247,21 +266,109 @@ export function lintApp(root: string, slug: string): LintFinding[] {
     if (!found.some((f) => f.detail === detail)) found.push({ rule, detail })
   }
   for (const f of files) {
+    const raw = fs.readFileSync(path.join(dir, f), 'utf8')
+    // A file may say it only NAMES a forbidden thing (a checker's own list): "wos-design-check: names storage, network".
+    const names = new Set((/wos-design-check:\s*names\s+([a-z ,]+)/.exec(raw)?.[1] ?? '').split(/[\s,]+/).filter(Boolean))
     // Comments say nothing about the app's looks.
-    const text = fs.readFileSync(path.join(dir, f), 'utf8').replace(/\/\*[\s\S]*?\*\/|<!--[\s\S]*?-->/g, '')
+    const text = raw.replace(/\/\*[\s\S]*?\*\/|<!--[\s\S]*?-->/g, '')
     // A colour, not an HTML entity (&#039;) or an id like #add-note.
     const colours = [...new Set(text.match(/(?<![&\w])#(?:[0-9a-f]{8}|[0-9a-f]{6}|[0-9a-f]{3,4})(?![\w-])/gi) ?? [])]
     if (colours.length) add('colour', `${f}: hard-coded colours ${colours.slice(0, 8).join(' ')}; use the kit tokens (--ink, --muted, --line, --paper, --accent, --swatch-1…6 and their -soft fills)`)
     if (/\brgba?\(\s*\d/i.test(text)) add('colour', `${f}: rgb()/rgba() with numbers; tint with rgba(var(--ink-rgb), …) or rgba(var(--paper-rgb), …)`)
-    for (const m of text.matchAll(/font-family\s*[:=]\s*['"]?([^;'"\n]+)/gi)) {
+    // CSS declarations and the style property: a font named in an exported SVG's markup is the drawing's, not the app's.
+    for (const m of text.matchAll(/(?:font-family\s*:|fontFamily\s*=)\s*['"]?([^;'"\n]+)/gi)) {
       if (!/^\s*(var\(--|inherit)/.test(m[1])) add('font', `${f}: font-family ${m[1].trim().slice(0, 40)}; use var(--sans), var(--serif) or var(--mono)`)
     }
     const urls = (text.match(/https?:\/\/[^\s'"`)<>]+/g) ?? []).filter((u) => !u.startsWith('http://www.w3.org/'))
     if (urls.length) add('network', `${f}: loads from the web (${urls[0].slice(0, 60)}); apps have no network, write it into the app`)
-    if (/\b(localStorage|sessionStorage|indexedDB|document\.cookie)\b/.test(text)) add('storage', `${f}: uses browser storage, which the sandbox refuses; use wos.storage`)
-    for (const c of new Set(text.match(/\bwos-[a-z-]+\b/g) ?? [])) {
-      if (!KIT_CLASSES.has(c) && !/^wos-(app|bridge|kit)\b/.test(c)) add('class', `${f}: .${c} is not in the kit (modifiers are separate classes: "wos-btn ghost")`)
+    if (!names.has('storage') && /\b(localStorage|sessionStorage|indexedDB|document\.cookie)\b/.test(text)) add('storage', `${f}: uses browser storage, which the sandbox refuses; use wos.storage`)
+    // A kit class, not part of a longer name (data-wos-lib is an attribute).
+    for (const c of new Set(text.match(/(?<![-\w])wos-[a-z-]+\b/g) ?? [])) {
+      if (!KIT_CLASSES.has(c) && !/^wos-(app|bridge|kit|design-check)\b/.test(c)) add('class', `${f}: .${c} is not in the kit (modifiers are separate classes: "wos-btn ghost")`)
     }
   }
   return found
+}
+
+// ── export and import: an app as one .wosapp file (a zip of its folder, without its data) ──
+const PACKAGE_TYPES = /\.(html?|m?js|css|json|md|txt|svg|png|jpe?g|gif|webp|woff2)$/i
+export const PACKAGE_LIMITS = { files: 200, fileBytes: 5 * 1024 * 1024, totalBytes: 20 * 1024 * 1024 }
+
+/** The files an export carries: the app's own, never its data (that is the person's) or hidden files. */
+export function packageFiles(root: string, slug: string): Record<string, Uint8Array> {
+  const dir = appDir(root, slug)
+  const out: Record<string, Uint8Array> = {}
+  const walk = (d: string, rel: string): void => {
+    for (const e of fs.readdirSync(d, { withFileTypes: true })) {
+      if (e.name.startsWith('.') || (rel === '' && e.name === 'data')) continue
+      const p = path.join(d, e.name)
+      const r = rel ? `${rel}/${e.name}` : e.name
+      if (e.isDirectory()) walk(p, r)
+      else if (e.isFile() && PACKAGE_TYPES.test(e.name)) out[`${slug}/${r}`] = new Uint8Array(fs.readFileSync(p))
+    }
+  }
+  walk(dir, '')
+  return out
+}
+
+export interface AppPackage {
+  manifest: AppManifest
+  /** Paths inside the app folder → bytes. */
+  files: Record<string, Uint8Array>
+  bytes: number
+}
+
+/**
+ * An imported package, checked before anything is written: one top folder (or
+ * none), only the file types an app is made of, no path that leaves the
+ * folder, sizes within limits, and a page to run. What it asks for comes from
+ * its app.json, read like any app's (unknown permissions dropped).
+ */
+export function readPackage(entries: Record<string, Uint8Array>, fallbackName = 'Imported app'): AppPackage {
+  // A path that leaves the folder is refused outright (before hidden files are skipped: ".." is not a hidden file).
+  for (const n of Object.keys(entries)) {
+    if (n.includes('\\') || n.startsWith('/') || n.split('/').some((s) => s === '..' || s === '.')) throw new Error(`A file in it leaves its folder: ${n}`)
+  }
+  const names = Object.keys(entries).filter((n) => !n.endsWith('/') && !n.startsWith('__MACOSX/') && !/(^|\/)\.[^/]+/.test(n))
+  if (!names.length) throw new Error('This file holds no app')
+  if (names.length > PACKAGE_LIMITS.files) throw new Error(`An app has at most ${PACKAGE_LIMITS.files} files`)
+  const tops = new Set(names.map((n) => (n.includes('/') ? n.split('/')[0] : '')))
+  const prefix = tops.size === 1 && !tops.has('') ? `${[...tops][0]}/` : ''
+  const files: Record<string, Uint8Array> = {}
+  let bytes = 0
+  for (const n of names) {
+    const rel = n.slice(prefix.length)
+    if (!rel || rel.includes('\\') || rel.startsWith('/') || rel.split('/').some((s) => s === '..' || s === '' || s === '.')) throw new Error(`A file in it leaves its folder: ${n}`)
+    if (rel.split('/')[0] === 'data') continue
+    if (!PACKAGE_TYPES.test(rel)) throw new Error(`An app is not made of ${rel.split('.').pop()} files: ${rel}`)
+    const b = entries[n]
+    if (b.byteLength > PACKAGE_LIMITS.fileBytes) throw new Error(`${rel} is larger than 5 MB`)
+    bytes += b.byteLength
+    files[rel] = b
+  }
+  if (bytes > PACKAGE_LIMITS.totalBytes) throw new Error('The app is larger than 20 MB')
+  const tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'wos-pkg-'))
+  try {
+    if (files['app.json']) fs.writeFileSync(path.join(tmp, 'app.json'), files['app.json'])
+    if (files['index.html']) fs.writeFileSync(path.join(tmp, 'index.html'), files['index.html'])
+    const m = readManifestAt(tmp, slugify(prefix.replace(/\/$/, '') || fallbackName))
+    if (!m || !files[m.entry]) throw new Error('This file holds no app page (index.html)')
+    if (!files['app.json']) m.name = prefix.replace(/\/$/, '') || fallbackName
+    return { manifest: m, files, bytes }
+  } finally {
+    fs.rmSync(tmp, { recursive: true, force: true })
+  }
+}
+
+/** Writes a checked package into the workspace as a new app (its own folder, never over another). */
+export function installPackage(root: string, pkg: AppPackage): string {
+  const slug = freeSlug(root, slugify(pkg.manifest.name))
+  const dir = appDir(root, slug)
+  for (const [rel, b] of Object.entries(pkg.files)) {
+    const p = path.join(dir, rel)
+    if (!p.startsWith(dir + path.sep)) continue
+    fs.mkdirSync(path.dirname(p), { recursive: true })
+    fs.writeFileSync(p, b)
+  }
+  return slug
 }

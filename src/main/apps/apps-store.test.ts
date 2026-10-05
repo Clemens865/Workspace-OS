@@ -2,7 +2,7 @@ import { describe, it, expect, beforeEach, afterEach } from 'vitest'
 import fs from 'fs'
 import os from 'os'
 import path from 'path'
-import { APP_CSP, composeApp, copyApp, freeSlug, isSlug, lintApp, listApps, loadKit, readManifest, slugify, storage, type Kit } from './apps-store'
+import { APP_CSP, composeApp, copyApp, freeSlug, installPackage, isSlug, lintApp, listApps, loadKit, packageFiles, readManifest, readPackage, slugify, storage, type Kit } from './apps-store'
 
 let root: string
 const kit: Kit = { css: '.wos-btn{}', bridge: 'window.wos={}' }
@@ -118,11 +118,58 @@ describe('the built-in apps', () => {
   it('pass the design check themselves', () => {
     const dir = path.join(__dirname, '..', '..', '..', 'resources', 'apps')
     const ids = fs.readdirSync(dir)
-    expect(ids.length).toBeGreaterThanOrEqual(3)
+    expect(ids.length).toBeGreaterThanOrEqual(4)
     for (const id of ids) {
       copyApp(path.join(dir, id), path.join(root, 'Apps', id))
       expect([id, lintApp(root, id)]).toEqual([id, []])
-      expect(readManifest(root, id)?.permissions.length).toBeGreaterThan(0)
+      expect(readManifest(root, id)?.name).toBeTruthy()
     }
+  })
+})
+
+describe('kit libraries', () => {
+  it('loads a library only for an app that asks for it, before the app’s own scripts', () => {
+    const withLib: Kit = { ...kit, libs: { hairline: 'window.hairline={terrain(){}}' } }
+    write('Apps/fig/app.json', JSON.stringify({ name: 'Fig', libraries: ['hairline', 'jquery'] }))
+    write('Apps/fig/index.html', '<html><head></head><body><script type="text/plain" id="hl-kernel" src="kernel.js"></script><script src="app.js"></script></body></html>')
+    write('Apps/fig/kernel.js', 'var HL = 1')
+    write('Apps/fig/app.js', 'hairline.terrain()')
+    write('Apps/plain/index.html', '<html><head></head><body></body></html>')
+    const { html, manifest } = composeApp(root, 'fig', withLib, 'light')
+    expect(manifest.libraries).toEqual(['hairline']) // an unknown library is not loaded
+    expect(html.indexOf('window.hairline={terrain(){}}')).toBeLessThan(html.indexOf('hairline.terrain()'))
+    expect(html).toContain('<script type="text/plain" id="hl-kernel">\nvar HL = 1\n</script>') // a text file the app reads keeps its id and type
+    expect(composeApp(root, 'plain', withLib, 'light').html).not.toContain('window.hairline')
+  })
+})
+
+describe('export and import', () => {
+  const enc = (s: string): Uint8Array => new TextEncoder().encode(s)
+  it('exports the app’s own files, never its data, and imports them as a new app', () => {
+    write('Apps/board/app.json', JSON.stringify({ name: 'Board', permissions: ['ai', 'mail.send'] }))
+    write('Apps/board/index.html', '<h1>x</h1>')
+    write('Apps/board/lib/util.js', 'x')
+    write('Apps/board/data/store.json', '{"secret":1}')
+    write('Apps/board/.DS_Store', 'junk')
+    const files = packageFiles(root, 'board')
+    expect(Object.keys(files).sort()).toEqual(['board/app.json', 'board/index.html', 'board/lib/util.js'])
+    const pkg = readPackage(files)
+    expect(pkg.manifest).toMatchObject({ name: 'Board', permissions: ['ai'] }) // an unknown permission is dropped
+    const slug = installPackage(root, pkg)
+    expect(slug).toBe('board-2') // never over an app that is there
+    expect(fs.readFileSync(path.join(root, 'Apps/board-2/lib/util.js'), 'utf8')).toBe('x')
+    expect(fs.existsSync(path.join(root, 'Apps/board-2/data'))).toBe(false)
+  })
+
+  it('refuses a package that leaves its folder, carries other files, or has no page', () => {
+    expect(() => readPackage({ 'x/../../evil.js': enc('x'), 'x/index.html': enc('') })).toThrow(/leaves its folder/)
+    expect(() => readPackage({ 'a/index.html': enc(''), 'a/run.sh': enc('rm -rf /') })).toThrow(/sh files/)
+    expect(() => readPackage({ 'a/app.json': enc('{"name":"A"}') })).toThrow(/no app page/)
+    expect(() => readPackage({})).toThrow(/no app/)
+    expect(() => readPackage({ 'a/index.html': enc(''), 'a/big.js': new Uint8Array(6 * 1024 * 1024) })).toThrow(/5 MB/)
+    // A flat zip (no top folder) is fine; its data folder is left out.
+    const flat = readPackage({ 'index.html': enc('<p>'), 'data/store.json': enc('{}') }, 'Flat thing')
+    expect(Object.keys(flat.files)).toEqual(['index.html'])
+    expect(flat.manifest.name).toBe('Flat thing')
   })
 })

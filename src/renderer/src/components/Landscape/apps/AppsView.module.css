@@ -263,3 +263,27 @@
   font-size: 14px;
   color: var(--wl-muted);
 }
+
+/* Importing: what the app is and may do, before it is added. */
+.offer {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  margin-bottom: 16px;
+  padding: 14px 16px;
+  border: 1px solid rgba(var(--wl-ink-rgb), 0.16);
+  border-radius: 18px;
+  background: rgb(var(--wl-paper-rgb));
+}
+
+.offer .icon {
+  margin: 0;
+}
+
+.offerText {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}

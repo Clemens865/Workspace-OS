@@ -7,6 +7,8 @@ import { IpcValidationError } from '../ipc-validator'
 import { getWorkspaceRoot } from '../workspace-root'
 import { runProviderJson } from '../agent/providerText'
 import * as apps from '../apps/apps-store'
+import { unzipSync, zipSync } from 'fflate'
+import { randomUUID } from 'crypto'
 
 /**
  * Apps: the gallery, running an app, and what an app asks of the workspace.
@@ -74,7 +76,7 @@ async function aiComplete(m: apps.AppManifest, a: Record<string, unknown>): Prom
     const json = a.json === true
     const system = [
       `You are the AI inside "${m.name}", a small app the person made in Workspace OS. Do exactly what the app asks; answer with the result only, no preamble.`,
-      typeof a.system === 'string' ? a.system.slice(0, 8000) : '',
+      typeof a.system === 'string' ? a.system.slice(0, 60_000) : '',
       json ? 'Answer with valid JSON only: no code fences, no commentary.' : '',
     ]
       .filter(Boolean)
@@ -216,6 +218,53 @@ export function registerAppsHandlers(ipcMain: IpcMain): void {
     const m = apps.readManifest(root, copy)
     if (m) fs.writeFileSync(path.join(apps.appDir(root, copy), 'app.json'), JSON.stringify({ ...JSON.parse(fs.readFileSync(path.join(from, 'app.json'), 'utf8')), name: `${m.name} (copy)` }, null, 2))
     return copy
+  })
+
+  // ── export and import (.wosapp: a zip of the app's own files, never its data) ──
+  ipcHandle(ipcMain, 'apps:export', async (_e, slug: unknown) => {
+    const root = requireRoot()
+    const s = requireSlug(slug)
+    const m = apps.readManifest(root, s)
+    if (!m) throw new IpcValidationError('No such app')
+    const win = BrowserWindow.getFocusedWindow() ?? BrowserWindow.getAllWindows()[0]
+    const r = await dialog.showSaveDialog(win, { defaultPath: path.join(app.getPath('documents'), `${m.name.replace(/[/\\:*?"<>|]/g, ' ').trim() || s}.wosapp`), filters: [{ name: 'Workspace OS app', extensions: ['wosapp'] }] })
+    if (r.canceled || !r.filePath) return null
+    fs.writeFileSync(r.filePath, zipSync(apps.packageFiles(root, s), { level: 6 }))
+    return path.basename(r.filePath)
+  })
+
+  // Import, in two steps: read and check the file, show the person what it asks for, then add it.
+  const pending = new Map<string, apps.AppPackage>()
+  ipcHandle(ipcMain, 'apps:importPick', async () => {
+    requireRoot()
+    const win = BrowserWindow.getFocusedWindow() ?? BrowserWindow.getAllWindows()[0]
+    const r = await dialog.showOpenDialog(win, { properties: ['openFile'], filters: [{ name: 'Workspace OS app', extensions: ['wosapp', 'zip'] }] })
+    const f = r.filePaths[0]
+    if (r.canceled || !f) return null
+    if (fs.statSync(f).size > apps.PACKAGE_LIMITS.totalBytes * 2) throw new IpcValidationError('That file is too large for an app')
+    let entries: Record<string, Uint8Array>
+    try {
+      entries = unzipSync(new Uint8Array(fs.readFileSync(f)), { filter: (file) => file.originalSize <= apps.PACKAGE_LIMITS.fileBytes * 2 })
+    } catch {
+      throw new IpcValidationError('That is not a Workspace OS app file')
+    }
+    let pkg: apps.AppPackage
+    try {
+      pkg = apps.readPackage(entries, path.basename(f).replace(/\.(wosapp|zip)$/i, ''))
+    } catch (e) {
+      throw new IpcValidationError(e instanceof Error ? e.message : 'That app cannot be added')
+    }
+    const token = randomUUID()
+    pending.clear()
+    pending.set(token, pkg)
+    return { token, manifest: pkg.manifest, files: Object.keys(pkg.files).length, bytes: pkg.bytes }
+  })
+  ipcHandle(ipcMain, 'apps:importConfirm', (_e, token: unknown) => {
+    const root = requireRoot()
+    const pkg = typeof token === 'string' ? pending.get(token) : undefined
+    if (!pkg) throw new IpcValidationError('Pick the app file again')
+    pending.delete(token as string)
+    return apps.installPackage(root, pkg)
   })
 
   /** The design check (apps-store lintApp): run after each builder turn. */
