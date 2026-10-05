@@ -226,8 +226,8 @@ contextBridge.exposeInMainWorld('workspace', {
     },
   },
   agent: {
-    run: (runId: string, prompt: string, contextFiles: string[], activeFile?: string | null, mode?: 'full' | 'safe', agentName?: string | null, conversationId?: string, model?: string | null, resumeOnly?: boolean) =>
-      ipcRenderer.invoke(IPC.AGENT_RUN, { runId, prompt, contextFiles, activeFile, mode, agentName, conversationId, model, resumeOnly }),
+    run: (runId: string, prompt: string, contextFiles: string[], activeFile?: string | null, mode?: 'full' | 'safe', agentName?: string | null, conversationId?: string, model?: string | null, resumeOnly?: boolean, profile?: 'work' | 'chat') =>
+      ipcRenderer.invoke(IPC.AGENT_RUN, { runId, prompt, contextFiles, activeFile, mode, agentName, conversationId, model, resumeOnly, profile }),
     setDefaultModel: (model: string) => ipcRenderer.invoke('agent:set-default-model', model),
     listModels: () => ipcRenderer.invoke('agent:list-models'),
     cancel: (runId: string) => ipcRenderer.invoke(IPC.AGENT_CANCEL, runId),
@@ -774,6 +774,15 @@ contextBridge.exposeInMainWorld('workspace', {
   knowledge: {
     search: (query: string, limit?: number) => ipcRenderer.invoke('knowledge:search', query, limit),
     read: (filePath: string, offset?: number) => ipcRenderer.invoke('knowledge:read', filePath, offset),
+  },
+
+  chat: {
+    /** A dropped or pasted file, as bytes: written into the workspace's uploads. */
+    upload: (name: string, data: Uint8Array) => ipcRenderer.invoke('chat:upload', name, data),
+  },
+  sessions: {
+    load: () => ipcRenderer.invoke('sessions:load'),
+    save: (root: string, json: string) => ipcRenderer.invoke('sessions:save', root, json),
   },
 
   wiki: {

@@ -58,10 +58,10 @@ describe('memory notes', () => {
   })
 
   it('keeps the stored conversation small', () => {
-    const m = Array.from({ length: 80 }, (_, i) => ({ role: 'user' as const, text: 'x'.repeat(i === 79 ? 5000 : 3), at: i }))
+    const m = Array.from({ length: 450 }, (_, i) => ({ role: 'user' as const, text: 'x'.repeat(i === 449 ? 30_000 : 3), at: i }))
     const t = trimMessages(m)
-    expect(t).toHaveLength(60)
-    expect(t[59].text.length).toBeLessThan(4100)
+    expect(t).toHaveLength(400)
+    expect(t[399].text.length).toBeLessThan(24_100)
   })
 })
 

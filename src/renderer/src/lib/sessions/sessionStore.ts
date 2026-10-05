@@ -1,11 +1,12 @@
 /**
  * The sessions of the open workspace, and the engine that runs them.
  *
- * One store for every place a session is worked in (an agent's card, a work
- * card, the terminal's agent tabs), so a session started anywhere shows up
- * everywhere. Persisted per workspace in localStorage (local by design: the
- * conversation never goes into the case file, only the ask and the agent's
- * outcome line do). The engine listens to the agent IPC once, for all of them.
+ * One store for every place a session is worked in (Chat, an agent's card, a
+ * work card, the terminal's agent tabs), so a session started anywhere shows up
+ * everywhere. Saved per workspace in `.workspace-os/sessions.json` through the
+ * main process (local by design: the conversation never goes into the case
+ * file, only the ask and the agent's outcome line do); older sessions move over
+ * from localStorage once. The engine listens to the agent IPC once, for all.
  */
 import { reviewStore } from '../../components/Review/reviewStore'
 import { activityStore } from '../../components/Review/activityStore'
@@ -32,24 +33,54 @@ const emit = (): void => {
   version++
   listeners.forEach((l) => l())
 }
+/** True once the open workspace's sessions are read: nothing is saved before, or an empty list would overwrite them. */
+let loaded = false
+let saveTimer: number | null = null
+function writeNow(): void {
+  saveTimer = null
+  if (!root || !loaded) return
+  const json = JSON.stringify(sessions.map((s) => ({ ...s, messages: trimMessages(s.messages) })))
+  void window.workspace.sessions?.save(root, json).catch(() => {
+    /* the session still works for this run */
+  })
+}
+/** Saves soon: a streaming reply changes the session on every chunk. */
 function save(): void {
-  if (!root) return
+  if (!root || !loaded || typeof window === 'undefined') return
+  if (saveTimer === null) saveTimer = window.setTimeout(writeNow, 400)
+}
+function parse(json: string | null | undefined): Session[] {
   try {
-    localStorage.setItem(key(root), JSON.stringify(sessions.map((s) => ({ ...s, messages: trimMessages(s.messages) }))))
+    const raw = JSON.parse(json ?? '[]') as Session[]
+    return Array.isArray(raw) ? raw.filter((s) => s && typeof s.id === 'string') : []
   } catch {
-    /* storage full or private mode: the session still works for this run */
+    return []
   }
 }
-function load(r: string | null): void {
+async function load(r: string | null): Promise<void> {
+  if (saveTimer !== null) {
+    window.clearTimeout(saveTimer)
+    writeNow() // the workspace being left keeps its last words
+  }
   root = r
+  loaded = false
   sessions = []
   if (r) {
-    try {
-      const raw = JSON.parse(localStorage.getItem(key(r)) ?? '[]') as Session[]
-      if (Array.isArray(raw)) sessions = raw.filter((s) => s && typeof s.id === 'string')
-    } catch {
-      sessions = []
+    const got = await window.workspace.sessions?.load().catch(() => null)
+    if (root !== r) return // switched again meanwhile
+    // Sessions started while this was reading stay, ahead of the saved ones.
+    const early = sessions
+    let saved: Session[]
+    let migrated = false
+    if (got && got.root === r && got.json !== null) saved = parse(got.json)
+    else {
+      // First time with the file: the sessions kept in this window's storage move over (left there as a copy).
+      saved = parse(localStorage.getItem(key(r)))
+      migrated = saved.length > 0
     }
+    sessions = [...early, ...saved.filter((x) => !early.some((e) => e.id === x.id))]
+    loaded = true
+    if (migrated || early.length) save()
     // Sessions from before memory learned from them: only the last day's are
     // read, so an update never sends a whole history to the model at once.
     const dayAgo = Date.now() - 86_400_000
@@ -122,7 +153,8 @@ function start(): void {
   started = true
   void window.workspace.fs.getWorkspaceRoot().then((r) => load(r ?? null)).catch(() => load(null))
   setInterval(() => void sweep(), 60_000)
-  window.workspace.fs.onRootChanged((r) => load(r ?? null))
+  window.workspace.fs.onRootChanged((r) => void load(r ?? null))
+  window.addEventListener('beforeunload', () => saveTimer !== null && writeNow())
   const ag = window.workspace.agent
   ag.onOutput((runId, chunk) => {
     const r = runs.get(runId)
@@ -144,7 +176,17 @@ function start(): void {
     const r = runs.get(runId)
     if (!r || !items.length) return
     reviewStore.patchRun(runId, { artifacts: items.map((a) => ({ path: a.path, name: a.name, type: a.type })) })
-    patch(r.sessionId, (s) => ({ files: [...s.files.filter((f) => !items.some((a) => a.path === f)), ...items.map((a) => a.path)] }))
+    const made = items.map((a) => a.path)
+    patch(r.sessionId, (s) => {
+      // This turn's reply shows them (Chat's artifact cards); a turn with no words yet gets an empty reply to carry them.
+      const roles = s.messages.map((m) => m.role)
+      const at = roles.lastIndexOf('agent') > roles.lastIndexOf('user') ? roles.lastIndexOf('agent') : -1
+      const messages =
+        at < 0
+          ? [...s.messages, { role: 'agent' as const, text: '', at: Date.now(), files: made }]
+          : s.messages.map((m, i) => (i === at ? { ...m, files: [...(m.files ?? []).filter((f) => !made.includes(f)), ...made] } : m))
+      return { messages, files: [...s.files.filter((f) => !made.includes(f)), ...made] }
+    })
   })
   ag.onDone((runId, code, checkpointId) => {
     const r = runs.get(runId)
@@ -201,6 +243,10 @@ export interface SendContext {
   /** The harness preamble (where the person is), prepended to the ask. */
   preamble?: string
   openFile?: string | null
+  /** Files the person attached (uploads or workspace files), shown with the message and read by the run. */
+  attachments?: string[]
+  /** This turn's model pick; unset = the agent's or the Settings default. */
+  model?: string | null
 }
 
 export const sessionStore = {
@@ -215,12 +261,13 @@ export const sessionStore = {
   live: (id: string | null | undefined): SessionLive => (id && live.get(id)) || { running: false, steps: [] },
 
   /** A new session, optionally as an agent and/or inside a case. */
-  create(o: { agentName?: string | null; caseId?: string | null; id?: string; title?: string } = {}): Session {
+  create(o: { agentName?: string | null; caseId?: string | null; id?: string; title?: string; kind?: 'chat' } = {}): Session {
     start()
     const now = Date.now()
     const s: Session = {
       id: o.id ?? `s${now.toString(36)}${Math.floor(Math.random() * 1e4).toString(36)}`,
-      title: o.title ?? 'New session',
+      title: o.title ?? (o.kind === 'chat' ? 'New chat' : 'New session'),
+      ...(o.kind ? { kind: o.kind } : {}),
       agentName: o.agentName ?? null,
       caseId: o.caseId ?? null,
       createdAt: now,
@@ -241,31 +288,34 @@ export const sessionStore = {
     start()
     const s = sessions.find((x) => x.id === id)
     if (!s || live.get(id)?.running) return
-    const ask = text.trim() || mentions.map((m) => m.split('/').pop()).join(', ')
+    const attached = ctx.attachments ?? []
+    const ask = text.trim() || [...mentions, ...attached].map((m) => m.split('/').pop()).join(', ')
     if (!ask) return
+    const chat = s.kind === 'chat'
     const mode = loadSettings().sessionCases ?? 'suggest'
-    if (s.turns === 0) patch(id, { title: s.title === 'New session' ? titleFromPrompt(ask) : s.title })
+    if (s.turns === 0) patch(id, { title: s.title === 'New session' || s.title === 'New chat' ? titleFromPrompt(ask) : s.title })
     let caseId = sessions.find((x) => x.id === id)!.caseId
-    if (!caseId && s.turns === 0 && caseOnFirstAsk(mode)) {
+    // A chat is a conversation: it becomes a case only when the person keeps it.
+    if (!caseId && !chat && s.turns === 0 && caseOnFirstAsk(mode)) {
       caseId = await openCase(sessions.find((x) => x.id === id)!, ask).catch(() => null)
       if (caseId) patch(id, { caseId })
     }
     const runId = `sess-${id}-${Date.now()}`
     runs.set(runId, { sessionId: id, ask, out: '' })
-    pushMsg(id, { role: 'user', text: ask })
+    pushMsg(id, { role: 'user', text: ask, ...(attached.length ? { files: attached } : {}) })
     patch(id, (x) => ({ turns: x.turns + 1, lastAt: Date.now(), lastRunId: runId }))
     setLive(id, { running: true, steps: [] })
     const agentName = s.agentName
     reviewStore.openRun({ runId, sessionId: conversationOf(id), sessionName: agentName ?? 'Assistant', prompt: ask, mode: loadSettings().agentMode, agentName, agentId: conversationOf(id) })
     // A session in a case works in the case's folder and knows the case.
-    let prompt = text.trim() || 'Look at the attached files.'
+    let prompt = text.trim() || (attached.length ? 'Look at the files I attached.' : 'Look at the attached files.')
     if (caseId) {
       const work = await window.workspace.cases.workFolder(caseId).catch(() => null)
       prompt = `[This conversation is the case "${caseId}". Its notes and files are kept for you.]${work ? `\n${work.guidance}` : ''}\n\n${prompt}`
     }
     if (ctx.preamble) prompt = `${ctx.preamble}\n\n${prompt}`
     try {
-      await window.workspace.agent.run(runId, prompt, mentions, ctx.openFile ?? null, loadSettings().agentMode, agentName, conversationOf(id))
+      await window.workspace.agent.run(runId, prompt, [...mentions, ...attached], ctx.openFile ?? null, loadSettings().agentMode, agentName, conversationOf(id), ctx.model ?? null, undefined, chat ? 'chat' : 'work')
     } catch (err) {
       runs.delete(runId)
       pushMsg(id, { role: 'system', text: `[error] ${(err as Error).message}` })

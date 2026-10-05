@@ -91,9 +91,11 @@ const FULL_DISALLOWED = [
 export function permissionArgs(
   mode: 'safe' | 'full',
   mcpTools: string[] = [],
-  opts: { inAppBrowserOnly?: boolean } = {},
+  opts: { inAppBrowserOnly?: boolean; webInSafe?: boolean } = {},
 ): string[] {
   const mcp = mcpTools.filter(isValidMcpTool)
+  // A chat looks things up: web search and fetch on top of the safe set (still no shell).
+  const lookup = opts.webInSafe && !opts.inAppBrowserOnly ? ['WebSearch', 'WebFetch'] : []
   // A research agent must go through the IN-APP browser, not WebFetch/WebSearch.
   // Given both, a model reaches for the direct tools every time — and that
   // silently loses everything the browser surface is for: the user can SEE the
@@ -105,7 +107,7 @@ export function permissionArgs(
   if (mode === 'safe') {
     return web.length
       ? ['--allowedTools', ...SAFE_ALLOWED, ...mcp, '--disallowedTools', ...web]
-      : ['--allowedTools', ...SAFE_ALLOWED, ...mcp]
+      : ['--allowedTools', ...SAFE_ALLOWED, ...lookup, ...mcp]
   }
   return ['--allowedTools', ...FULL_ALLOWED, ...mcp, '--disallowedTools', ...FULL_DISALLOWED, ...web]
 }

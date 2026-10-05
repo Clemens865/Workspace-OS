@@ -9,6 +9,7 @@ import { WorkspaceShell } from '../Shell/WorkspaceShell'
 import type { RailId } from '../Shell/shellModel'
 import { useSettings } from '../../hooks/useSettings'
 import { DOCK, type DockId, type LandscapeView } from './landscapeModel'
+import { ChatView } from './chat/ChatView'
 import { LandscapeDock } from './LandscapeDock'
 import { LandscapeMenu } from './LandscapeMenu'
 import { TodayView } from './today/TodayView'
@@ -240,7 +241,7 @@ export function LandscapeShell(): JSX.Element {
       if (e.key !== 'Escape' || e.defaultPrevented) return
       const t = e.target as HTMLElement | null
       if (t && (/INPUT|TEXTAREA|SELECT/.test(t.tagName) || t.isContentEditable)) return
-      if (view === 'agent' || view === 'menu' || view === 'inbox' || view === 'cases' || view === 'today' || view === 'library') setView('overview')
+      if (view === 'agent' || view === 'menu' || view === 'inbox' || view === 'cases' || view === 'today' || view === 'library' || view === 'chat') setView('overview')
     }
     window.addEventListener('keydown', onKey)
     return () => window.removeEventListener('keydown', onKey)
@@ -291,10 +292,10 @@ export function LandscapeShell(): JSX.Element {
     if (id === 'inbox') setInboxTab('waiting')
     const item = DOCK.find((d) => d.id === id)
     if (item?.stage) openSurface(item.stage)
-    else showLandscape(id === 'menu' ? 'menu' : id === 'inbox' ? 'inbox' : id === 'cases' ? 'cases' : id === 'library' ? 'library' : 'overview')
+    else showLandscape(id === 'menu' ? 'menu' : id === 'chat' ? 'chat' : id === 'inbox' ? 'inbox' : id === 'cases' ? 'cases' : id === 'library' ? 'library' : 'overview')
   }
   const activeDock: DockId | null =
-    view === 'menu' ? 'menu' : view === 'inbox' ? 'inbox' : view === 'cases' ? 'cases' : view === 'library' ? 'library' : view === 'overview' || view === 'agent' || view === 'today' ? 'overview' : null
+    view === 'menu' ? 'menu' : view === 'chat' ? 'chat' : view === 'inbox' ? 'inbox' : view === 'cases' ? 'cases' : view === 'library' ? 'library' : view === 'overview' || view === 'agent' || view === 'today' ? 'overview' : null
   const onStage = view === 'stage'
   const worldMode: WorldMode = view === 'agent' ? 'focus' : view === 'overview' ? 'overview' : 'away'
 
@@ -338,11 +339,13 @@ export function LandscapeShell(): JSX.Element {
             ) : (
               <>
                 <h1 className={styles.heading}>
-                  {view === 'menu' ? 'Menu' : view === 'inbox' ? (inboxTab === 'history' ? 'History' : `Inbox${inbox.length ? ` · ${inbox.length} waiting` : ''}`) : view === 'cases' ? 'Your cases' : view === 'library' ? 'Library' : view === 'today' ? `${greeting(new Date().getHours())}.` : 'Your team'}
+                  {view === 'menu' ? 'Menu' : view === 'chat' ? 'Chat' : view === 'inbox' ? (inboxTab === 'history' ? 'History' : `Inbox${inbox.length ? ` · ${inbox.length} waiting` : ''}`) : view === 'cases' ? 'Your cases' : view === 'library' ? 'Library' : view === 'today' ? `${greeting(new Date().getHours())}.` : 'Your team'}
                 </h1>
                 <div className={styles.sub} data-testid="team-summary">
                   {view === 'menu'
                     ? 'Every part of the workspace, one click away'
+                    : view === 'chat'
+                      ? 'Talk it through: attach files, look things up, make things'
                     : view === 'inbox'
                       ? inboxTab === 'history'
                         ? 'Everything that happened here, newest first'
@@ -399,6 +402,7 @@ export function LandscapeShell(): JSX.Element {
         {view === 'cases' && <CasesView initialCase={caseFocus} />}
         {view === 'today' && <TodayView onGo={onTodayGo} onOpenUrl={openUrl} />}
         {view === 'library' && <LibraryView tab={libraryTab} onSurface={openSurface} />}
+        {view === 'chat' && <ChatView onOpenUrl={openUrl} />}
 
         {(view === 'overview' || view === 'agent') && (
           <div className={styles.hint} aria-hidden>

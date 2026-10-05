@@ -31,6 +31,7 @@ import { agentActionGuide } from '../context/workspaceContext'
 import { KNOWLEDGE_GUIDANCE } from './knowledgeGuidance'
 import { forRun as memoryForRun, markUsed, buildMemoryBlock } from '../memory/memory-service'
 import { capabilityGuidanceBlock } from './capabilityCatalog'
+import { buildChatSystemPrompt } from './chatProfile'
 import { grants, AGENT_TOKEN_ENV } from './grants'
 import { claudeSettings } from './claudeSettings'
 import { ClaudeFailureTracker } from './claudeFailure'
@@ -93,6 +94,8 @@ export interface LaunchRunOptions {
    * or 'all' for the legacy full grant of a plain dock run. See ./grants.ts.
    */
   capabilities: readonly string[] | 'all'
+  /** 'chat': a conversation (./chatProfile.ts) — light brief, safe tools plus web lookup, nothing auto-opens. */
+  profile?: 'work' | 'chat'
   sink: RunSink
 }
 
@@ -128,6 +131,7 @@ export async function launchRun(o: LaunchRunOptions): Promise<{ child: ChildProc
     const { prompt, contextFiles, activeFile, safeMode, agent, resumeId, sink } = o
     const id = o.runId
     const cwd = getWorkspaceRoot() ?? os.homedir()
+    const chat = o.profile === 'chat'
 
     // MEMORY: retrieve what we know that is relevant to THIS prompt and inject it.
     // A store nothing reads is a diary nobody opens — this is the point of the
@@ -252,7 +256,7 @@ export async function launchRun(o: LaunchRunOptions): Promise<{ child: ChildProc
               const artifacts = changedArtifacts(cwd, beforeFiles)
               if (artifacts.length) sink.artifacts(artifacts)
               const deliverable = artifacts.find((a) => a.type === 'office') ?? artifacts.find((a) => a.type === 'page')
-              if (deliverable) sink.artifact(deliverable.path)
+              if (deliverable && !chat) sink.artifact(deliverable.path)
             } finally { grants.revoke(id); sink.done(code, checkpointId) }
           },
         })
@@ -270,14 +274,14 @@ export async function launchRun(o: LaunchRunOptions): Promise<{ child: ChildProc
     // user sees an agent that "did research" with nothing happening on screen —
     // no visible tabs, no screenshots, no logged-in session.
     const inAppBrowserOnly = agent?.capabilities?.includes('research') ?? false
-    const permArgs = permissionArgs(safeMode ? 'safe' : 'full', mcpAllowTools, { inAppBrowserOnly })
+    const permArgs = permissionArgs(safeMode || chat ? 'safe' : 'full', mcpAllowTools, { inAppBrowserOnly, webInSafe: chat })
 
     // First turn establishes the system context (persona + IWE grounding). On a
     // resumed turn the conversation already carries it, so re-appending would
     // bloat it — pass --resume instead and skip the system prompt.
     const continuityArgs = resumeId
       ? ['--resume', resumeId]
-      : ['--append-system-prompt', buildSystemPrompt(cwd, openFile, agent?.persona, agent?.capabilities, safeMode, memoryBlock)]
+      : ['--append-system-prompt', chat ? buildChatSystemPrompt(cwd, memoryBlock) : buildSystemPrompt(cwd, openFile, agent?.persona, agent?.capabilities, safeMode, memoryBlock)]
 
     // On a resumed turn the system prompt (with the original open file) isn't
     // re-sent; nudge the agent with the *current* open file so it stays accurate.
@@ -388,7 +392,8 @@ export async function launchRun(o: LaunchRunOptions): Promise<{ child: ChildProc
       // finished page belongs — the in-app browser is for the live web, not for
       // previewing a local file the agent just wrote.
       const deliverable = artifacts.find((a) => a.type === 'office') ?? artifacts.find((a) => a.type === 'page')
-      if (deliverable) sink.artifact(deliverable.path)
+      // A chat shows what it made beside the conversation instead.
+      if (deliverable && !chat) sink.artifact(deliverable.path)
       if (idle) clearTimeout(idle)
       grants.revoke(id)
       sink.done(failures.failure ? (code || 1) : (code ?? 1), checkpointId, failures.failure ?? undefined)

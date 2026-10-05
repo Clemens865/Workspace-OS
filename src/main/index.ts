@@ -16,6 +16,7 @@ import { registerSnapshotHandlers } from './handlers/snapshots'
 import { registerSearchHandlers, shutdownSearch } from './handlers/search'
 import { registerMemoryHandlers } from './handlers/memory'
 import { registerWikiHandlers } from './handlers/wiki'
+import { registerChatHandlers } from './handlers/chat'
 import { registerOfficeHandlers } from './handlers/office'
 import { registerLokHandlers } from './handlers/lok'
 import { registerSkillsHandlers } from './handlers/skills'
@@ -188,6 +189,7 @@ app.whenReady().then(() => {
   registerSearchHandlers(ipcMain)
   registerMemoryHandlers(ipcMain)
   registerWikiHandlers(ipcMain)
+  registerChatHandlers(ipcMain)
   registerOfficeHandlers(ipcMain, win)
   registerLokHandlers(ipcMain, win)
   registerSkillsHandlers(ipcMain)

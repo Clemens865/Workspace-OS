@@ -454,7 +454,7 @@ export interface WorkspaceApi {
     onQuestion: (callback: (question: any) => void) => () => void
   }
   agent: {
-    run: (runId: string, prompt: string, contextFiles: string[], activeFile?: string | null, mode?: 'full' | 'safe', agentName?: string | null, conversationId?: string, model?: string | null, resumeOnly?: boolean) => Promise<{ pid: number; checkpointId: string | null; provider?: 'claude' | 'codex'; model?: string }>
+    run: (runId: string, prompt: string, contextFiles: string[], activeFile?: string | null, mode?: 'full' | 'safe', agentName?: string | null, conversationId?: string, model?: string | null, resumeOnly?: boolean, profile?: 'work' | 'chat') => Promise<{ pid: number; checkpointId: string | null; provider?: 'claude' | 'codex'; model?: string }>
     /** Default model alias for every run path (mirrors Settings → Agent model); '' = the CLI's default. */
     setDefaultModel: (model: string) => Promise<void>
     listModels: () => Promise<{ codex: { id: string; label: string; hint: string; efforts?: string[] }[]; status?: { available: boolean; account: string; error?: string } }>
@@ -1053,6 +1053,14 @@ export interface WorkspaceApi {
   knowledge: {
     search: (query: string, limit?: number) => Promise<{ path: string; name: string; snippet: string; location: string | null; score: number }[]>
     read: (filePath: string, offset?: number) => Promise<{ path: string; text: string; offset: number; total: number; more: boolean }>
+  }
+  chat: {
+    upload: (name: string, data: Uint8Array) => Promise<{ path: string; name: string; size: number }>
+  }
+  /** Sessions and chats, saved per workspace in .workspace-os/sessions.json. */
+  sessions: {
+    load: () => Promise<{ root: string; json: string | null } | null>
+    save: (root: string, json: string) => Promise<{ ok: boolean }>
   }
   /** The wiki that keeps itself: pages in Wiki/ written from the files added to it. */
   wiki: {

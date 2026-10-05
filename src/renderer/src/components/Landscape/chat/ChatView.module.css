@@ -1,0 +1,614 @@
+/* Chat: history · conversation · what it made. The Library panel's glass, three columns. */
+.chat {
+  position: absolute;
+  top: 178px;
+  bottom: 122px;
+  left: 40px;
+  right: 40px;
+  display: flex;
+  justify-content: center;
+  animation: chatIn 0.8s var(--wl-ease) backwards;
+}
+
+@keyframes chatIn {
+  from {
+    opacity: 0;
+    translate: 0 14px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .chat {
+    animation: none;
+  }
+}
+
+/* One width always (the glass is measured once): only the columns change when an artifact opens. */
+.panel {
+  width: min(1480px, 100%);
+  min-height: 0;
+  display: grid;
+  grid-template-columns: 236px minmax(0, 1fr);
+  border-radius: 26px;
+  border: 1px solid rgba(var(--wl-paper-rgb), 0.85);
+  background: rgba(var(--wl-paper-rgb), 0.9);
+  overflow: hidden;
+}
+
+.withArtifact {
+  grid-template-columns: 220px minmax(0, 1fr) minmax(0, 1.05fr);
+}
+
+/* ── history ── */
+.history {
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 18px 12px 12px 16px;
+  border-right: 1px solid var(--wl-line);
+}
+
+.newBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  height: 38px;
+  padding: 0 14px;
+  border: 0;
+  border-radius: 19px;
+  background: var(--wl-ink);
+  font: inherit;
+  font-size: 13.5px;
+  color: var(--wl-on-ink);
+  cursor: pointer;
+}
+
+.newBtn:hover {
+  background: var(--wl-ink-hover);
+}
+
+.find {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  height: 32px;
+  padding: 0 11px;
+  border-radius: 16px;
+  border: 1px solid var(--wl-line);
+  background: rgba(var(--wl-paper-rgb), 0.8);
+  color: var(--wl-muted);
+}
+
+.find input {
+  flex: 1;
+  min-width: 0;
+  border: 0;
+  outline: none;
+  background: none;
+  font: inherit;
+  font-size: 13px;
+  color: var(--wl-ink);
+}
+
+.historyList {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  margin-right: -6px;
+  padding-right: 6px;
+}
+
+.groupLabel {
+  margin: 12px 6px 4px;
+  font-size: 10.5px;
+  font-weight: 500;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--wl-faint);
+}
+
+.historyItem {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  width: 100%;
+  padding: 7px 8px;
+  border: 0;
+  border-radius: 10px;
+  background: none;
+  font: inherit;
+  text-align: left;
+  color: var(--wl-ink-2);
+  cursor: pointer;
+}
+
+.historyItem:hover {
+  background: rgba(var(--wl-ink-rgb), 0.05);
+}
+
+.historyOn {
+  background: rgba(var(--wl-ink-rgb), 0.08);
+  color: var(--wl-ink);
+}
+
+.historyTitle {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 13px;
+}
+
+.historyAgent {
+  flex: none;
+  padding: 1px 7px;
+  border-radius: 999px;
+  background: var(--wl-claude-soft);
+  font-size: 10.5px;
+  color: var(--wl-claude-ink);
+}
+
+.dot {
+  flex: none;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--wl-claude);
+}
+
+/* ── conversation ── */
+.main {
+  position: relative;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.dropping::after {
+  content: 'Drop to attach';
+  position: absolute;
+  inset: 10px;
+  display: grid;
+  place-items: center;
+  border: 1.5px dashed rgba(var(--wl-ink-rgb), 0.3);
+  border-radius: 18px;
+  background: rgba(var(--wl-paper-rgb), 0.85);
+  font-family: var(--wl-serif);
+  font-size: 20px;
+  color: var(--wl-ink);
+  pointer-events: none;
+}
+
+.thread {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+  /* A reading column: wide panels keep the conversation centred. */
+  padding: 26px max(24px, calc((100% - 820px) / 2)) 12px;
+}
+
+.welcome {
+  margin: auto;
+  max-width: 460px;
+  text-align: center;
+}
+
+.welcomeTitle {
+  margin: 0 0 10px;
+  font-family: var(--wl-serif);
+  font-size: 30px;
+  font-weight: 400;
+  color: var(--wl-ink);
+}
+
+.you {
+  align-self: flex-end;
+  max-width: min(78%, 620px);
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 6px;
+}
+
+.youText {
+  padding: 10px 15px;
+  border-radius: 18px 18px 6px 18px;
+  background: rgba(var(--wl-ink-rgb), 0.07);
+  font-size: 14.5px;
+  line-height: 1.5;
+  color: var(--wl-ink);
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
+.attached {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 6px;
+}
+
+.reply {
+  max-width: 760px;
+  color: var(--wl-ink);
+}
+
+.system {
+  align-self: center;
+  font-size: 12.5px;
+  color: var(--wl-muted);
+}
+
+.typing {
+  color: var(--wl-muted);
+  letter-spacing: 0.2em;
+}
+
+.trace {
+  max-width: 760px;
+}
+
+/* Rendered replies and documents. */
+.markdown {
+  font-size: 14.5px;
+  line-height: 1.6;
+  color: var(--wl-ink);
+  overflow-wrap: anywhere;
+}
+
+.markdown > :first-child {
+  margin-top: 0;
+}
+
+.markdown > :last-child {
+  margin-bottom: 0;
+}
+
+.markdown h1,
+.markdown h2,
+.markdown h3 {
+  margin: 1.1em 0 0.4em;
+  font-family: var(--wl-serif);
+  font-weight: 400;
+  line-height: 1.25;
+}
+
+.markdown h1 {
+  font-size: 24px;
+}
+
+.markdown h2 {
+  font-size: 20px;
+}
+
+.markdown h3 {
+  font-size: 17px;
+}
+
+.markdown p,
+.markdown ul,
+.markdown ol,
+.markdown blockquote {
+  margin: 0.55em 0;
+}
+
+.markdown ul,
+.markdown ol {
+  padding-left: 1.4em;
+}
+
+.markdown blockquote {
+  padding-left: 12px;
+  border-left: 3px solid var(--wl-line);
+  color: var(--wl-ink-2);
+}
+
+.markdown a {
+  color: var(--wl-ink);
+  text-decoration: underline;
+  text-decoration-color: rgba(var(--wl-ink-rgb), 0.35);
+  text-underline-offset: 2px;
+  cursor: pointer;
+}
+
+.markdown :not(pre) > code {
+  padding: 1px 5px;
+  border-radius: 5px;
+  background: rgba(var(--wl-ink-rgb), 0.07);
+  font-family: var(--wl-mono);
+  font-size: 0.9em;
+}
+
+.markdown table,
+.table {
+  border-collapse: collapse;
+  margin: 0.7em 0;
+  font-size: 13.5px;
+}
+
+.markdown th,
+.markdown td,
+.table th,
+.table td {
+  padding: 6px 10px;
+  border-bottom: 1px solid var(--wl-line);
+  text-align: left;
+}
+
+.markdown th,
+.table th {
+  font-weight: 500;
+  color: var(--wl-ink-2);
+}
+
+.markdown :global(.chat-code) {
+  margin: 0.7em 0;
+  border-radius: 12px;
+  background: rgba(var(--wl-ink-rgb), 0.06);
+  overflow: hidden;
+}
+
+.markdown :global(.chat-code-head) {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 5px 10px 5px 14px;
+  font-size: 11.5px;
+  color: var(--wl-muted);
+}
+
+.markdown :global(.chat-code-head) button {
+  padding: 2px 8px;
+  border: 1px solid var(--wl-line);
+  border-radius: 8px;
+  background: rgba(var(--wl-paper-rgb), 0.8);
+  font: inherit;
+  color: var(--wl-ink-2);
+  cursor: pointer;
+}
+
+.markdown pre {
+  margin: 0;
+  padding: 4px 14px 12px;
+  overflow-x: auto;
+  font-family: var(--wl-mono);
+  font-size: 12.5px;
+  line-height: 1.5;
+}
+
+/* What a reply made. */
+.made {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 10px;
+}
+
+.madeCard {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  max-width: 280px;
+  padding: 8px 14px 8px 8px;
+  border: 1px solid var(--wl-line);
+  border-radius: 14px;
+  background: rgba(var(--wl-paper-rgb), 0.8);
+  font: inherit;
+  color: var(--wl-ink);
+  cursor: pointer;
+  transition: background 0.15s var(--wl-ease-soft);
+}
+
+.madeCard:hover,
+.madeOn {
+  background: rgb(var(--wl-paper-rgb));
+  border-color: rgba(var(--wl-ink-rgb), 0.25);
+}
+
+.madeName {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 13px;
+}
+
+.fileChip {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  max-width: 240px;
+  padding: 3px 9px;
+  border-radius: 999px;
+  border: 1px solid var(--wl-line);
+  background: rgba(var(--wl-paper-rgb), 0.85);
+  font-size: 12px;
+  color: var(--wl-ink-2);
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.chipX {
+  display: inline-grid;
+  place-items: center;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--wl-muted);
+  cursor: pointer;
+}
+
+/* ── composer ── */
+.composer {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 10px max(18px, calc((100% - 860px) / 2)) 16px;
+}
+
+.attachments {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+}
+
+.inputRow {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.prompt {
+  flex: 1;
+  min-width: 0;
+}
+
+.iconBtn {
+  flex: none;
+  display: grid;
+  place-items: center;
+  width: 34px;
+  height: 34px;
+  border: 0;
+  border-radius: 17px;
+  background: none;
+  color: var(--wl-ink-2);
+  cursor: pointer;
+}
+
+.iconBtn:hover {
+  background: rgba(var(--wl-ink-rgb), 0.06);
+}
+
+.stop {
+  flex: none;
+  display: grid;
+  place-items: center;
+  width: 34px;
+  height: 34px;
+  border: 0;
+  border-radius: 17px;
+  background: var(--wl-ink);
+  color: var(--wl-on-ink);
+  cursor: pointer;
+}
+
+/* ── what it made ── */
+.artifact {
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  border-left: 1px solid var(--wl-line);
+  background: rgba(var(--wl-paper-rgb), 0.55);
+}
+
+.artifactHead {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 12px 10px 16px;
+  border-bottom: 1px solid var(--wl-line);
+}
+
+.artifactName {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 13.5px;
+  color: var(--wl-ink);
+}
+
+.ghostBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  height: 28px;
+  padding: 0 10px;
+  border: 1px solid var(--wl-line);
+  border-radius: 14px;
+  background: rgba(var(--wl-paper-rgb), 0.8);
+  font: inherit;
+  font-size: 12.5px;
+  color: var(--wl-ink);
+  cursor: pointer;
+}
+
+.primaryBtn {
+  height: 36px;
+  padding: 0 16px;
+  border: 0;
+  border-radius: 18px;
+  background: var(--wl-ink);
+  font: inherit;
+  font-size: 13.5px;
+  color: var(--wl-on-ink);
+  cursor: pointer;
+}
+
+.artifactBody {
+  flex: 1;
+  min-height: 0;
+  overflow: auto;
+  padding: 0;
+}
+
+.artifactBody > .markdown,
+.artifactBody > .table,
+.artifactBody > .quiet {
+  margin: 18px 22px;
+}
+
+.frame {
+  display: block;
+  width: 100%;
+  height: 100%;
+  border: 0;
+  background: #fff;
+}
+
+.picture {
+  display: block;
+  max-width: calc(100% - 40px);
+  max-height: calc(100% - 40px);
+  margin: 20px auto;
+  object-fit: contain;
+}
+
+.codeView {
+  margin: 0;
+  padding: 16px 20px;
+  font-family: var(--wl-mono);
+  font-size: 12.5px;
+  line-height: 1.55;
+  color: var(--wl-ink);
+  white-space: pre;
+}
+
+.openHere {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+}
+
+.quiet {
+  margin: 8px 4px;
+  font-size: 13.5px;
+  color: var(--wl-muted);
+}
+
+.quietSmall {
+  font-size: 12px;
+  color: var(--wl-muted);
+}
