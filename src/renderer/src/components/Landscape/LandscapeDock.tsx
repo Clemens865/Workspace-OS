@@ -1,11 +1,12 @@
 import { useLayoutEffect, useRef, useState } from 'react'
-import { BookOpen, FolderOpen, Home, Inbox, MoreHorizontal, SquareTerminal } from 'lucide-react'
+import { BookOpen, FolderOpen, Home, Inbox, MessageCircle, MoreHorizontal, SquareTerminal } from 'lucide-react'
 import { DOCK, type DockId } from './landscapeModel'
 import { useGlass } from './backdrop/useBackdrop'
 import styles from './LandscapeShell.module.css'
 
 const ICONS: Record<DockId, typeof Home> = {
   overview: Home,
+  chat: MessageCircle,
   inbox: Inbox,
   cases: FolderOpen,
   library: BookOpen,

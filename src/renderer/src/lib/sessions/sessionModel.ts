@@ -12,6 +12,8 @@ export interface SessionMsg {
   role: 'user' | 'agent' | 'system'
   text: string
   at: number
+  /** Files the person attached to this message (absolute paths). */
+  files?: string[]
 }
 
 export interface Session {
@@ -20,6 +22,8 @@ export interface Session {
   title: string
   /** The roster agent it runs as, or null for the default assistant. */
   agentName: string | null
+  /** 'chat': a conversation started in Chat (light brief, artifacts beside it). Absent: a work session. */
+  kind?: 'chat'
   /** The case it lives in, once it is one. */
   caseId: string | null
   createdAt: number
@@ -103,8 +107,8 @@ export function turnNotes(ask: string, output: string): { author: 'you' | 'agent
   return out
 }
 
-/** Keeps a conversation small enough to store locally: the last `max` messages, each clipped. */
-export function trimMessages(m: SessionMsg[], max = 60, clip = 4000): SessionMsg[] {
+/** Keeps a stored conversation bounded: the last `max` messages, each clipped (saved per workspace in a file). */
+export function trimMessages(m: SessionMsg[], max = 400, clip = 24_000): SessionMsg[] {
   return m.slice(-max).map((x) => (x.text.length > clip ? { ...x, text: x.text.slice(0, clip) + '…' } : x))
 }
 
