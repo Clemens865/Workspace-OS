@@ -14,6 +14,8 @@ export interface SessionMsg {
   at: number
   /** Files the person attached to this message (absolute paths). */
   files?: string[]
+  /** Next steps to offer as one-click asks (the app harness). */
+  suggest?: string[]
 }
 
 export interface Session {

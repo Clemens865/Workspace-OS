@@ -5,7 +5,8 @@
  * only way out. Every call is a message to the host, which checks it came from
  * this frame and that the app's app.json grants it, and main checks again.
  *
- *   await wos.ai.complete(prompt, { system, json, web })   → string (or parsed JSON with json: true)
+ *   await wos.ai.complete(prompt, { system, json, web, images })   → string (or parsed JSON with json: true);
+ *       images: up to 4 PNG/JPEG/WebP data: URLs the model looks at first (e.g. the app's own render, to improve it)
  *   await wos.storage.get(key) / set(key, value) / remove(key) / keys()   → this app's own data
  *   await wos.files.save(name, data, { encoding: 'utf8' | 'base64' })   → the person picks where (null if cancelled)
  *   await wos.files.open({ accept: ['.svg', '.png'], as: 'text' | 'base64' })   → { name, data } or null
@@ -53,7 +54,8 @@
     ai: {
       complete: function (prompt, o) {
         o = o || {}
-        return call('ai.complete', { prompt: String(prompt), system: o.system, json: !!o.json, web: !!o.web })
+        var images = o.images ? [].concat(o.images).map(String) : undefined
+        return call('ai.complete', { prompt: String(prompt), system: o.system, json: !!o.json, web: !!o.web, images: images })
       },
     },
     storage: {

@@ -1,12 +1,12 @@
 import { app, BrowserWindow, dialog, IpcMain, protocol, shell } from 'electron'
 import fs from 'fs'
-import os from 'os'
 import path from 'path'
 import { ipcHandle } from '../ipc-registry'
 import { IpcValidationError } from '../ipc-validator'
 import { getWorkspaceRoot } from '../workspace-root'
-import { runProviderJson } from '../agent/providerText'
 import * as apps from '../apps/apps-store'
+import { BRIEF_FILE, imageFromDataUrl, IMAGE_LIMITS, reviewApp, runSeeing, writeBrief } from '../apps/app-harness'
+import { mainWindow } from '../main-window'
 import { unzipSync, zipSync } from 'fflate'
 import { randomUUID } from 'crypto'
 
@@ -83,7 +83,11 @@ async function aiComplete(m: apps.AppManifest, a: Record<string, unknown>): Prom
     ]
       .filter(Boolean)
       .join('\n')
-    const r = await runProviderJson({ prompt, systemPrompt: system, cwd: os.tmpdir(), timeoutMs: APP_AI_TIMEOUT_MS, allowedTools: web ? ['WebSearch', 'WebFetch'] : [] })
+    // Images the app shows the model (e.g. its own rendered drawing, to review and improve it).
+    const raw = Array.isArray(a.images) ? a.images : []
+    if (raw.length > IMAGE_LIMITS.count) throw new Error(`At most ${IMAGE_LIMITS.count} images`)
+    const images = raw.map(imageFromDataUrl)
+    const r = await runSeeing({ prompt, systemPrompt: system, images, timeoutMs: APP_AI_TIMEOUT_MS, allowedTools: web ? ['WebSearch', 'WebFetch'] : [] })
     if (r.timedOut) throw new Error('The answer took too long')
     const text = r.text.trim()
     if (!text) throw new Error('No answer came back')
@@ -208,7 +212,7 @@ export function registerAppsHandlers(ipcMain: IpcMain): void {
     const dir = apps.appDir(root, slug)
     fs.mkdirSync(dir, { recursive: true })
     fs.writeFileSync(path.join(dir, 'app.json'), JSON.stringify({ name: n, description: typeof description === 'string' ? description.slice(0, 240) : '', icon: n.slice(0, 1).toUpperCase(), permissions: ['ai'], entry: 'index.html' }, null, 2))
-    fs.writeFileSync(path.join(dir, 'index.html'), `<!doctype html>\n<html>\n<head><title>${n.replace(/[<&]/g, '')}</title></head>\n<body>\n  <div class="wos-app"><div class="wos-main"><div class="wos-empty">Describe this app in the chat, and it is built here.</div></div></div>\n</body>\n</html>\n`)
+    fs.writeFileSync(path.join(dir, 'index.html'), `<!doctype html>\n<html>\n<head><title>${n.replace(/[<&]/g, '')}</title></head>\n<body>\n  <div class="wos-app"><div class="wos-main"><div class="wos-empty" data-wos-new>Describe this app in the chat, and it is built here.</div></div></div>\n</body>\n</html>\n`)
     return slug
   })
 
@@ -279,6 +283,41 @@ export function registerAppsHandlers(ipcMain: IpcMain): void {
   /** The app as one sandboxable page. */
   ipcHandle(ipcMain, 'apps:load', (_e, slug: unknown, theme: unknown) => {
     return apps.composeApp(requireRoot(), requireSlug(slug), getKit(), theme === 'dark' ? 'dark' : 'light')
+  })
+
+  /** The harness, before the first build: the person's idea becomes Apps/<slug>/BRIEF.md. */
+  ipcHandle(ipcMain, 'apps:brief', async (_e, slug: unknown, idea: unknown) => {
+    const root = requireRoot()
+    const s = requireSlug(slug)
+    if (typeof idea !== 'string' || !idea.trim()) throw new IpcValidationError('What should the app do?')
+    // Only a new app gets one (still the placeholder apps:create wrote): an app that was built, added or imported, or has a brief, already has its direction.
+    const dir = apps.appDir(root, s)
+    const page = path.join(dir, 'index.html')
+    const built = fs.existsSync(page) && !fs.readFileSync(page, 'utf8').includes('data-wos-new')
+    if (built || fs.existsSync(path.join(dir, BRIEF_FILE))) return null
+    return writeBrief(root, s, idea.slice(0, 20_000))
+  })
+
+  /**
+   * The harness, after a turn: the running app against its brief. `rect` is
+   * where the app's frame is in the window (CSS pixels), for the screenshot.
+   */
+  ipcHandle(ipcMain, 'apps:review', async (_e, slug: unknown, rect: unknown) => {
+    const root = requireRoot()
+    const s = requireSlug(slug)
+    let shot: Buffer | null = null
+    const r = rect && typeof rect === 'object' ? (rect as Record<string, unknown>) : null
+    const n = (v: unknown): number => (typeof v === 'number' && Number.isFinite(v) ? Math.round(v) : -1)
+    const win = mainWindow()
+    if (r && win && n(r.x) >= 0 && n(r.y) >= 0 && n(r.width) >= 40 && n(r.height) >= 40) {
+      try {
+        const img = await win.webContents.capturePage({ x: n(r.x), y: n(r.y), width: n(r.width), height: n(r.height) })
+        if (!img.isEmpty()) shot = img.toPNG()
+      } catch {
+        /* reviewed from the files alone */
+      }
+    }
+    return reviewApp(root, s, shot)
   })
 
   /** One request from a running app (see resources/apps-kit/bridge.js). */

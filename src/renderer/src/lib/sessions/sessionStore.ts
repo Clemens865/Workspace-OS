@@ -12,6 +12,7 @@ import { reviewStore } from '../../components/Review/reviewStore'
 import { activityStore } from '../../components/Review/activityStore'
 import { appendStep, type TraceStep } from '../../components/AgentTerminal/runTraceModel'
 import { loadSettings } from '../../hooks/useSettings'
+import { afterTurn, briefFirst, type AutoTurn, type HarnessDeps } from './appHarness'
 import { caseOnFirstAsk, sessionDigest, shouldSuggestCase, titleFromPrompt, trimMessages, turnNotes, wantsReflection, type Session, type SessionMsg } from './sessionModel'
 
 /** What only the running app knows about a session. */
@@ -24,7 +25,7 @@ let root: string | null = null
 let sessions: Session[] = []
 const live = new Map<string, SessionLive>()
 /** runId → { session, the ask, the output so far, whether the app made the ask (a design-check fix) }. */
-const runs = new Map<string, { sessionId: string; ask: string; out: string; auto?: boolean }>()
+const runs = new Map<string, { sessionId: string; ask: string; out: string; auto?: AutoTurn }>()
 const listeners = new Set<() => void>()
 let version = 0
 
@@ -198,30 +199,16 @@ function start(): void {
     setLive(r.sessionId, { running: false })
     patch(r.sessionId, { lastAt: Date.now() })
     void remember(r.sessionId, r.ask, r.out, runId)
-    if (code === 0) void designCheck(r.sessionId, !!r.auto)
+    if (code === 0) void afterTurn(r.sessionId, r.auto, harness)
   })
 }
 
-/**
- * After a builder turn, the app's files are checked against the kit and the
- * sandbox (apps-store lintApp). What is found goes back to the builder once,
- * as a fix turn the person sees; what is still found after that is only said.
- */
-async function designCheck(sessionId: string, wasFix: boolean): Promise<void> {
-  const s = sessions.find((x) => x.id === sessionId)
-  if (!s?.app) return
-  const found = await window.workspace.apps.lint(s.app).catch(() => [])
-  if (!found.length) {
-    if (wasFix) pushMsg(sessionId, { role: 'system', text: 'Design check: all fixed.' })
-    return
-  }
-  const list = found.map((f) => `- ${f.detail}`).join('\n')
-  if (wasFix) {
-    pushMsg(sessionId, { role: 'system', text: `Design check: ${found.length} thing${found.length === 1 ? '' : 's'} still off. Ask for a fix if you want it gone.` })
-    return
-  }
-  pushMsg(sessionId, { role: 'system', text: `Design check: ${found.length} thing${found.length === 1 ? '' : 's'} to fix (${[...new Set(found.map((f) => f.rule))].join(', ')}). Fixing…` })
-  await sessionStore.send(sessionId, `The app's design check found this. Fix each one with small edits, changing nothing else:\n${list}`, [], { auto: true })
+/** What the app harness (./appHarness.ts) may do with a session. */
+const harness: HarnessDeps = {
+  app: (id) => sessions.find((x) => x.id === id)?.app,
+  push: (id, m) => pushMsg(id, m),
+  busy: (id, label) => setLive(id, label ? { running: true, steps: appendStep([], { kind: 'run', label }, Date.now()) } : { running: false, steps: [] }),
+  send: (id, text, auto) => sessionStore.send(id, text, [], { auto }),
 }
 
 /** "Felix" for "Felix — Funding Scout": how an agent signs a note. */
@@ -270,8 +257,8 @@ export interface SendContext {
   attachments?: string[]
   /** This turn's model pick; unset = the agent's or the Settings default. */
   model?: string | null
-  /** The app asks, not the person (a design-check fix): no message of theirs, no new turn title. */
-  auto?: boolean
+  /** The app asks, not the person (a design-check or review fix): no message of theirs, no new turn title. */
+  auto?: AutoTurn
 }
 
 export const sessionStore = {
@@ -329,7 +316,10 @@ export const sessionStore = {
     const runId = `sess-${id}-${Date.now()}`
     runs.set(runId, { sessionId: id, ask, out: '', auto: ctx.auto })
     if (!ctx.auto) pushMsg(id, { role: 'user', text: ask, ...(attached.length ? { files: attached } : {}) })
+    const firstAsk = s.turns === 0
     patch(id, (x) => ({ turns: x.turns + 1, lastAt: Date.now(), lastRunId: runId }))
+    // A new app starts from a product brief its build is held to (./appHarness.ts).
+    const brief = s.app && !ctx.auto && firstAsk ? await briefFirst(id, s.app, ask, harness) : ''
     setLive(id, { running: true, steps: [] })
     const agentName = s.agentName
     reviewStore.openRun({ runId, sessionId: conversationOf(id), sessionName: agentName ?? 'Assistant', prompt: ask, mode: loadSettings().agentMode, agentName, agentId: conversationOf(id) })
@@ -340,6 +330,7 @@ export const sessionStore = {
       prompt = `[This conversation is the case "${caseId}". Its notes and files are kept for you.]${work ? `\n${work.guidance}` : ''}\n\n${prompt}`
     }
     if (ctx.preamble) prompt = `${ctx.preamble}\n\n${prompt}`
+    prompt += brief
     try {
       await window.workspace.agent.run(runId, prompt, [...mentions, ...attached], ctx.openFile ?? null, loadSettings().agentMode, agentName, conversationOf(id), ctx.model ?? null, undefined, s.app ? 'app' : chat ? 'chat' : 'work', s.app)
     } catch (err) {

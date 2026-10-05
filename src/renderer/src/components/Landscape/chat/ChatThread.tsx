@@ -1,7 +1,7 @@
 import { memo, useEffect, useMemo, useRef } from 'react'
 import { Paperclip } from 'lucide-react'
 import type { Session } from '../../../lib/sessions/sessionModel'
-import type { SessionLive } from '../../../lib/sessions/sessionStore'
+import { sessionStore, type SessionLive } from '../../../lib/sessions/sessionStore'
 import { chatMarkdown } from '../../../lib/chatMarkdown'
 import { RunTrace } from '../../AgentTerminal/RunTrace'
 import { FileThumb } from '../../FilePanel/FileThumb'
@@ -100,6 +100,16 @@ export function ChatThread({ session, live, openArtifact, onArtifact, onLink, we
         ) : (
           <div key={i} className={styles.system} data-role="system">
             {m.text}
+            {m.suggest && m.suggest.length > 0 && (
+              // Next steps from the app harness's review: one click asks for it.
+              <div className={styles.suggest} data-testid="chat-suggest">
+                {m.suggest.map((s) => (
+                  <button key={s} type="button" className={styles.suggestBtn} disabled={live.running} onClick={() => void sessionStore.send(session.id, s)} data-suggest={s}>
+                    {s}
+                  </button>
+                ))}
+              </div>
+            )}
           </div>
         ),
       )}
