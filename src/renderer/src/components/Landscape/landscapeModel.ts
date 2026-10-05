@@ -6,9 +6,9 @@
 import { RAIL_ITEMS, type RailId } from '../Shell/shellModel'
 
 /** Landscape-level views. `agent` is one screen in focus; `stage` is the flat stage hosting the classic surfaces. */
-export type LandscapeView = 'overview' | 'today' | 'agent' | 'chat' | 'inbox' | 'cases' | 'library' | 'menu' | 'stage'
+export type LandscapeView = 'overview' | 'today' | 'agent' | 'chat' | 'apps' | 'inbox' | 'cases' | 'library' | 'menu' | 'stage'
 
-export type DockId = 'overview' | 'chat' | 'inbox' | 'cases' | 'library' | 'menu'
+export type DockId = 'overview' | 'chat' | 'apps' | 'inbox' | 'cases' | 'library' | 'menu'
 
 export interface DockItem {
   id: DockId
@@ -21,13 +21,14 @@ export interface DockItem {
 }
 
 /**
- * The dock, from the design: Overview · Chat · Inbox · Cases · Library · Menu.
- * All six are landscape views; Chat is the conversations (Claude-Desktop-like); Library holds files, notes and memory
+ * The dock, from the design: Overview · Chat · Apps · Inbox · Cases · Library · Menu.
+ * All seven are landscape views; Chat is the conversations (Claude-Desktop-like), Apps the tools made in the app; Library holds files, notes and memory
  * (docs/landscape/ADOPTION.md B4). The full surfaces stay one Menu click away.
  */
 export const DOCK: DockItem[] = [
   { id: 'overview', label: 'Overview', stage: null },
   { id: 'chat', label: 'Chat', stage: null },
+  { id: 'apps', label: 'Apps', stage: null },
   { id: 'inbox', label: 'Inbox', stage: null },
   { id: 'cases', label: 'Cases', stage: null },
   { id: 'library', label: 'Library', stage: null },

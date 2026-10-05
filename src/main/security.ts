@@ -162,7 +162,7 @@ function csp(isDev: boolean): string {
     "media-src 'self' blob:",
     "font-src 'self' data:",
     `connect-src 'self' ${DEV_CONNECT}`,
-    "frame-src 'self' http://localhost:* http://127.0.0.1:*",
+    "frame-src 'self' wos-app: http://localhost:* http://127.0.0.1:*",
     "worker-src 'self' blob:",
     "object-src 'none'",
     "base-uri 'self'",
@@ -177,7 +177,8 @@ export function applySessionSecurity(isDev: boolean): void {
     // served from the local document server (localhost / 127.0.0.1) and relies
     // on its own inline scripts — forcing our CSP onto it breaks the editor.
     const url = details.url
-    if (/^https?:\/\/(localhost|127\.0\.0\.1)(:\d+)?\//.test(url)) {
+    // Apps and artifacts (wos-app://) carry their own, stricter policy.
+    if (/^https?:\/\/(localhost|127\.0\.0\.1)(:\d+)?\//.test(url) || url.startsWith('wos-app:')) {
       callback({ responseHeaders: details.responseHeaders })
       return
     }

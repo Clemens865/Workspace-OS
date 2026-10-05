@@ -1,0 +1,52 @@
+<!doctype html>
+<html>
+<head>
+  <title>SVG Generator</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div class="wos-app">
+    <div class="wos-split">
+      <aside class="wos-side wos-stack">
+        <div>
+          <label class="wos-label" for="what">What should it show?</label>
+          <textarea id="what" class="wos-textarea" placeholder="A paper plane taking off over a cloud"></textarea>
+        </div>
+        <div>
+          <span class="wos-label">Style</span>
+          <div class="wos-segment" id="styles">
+            <button data-style="line" class="on">Line</button>
+            <button data-style="flat">Flat</button>
+            <button data-style="duotone">Duotone</button>
+            <button data-style="sketch">Sketch</button>
+          </div>
+        </div>
+        <div>
+          <span class="wos-label">Colour</span>
+          <div class="wos-row" id="colours"></div>
+        </div>
+        <button id="go" class="wos-btn primary">Generate</button>
+        <div id="error" class="wos-error" hidden></div>
+        <div>
+          <span class="wos-label">Recent</span>
+          <div id="recent" class="recent"></div>
+        </div>
+      </aside>
+      <main class="wos-main stage">
+        <div id="empty" class="wos-empty">Describe something on the left, and its SVG appears here.</div>
+        <div id="result" class="result" hidden>
+          <div class="canvas"><img id="preview" alt="Generated SVG"></div>
+          <div class="wos-row actions">
+            <button id="save" class="wos-btn">Save as SVG…</button>
+            <button id="again" class="wos-btn ghost">Another take</button>
+            <button id="code" class="wos-btn ghost">Show the code</button>
+          </div>
+          <pre id="source" class="source" hidden></pre>
+        </div>
+        <div id="busy" class="busy" hidden><div class="wos-spinner"></div><span class="wos-muted">Drawing…</span></div>
+      </main>
+    </div>
+  </div>
+  <script src="app.js"></script>
+</body>
+</html>

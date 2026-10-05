@@ -179,8 +179,9 @@ export function registerAgentHandlers(ipcMain: IpcMain, win: BrowserWindow): voi
 
   ipcHandle(ipcMain, IPC.AGENT_RUN, async (event, payload: unknown) => {
     assertMainFrame(event)
-    const { runId, prompt, contextFiles, activeFile, mode, agentName, conversationId, model, resumeOnly, profile } = payload as {
+    const { runId, prompt, contextFiles, activeFile, mode, agentName, conversationId, model, resumeOnly, profile, app: appSlug } = payload as {
       profile?: unknown
+      app?: unknown
       runId: unknown
       prompt: unknown
       contextFiles?: unknown
@@ -235,7 +236,8 @@ export function registerAgentHandlers(ipcMain: IpcMain, win: BrowserWindow): voi
       // A forged specialist is held to its capabilities; a plain dock agent is
       // the person at their own keyboard and keeps the full grant.
       capabilities: agent?.capabilities?.length ? agent.capabilities : 'all',
-      profile: profile === 'chat' && !agent ? 'chat' : 'work',
+      profile: profile === 'app' && !agent ? 'app' : profile === 'chat' && !agent ? 'chat' : 'work',
+      appSlug: profile === 'app' && typeof appSlug === 'string' ? appSlug : undefined,
       sink: {
         output: (t) => sendToWindow(IPC.AGENT_OUTPUT, id, t),
         sessionId: convoId ? (sid) => {

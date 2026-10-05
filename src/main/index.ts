@@ -17,6 +17,7 @@ import { registerSearchHandlers, shutdownSearch } from './handlers/search'
 import { registerMemoryHandlers } from './handlers/memory'
 import { registerWikiHandlers } from './handlers/wiki'
 import { registerChatHandlers } from './handlers/chat'
+import { registerAppsHandlers, registerAppScheme } from './handlers/apps'
 import { registerOfficeHandlers } from './handlers/office'
 import { registerLokHandlers } from './handlers/lok'
 import { registerSkillsHandlers } from './handlers/skills'
@@ -148,6 +149,9 @@ app.commandLine.appendSwitch('disable-features', [
 // The pref Chromium exposes for the block itself.
 app.commandLine.appendSwitch('disable-third-party-cookie-blocking')
 
+// Apps and HTML artifacts are served from wos-app:// (see handlers/apps.ts); schemes must be known before ready.
+registerAppScheme()
+
 app.whenReady().then(() => {
   // Local-first crash/log capture — before anything that might throw.
   initCrashReporter()
@@ -190,6 +194,7 @@ app.whenReady().then(() => {
   registerMemoryHandlers(ipcMain)
   registerWikiHandlers(ipcMain)
   registerChatHandlers(ipcMain)
+  registerAppsHandlers(ipcMain)
   registerOfficeHandlers(ipcMain, win)
   registerLokHandlers(ipcMain, win)
   registerSkillsHandlers(ipcMain)

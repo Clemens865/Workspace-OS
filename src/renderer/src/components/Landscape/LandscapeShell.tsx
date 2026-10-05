@@ -11,6 +11,9 @@ import { useSettings } from '../../hooks/useSettings'
 import { DOCK, type DockId, type LandscapeView } from './landscapeModel'
 import { ChatView } from './chat/ChatView'
 import { chatSide } from './chat/chatSideStore'
+import { AppsView } from './apps/AppsView'
+import { sessionStore } from '../../lib/sessions/sessionStore'
+import { toast } from './toastStore'
 import { LandscapeDock } from './LandscapeDock'
 import { LandscapeMenu } from './LandscapeMenu'
 import { TodayView } from './today/TodayView'
@@ -75,6 +78,21 @@ export function LandscapeShell(): JSX.Element {
   const [libraryTab, setLibraryTab] = useState<LibraryTab>('files')
   // The conversation Chat opens with (back from beside the stage).
   const [chatFocus, setChatFocus] = useState<string | null>(null)
+  // The app Apps opens with (from the builder's "Open in Apps").
+  const [appFocus, setAppFocus] = useState<string | null>(null)
+  // Build or change an app: its builder chat (the latest one for that app, or a new one), with the app live beside it.
+  const buildApp = async (slug: string | null): Promise<void> => {
+    try {
+      const app = slug ?? (await window.workspace.apps.create('New app'))
+      const existing = slug ? sessionStore.list().filter((x) => x.app === slug).sort((a, b) => b.lastAt - a.lastAt)[0] : undefined
+      const name = slug ? ((await window.workspace.apps.list()).find((a) => a.slug === slug)?.name ?? slug) : null
+      const s = existing ?? sessionStore.create({ kind: 'chat', app, title: name ? `Building ${name}` : 'Building a new app' })
+      setChatFocus(s.id)
+      setView('chat')
+    } catch (e) {
+      toast(e instanceof Error ? e.message.replace(/^Error invoking remote method '[^']+': (Error: )?/, '') : 'Could not start the app builder.')
+    }
+  }
   // The stage stays visible until the landscape has fully faded back in.
   const [stageShown, setStageShown] = useState(false)
   const lastLandscape = useRef<LandscapeOnly>('overview')
@@ -244,7 +262,7 @@ export function LandscapeShell(): JSX.Element {
       if (e.key !== 'Escape' || e.defaultPrevented) return
       const t = e.target as HTMLElement | null
       if (t && (/INPUT|TEXTAREA|SELECT/.test(t.tagName) || t.isContentEditable)) return
-      if (view === 'agent' || view === 'menu' || view === 'inbox' || view === 'cases' || view === 'today' || view === 'library' || view === 'chat') setView('overview')
+      if (view === 'agent' || view === 'menu' || view === 'inbox' || view === 'cases' || view === 'today' || view === 'library' || view === 'chat' || view === 'apps') setView('overview')
     }
     window.addEventListener('keydown', onKey)
     return () => window.removeEventListener('keydown', onKey)
@@ -295,10 +313,11 @@ export function LandscapeShell(): JSX.Element {
     if (id === 'inbox') setInboxTab('waiting')
     const item = DOCK.find((d) => d.id === id)
     if (item?.stage) openSurface(item.stage)
-    else showLandscape(id === 'menu' ? 'menu' : id === 'chat' ? 'chat' : id === 'inbox' ? 'inbox' : id === 'cases' ? 'cases' : id === 'library' ? 'library' : 'overview')
+    else showLandscape(id === 'menu' ? 'menu' : id === 'chat' ? 'chat' : id === 'apps' ? 'apps' : id === 'inbox' ? 'inbox' : id === 'cases' ? 'cases' : id === 'library' ? 'library' : 'overview')
+    if (id === 'apps') setAppFocus(null)
   }
   const activeDock: DockId | null =
-    view === 'menu' ? 'menu' : view === 'chat' ? 'chat' : view === 'inbox' ? 'inbox' : view === 'cases' ? 'cases' : view === 'library' ? 'library' : view === 'overview' || view === 'agent' || view === 'today' ? 'overview' : null
+    view === 'menu' ? 'menu' : view === 'chat' ? 'chat' : view === 'apps' ? 'apps' : view === 'inbox' ? 'inbox' : view === 'cases' ? 'cases' : view === 'library' ? 'library' : view === 'overview' || view === 'agent' || view === 'today' ? 'overview' : null
   const onStage = view === 'stage'
   const worldMode: WorldMode = view === 'agent' ? 'focus' : view === 'overview' ? 'overview' : 'away'
 
@@ -347,13 +366,15 @@ export function LandscapeShell(): JSX.Element {
             ) : (
               <>
                 <h1 className={styles.heading}>
-                  {view === 'menu' ? 'Menu' : view === 'chat' ? 'Chat' : view === 'inbox' ? (inboxTab === 'history' ? 'History' : `Inbox${inbox.length ? ` · ${inbox.length} waiting` : ''}`) : view === 'cases' ? 'Your cases' : view === 'library' ? 'Library' : view === 'today' ? `${greeting(new Date().getHours())}.` : 'Your team'}
+                  {view === 'menu' ? 'Menu' : view === 'chat' ? 'Chat' : view === 'apps' ? 'Apps' : view === 'inbox' ? (inboxTab === 'history' ? 'History' : `Inbox${inbox.length ? ` · ${inbox.length} waiting` : ''}`) : view === 'cases' ? 'Your cases' : view === 'library' ? 'Library' : view === 'today' ? `${greeting(new Date().getHours())}.` : 'Your team'}
                 </h1>
                 <div className={styles.sub} data-testid="team-summary">
                   {view === 'menu'
                     ? 'Every part of the workspace, one click away'
                     : view === 'chat'
                       ? 'Talk it through: attach files, look things up, make things'
+                    : view === 'apps'
+                      ? 'Small tools made here, for this workspace: describe one and it is built'
                     : view === 'inbox'
                       ? inboxTab === 'history'
                         ? 'Everything that happened here, newest first'
@@ -423,8 +444,13 @@ export function LandscapeShell(): JSX.Element {
               chatSide.show(sid)
               setView('stage')
             }}
+            onOpenApp={(slug) => {
+              setAppFocus(slug)
+              setView('apps')
+            }}
           />
         )}
+        {view === 'apps' && <AppsView key={appFocus ?? 'apps'} initialApp={appFocus} onBuild={(slug) => void buildApp(slug)} />}
 
         {(view === 'overview' || view === 'agent') && (
           <div className={styles.hint} aria-hidden>

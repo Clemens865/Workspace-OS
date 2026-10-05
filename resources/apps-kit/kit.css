@@ -1,0 +1,150 @@
+/*
+ * The Workspace OS design kit, inside every app.
+ *
+ * Apps made in Workspace OS look like Workspace OS: the same paper, ink,
+ * hairlines and type as the landscape, light and dark (the host sets
+ * data-theme on <html>). Use the tokens (var(--ink) …) and the wos-* classes;
+ * an app should add only what is its own (a canvas, a board, a chart).
+ *
+ * Fonts are embedded (the sandbox loads nothing from the network).
+ */
+@font-face { font-family: 'Inter'; font-weight: 400; font-style: normal; src: url('fonts/inter-latin-400-normal.woff2') format('woff2'); }
+@font-face { font-family: 'Inter'; font-weight: 500; font-style: normal; src: url('fonts/inter-latin-500-normal.woff2') format('woff2'); }
+@font-face { font-family: 'Inter'; font-weight: 600; font-style: normal; src: url('fonts/inter-latin-600-normal.woff2') format('woff2'); }
+@font-face { font-family: 'Newsreader'; font-weight: 400; font-style: normal; src: url('fonts/newsreader-latin-400-normal.woff2') format('woff2'); }
+@font-face { font-family: 'Newsreader'; font-weight: 500; font-style: normal; src: url('fonts/newsreader-latin-500-normal.woff2') format('woff2'); }
+
+:root {
+  --mist: #eef2f5;
+  --ink: #1b2730;
+  --ink-2: #3b4a55;
+  --muted: #7a8893;
+  --faint: #a9b4bc;
+  --ink-rgb: 27, 39, 48;
+  --line: rgba(var(--ink-rgb), 0.09);
+  --paper: #fbfcfd;
+  --paper-rgb: 255, 255, 255;
+  --on-ink: #ffffff;
+  --accent: #d97757;
+  --accent-soft: #f8e3da;
+  --accent-ink: #8a3b22;
+  --teal: #2d9d8f;
+  --amber: #e3a33b;
+  --danger: #b84a3a;
+  --serif: 'Newsreader', Georgia, serif;
+  --sans: 'Inter', system-ui, sans-serif;
+  --mono: ui-monospace, 'SF Mono', Menlo, monospace;
+  --radius: 14px;
+  --radius-lg: 20px;
+  --ease: cubic-bezier(0.4, 0, 0.2, 1);
+  /* Six calm colours for things that need telling apart (sticky notes, tags, chart series), each with a soft fill. */
+  --swatch-1: #d97757; --swatch-1-soft: #f8e3da;
+  --swatch-2: #2d9d8f; --swatch-2-soft: #d9efec;
+  --swatch-3: #e3a33b; --swatch-3-soft: #fbefd9;
+  --swatch-4: #5b6ee1; --swatch-4-soft: #e2e6fa;
+  --swatch-5: #a35fb8; --swatch-5-soft: #f1e3f5;
+  --swatch-6: #7a8893; --swatch-6-soft: #e9edf0;
+  color-scheme: light;
+}
+
+:root[data-theme='dark'] {
+  --mist: #0f151a;
+  --ink: #e6ecf0;
+  --ink-2: #b9c5cd;
+  --muted: #8a98a3;
+  --faint: #5f6d78;
+  --ink-rgb: 230, 236, 240;
+  --line: rgba(230, 236, 240, 0.1);
+  --paper: #182129;
+  --paper-rgb: 38, 50, 60;
+  --on-ink: #10171c;
+  --accent: #e8906f;
+  --accent-soft: rgba(232, 144, 111, 0.16);
+  --accent-ink: #f2b39b;
+  --teal: #46b9a9;
+  --amber: #eab55a;
+  --danger: #e07a6a;
+  --swatch-1: #e8906f; --swatch-1-soft: rgba(232, 144, 111, 0.2);
+  --swatch-2: #46b9a9; --swatch-2-soft: rgba(70, 185, 169, 0.2);
+  --swatch-3: #eab55a; --swatch-3-soft: rgba(234, 181, 90, 0.2);
+  --swatch-4: #8796f0; --swatch-4-soft: rgba(135, 150, 240, 0.2);
+  --swatch-5: #c48ad6; --swatch-5-soft: rgba(196, 138, 214, 0.2);
+  --swatch-6: #8a98a3; --swatch-6-soft: rgba(138, 152, 163, 0.2);
+  color-scheme: dark;
+}
+
+*, *::before, *::after { box-sizing: border-box; }
+[hidden] { display: none !important; }
+html, body { margin: 0; height: 100%; }
+body {
+  background: var(--paper);
+  color: var(--ink);
+  font: 400 14px/1.5 var(--sans);
+  -webkit-font-smoothing: antialiased;
+}
+h1, h2, h3 { margin: 0 0 0.4em; font-family: var(--serif); font-weight: 400; line-height: 1.2; }
+h1 { font-size: 28px; }
+h2 { font-size: 21px; }
+h3 { font-size: 17px; }
+p { margin: 0 0 0.6em; }
+a { color: var(--ink); text-underline-offset: 2px; }
+code, pre { font-family: var(--mono); font-size: 12.5px; }
+::selection { background: rgba(var(--ink-rgb), 0.14); }
+
+/* Layout */
+.wos-app { min-height: 100%; display: flex; flex-direction: column; }
+.wos-header { display: flex; align-items: center; gap: 12px; padding: 18px 24px 14px; border-bottom: 1px solid var(--line); }
+.wos-title { flex: 1; margin: 0; font-family: var(--serif); font-size: 22px; font-weight: 400; }
+.wos-main { flex: 1; min-height: 0; padding: 20px 24px; }
+.wos-split { flex: 1; min-height: 0; display: grid; grid-template-columns: minmax(260px, 340px) 1fr; }
+.wos-side { padding: 18px 20px; border-right: 1px solid var(--line); overflow: auto; }
+.wos-stack { display: flex; flex-direction: column; gap: 12px; }
+.wos-row { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+.wos-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 12px; }
+.wos-toolbar { display: flex; align-items: center; gap: 4px; padding: 6px; border: 1px solid var(--line); border-radius: 999px; background: rgba(var(--paper-rgb), 0.9); }
+
+/* Surfaces */
+.wos-card { padding: 16px 18px; border: 1px solid var(--line); border-radius: var(--radius-lg); background: rgba(var(--paper-rgb), 0.7); }
+.wos-panel { border: 1px solid var(--line); border-radius: var(--radius); background: var(--paper); }
+.wos-empty { display: grid; place-items: center; min-height: 160px; padding: 24px; border: 1.5px dashed rgba(var(--ink-rgb), 0.16); border-radius: var(--radius-lg); color: var(--muted); text-align: center; }
+
+/* Text */
+.wos-label { display: block; margin-bottom: 6px; font-size: 11px; font-weight: 500; letter-spacing: 0.16em; text-transform: uppercase; color: var(--muted); }
+.wos-muted { color: var(--muted); }
+.wos-small { font-size: 12.5px; }
+.wos-chip { display: inline-flex; align-items: center; gap: 5px; padding: 3px 10px; border-radius: 999px; background: rgba(var(--ink-rgb), 0.06); font-size: 12px; color: var(--ink-2); }
+.wos-chip.accent { background: var(--accent-soft); color: var(--accent-ink); }
+
+/* Controls */
+.wos-btn {
+  display: inline-flex; align-items: center; justify-content: center; gap: 6px;
+  height: 36px; padding: 0 16px; border: 1px solid var(--line); border-radius: 18px;
+  background: rgba(var(--paper-rgb), 0.85); color: var(--ink);
+  font: 500 13.5px var(--sans); cursor: pointer; transition: background 0.15s var(--ease), border-color 0.15s var(--ease);
+}
+.wos-btn:hover { background: rgb(var(--paper-rgb)); border-color: rgba(var(--ink-rgb), 0.2); }
+.wos-btn:disabled { opacity: 0.45; cursor: default; }
+.wos-btn.primary { border-color: transparent; background: var(--ink); color: var(--on-ink); }
+.wos-btn.primary:hover { opacity: 0.9; }
+.wos-btn.ghost { border-color: transparent; background: none; }
+.wos-btn.ghost:hover { background: rgba(var(--ink-rgb), 0.06); }
+.wos-btn.small { height: 28px; padding: 0 11px; font-size: 12.5px; }
+.wos-btn.icon { width: 34px; padding: 0; border-radius: 17px; }
+.wos-btn.on { background: rgba(var(--ink-rgb), 0.1); border-color: transparent; }
+.wos-btn svg, .wos-icon { width: 16px; height: 16px; flex: none; stroke: currentColor; fill: none; stroke-width: 1.75; stroke-linecap: round; stroke-linejoin: round; }
+
+.wos-input, .wos-textarea, .wos-select {
+  width: 100%; padding: 9px 13px; border: 1px solid var(--line); border-radius: 12px;
+  background: rgba(var(--paper-rgb), 0.9); color: var(--ink); font: 400 14px/1.45 var(--sans); outline: none;
+}
+.wos-input:focus, .wos-textarea:focus, .wos-select:focus { border-color: rgba(var(--ink-rgb), 0.25); box-shadow: 0 0 0 3px rgba(var(--ink-rgb), 0.07); }
+.wos-textarea { min-height: 96px; resize: vertical; }
+.wos-range { width: 100%; accent-color: var(--ink); }
+
+.wos-segment { display: inline-flex; padding: 3px; border-radius: 999px; background: rgba(var(--ink-rgb), 0.06); }
+.wos-segment button { height: 28px; padding: 0 12px; border: 0; border-radius: 999px; background: none; color: var(--ink-2); font: 500 12.5px var(--sans); cursor: pointer; }
+.wos-segment button.on { background: rgb(var(--paper-rgb)); color: var(--ink); box-shadow: 0 1px 2px rgba(0, 0, 0, 0.08); }
+
+.wos-spinner { width: 16px; height: 16px; border: 2px solid rgba(var(--ink-rgb), 0.15); border-top-color: var(--ink); border-radius: 50%; animation: wos-spin 0.8s linear infinite; }
+@keyframes wos-spin { to { transform: rotate(360deg); } }
+.wos-error { padding: 10px 14px; border-radius: 12px; background: rgba(184, 74, 58, 0.1); color: var(--danger); font-size: 13px; }

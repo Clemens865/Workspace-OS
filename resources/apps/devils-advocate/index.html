@@ -1,0 +1,82 @@
+<!doctype html>
+<html>
+<head>
+  <title>Devil's Advocate</title>
+  <style>
+    .out { display: grid; gap: 12px; }
+    .out .wos-card h3 { margin-bottom: 8px; }
+    .out ul { margin: 0; padding-left: 1.2em; color: var(--ink-2); }
+    .out li + li { margin-top: 6px; }
+    .verdict { font-family: var(--serif); font-size: 19px; line-height: 1.4; }
+  </style>
+</head>
+<body>
+  <div class="wos-app">
+    <div class="wos-split">
+      <aside class="wos-side wos-stack">
+        <label class="wos-label" for="plan">The plan or idea</label>
+        <textarea id="plan" class="wos-textarea" style="min-height: 180px" placeholder="We move the launch to March and drop the beta, because…"></textarea>
+        <span class="wos-label">How hard</span>
+        <div class="wos-segment" id="tone">
+          <button data-tone="fair" class="on">Fair</button>
+          <button data-tone="hard">Hard</button>
+          <button data-tone="brutal">Brutal</button>
+        </div>
+        <button id="go" class="wos-btn primary">Argue against it</button>
+        <div id="error" class="wos-error" hidden></div>
+      </aside>
+      <main class="wos-main">
+        <div id="empty" class="wos-empty">The case against your plan appears here.</div>
+        <div id="busy" class="wos-row" hidden><div class="wos-spinner"></div><span class="wos-muted">Looking for the weak spots…</span></div>
+        <div id="out" class="out"></div>
+      </main>
+    </div>
+  </div>
+  <script>
+    const $ = (id) => document.getElementById(id)
+    const esc = (s) => String(s ?? '').replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' })[c])
+    let tone = 'fair'
+    document.querySelectorAll('#tone button').forEach((b) => {
+      b.onclick = () => {
+        tone = b.dataset.tone
+        document.querySelectorAll('#tone button').forEach((x) => x.classList.toggle('on', x === b))
+      }
+    })
+    const list = (items) => `<ul>${(items || []).map((i) => `<li>${esc(i)}</li>`).join('')}</ul>`
+    function render(r) {
+      $('out').innerHTML = `
+        <div class="wos-card"><span class="wos-label">Verdict</span><p class="verdict">${esc(r.verdict)}</p></div>
+        <div class="wos-card"><h3>The strongest case against it</h3>${list(r.against)}</div>
+        <div class="wos-card"><h3>Risks it hides</h3>${list(r.risks)}</div>
+        <div class="wos-card"><h3>What would change the verdict</h3>${list(r.wouldChange)}</div>`
+      $('empty').hidden = true
+    }
+    $('go').onclick = async () => {
+      const plan = $('plan').value.trim()
+      if (!plan) return $('plan').focus()
+      $('error').hidden = true
+      $('busy').hidden = false
+      $('go').disabled = true
+      try {
+        const r = await wos.ai.complete(plan, {
+          json: true,
+          system: `You argue against plans, ${tone === 'fair' ? 'fairly and constructively' : tone === 'hard' ? 'hard, without softening' : 'as a ruthless critic, still accurate'}. Answer {"verdict":"one honest sentence","against":["3-5 strongest arguments"],"risks":["2-4 hidden risks"],"wouldChange":["2-3 things that, if true, would make the plan sound"]}. Write in the language of the plan.`,
+        })
+        render(r)
+        await wos.storage.set('last', { plan, tone, r })
+      } catch (e) {
+        $('error').textContent = e.message
+        $('error').hidden = false
+      } finally {
+        $('busy').hidden = true
+        $('go').disabled = false
+      }
+    }
+    wos.storage.get('last').then((last) => {
+      if (!last) return
+      $('plan').value = last.plan
+      render(last.r)
+    })
+  </script>
+</body>
+</html>

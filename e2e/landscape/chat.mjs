@@ -64,7 +64,7 @@ process.stdin.on('end', () => {
   let text = '${REPLY}';
   if (prompt.includes('MAKE-PAGE')) {
     fs.mkdirSync(path.join(process.cwd(), 'Artifacts'), { recursive: true });
-    fs.writeFileSync(path.join(process.cwd(), 'Artifacts', 'Hello page.html'), '<!doctype html><h1 id="hi">Hello from the artifact</h1>');
+    fs.writeFileSync(path.join(process.cwd(), 'Artifacts', 'Hello page.html'), '<!doctype html><h1 id="hi">Hello from the artifact</h1><script>document.getElementById("hi").textContent += " (its script ran)"</script>');
     text = 'I made **a page**: Artifacts/Hello page.html';
   }
   const m = /Context files[^\\n]*\\n([^\\n]+)/.exec(prompt);
@@ -159,7 +159,13 @@ try {
   const opened = await until(async () => !!(await win.$('[data-testid="chat-artifact"][data-kind="html"]')), 6000)
   const frame = await win.$('[data-testid="chat-artifact-frame"]')
   const sandbox = frame ? await frame.getAttribute('sandbox') : null
-  check('…and opens beside the chat in a sandboxed frame (scripts, no app, no origin)', opened && sandbox === 'allow-scripts' && /Hello from the artifact/.test((await frame?.getAttribute('srcdoc')) ?? ''), `${opened} ${sandbox}`)
+  const inner = frame ? await frame.contentFrame() : null
+  let ran = ''
+  for (let i = 0; i < 20 && !/script ran/.test(ran); i++) {
+    ran = (await inner?.textContent('#hi').catch(() => '')) ?? ''
+    await settle(250)
+  }
+  check('…and opens beside the chat in a sandboxed frame, where its own script runs', opened && /^allow-scripts/.test(sandbox ?? '') && !/allow-same-origin/.test(sandbox ?? '') && /Hello from the artifact \(its script ran\)/.test(ran), `${opened} ${sandbox} ${ran}`)
   // WOS_SHOT_DIR=<dir>: keep pictures of the chat for a look by eye.
   const shots = process.env.WOS_SHOT_DIR
   if (shots) {

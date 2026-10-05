@@ -61,7 +61,7 @@ try {
   // ── one dock, two places ──
   const items = (sel) => win.$$eval(sel, (els) => els.map((e) => e.textContent.replace(/\d+$/, '').trim()))
   const land = await items('[data-testid="landscape-dock"] button')
-  check('the landscape dock carries the six places and the Terminal', land.join(',') === 'Overview,Chat,Inbox,Cases,Library,Menu,Terminal', land.join(','))
+  check('the landscape dock carries the seven places and the Terminal', land.join(',') === 'Overview,Chat,Apps,Inbox,Cases,Library,Menu,Terminal', land.join(','))
 
   // ── the terminal floats over the landscape ──
   await win.click('[data-dock="terminal"]')

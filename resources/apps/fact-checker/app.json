@@ -1,0 +1,7 @@
+{
+  "name": "Fact Checker",
+  "description": "Paste a claim or a paragraph; each claim is checked on the web and marked true, false or unclear, with its sources.",
+  "icon": "✓",
+  "permissions": ["ai.web"],
+  "entry": "index.html"
+}

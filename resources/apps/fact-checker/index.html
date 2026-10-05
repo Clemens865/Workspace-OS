@@ -1,0 +1,78 @@
+<!doctype html>
+<html>
+<head>
+  <title>Fact Checker</title>
+  <style>
+    .claims { display: flex; flex-direction: column; gap: 12px; }
+    .claim { display: grid; grid-template-columns: auto 1fr; gap: 6px 14px; align-items: start; }
+    .verdict { min-width: 74px; text-align: center; }
+    .verdict.true { background: var(--swatch-2-soft); color: var(--teal); }
+    .verdict.false { background: var(--swatch-1-soft); color: var(--accent-ink); }
+    .verdict.unclear { background: var(--swatch-3-soft); color: var(--ink-2); }
+    .claim h3 { margin: 0; font-family: var(--sans); font-size: 14.5px; font-weight: 500; }
+    .claim p { grid-column: 2; margin: 0; color: var(--ink-2); }
+    .sources { grid-column: 2; display: flex; flex-wrap: wrap; gap: 6px; }
+    .sources span { font-size: 12px; color: var(--muted); }
+  </style>
+</head>
+<body>
+  <div class="wos-app">
+    <div class="wos-split">
+      <aside class="wos-side wos-stack">
+        <label class="wos-label" for="text">What should be checked?</label>
+        <textarea id="text" class="wos-textarea" style="min-height: 200px" placeholder="Paste a claim, or a paragraph with several."></textarea>
+        <button id="go" class="wos-btn primary">Check it</button>
+        <p class="wos-muted wos-small">Each claim is looked up on the web. Read the sources before you rely on a verdict.</p>
+        <div id="error" class="wos-error" hidden></div>
+      </aside>
+      <main class="wos-main">
+        <div id="empty" class="wos-empty">The claims and their verdicts appear here.</div>
+        <div id="busy" class="wos-row" hidden><div class="wos-spinner"></div><span class="wos-muted">Checking on the web… this can take a minute.</span></div>
+        <div id="claims" class="claims"></div>
+      </main>
+    </div>
+  </div>
+  <script>
+    const $ = (id) => document.getElementById(id)
+    const esc = (s) => String(s ?? '').replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' })[c])
+    function render(list) {
+      $('claims').innerHTML = list
+        .map((c) => {
+          const v = ['true', 'false', 'unclear'].includes(c.verdict) ? c.verdict : 'unclear'
+          const sources = (c.sources || []).slice(0, 4).map((s) => `<span>${esc(s)}</span>`).join('')
+          return `<div class="wos-card claim"><span class="wos-chip verdict ${v}">${v}</span><h3>${esc(c.claim)}</h3><p>${esc(c.why)}</p><div class="sources">${sources}</div></div>`
+        })
+        .join('')
+      $('empty').hidden = list.length > 0
+    }
+    $('go').onclick = async () => {
+      const text = $('text').value.trim()
+      if (!text) return $('text').focus()
+      $('error').hidden = true
+      $('busy').hidden = false
+      $('go').disabled = true
+      try {
+        const r = await wos.ai.complete(text, {
+          web: true,
+          json: true,
+          system: 'Split the text into its factual claims (at most 6). Check each on the web. Answer {"claims":[{"claim":"…","verdict":"true|false|unclear","why":"one or two sentences","sources":["site or page title"]}]}. Unclear when the sources disagree or say nothing.',
+        })
+        const list = Array.isArray(r?.claims) ? r.claims : []
+        render(list)
+        await wos.storage.set('last', { text, list })
+      } catch (e) {
+        $('error').textContent = e.message
+        $('error').hidden = false
+      } finally {
+        $('busy').hidden = true
+        $('go').disabled = false
+      }
+    }
+    wos.storage.get('last').then((last) => {
+      if (!last) return
+      $('text').value = last.text
+      render(last.list)
+    })
+  </script>
+</body>
+</html>

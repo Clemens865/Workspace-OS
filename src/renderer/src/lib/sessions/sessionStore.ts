@@ -23,8 +23,8 @@ export interface SessionLive {
 let root: string | null = null
 let sessions: Session[] = []
 const live = new Map<string, SessionLive>()
-/** runId → { session, the ask, the output so far }. */
-const runs = new Map<string, { sessionId: string; ask: string; out: string }>()
+/** runId → { session, the ask, the output so far, whether the app made the ask (a design-check fix) }. */
+const runs = new Map<string, { sessionId: string; ask: string; out: string; auto?: boolean }>()
 const listeners = new Set<() => void>()
 let version = 0
 
@@ -198,7 +198,30 @@ function start(): void {
     setLive(r.sessionId, { running: false })
     patch(r.sessionId, { lastAt: Date.now() })
     void remember(r.sessionId, r.ask, r.out, runId)
+    if (code === 0) void designCheck(r.sessionId, !!r.auto)
   })
+}
+
+/**
+ * After a builder turn, the app's files are checked against the kit and the
+ * sandbox (apps-store lintApp). What is found goes back to the builder once,
+ * as a fix turn the person sees; what is still found after that is only said.
+ */
+async function designCheck(sessionId: string, wasFix: boolean): Promise<void> {
+  const s = sessions.find((x) => x.id === sessionId)
+  if (!s?.app) return
+  const found = await window.workspace.apps.lint(s.app).catch(() => [])
+  if (!found.length) {
+    if (wasFix) pushMsg(sessionId, { role: 'system', text: 'Design check: all fixed.' })
+    return
+  }
+  const list = found.map((f) => `- ${f.detail}`).join('\n')
+  if (wasFix) {
+    pushMsg(sessionId, { role: 'system', text: `Design check: ${found.length} thing${found.length === 1 ? '' : 's'} still off. Ask for a fix if you want it gone.` })
+    return
+  }
+  pushMsg(sessionId, { role: 'system', text: `Design check: ${found.length} thing${found.length === 1 ? '' : 's'} to fix (${[...new Set(found.map((f) => f.rule))].join(', ')}). Fixing…` })
+  await sessionStore.send(sessionId, `The app's design check found this. Fix each one with small edits, changing nothing else:\n${list}`, [], { auto: true })
 }
 
 /** "Felix" for "Felix — Funding Scout": how an agent signs a note. */
@@ -247,6 +270,8 @@ export interface SendContext {
   attachments?: string[]
   /** This turn's model pick; unset = the agent's or the Settings default. */
   model?: string | null
+  /** The app asks, not the person (a design-check fix): no message of theirs, no new turn title. */
+  auto?: boolean
 }
 
 export const sessionStore = {
@@ -261,13 +286,14 @@ export const sessionStore = {
   live: (id: string | null | undefined): SessionLive => (id && live.get(id)) || { running: false, steps: [] },
 
   /** A new session, optionally as an agent and/or inside a case. */
-  create(o: { agentName?: string | null; caseId?: string | null; id?: string; title?: string; kind?: 'chat' } = {}): Session {
+  create(o: { agentName?: string | null; caseId?: string | null; id?: string; title?: string; kind?: 'chat'; app?: string } = {}): Session {
     start()
     const now = Date.now()
     const s: Session = {
       id: o.id ?? `s${now.toString(36)}${Math.floor(Math.random() * 1e4).toString(36)}`,
       title: o.title ?? (o.kind === 'chat' ? 'New chat' : 'New session'),
       ...(o.kind ? { kind: o.kind } : {}),
+      ...(o.app ? { app: o.app } : {}),
       agentName: o.agentName ?? null,
       caseId: o.caseId ?? null,
       createdAt: now,
@@ -301,8 +327,8 @@ export const sessionStore = {
       if (caseId) patch(id, { caseId })
     }
     const runId = `sess-${id}-${Date.now()}`
-    runs.set(runId, { sessionId: id, ask, out: '' })
-    pushMsg(id, { role: 'user', text: ask, ...(attached.length ? { files: attached } : {}) })
+    runs.set(runId, { sessionId: id, ask, out: '', auto: ctx.auto })
+    if (!ctx.auto) pushMsg(id, { role: 'user', text: ask, ...(attached.length ? { files: attached } : {}) })
     patch(id, (x) => ({ turns: x.turns + 1, lastAt: Date.now(), lastRunId: runId }))
     setLive(id, { running: true, steps: [] })
     const agentName = s.agentName
@@ -315,7 +341,7 @@ export const sessionStore = {
     }
     if (ctx.preamble) prompt = `${ctx.preamble}\n\n${prompt}`
     try {
-      await window.workspace.agent.run(runId, prompt, [...mentions, ...attached], ctx.openFile ?? null, loadSettings().agentMode, agentName, conversationOf(id), ctx.model ?? null, undefined, chat ? 'chat' : 'work')
+      await window.workspace.agent.run(runId, prompt, [...mentions, ...attached], ctx.openFile ?? null, loadSettings().agentMode, agentName, conversationOf(id), ctx.model ?? null, undefined, s.app ? 'app' : chat ? 'chat' : 'work', s.app)
     } catch (err) {
       runs.delete(runId)
       pushMsg(id, { role: 'system', text: `[error] ${(err as Error).message}` })
