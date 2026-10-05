@@ -132,9 +132,16 @@ export function registerSearchHandlers(ipcMain: IpcMain): void {
       throw new IpcValidationError('name must be a non-empty string')
     }
     if (name.length > 500) throw new IpcValidationError('name too long (max 500 chars)')
-    const hit = ensureIndex().resolveName(name)
-    return hit && inRoot(hit, getWorkspaceRoot()) ? hit : null
+    const root = getWorkspaceRoot()
+    const hit = root ? ensureIndex().resolveName(name, path.join(root, 'x')) : null
+    return hit && inRoot(hit, root) ? hit : null
   })
+}
+
+/** Index these files now (a writer's own files, so search and the graph see them before it says done). */
+export async function indexNow(paths: readonly string[]): Promise<void> {
+  ensureIndex()
+  await indexer?.indexNow(paths)
 }
 
 /** Coerces + scopes an untrusted path to the workspace root (throws otherwise). */

@@ -15,6 +15,7 @@ import { registerCheckpointHandlers } from './handlers/checkpoint'
 import { registerSnapshotHandlers } from './handlers/snapshots'
 import { registerSearchHandlers, shutdownSearch } from './handlers/search'
 import { registerMemoryHandlers } from './handlers/memory'
+import { registerWikiHandlers } from './handlers/wiki'
 import { registerOfficeHandlers } from './handlers/office'
 import { registerLokHandlers } from './handlers/lok'
 import { registerSkillsHandlers } from './handlers/skills'
@@ -186,6 +187,7 @@ app.whenReady().then(() => {
   registerPdfHandlers(ipcMain)
   registerSearchHandlers(ipcMain)
   registerMemoryHandlers(ipcMain)
+  registerWikiHandlers(ipcMain)
   registerOfficeHandlers(ipcMain, win)
   registerLokHandlers(ipcMain, win)
   registerSkillsHandlers(ipcMain)

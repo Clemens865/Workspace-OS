@@ -3,7 +3,7 @@ import {
   PenSquare, RefreshCw, Reply, StickyNote, Link2,
   Globe, Camera, ScanText, Map as MapIcon, ShieldCheck, Telescope,
   MousePointerClick, Cookie, MoveVertical, Hourglass, ArrowLeft, ArrowRight, Keyboard,
-  Brain, Share2,
+  Brain, Share2, BookOpen,
   type LucideIcon,
 } from 'lucide-react'
 import { categoryOf, OFFICE } from '../../lib/fileCategory'
@@ -279,6 +279,29 @@ const KNOWLEDGE_ACTIONS: SurfaceAction[] = [
     },
     agentHint:
       'read a Word/Excel/PowerPoint/PDF file as text — `wos-action run knowledge.read \'{"path":"<path>"}\'`; long files come in parts (pass "offset").',
+  },
+  {
+    id: 'knowledge.wiki-add',
+    label: 'Add to the wiki',
+    surface: 'knowledge',
+    icon: BookOpen,
+    // The app writes the Wiki/ pages from the file (one model read, checked, undoable).
+    // Queued, not awaited: reading a file takes longer than the bridge waits. Progress shows in Library → Notes.
+    appliesTo: (ctx) => !!ctx.openFile,
+    run: async (ctx, args) => {
+      const a = (args ?? {}) as { path?: string; again?: boolean }
+      const target = a.path ?? ctx.openFile
+      if (!target) throw new Error('knowledge.wiki-add needs {"path": "<workspace-relative file or folder>"}')
+      const r = await window.workspace.wiki.add([target], { again: a.again === true })
+      return {
+        ...r,
+        note: r.queued
+          ? 'Queued. The app reads each file and writes its pages in Wiki/ over the next minutes; do not write them yourself.'
+          : 'Nothing new to read: already in the wiki and unchanged (pass "again": true to read it again).',
+      }
+    },
+    agentHint:
+      'add a file (or a folder\'s files) to the workspace wiki — `wos-action run knowledge.wiki-add \'{"path":"<path>"}\'`; the app reads it and writes or updates the pages in Wiki/ over the next minutes. Never write Wiki/ pages yourself.',
   },
   {
     id: 'knowledge.new-note',

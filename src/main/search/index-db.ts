@@ -140,6 +140,15 @@ function baseNoExt(filePath: string): string {
   return dot > 0 ? base.slice(0, dot) : base
 }
 
+/** How many leading folders two paths share: how near a link target is to the note that links it. */
+function sharedFolders(a: string, b: string): number {
+  const x = a.split(/[/\\]/).slice(0, -1)
+  const y = b.split(/[/\\]/).slice(0, -1)
+  let n = 0
+  while (n < x.length && n < y.length && x[n] === y[n]) n++
+  return n
+}
+
 /** Escapes a user query into a safe FTS5 prefix-match expression. */
 function toFtsQuery(raw: string): string {
   const tokens = raw
@@ -235,6 +244,14 @@ export class SearchIndex {
       this.db.prepare(`UPDATE files SET mtime_ms = -1 WHERE ext IN (${EXTRACTED_TYPES.map(() => '?').join(',')})`).run(...EXTRACTED_TYPES)
       this.db.prepare("INSERT OR REPLACE INTO meta (key, value) VALUES ('extract_version', ?)").run(String(EXTRACT_VERSION))
     }
+    // Links resolved before "nearest file wins" may point into another workspace: once, point them again.
+    if (!this.db.prepare("SELECT 1 FROM meta WHERE key = 'links_nearest'").get()) {
+      const keys = this.db.prepare('SELECT DISTINCT target_key FROM links').all() as { target_key: string }[]
+      this.db.transaction(() => {
+        for (const k of keys) this.reresolve(k.target_key)
+        this.db.prepare("INSERT OR REPLACE INTO meta (key, value) VALUES ('links_nearest', '1')").run()
+      })()
+    }
   }
 
   /** Returns the stored mtime for a path, or null if not indexed. */
@@ -255,11 +272,9 @@ export class SearchIndex {
       this.db
         .prepare('INSERT INTO file_fts (path, name, content) VALUES (?, ?, ?)')
         .run(f.path, f.name, f.content)
-      // A newly-indexed file may satisfy stubs that reference its name — attach
-      // any so-far-unresolved links whose target_key matches to this path.
-      this.db
-        .prepare('UPDATE links SET resolved_path = ? WHERE resolved_path IS NULL AND target_key = ?')
-        .run(f.path, key)
+      // A newly-indexed file may satisfy stubs that reference its name, or be
+      // nearer to a linking note than the file its link found so far.
+      this.reresolve(key)
     })
     tx(file)
   }
@@ -273,12 +288,7 @@ export class SearchIndex {
       // Drop this file's outgoing links, and demote any links that resolved TO
       // it back to a stub (or re-point them at another file with the same name).
       this.db.prepare('DELETE FROM links WHERE source_path = ?').run(p)
-      const fallback = (this.db
-        .prepare('SELECT path FROM files WHERE name_key = ? ORDER BY path LIMIT 1')
-        .get(key) as { path: string } | undefined)?.path ?? null
-      this.db
-        .prepare('UPDATE links SET resolved_path = ? WHERE resolved_path = ?')
-        .run(fallback, p)
+      this.reresolve(key)
     })
     tx(filePath)
   }
@@ -296,24 +306,41 @@ export class SearchIndex {
     tx(filePath, symbols)
   }
 
-  /** Resolves a note name to a file path (case-insensitive, basename-without-ext).
-   *  Deterministic on collisions: the alphabetically-first path wins. Returns
-   *  null when no file matches (i.e. the name is a stub). */
-  resolveName(name: string): string | null {
-    const key = nameKey(name)
-    if (!key) return null
-    const row = this.db
-      .prepare('SELECT path FROM files WHERE name_key = ? ORDER BY path LIMIT 1')
-      .get(key) as { path: string } | undefined
-    return row?.path ?? null
+  /**
+   * Resolves a note name to a file path (case-insensitive, basename-without-ext).
+   * One index serves every workspace ever opened, so of the files with that
+   * name the one NEAREST `from` wins (the most folders in common): a [[link]]
+   * in one workspace never lands in another that has a page of the same name.
+   * Equally near: the alphabetically-first path, and the link is ambiguous.
+   * Null when no file matches (the name is a stub).
+   */
+  private nearest(key: string, from: string): { path: string | null; ambiguous: boolean } {
+    const rows = this.db.prepare('SELECT path FROM files WHERE name_key = ? ORDER BY path').all(key) as { path: string }[]
+    let best: string | null = null
+    let bestN = -1
+    let ties = 0
+    for (const { path } of rows) {
+      const n = sharedFolders(from, path)
+      if (n > bestN) [best, bestN, ties] = [path, n, 1]
+      else if (n === bestN) ties++
+    }
+    return { path: best, ambiguous: ties > 1 }
   }
 
-  /** True when >1 indexed file shares this name's resolution key (ambiguous). */
-  private isAmbiguous(key: string): boolean {
-    const row = this.db
-      .prepare('SELECT COUNT(*) AS n FROM files WHERE name_key = ?')
-      .get(key) as { n: number }
-    return row.n > 1
+  /** `name` resolved as a note at `from` (a path in the workspace) would see it. */
+  resolveName(name: string, from = '/'): string | null {
+    const key = nameKey(name)
+    return key ? this.nearest(key, from).path : null
+  }
+
+  /** Points every link to `key` at its nearest file again (after that set of files changed). */
+  private reresolve(key: string): void {
+    const rows = this.db.prepare('SELECT rowid, source_path, resolved_path FROM links WHERE target_key = ?').all(key) as { rowid: number; source_path: string; resolved_path: string | null }[]
+    const upd = this.db.prepare('UPDATE links SET resolved_path = ? WHERE rowid = ?')
+    for (const r of rows) {
+      const to = this.nearest(key, r.source_path).path
+      if (to !== r.resolved_path) upd.run(to, r.rowid)
+    }
   }
 
   /** Replaces all outgoing links for a file. Each link is resolved against the
@@ -329,8 +356,7 @@ export class SearchIndex {
       for (const l of ls) {
         const key = nameKey(l.targetName)
         if (!key) continue
-        const resolved = this.resolveName(l.targetName)
-        ins.run(p, l.targetName, key, l.heading ?? null, resolved, l.position, l.snippet)
+        ins.run(p, l.targetName, key, l.heading ?? null, this.nearest(key, p).path, l.position, l.snippet)
       }
     })
     tx(sourcePath, links)
@@ -373,7 +399,7 @@ export class SearchIndex {
       ...(r.heading ? { heading: r.heading } : {}),
       snippet: r.snippet,
       resolvedPath: r.resolved_path,
-      ambiguous: r.resolved_path !== null && this.isAmbiguous(r.target_key),
+      ambiguous: r.resolved_path !== null && this.nearest(r.target_key, filePath).ambiguous,
     }))
   }
 
