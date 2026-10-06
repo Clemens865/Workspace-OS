@@ -13,7 +13,7 @@ import { activityStore } from '../../components/Review/activityStore'
 import { appendStep, type TraceStep } from '../../components/AgentTerminal/runTraceModel'
 import { loadSettings } from '../../hooks/useSettings'
 import { afterTurn, briefFirst, type AutoTurn, type HarnessDeps } from './appHarness'
-import { caseOnFirstAsk, sessionDigest, shouldSuggestCase, titleFromPrompt, trimMessages, turnNotes, wantsReflection, type Session, type SessionMsg } from './sessionModel'
+import { runIdFor, caseOnFirstAsk, sessionDigest, shouldSuggestCase, titleFromPrompt, trimMessages, turnNotes, wantsReflection, type Session, type SessionMsg } from './sessionModel'
 
 /** What only the running app knows about a session. */
 export interface SessionLive {
@@ -313,7 +313,7 @@ export const sessionStore = {
       caseId = await openCase(sessions.find((x) => x.id === id)!, ask).catch(() => null)
       if (caseId) patch(id, { caseId })
     }
-    const runId = `sess-${id}-${Date.now()}`
+    const runId = runIdFor(id)
     runs.set(runId, { sessionId: id, ask, out: '', auto: ctx.auto })
     if (!ctx.auto) pushMsg(id, { role: 'user', text: ask, ...(attached.length ? { files: attached } : {}) })
     const firstAsk = s.turns === 0

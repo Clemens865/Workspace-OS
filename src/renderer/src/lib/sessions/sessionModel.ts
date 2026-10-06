@@ -57,6 +57,16 @@ export function sessionDigest(s: Session, from = 0): { title: string; agentName:
   return { title: s.title, agentName: s.agentName, turns: fresh ? turns.slice(-fresh) : [] }
 }
 
+/**
+ * The id of one run of a session, in the form main accepts (lowercase letters,
+ * digits and dashes, 6–40 characters): the session's id, shortened, and the
+ * time. A terminal tab's session id ("dockagent17597…") made it too long before.
+ */
+export function runIdFor(sessionId: string, now = Date.now()): string {
+  const s = sessionId.toLowerCase().replace(/[^a-z0-9]/g, '').slice(-22)
+  return `sess-${s || 'x'}-${now.toString(36)}`
+}
+
 /** Learn from a session once it has been quiet this long after its last turn. */
 export const QUIET_MS = 10 * 60_000
 
