@@ -206,6 +206,7 @@ function start(): void {
 /** What the app harness (./appHarness.ts) may do with a session. */
 const harness: HarnessDeps = {
   app: (id) => sessions.find((x) => x.id === id)?.app,
+  ask: (id) => [...(sessions.find((x) => x.id === id)?.messages ?? [])].reverse().find((m) => m.role === 'user')?.text ?? '',
   push: (id, m) => pushMsg(id, m),
   busy: (id, label) => setLive(id, label ? { running: true, steps: appendStep([], { kind: 'run', label }, Date.now()) } : { running: false, steps: [] }),
   send: (id, text, auto) => sessionStore.send(id, text, [], { auto }),

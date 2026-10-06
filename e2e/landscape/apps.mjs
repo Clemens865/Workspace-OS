@@ -49,6 +49,12 @@ const port = server.address().port
 const callsFile = path.join(tmp, 'calls.json')
 const fake = path.join(tmp, 'claude.cjs')
 const COUNTER = `<!doctype html><html><head><title>Counter</title><link rel="stylesheet" href="style.css"></head><body><div class="wos-app"><div class="wos-main"><h1 id="n">Count: 0</h1><button id="inc" class="wos-btn primary">+1</button></div></div><script src="app.js"></script></body></html>`
+// The first build forgets to save: the app's own tests catch it, and the builder fixes it.
+const COUNTER_JS_BUGGY = `let n = 0; const show = () => (document.getElementById('n').textContent = 'Count: ' + n); wos.storage.get('n').then((v) => { n = v || 0; show() }); document.getElementById('inc').onclick = () => { n++; show() }`
+const TESTS = { scenarios: [
+  { name: 'Counts up', check: 'Pressing +1 raises the count', steps: [{ do: 'expect', target: '#n', contains: 'Count: 0' }, { do: 'click', text: '+1' }, { do: 'click', target: '#inc' }, { do: 'expect', target: '#n', equals: 'Count: 2' }, { do: 'expectJs', js: "(await wos.storage.get('n')) === 2" }] },
+  { name: 'Remembers after a reload', check: 'The count survives a reload', store: { n: 5 }, steps: [{ do: 'expect', target: '#n', contains: 'Count: 5' }, { do: 'click', target: '#inc' }, { do: 'reload' }, { do: 'expect', target: '#n', contains: 'Count: 6' }] },
+] }
 const COUNTER_JS = `let n = 0; const show = () => (document.getElementById('n').textContent = 'Count: ' + n); wos.storage.get('n').then((v) => { n = v || 0; show() }); document.getElementById('inc').onclick = async () => { n++; show(); await wos.storage.set('n', n) }`
 fs.writeFileSync(
   fake,
@@ -76,8 +82,12 @@ process.stdin.on('end', () => {
     const first = !calls.slice(0, -1).some((c) => (c.system || '').includes('demanding QA lead'));
     text = JSON.stringify({ checks: [{ check: 'Pressing +1 raises the count', met: true }, { check: 'The count has a label', met: !first, note: first ? 'no label next to the number' : '' }], looks: [], next: ['Add a reset button', 'Count in steps of five', 'Show a history of counts'] });
   }
+  else if (system.includes('senior QA engineer')) text = ${JSON.stringify(JSON.stringify(TESTS))};
   // A resumed turn carries no system prompt: the fix request is known by its words.
-  if (prompt.includes('review of the running app against its brief')) {
+  if (prompt.includes("end-to-end tests (Apps/new-app/TESTS.json) ran in the live app")) {
+    fs.writeFileSync(path.join(process.cwd(), 'Apps', 'new-app', 'app.js'), ${JSON.stringify(COUNTER_JS)});
+    text = 'The count is now saved after each press.';
+  } else if (prompt.includes('review of the running app against its brief')) {
     fs.writeFileSync(path.join(process.cwd(), 'Apps', 'new-app', 'index.html'), ${JSON.stringify(COUNTER.replace('<h1 id="n">', '<p class="wos-label">Clicks</p><h1 id="n">'))});
     text = 'Added a label above the count.';
   } else if (prompt.includes("design check found")) {
@@ -87,7 +97,7 @@ process.stdin.on('end', () => {
     const dir = path.join(process.cwd(), 'Apps', 'new-app');
     fs.writeFileSync(path.join(dir, 'app.json'), JSON.stringify({ name: 'Counter', description: 'Counts, and remembers.', icon: '🔢', permissions: [], entry: 'index.html' }));
     fs.writeFileSync(path.join(dir, 'index.html'), ${JSON.stringify(COUNTER)});
-    fs.writeFileSync(path.join(dir, 'app.js'), ${JSON.stringify(COUNTER_JS)});
+    fs.writeFileSync(path.join(dir, 'app.js'), ${JSON.stringify(COUNTER_JS_BUGGY)});
     fs.writeFileSync(path.join(dir, 'style.css'), 'h1 { color: #ff0000 }');
     text = 'Built a counter that remembers its count. Press +1.';
   }
@@ -212,11 +222,21 @@ try {
   const fixed = await until(async () => /Design check: all fixed/.test((await win.textContent('[data-testid="chat-thread"]')) ?? ''), 20000)
   const fixCall = calls().find((c) => /design check found/.test(c.prompt))
   check('the design check catches a hard-coded colour, and the builder fixes it on its own', fixed && /#ff0000/.test(fixCall?.prompt ?? '') && /Design check: 1 thing to fix \(colour\)/.test((await win.textContent('[data-testid="chat-thread"]')) ?? '') && fs.readFileSync(path.join(ws, 'Apps/new-app/style.css'), 'utf8').includes('var(--ink)'), (await win.textContent('[data-testid="chat-thread"]'))?.slice(-400))
+  // The app's own tests: written from the brief and files, run in the live preview with real clicks, failures fixed.
+  const tested = await until(async () => /Tests: all 2 passed in the running app after 1 fix round/.test((await win.textContent('[data-testid="chat-thread"]')) ?? ''), 40000)
+  let thread = (await win.textContent('[data-testid="chat-thread"]')) ?? ''
+  const testsCall = calls().find((c) => /senior QA engineer/.test(c.system))
+  check('the app’s tests are written from its brief and files', !!testsCall && /The count survives a reload/.test(testsCall.prompt) && /id="inc"/.test(testsCall.prompt) && /A counter that remembers its count/.test(testsCall.prompt) && testsCall.args[testsCall.args.indexOf('--setting-sources') + 1] === '' && JSON.parse(fs.readFileSync(path.join(ws, 'Apps/new-app/TESTS.json'), 'utf8')).scenarios.length === 2 && /Tests written \(TESTS\.json\): 2 scenarios/.test(thread), testsCall?.prompt?.slice(0, 300))
+  const testFix = calls().find((c) => /end-to-end tests \(Apps\/new-app\/TESTS\.json\) ran in the live app/.test(c.prompt))
+  check('…they run in the live app with real clicks, and catch the count that is never saved', /Tests: 0 of 2 passed \(failing: Counts up, Remembers after a reload\)\. Fixing, round 1 of 3/.test(thread) && /"Counts up".*step 5 failed: This was not true/.test(testFix?.prompt ?? '') && /"Remembers after a reload".*step 4 failed: .*Count: 5.*expected it to contain "Count: 6"/.test(testFix?.prompt ?? '') && /Apps\/new-app\/\.tests\/1\.png \(look at it|Apps\/new-app\/\.tests\/1\.png; look at it/.test(testFix?.prompt ?? ''), testFix?.prompt ?? thread.slice(-600))
+  check('…the builder fixes it, and they pass on the next run', tested && /await wos\.storage\.set/.test(fs.readFileSync(path.join(ws, 'Apps/new-app/app.js'), 'utf8')), thread.slice(-500))
+  check('…on scratch data: the person’s own saved data is untouched', !fs.existsSync(path.join(ws, 'Apps/new-app/data/store.json')))
   // The review: the running app (a screenshot) against the brief, one fix, then three next steps.
   const offered = await until(async () => !!(await win.$('[data-testid="chat-suggest"]')), 40000)
   const reviewCall = calls().find((c) => /demanding QA lead/.test(c.system))
-  const thread = (await win.textContent('[data-testid="chat-thread"]')) ?? ''
+  thread = (await win.textContent('[data-testid="chat-thread"]')) ?? ''
   check('the review looks at a screenshot of the running app with its brief, and sends what is missing back once', offered && reviewCall?.files.includes('image-1.png') && /The count has a label/.test(reviewCall?.prompt ?? '') && /Review: 1 of 2 checks met\. Fixing…/.test(thread) && /Clicks/.test(fs.readFileSync(path.join(ws, 'Apps/new-app/index.html'), 'utf8')), thread.slice(-500))
+  check('…the review hears how the tests went, and the tests run again after its fix', /end-to-end tests, just run in the live app with real clicks: all 2 passed/.test(reviewCall?.prompt ?? '') && /Tests after the review fix: all 2 passed/.test(thread), thread.slice(-500))
   const chips = await win.$$eval('[data-suggest]', (els) => els.map((e) => e.getAttribute('data-suggest')))
   check('…then offers three next steps to click', chips.length === 3 && chips[0] === 'Add a reset button', JSON.stringify(chips))
   await shot('app-harness.png')

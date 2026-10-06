@@ -7,6 +7,8 @@
  *   review  — after a turn, the running app (a screenshot) and its files are
  *             checked against the brief; what is missing goes back once as a
  *             fix, and three next steps are offered to the person.
+ *   tests   — between the two, the app's own end-to-end tests run in the
+ *             live preview (app-tests.ts writes them, app-driver.ts runs them).
  *   seeing  — AI answers that look at images (an app's own render, the
  *             screenshot): the CLI reads them from a scratch folder it alone
  *             may read.
@@ -140,7 +142,7 @@ const REVIEW_SYSTEM = [
 ].join('\n')
 
 /** The app's own text files for a review, capped so a big app still fits. */
-function appSources(root: string, slug: string): string {
+export function appSources(root: string, slug: string): string {
   const dir = appDir(root, slug)
   const parts: string[] = []
   let total = 0
@@ -165,7 +167,7 @@ function appSources(root: string, slug: string): string {
 }
 
 /** Reviews the app as it is now. Null when the review gave nothing usable. */
-export async function reviewApp(root: string, slug: string, shot: Buffer | null): Promise<Review | null> {
+export async function reviewApp(root: string, slug: string, shot: Buffer | null, tests = ''): Promise<Review | null> {
   let brief = ''
   try {
     brief = fs.readFileSync(path.join(appDir(root, slug), BRIEF_FILE), 'utf8')
@@ -177,8 +179,11 @@ export async function reviewApp(root: string, slug: string, shot: Buffer | null)
     `The app: ${name} (Apps/${slug}/).`,
     brief ? `Its product brief:\n\n${brief}` : 'It has no product brief.',
     `Its files:\n\n${appSources(root, slug)}`,
+    tests ? `Its end-to-end tests, just run in the live app with real clicks: ${tests}` : '',
     shot ? 'The image is a screenshot of it running now.' : 'No screenshot could be taken this time.',
-  ].join('\n\n')
+  ]
+    .filter(Boolean)
+    .join('\n\n')
   const r = await runSeeing({ prompt, systemPrompt: REVIEW_SYSTEM, images: shot ? [{ data: shot, ext: 'png' }] : [], timeoutMs: HARNESS_TIMEOUT_MS })
   if (r.timedOut) return null
   return parseReview(r.text)
