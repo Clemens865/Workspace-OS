@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
-import { ArrowLeft, Copy, Download, FolderOpen, MessageCircle, Plus, Upload } from 'lucide-react'
+import { ArrowLeft, Copy, Download, FolderOpen, Maximize2, MessageCircle, Plus, Upload } from 'lucide-react'
 import type { WosApp, WosAppManifest } from '../../../types/workspace-api'
 import { useWorkspaceRoot } from '../../../hooks/useWorkspaceRoot'
 import { useGlass } from '../backdrop/useBackdrop'
@@ -37,6 +37,8 @@ export function AppsView({ onBuild, initialApp = null }: Props): JSX.Element {
   const [list, setList] = useState<WosApp[] | null>(null)
   const [gallery, setGallery] = useState<(WosAppManifest & { added: boolean })[]>([])
   const [open, setOpen] = useState<string | null>(initialApp)
+  const [full, setFull] = useState(false)
+  useEffect(() => setFull(false), [open])
 
   const load = useCallback(async () => {
     const [a, t] = await Promise.all([window.workspace.apps.list(), window.workspace.apps.templates()]).catch(() => [[], []] as [WosApp[], (WosAppManifest & { added: boolean })[]])
@@ -125,6 +127,9 @@ export function AppsView({ onBuild, initialApp = null }: Props): JSX.Element {
               <span className={styles.runName}>
                 {current && <Icon icon={current.icon} />} {current?.name ?? open}
               </span>
+              <button type="button" className={styles.ghost} onClick={() => setFull(true)} title="Fill the whole screen with it (Esc to leave)" data-testid="apps-full">
+                <Maximize2 size={14} /> Full screen
+              </button>
               <button type="button" className={styles.ghost} onClick={() => onBuild(open)} data-testid="apps-edit">
                 <MessageCircle size={14} /> Edit with chat
               </button>
@@ -139,7 +144,7 @@ export function AppsView({ onBuild, initialApp = null }: Props): JSX.Element {
               </button>
             </div>
             <div className={styles.stage}>
-              <AppHost slug={open} />
+              <AppHost slug={open} full={full} onFull={setFull} />
             </div>
           </>
         ) : (

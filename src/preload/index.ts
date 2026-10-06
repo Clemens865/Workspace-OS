@@ -793,6 +793,7 @@ contextBridge.exposeInMainWorld('workspace', {
     brief: (slug: string, idea: string) => ipcRenderer.invoke('apps:brief', slug, idea),
     review: (slug: string, rect: { x: number; y: number; width: number; height: number } | null, tests?: string) => ipcRenderer.invoke('apps:review', slug, rect, tests),
     testsWrite: (slug: string, request: string) => ipcRenderer.invoke('apps:testsWrite', slug, request),
+    windowFull: () => ipcRenderer.invoke('apps:windowFull'),
     test: (slug: string) => ipcRenderer.invoke('apps:test', slug),
     onTestProgress: (cb: (p: { slug: string; i: number; total: number; name: string }) => void) => {
       const handler = (_e: unknown, p: { slug: string; i: number; total: number; name: string }): void => cb(p)

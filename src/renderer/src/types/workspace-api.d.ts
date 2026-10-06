@@ -1099,6 +1099,8 @@ export interface WorkspaceApi {
       rect: { x: number; y: number; width: number; height: number } | null,
       tests?: string,
     ) => Promise<{ checks: { check: string; met: boolean; note: string }[]; looks: string[]; next: string[] } | null>
+    /** Whether the window is in macOS full screen. */
+    windowFull: () => Promise<boolean>
     /** The app harness: writes or updates the app's end-to-end tests (TESTS.json); null for an app not built yet. */
     testsWrite: (slug: string, request: string) => Promise<{ scenarios: number } | null>
     /** The app harness: runs the app's tests in its live preview beside the chat, with real clicks; null when it has none. */
