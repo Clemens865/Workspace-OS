@@ -29,6 +29,20 @@ export const PAGE = String.raw`async (op, a) => {
   }
   const textOf = (el) => say('value' in el && el.tagName !== 'BUTTON' && el.tagName !== 'LI' ? el.value : el.innerText || el.textContent)
 
+  if (op === 'outline') {
+    // What a person sees: headings, controls and text, each with a selector to act on and where it is.
+    const sel = (el) => (el.id ? '#' + el.id : name(el))
+    const items = []
+    for (const el of document.querySelectorAll('h1,h2,h3,h4,button,a,input,textarea,select,[role=button],[contenteditable=true],label,.wos-empty,.wos-error,.wos-chip,p,li,canvas,svg,img')) {
+      if (items.length >= 120 || !vis(el) || (el.closest('svg') && el.tagName.toLowerCase() !== 'svg') || el.closest('wos-cursor')) continue
+      const field = /^(INPUT|TEXTAREA|SELECT)$/.test(el.tagName)
+      const t = say(field ? el.value || (el.placeholder ? 'placeholder: ' + el.placeholder : '') : el.innerText || el.getAttribute('aria-label') || el.title || '').slice(0, 80)
+      if (/^(P|LI|LABEL)$/.test(el.tagName) && !t) continue
+      const r = el.getBoundingClientRect()
+      items.push(sel(el) + (t ? ' "' + t + '"' : '') + ' at ' + Math.round(r.left) + ',' + Math.round(r.top) + ' ' + Math.round(r.width) + 'x' + Math.round(r.height) + (el.disabled ? ' disabled' : '') + (document.activeElement === el ? ' focused' : ''))
+    }
+    return { title: document.title, size: [innerWidth, innerHeight], items }
+  }
   if (op === 'ready') return document.readyState === 'complete' && !window.__wosStale && typeof window.wos === 'object'
   if (op === 'stale') { window.__wosStale = true; return true }
   if (op === 'errors') return (window.__wosErrors || []).slice()

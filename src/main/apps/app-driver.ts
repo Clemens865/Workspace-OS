@@ -256,7 +256,7 @@ export class AppDriver {
   }
 }
 
-async function runStep(d: AppDriver, s: Step, mode: TestMode): Promise<void> {
+export async function runStep(d: AppDriver, s: Step, mode: TestMode): Promise<void> {
   switch (s.do) {
     case 'click':
       return d.click(s)
@@ -316,6 +316,7 @@ export async function runPlan(
   slug: string,
   plan: TestPlan,
   onProgress: (i: number, total: number, name: string) => void = () => {},
+  budgetMs = RUN_BUDGET_MS,
 ): Promise<TestReport> {
   const d = new AppDriver(win, slug)
   const started = Date.now()
@@ -327,7 +328,7 @@ export async function runPlan(
   try {
     for (let i = 0; i < plan.scenarios.length; i++) {
       const sc = plan.scenarios[i]
-      if (Date.now() - started > RUN_BUDGET_MS) {
+      if (Date.now() - started > budgetMs) {
         report.stopped = `The tests ran out of time after ${i} of ${plan.scenarios.length} scenarios`
         break
       }

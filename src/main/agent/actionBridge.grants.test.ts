@@ -53,6 +53,21 @@ describe('actionBridge — per-run grants', () => {
     expect((after as { error: string }).error).toMatch(/no run identity/)
   })
 
+  it('the app builder drives only the app it builds, and nothing else', async () => {
+    const builder = table.issue('b1', [], 'builder', undefined, 'notes')
+    const app = vi.fn(async (): Promise<ActionReply> => ({ ok: true, result: 'clicked' }))
+    const d = { ...deps, app }
+    expect(await handleRequest({ cmd: 'run', actionId: 'app.click', args: { text: 'Add' }, token: builder }, d)).toEqual({ ok: true, result: 'clicked' })
+    expect(app).toHaveBeenCalledWith('notes', 'app.click', { text: 'Add' })
+    // Its grant has nothing else: no browser, no mail.
+    const b = await handleRequest({ cmd: 'run', actionId: 'browser.navigate', token: builder }, d)
+    expect((b as { error: string }).error).toMatch(/not granted/)
+    // Any other run, even the full dock grant, has no app.* at all.
+    const r = await handleRequest({ cmd: 'run', actionId: 'app.click', token: research }, d)
+    expect((r as { error: string }).error).toMatch(/only for the app builder/)
+    expect(app).toHaveBeenCalledTimes(1)
+  })
+
   it('list and context need no identity', async () => {
     expect((await handleRequest({ cmd: 'list' }, deps)).ok).toBe(true)
     expect((await handleRequest({ cmd: 'context' }, deps)).ok).toBe(true)

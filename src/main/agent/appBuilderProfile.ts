@@ -1,7 +1,9 @@
 /**
  * The app builder: a chat that writes one app, Apps/<slug>/, and nothing else.
  *
- * Its tools are Read/Glob/Grep and Edit limited to the app's folder, and the
+ * Its tools are Read/Glob/Grep, Edit limited to the app's folder, and
+ * `wos-action` (its grant reaches only app.* on this one app: see
+ * apps/app-actions.ts, so it can look at and use the app while it builds), and the
  * run ignores every settings file (`--setting-sources ""`): measured
  * 2026-10-05, a person's own settings that allow Write everywhere otherwise
  * lift the folder limit, and so would a workspace's .claude/settings.json.
@@ -12,8 +14,18 @@
  */
 
 export function appBuilderArgs(slug: string): string[] {
-  return ['--setting-sources', '', '--allowedTools', 'Read', 'Glob', 'Grep', `Edit(./Apps/${slug}/**)`]
+  return ['--setting-sources', '', '--allowedTools', 'Read', 'Glob', 'Grep', `Edit(./Apps/${slug}/**)`, 'Bash(wos-action:*)']
 }
+
+const HANDS = `SEE AND USE THE APP WHILE YOU BUILD. It runs in the preview beside the chat, and you can drive it with the wos-action command (run it bare: no cd, no &&, no pipes, nothing else in the command). Your clicks are real pointer and key input, the person watches them, and the app runs on a scratch copy of its saved data: nothing you do reaches the person's data. AI calls are off unless you give an answer with app.ai.
+- wos-action run app.reload: load your latest files (after you edit)
+- wos-action run app.look: what is on screen (the visible headings, controls and text with a selector, position and size each), the page's errors, and a screenshot path to look at with Read
+- wos-action run app.click '{"text":"Add note"}' (or {"target":"#add"}; "double": true)
+- wos-action run app.type '{"target":"#title","value":"Milk"}' · app.key '{"key":"z","mods":["meta"]}' · app.drag '{"target":".note","by":[120,40]}'
+- wos-action run app.check '{"target":".note","count":1}' (or "visible", "contains", "equals"; or {"js":"(await wos.storage.get('notes')).length === 1"})
+- wos-action run app.data (the scratch data and exported files; {"reset":true} empties it, {"set":{...}} starts from that) · app.ai '{"reply": <what wos.ai.complete answers>}'
+- wos-action run app.test (runs Apps/<slug>/TESTS.json, or {"scenario":"<name>"} for one)
+After a real change: reload, look (and Read the screenshot), and walk the main job once the way the person would; fix what you see before you finish. A handful of actions, not a full test pass: the app's tests run after your turn.`
 
 const KIT = `THE DESIGN KIT (already loaded into every app; do not link or copy it):
 Tokens (CSS variables): --ink, --ink-2, --muted, --faint, --line, --paper, --mist, --accent, --accent-soft, --accent-ink, --teal, --amber, --danger, --ink-rgb and --paper-rgb (for rgba tints), --serif (Newsreader, headings), --sans (Inter, text), --mono, --radius (14px), --radius-lg (20px), --ease. Light and dark switch by themselves when you use the tokens.
@@ -46,6 +58,8 @@ export function buildAppBuilderPrompt(slug: string, workspaceRoot: string): stri
     '- Images: data: and blob: URLs only. Inline SVG and <canvas> are the tools for drawing.',
     '',
     BRIDGE,
+    '',
+    HANDS.replace('<slug>', slug),
     '',
     'THE LOOK: every app looks like Workspace OS. Use the kit below for every colour, font, radius and control; never hard-code colours or other fonts (on a <canvas>, read the tokens with getComputedStyle(document.documentElement) and redraw on wos.onTheme). Calm and spacious: generous whitespace, hairline borders (--line), headings in the serif, no heavy shadows, no gradients, no emoji as decoration (one emoji as the app icon is fine).',
     '',

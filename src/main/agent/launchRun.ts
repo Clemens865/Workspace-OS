@@ -33,6 +33,7 @@ import { forRun as memoryForRun, markUsed, buildMemoryBlock } from '../memory/me
 import { capabilityGuidanceBlock } from './capabilityCatalog'
 import { buildChatSystemPrompt } from './chatProfile'
 import { appBuilderArgs, buildAppBuilderPrompt } from './appBuilderProfile'
+import { endAppSession } from '../apps/app-actions'
 import { grants, AGENT_TOKEN_ENV } from './grants'
 import { claudeSettings } from './claudeSettings'
 import { ClaudeFailureTracker } from './claudeFailure'
@@ -195,7 +196,8 @@ export async function launchRun(o: LaunchRunOptions): Promise<{ child: ChildProc
       [AGENT_SOCK_ENV]: agentSockPath(),
       // Per-run identity for the bridge: the CLI forwards this token; main
       // refuses any action outside this run's grant. Minted here, never logged.
-      [AGENT_TOKEN_ENV]: grants.issue(id, o.capabilities, agent?.name ?? id, provider === 'codex' ? getWorkspaceRoot() ?? undefined : undefined),
+      // The app builder may drive only the app it builds (app.*), plus the reads every run has.
+      [AGENT_TOKEN_ENV]: grants.issue(id, appSlug ? [] : o.capabilities, agent?.name ?? id, provider === 'codex' ? getWorkspaceRoot() ?? undefined : undefined, appSlug ?? undefined),
     } as Record<string, string>
     // The open workspace, as the shells already get it: the `wos-case` CLI (and
     // any script the agent writes) needs it to find Cases/ and Work/.
@@ -407,6 +409,8 @@ export async function launchRun(o: LaunchRunOptions): Promise<{ child: ChildProc
       if (deliverable && !chat && !appSlug) sink.artifact(deliverable.path)
       if (idle) clearTimeout(idle)
       grants.revoke(id)
+      // The builder's scratch session on its app ends with its turn.
+      if (appSlug) void endAppSession(appSlug)
       sink.done(failures.failure ? (code || 1) : (code ?? 1), checkpointId, failures.failure ?? undefined)
     })
 
