@@ -87,11 +87,18 @@ try {
   await win.keyboard.press('Enter')
   await win.waitForSelector('[data-testid="chat-stop"]', { timeout: 20000 })
   const t0 = Date.now()
-  await win.waitForSelector('[data-testid="chat-stop"]', { state: 'detached', timeout: 15 * 60_000 })
+  // While it builds: does it look at what it built (app.look leaves Apps/<slug>/.tests/look.png)?
+  let looked = false
+  for (let i = 0; i < 15 * 120 && (await win.$('[data-testid="chat-stop"]')); i++) {
+    looked ||= fs.existsSync(path.join(ws, 'Apps', slug, '.tests', 'look.png'))
+    await settle(500)
+  }
+  console.log(`  looked at its app while building: ${looked}`)
   // The harness after the build: design check (one fix), tests (up to three fixes), review (one fix), then next steps. Done when the
   // next steps show, or when nothing has run for 30 s (a review that gave nothing).
   for (let quiet = 0, i = 0; i < 3600 && quiet < 60; i++) {
     if (await win.$('[data-testid="chat-suggest"]')) break
+    looked ||= fs.existsSync(path.join(ws, 'Apps', slug, '.tests', 'look.png'))
     quiet = (await win.$('[data-testid="chat-stop"]')) ? 0 : quiet + 1
     await settle(500)
   }
@@ -105,6 +112,7 @@ try {
   check('the running app was reviewed against it, and three next steps are offered', /Review: \d+ of \d+ checks? met/.test(thread) && next.length === 3, JSON.stringify(next))
   console.log(`  next: ${next.join(' | ')}`)
   const plan = fs.existsSync(path.join(ws, 'Apps', slug, 'TESTS.json')) ? JSON.parse(fs.readFileSync(path.join(ws, 'Apps', slug, 'TESTS.json'), 'utf8')) : { scenarios: [] }
+  check('it looked at and used its app while building it', looked)
   check('its own end-to-end tests were written and run in the live app', plan.scenarios.length >= 3 && /Tests written \(TESTS\.json\): \d+ scenarios/.test(thread) && /Tests: (all \d+ passed|\d+ of \d+ passed)/.test(thread), `${plan.scenarios.length} scenarios`)
   await settle(1500)
   const reply = (await win.textContent('[data-testid="chat-thread"] [data-role="agent"]:last-child').catch(() => '')) ?? ''

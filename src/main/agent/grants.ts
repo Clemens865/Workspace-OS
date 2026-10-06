@@ -57,6 +57,8 @@ export interface Grant {
   scope: GrantScope
   /** For the log line when something is refused. */
   label: string
+  /** The app builder's run: the one app its app.* actions may drive. */
+  app?: string
 }
 
 /** Prefix set for a capability list. Unknown ids are ignored, not widened. */
@@ -82,11 +84,11 @@ export class GrantTable {
   private byRun = new Map<string, string>()
 
   /** Mint a token for a run. `capabilities` = 'all' keeps the legacy full grant. */
-  issue(runId: string, capabilities: readonly string[] | 'all', label = runId, root?: string): string {
+  issue(runId: string, capabilities: readonly string[] | 'all', label = runId, root?: string, app?: string): string {
     this.revoke(runId)
     const token = randomBytes(24).toString('base64url')
     const scope: GrantScope = capabilities === 'all' ? 'all' : prefixesFor(capabilities)
-    this.byToken.set(token, { runId, scope, label, ...(root ? { root } : {}) })
+    this.byToken.set(token, { runId, scope, label, ...(root ? { root } : {}), ...(app ? { app } : {}) })
     this.byRun.set(runId, token)
     return token
   }

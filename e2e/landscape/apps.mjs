@@ -47,6 +47,8 @@ await new Promise((ok) => server.listen(0, '127.0.0.1', ok))
 const port = server.address().port
 
 const callsFile = path.join(tmp, 'calls.json')
+const handsFile = path.join(tmp, 'hands.json')
+const ACTION_CLI = path.join(root, 'resources/wos-action/action-cli.cjs')
 const fake = path.join(tmp, 'claude.cjs')
 const COUNTER = `<!doctype html><html><head><title>Counter</title><link rel="stylesheet" href="style.css"></head><body><div class="wos-app"><div class="wos-main"><h1 id="n">Count: 0</h1><button id="inc" class="wos-btn primary">+1</button></div></div><script src="app.js"></script></body></html>`
 // The first build forgets to save: the app's own tests catch it, and the builder fixes it.
@@ -99,6 +101,11 @@ process.stdin.on('end', () => {
     fs.writeFileSync(path.join(dir, 'index.html'), ${JSON.stringify(COUNTER)});
     fs.writeFileSync(path.join(dir, 'app.js'), ${JSON.stringify(COUNTER_JS_BUGGY)});
     fs.writeFileSync(path.join(dir, 'style.css'), 'h1 { color: #ff0000 }');
+    // Mid-turn, the builder looks at and uses what it built (the real wos-action CLI, with its run's token).
+    const cli = (...a) => { try { return JSON.parse(require('node:child_process').execFileSync(process.execPath, [${JSON.stringify(ACTION_CLI)}, 'run', ...a], { env: process.env, encoding: 'utf8' })) } catch (e) { try { return JSON.parse(String(e.stdout)) } catch { return { ok: false, error: e.message } } } };
+    const hands = { reload: cli('app.reload'), click: cli('app.click', '{"text":"+1"}'), check: cli('app.check', '{"target":"#n","equals":"Count: 1"}'), miss: cli('app.check', '{"target":"#n","equals":"Count: 7"}'), look: cli('app.look'), write: cli('app.check', '{"js":"(await wos.storage.set(\\'probe\\', 1), true)"}'), data: cli('app.data'), browser: cli('browser.navigate', '{"url":"https://example.com"}') };
+    hands.shotThere = !!hands.look.result && fs.existsSync(path.join(process.cwd(), hands.look.result.screenshot.split(' ')[0]));
+    fs.writeFileSync(${JSON.stringify(handsFile)}, JSON.stringify(hands));
     text = 'Built a counter that remembers its count. Press +1.';
   }
   process.stdout.write(JSON.stringify({ type: 'stream_event', event: { type: 'content_block_delta', delta: { type: 'text_delta', text } } }) + '\\n');
@@ -214,8 +221,13 @@ try {
   await until(() => calls().slice(b).some(isBuild), 20000)
   const build = calls().slice(b).find(isBuild)
   const allowed = build ? build.args.slice(build.args.indexOf('--allowedTools') + 1) : []
-  check('the builder runs with the app brief, may edit only that app’s folder, and loads no settings', !!build && /You build and change ONE app/.test(build.system) && build.args[build.args.indexOf('--setting-sources') + 1] === '' && allowed.includes('Edit(./Apps/new-app/**)') && !allowed.some((t) => /^(Write|Edit|Bash)$/.test(t)) && !build.args.includes('--mcp-config'), build && build.args.join(' '))
+  check('the builder runs with the app brief, may edit only that app’s folder, and loads no settings', !!build && /You build and change ONE app/.test(build.system) && build.args[build.args.indexOf('--setting-sources') + 1] === '' && allowed.includes('Edit(./Apps/new-app/**)') && !allowed.some((t) => /^(Write|Edit|Bash)$/.test(t) || (/^Bash\(/.test(t) && t !== 'Bash(wos-action:*)')) && !build.args.includes('--mcp-config'), build && build.args.join(' '))
   check('…and is told the sandbox, the bridge and the design kit', !!build && /No network at all/.test(build.system) && /wos\.storage\.get/.test(build.system) && /\.wos-btn/.test(build.system))
+  await until(() => fs.existsSync(handsFile), 30000)
+  const hands = fs.existsSync(handsFile) ? JSON.parse(fs.readFileSync(handsFile, 'utf8')) : {}
+  check('the builder may drive its app mid-turn (wos-action, no other shell), and its click is real', allowed.includes('Bash(wos-action:*)') && hands.reload?.ok && hands.click?.ok && hands.check?.result === 'holds' && /does not hold: "#n" is "Count: 1", expected "Count: 7"/.test(hands.miss?.result ?? ''), JSON.stringify(hands).slice(0, 600))
+  check('…it sees the page’s controls and a screenshot it can read', (hands.look?.result?.items ?? []).some((i) => /^button#inc(\.[\w.-]+)? "\+1" at /.test(i) || /^#inc "\+1" at /.test(i)) && hands.shotThere && Array.isArray(hands.look?.result?.errors), JSON.stringify(hands.look).slice(0, 400))
+  check('…on scratch data, and its grant reaches nothing but its own app', hands.write?.result === 'holds' && JSON.stringify(hands.data?.result?.store) === '{"probe":1}' && !fs.existsSync(path.join(ws, 'Apps/new-app/data/store.json')) && /not granted/.test(hands.browser?.error ?? ''), JSON.stringify({ data: hands.data, browser: hands.browser }))
   const briefCall = calls().slice(b).find((c) => /You are the product lead/.test(c.system))
   check('a new app starts from a product brief, and the build is held to it', !!briefCall && /A counter that remembers its count/.test(briefCall.prompt) && /^# Counter/.test(fs.readFileSync(path.join(ws, 'Apps/new-app/BRIEF.md'), 'utf8')) && /Apps\/new-app\/BRIEF\.md: read it first/.test(build?.prompt ?? '') && /Product brief written \(BRIEF\.md\): 3 acceptance checks/.test((await win.textContent('[data-testid="chat-thread"]')) ?? ''), build?.prompt)
   // The design check finds the hard-coded red, and the builder fixes it once, on its own.

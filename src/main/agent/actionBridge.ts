@@ -9,6 +9,7 @@ import { runCalendarAction } from '../handlers/calendar'
 import { dataAction } from './dataActions'
 import { documentAction } from './documentActions'
 import { allows, grants, type Grant } from './grants'
+import { runAppAction } from '../apps/app-actions'
 
 /**
  * AGENT→ACTION bridge (main side).
@@ -98,6 +99,8 @@ export async function handleRequest(
     calendar?: (actionId: string, args: unknown) => Promise<ActionReply>
     documents?: (actionId: string, args: unknown) => Promise<ActionReply>
     data?: (args: unknown) => Promise<ActionReply>
+    /** The app builder driving its own app (apps/app-actions.ts): only the app its grant names. */
+    app?: (slug: string, actionId: string, args: unknown) => Promise<ActionReply>
     /**
      * Per-run authorization. Resolves the request's token to a grant; a run
      * outside its grant is refused BEFORE anything is touched. When absent
@@ -124,6 +127,10 @@ export async function handleRequest(
       // open (fresh launch, Close Workspace) there is nothing to protect.
       if (grant.root && ctx.root && grant.root !== ctx.root) return { ok: false, error: 'This run belongs to a different workspace. Start a new run here.' }
       runId = grant.runId
+      if (id.startsWith('app.')) {
+        if (!grant.app || !deps.app) return { ok: false, error: `not granted: ${id} is only for the app builder, on the app it builds` }
+        return deps.app(grant.app, id, req.args)
+      }
       if (!allows(grant.scope, id)) {
         console.warn(`[action-bridge] refused ${id} for run ${grant.label}: outside its grant`)
         return { ok: false, error: `not granted: ${id} is outside what this agent was given` }
@@ -153,7 +160,7 @@ export async function handleRequest(
 /** Same authorization and dispatch for the socket and Codex's structured app tool. */
 export function invokeGrantedAction(req: ActionRequest): Promise<ActionReply> {
   return handleRequest(req, { context: getContext, invoke: invokeInRenderer, cases: runCaseAction,
-    calendar: runCalendarAction, documents: documentAction, data: dataAction, grants: (token) => grants.lookup(token) })
+    calendar: runCalendarAction, documents: documentAction, data: dataAction, app: runAppAction, grants: (token) => grants.lookup(token) })
 }
 
 /** Forward a `run` to the focused window's renderer executor; await its reply. */
