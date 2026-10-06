@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
-import { LayoutGrid, PanelRight, Plus, Search } from 'lucide-react'
+import { LayoutGrid, Maximize2, PanelRight, Plus, Search } from 'lucide-react'
 import { sessionStore } from '../../../lib/sessions/sessionStore'
 import { useSessions } from '../session/SessionPane'
 import { useWorkspaceRoot } from '../../../hooks/useWorkspaceRoot'
@@ -40,6 +40,8 @@ export function ChatView({ onOpenUrl, onBeside, initialSession = null, onOpenApp
   const [activeId, setActiveId] = useState<string | null>(() => initialSession ?? sessionStore.list().find((s) => s.kind === 'chat')?.id ?? null)
   const [query, setQuery] = useState('')
   const [artifact, setArtifact] = useState<string | null>(null)
+  const [appFull, setAppFull] = useState(false)
+  useEffect(() => setAppFull(false), [activeId])
   const att = useAttachments()
 
   const session = sessionStore.get(activeId)
@@ -124,12 +126,15 @@ export function ChatView({ onOpenUrl, onBeside, initialSession = null, onOpenApp
             <div className={styles.artifactHead}>
               <LayoutGrid size={15} />
               <span className={styles.artifactName}>{live.running ? 'Building…' : 'Live preview'}</span>
+              <button type="button" className={styles.ghostBtn} onClick={() => setAppFull(true)} title="Fill the whole screen with it (Esc to leave)" data-testid="chat-app-full">
+                <Maximize2 size={13} /> Full screen
+              </button>
               <button type="button" className={styles.ghostBtn} onClick={() => onOpenApp?.(session.app!)} data-testid="chat-app-open">
                 Open in Apps
               </button>
             </div>
             <div className={styles.artifactBody} style={{ display: 'flex' }}>
-              <AppHost slug={session.app} version={`${session.lastAt}-${session.files.length}`} />
+              <AppHost slug={session.app} version={`${session.lastAt}-${session.files.length}`} full={appFull} onFull={setAppFull} />
             </div>
           </aside>
         ) : (

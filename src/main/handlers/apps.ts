@@ -306,6 +306,9 @@ export function registerAppsHandlers(ipcMain: IpcMain): void {
     return apps.installPackage(root, pkg)
   })
 
+  /** Whether the window is in macOS full screen (an app's Full screen then only covers it). */
+  ipcHandle(ipcMain, 'apps:windowFull', (e) => BrowserWindow.fromWebContents(e.sender)?.isFullScreen() ?? false)
+
   /** The design check (apps-store lintApp): run after each builder turn. */
   ipcHandle(ipcMain, 'apps:lint', (_e, slug: unknown) => apps.lintApp(requireRoot(), requireSlug(slug)))
 

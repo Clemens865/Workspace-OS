@@ -39,6 +39,14 @@
     }
   })
 
+  // Escape the app did not use itself (no preventDefault) is the host's: it leaves full screen.
+  window.addEventListener('keydown', function (e) {
+    if (e.key !== 'Escape') return
+    setTimeout(function () {
+      if (!e.defaultPrevented) window.parent.postMessage({ __wos: 1, type: 'escape' }, '*')
+    }, 0)
+  })
+
   function call(method, args) {
     return new Promise(function (ok, err) {
       var id = ++seq
