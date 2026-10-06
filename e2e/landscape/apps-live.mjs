@@ -88,7 +88,7 @@ try {
   await win.waitForSelector('[data-testid="chat-stop"]', { timeout: 20000 })
   const t0 = Date.now()
   await win.waitForSelector('[data-testid="chat-stop"]', { state: 'detached', timeout: 15 * 60_000 })
-  // The harness after the build: design check (one fix), review (one fix), then next steps. Done when the
+  // The harness after the build: design check (one fix), tests (up to three fixes), review (one fix), then next steps. Done when the
   // next steps show, or when nothing has run for 30 s (a review that gave nothing).
   for (let quiet = 0, i = 0; i < 3600 && quiet < 60; i++) {
     if (await win.$('[data-testid="chat-suggest"]')) break
@@ -97,13 +97,15 @@ try {
   }
   const thread = (await win.textContent('[data-testid="chat-thread"]')) ?? ''
   console.log(`  (built, checked and reviewed in ${Math.round((Date.now() - t0) / 1000)} s)`)
-  console.log(`  harness: ${thread.match(/(Product brief written[^.]*\.|No brief this time[^;]*;|Design check:[^.]*\.|Review:[^.]*\.)/g)?.join(' | ') ?? 'nothing said'}`)
+  console.log(`  harness: ${thread.match(/(Product brief written[^.]*\.|No brief this time[^;]*;|Design check:[^.]*\.|Tests written[^.]*\.|No new tests[^)]*\)|Tests:[^…]*?(?:\.|…)|Tests after the review fix:[^.]*\.|The tests could not run[^.]*\.|Review:[^.]*\.)/g)?.join(' | ') ?? 'nothing said'}`)
   const brief = fs.existsSync(path.join(ws, 'Apps', slug, 'BRIEF.md')) ? fs.readFileSync(path.join(ws, 'Apps', slug, 'BRIEF.md'), 'utf8') : ''
   const checks = (brief.match(/^\s*-\s*\[[ xX]?\]/gm) ?? []).length
   check('the idea became a product brief with acceptance checks', /^# \S/m.test(brief) && checks >= 6, `${checks} checks`)
   const next = await win.$$eval('[data-suggest]', (els) => els.map((e) => e.getAttribute('data-suggest')))
   check('the running app was reviewed against it, and three next steps are offered', /Review: \d+ of \d+ checks? met/.test(thread) && next.length === 3, JSON.stringify(next))
   console.log(`  next: ${next.join(' | ')}`)
+  const plan = fs.existsSync(path.join(ws, 'Apps', slug, 'TESTS.json')) ? JSON.parse(fs.readFileSync(path.join(ws, 'Apps', slug, 'TESTS.json'), 'utf8')) : { scenarios: [] }
+  check('its own end-to-end tests were written and run in the live app', plan.scenarios.length >= 3 && /Tests written \(TESTS\.json\): \d+ scenarios/.test(thread) && /Tests: (all \d+ passed|\d+ of \d+ passed)/.test(thread), `${plan.scenarios.length} scenarios`)
   await settle(1500)
   const reply = (await win.textContent('[data-testid="chat-thread"] [data-role="agent"]:last-child').catch(() => '')) ?? ''
   console.log(`  reply: ${reply.slice(0, 300)}`)

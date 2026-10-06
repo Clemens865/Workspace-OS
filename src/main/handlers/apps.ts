@@ -7,6 +7,8 @@ import { getWorkspaceRoot } from '../workspace-root'
 import * as apps from '../apps/apps-store'
 import { BRIEF_FILE, imageFromDataUrl, IMAGE_LIMITS, reviewApp, runSeeing, writeBrief } from '../apps/app-harness'
 import { mainWindow } from '../main-window'
+import { readPlan, writeTests } from '../apps/app-tests'
+import { runPlan, testing, type TestMode } from '../apps/app-driver'
 import { unzipSync, zipSync } from 'fflate'
 import { randomUUID } from 'crypto'
 
@@ -100,6 +102,37 @@ async function aiComplete(m: apps.AppManifest, a: Record<string, unknown>): Prom
     }
   } finally {
     running.set(m.slug, (running.get(m.slug) ?? 1) - 1)
+  }
+}
+
+/** A call while the app is under test: scratch data, the scenario's AI answer, no dialogs. */
+function testCall(t: TestMode, m: apps.AppManifest, method: unknown, a: Record<string, unknown>): unknown {
+  const key = typeof a.key === 'string' && a.key ? a.key : null
+  switch (method) {
+    case 'ai.complete':
+      if (!m.permissions.includes('ai') && !m.permissions.includes('ai.web')) throw new Error(`${m.name} may not use AI (app.json: "permissions": ["ai"])`)
+      if (!t.ai) throw new Error('AI is off in this test')
+      return t.ai.reply
+    case 'storage.get':
+      return key ? (t.store[key] ?? null) : null
+    case 'storage.set':
+      if (!key) throw new Error('A storage key is a short string')
+      t.store[key] = a.value === undefined ? null : JSON.parse(JSON.stringify(a.value))
+      return null
+    case 'storage.remove':
+      if (key) delete t.store[key]
+      return null
+    case 'storage.keys':
+      return Object.keys(t.store)
+    case 'files.save': {
+      const name = typeof a.name === 'string' ? a.name.slice(0, 120) : 'export'
+      t.saved.push({ name, data: typeof a.data === 'string' ? a.data.slice(0, 2_000_000) : '' })
+      return name
+    }
+    case 'files.open':
+      return t.open
+    default:
+      throw new IpcValidationError('Apps cannot do that')
   }
 }
 
@@ -302,7 +335,7 @@ export function registerAppsHandlers(ipcMain: IpcMain): void {
    * The harness, after a turn: the running app against its brief. `rect` is
    * where the app's frame is in the window (CSS pixels), for the screenshot.
    */
-  ipcHandle(ipcMain, 'apps:review', async (_e, slug: unknown, rect: unknown) => {
+  ipcHandle(ipcMain, 'apps:review', async (_e, slug: unknown, rect: unknown, tests: unknown) => {
     const root = requireRoot()
     const s = requireSlug(slug)
     let shot: Buffer | null = null
@@ -317,7 +350,33 @@ export function registerAppsHandlers(ipcMain: IpcMain): void {
         /* reviewed from the files alone */
       }
     }
-    return reviewApp(root, s, shot)
+    return reviewApp(root, s, shot, typeof tests === 'string' ? tests.slice(0, 4000) : '')
+  })
+
+  /** The harness, after a turn: the app's end-to-end tests (Apps/<slug>/TESTS.json), written or updated. */
+  ipcHandle(ipcMain, 'apps:testsWrite', async (_e, slug: unknown, request: unknown) => {
+    const root = requireRoot()
+    const s = requireSlug(slug)
+    const page = path.join(apps.appDir(root, s), 'index.html')
+    if (!fs.existsSync(page) || fs.readFileSync(page, 'utf8').includes('data-wos-new')) return null
+    return writeTests(root, s, typeof request === 'string' ? request.slice(0, 8000) : '')
+  })
+
+  /** The harness: runs the app's tests in its live preview beside the chat (null when it has none). */
+  const testRuns = new Set<string>()
+  ipcHandle(ipcMain, 'apps:test', async (_e, slug: unknown) => {
+    const root = requireRoot()
+    const s = requireSlug(slug)
+    const plan = readPlan(root, s)
+    const win = mainWindow()
+    if (!plan || !win) return null
+    if (testRuns.has(s)) throw new IpcValidationError('The tests of this app are already running')
+    testRuns.add(s)
+    try {
+      return await runPlan(win, root, s, plan, (i, total, name) => win.webContents.send('apps:test-progress', { slug: s, i, total, name }))
+    } finally {
+      testRuns.delete(s)
+    }
   })
 
   /** One request from a running app (see resources/apps-kit/bridge.js). */
@@ -326,6 +385,8 @@ export function registerAppsHandlers(ipcMain: IpcMain): void {
     const m = apps.readManifest(root, requireSlug(slug))
     if (!m) throw new IpcValidationError('No such app')
     const a = (args && typeof args === 'object' ? args : {}) as Record<string, unknown>
+    const t = testing.get(m.slug)
+    if (t) return testCall(t, m, method, a)
     switch (method) {
       case 'ai.complete':
         return aiComplete(m, a)

@@ -22,6 +22,15 @@ export interface CaseViewResult {
 
 /** A memory the workspace itself recorded (distinct from a Pulse insight). */
 /** What the last tidy did. */
+/** An app's end-to-end tests, run in its live preview (src/main/apps/app-driver.ts). */
+export interface WosAppTestReport {
+  total: number
+  passed: number
+  scenarios: { name: string; check: string; ok: boolean; step?: number; error?: string; errors: string[]; shot?: string }[]
+  ms: number
+  stopped?: string
+}
+
 export interface WosAppManifest {
   slug: string
   name: string
@@ -1088,7 +1097,14 @@ export interface WorkspaceApi {
     review: (
       slug: string,
       rect: { x: number; y: number; width: number; height: number } | null,
+      tests?: string,
     ) => Promise<{ checks: { check: string; met: boolean; note: string }[]; looks: string[]; next: string[] } | null>
+    /** The app harness: writes or updates the app's end-to-end tests (TESTS.json); null for an app not built yet. */
+    testsWrite: (slug: string, request: string) => Promise<{ scenarios: number } | null>
+    /** The app harness: runs the app's tests in its live preview beside the chat, with real clicks; null when it has none. */
+    test: (slug: string) => Promise<WosAppTestReport | null>
+    /** Which scenario the tests are on. */
+    onTestProgress: (cb: (p: { slug: string; i: number; total: number; name: string }) => void) => () => void
     /** Saves the app as a .wosapp file (its own files, not its data); the file name, or null if cancelled. */
     export: (slug: string) => Promise<string | null>
     /** Picks and checks a .wosapp file; what it is and asks for, to confirm. */

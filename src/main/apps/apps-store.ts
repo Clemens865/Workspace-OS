@@ -156,6 +156,13 @@ export function loadKit(kitDir: string): Kit {
   return { css, bridge: fs.readFileSync(path.join(kitDir, 'bridge.js'), 'utf8'), libs }
 }
 
+/** Keeps the page's errors (from its first line on) where the app's tests read them: window.__wosErrors. */
+const ERROR_RECORDER =
+  "(function(){var l=window.__wosErrors=[];function p(s){if(l.length<50)l.push(String(s).slice(0,400))}" +
+  "addEventListener('error',function(e){p(e.message||'Error')});" +
+  "addEventListener('unhandledrejection',function(e){var r=e.reason;p('Unhandled: '+(r&&r.message||r))});" +
+  "var c=console.error;console.error=function(){p([].map.call(arguments,String).join(' '));return c.apply(console,arguments)}})()"
+
 /** The app as one page: CSP, kit, bridge, then the app with its own files inlined. */
 export function composeApp(root: string, slug: string, kit: Kit, theme: 'light' | 'dark'): { manifest: AppManifest; html: string } {
   const manifest = readManifest(root, slug)
@@ -180,6 +187,7 @@ export function composeApp(root: string, slug: string, kit: Kit, theme: 'light' 
     `<meta http-equiv="Content-Security-Policy" content="${APP_CSP}">`,
     `<style data-wos-kit>\n${kit.css}\n</style>`,
     `<script>window.__WOS_APP__=${info}</script>`,
+    `<script data-wos-errors>${ERROR_RECORDER}</script>`,
     `<script data-wos-bridge>\n${safeScript(kit.bridge)}\n</script>`,
     ...manifest.libraries.map((l) => (kit.libs?.[l] ? `<script data-wos-lib="${l}">\n${safeScript(kit.libs[l]!)}\n</script>` : `<script>console.error('The ${l} library is not in this build')</script>`)),
   ].join('\n')
