@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { caseOnFirstAsk, outcomeLine, QUIET_MS, sessionDigest, shouldSuggestCase, titleFromPrompt, trimMessages, turnNotes, wantsReflection, workItems, type Session } from './sessionModel'
+import { caseOnFirstAsk, outcomeLine, QUIET_MS, sessionDigest, shouldSuggestCase, titleFromPrompt, trimMessages, turnNotes, wantsReflection, workItems, type Session, runIdFor } from './sessionModel'
 
 const s = (over: Partial<Session> = {}): Session => ({
   id: 'a',
@@ -111,5 +111,20 @@ describe('what memory learns from', () => {
     expect(wantsReflection({ ...quiet, lastAt: now - 1000 }, false, now)).toBe(false)
     expect(wantsReflection({ ...quiet, reflectedTurns: 2 }, false, now)).toBe(false)
     expect(wantsReflection({ ...quiet, reflectedTurns: 1 }, false, now)).toBe(true)
+  })
+})
+
+describe('run ids', () => {
+  // The rule main applies to every run (handlers/agent.ts assertRunId).
+  const valid = (id: string): boolean => /^[a-z0-9-]{6,40}$/.test(id)
+  it('fit main’s rule for every kind of session, a terminal tab’s included', () => {
+    const now = 1759738771234
+    for (const id of ['dockagent17597387712343', 'dockAgent1759738771234999999999', 's1abc2def', 'session-with-a-very-long-identifier-indeed-0123456789', 'Ü']) {
+      expect([id, valid(runIdFor(id, now))]).toEqual([id, true])
+    }
+  })
+  it('stay apart for different sessions and times', () => {
+    expect(runIdFor('dockagent1', 1)).not.toBe(runIdFor('dockagent2', 1))
+    expect(runIdFor('dockagent1', 1)).not.toBe(runIdFor('dockagent1', 2))
   })
 })

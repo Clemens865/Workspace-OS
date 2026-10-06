@@ -208,6 +208,17 @@ try {
   await settle(800)
   check('…and deletes it', !(await win.evaluate(() => window.__sessionStore.list().some((s) => s.title.startsWith('Quick question')))))
 
+  // ── a terminal agent tab: its session id ("dockagent<ms><n>", TerminalAgentPane) made a run id main refused ──
+  const nDock = calls().length
+  const dockId = `dockagent${Date.now()}3`
+  await win.evaluate(async (id) => {
+    window.__sessionStore.create({ id, agentName: null })
+    await window.__sessionStore.send(id, 'Say hi from the terminal tab')
+  }, dockId)
+  for (let i = 0; i < 30 && calls().length === nDock; i++) await settle(300)
+  const dockSaid = await win.evaluate((id) => window.__sessionStore.get(id)?.messages.map((m) => m.text).join(' ') ?? '', dockId)
+  check('a terminal agent tab runs: its long session id makes a run id main accepts', calls().length > nDock && !/Invalid run id/.test(dockSaid), dockSaid.slice(0, 200))
+
   // ── delete a case ──
   await win.click('[data-mode="shelf"]')
   await settle(600)
