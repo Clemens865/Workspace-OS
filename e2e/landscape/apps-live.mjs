@@ -124,7 +124,9 @@ try {
   check('it wrote only inside its own folder', outside.length === 0 && changed.some((k) => k.startsWith(`Apps/${slug}/`)), JSON.stringify(changed))
   const dir = path.join(ws, 'Apps', slug)
   const manifest = JSON.parse(fs.readFileSync(path.join(dir, 'app.json'), 'utf8'))
-  check('its manifest says what it is', manifest.name !== 'New app' && manifest.description.length > 10 && manifest.icon, JSON.stringify(manifest))
+  const icon = fs.existsSync(path.join(ws, 'Apps', slug, 'icon.svg')) ? fs.readFileSync(path.join(ws, 'Apps', slug, 'icon.svg'), 'utf8') : ''
+  check('its manifest says what it is, and it drew its own icon (no emoji)', manifest.name !== 'New app' && manifest.description.length > 10 && !('icon' in manifest) && /^<svg[\s\S]*viewBox="0 0 24 24"[\s\S]*<\/svg>\s*$/.test(icon.trim()), JSON.stringify(manifest) + ' ' + icon.slice(0, 300))
+  if (process.env.WOS_SHOT_DIR && icon) fs.writeFileSync(path.join(process.env.WOS_SHOT_DIR, 'live-icon.svg'), icon)
   const code = fs
     .readdirSync(dir)
     .filter((f) => /\.(html|js|css)$/.test(f))

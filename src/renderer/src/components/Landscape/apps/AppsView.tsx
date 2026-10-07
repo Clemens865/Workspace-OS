@@ -14,8 +14,20 @@ const when = (t: number): string => {
 }
 const reason = (e: unknown): string => (e instanceof Error ? e.message.replace(/^Error invoking remote method '[^']+': (Error: )?/, '') : 'That did not work')
 
-function Icon({ icon }: { icon: string }): JSX.Element {
-  return <span className={styles.icon}>{icon}</span>
+/** An app's own line icon (icon.svg), drawn in the workspace's ink; without one, its initial. Never an emoji. */
+export function AppIcon({ icon, name }: { icon: string; name: string }): JSX.Element {
+  if (icon.startsWith('data:image/svg+xml')) {
+    return (
+      <span className={styles.icon} data-app-icon="svg">
+        <span className={styles.glyph} style={{ WebkitMaskImage: `url("${icon}")`, maskImage: `url("${icon}")` }} />
+      </span>
+    )
+  }
+  return (
+    <span className={`${styles.icon} ${styles.initial}`} data-app-icon="initial">
+      {(name.trim()[0] ?? '?').toUpperCase()}
+    </span>
+  )
 }
 
 interface Props {
@@ -125,7 +137,7 @@ export function AppsView({ onBuild, initialApp = null }: Props): JSX.Element {
                 <ArrowLeft size={14} /> All apps
               </button>
               <span className={styles.runName}>
-                {current && <Icon icon={current.icon} />} {current?.name ?? open}
+                {current && <AppIcon icon={current.icon} name={current.name} />} {current?.name ?? open}
               </span>
               <button type="button" className={styles.ghost} onClick={() => setFull(true)} title="Fill the whole screen with it (Esc to leave)" data-testid="apps-full">
                 <Maximize2 size={14} /> Full screen
@@ -160,7 +172,7 @@ export function AppsView({ onBuild, initialApp = null }: Props): JSX.Element {
             </div>
             {offer && (
               <div className={styles.offer} data-testid="apps-import-offer">
-                <Icon icon={offer.manifest.icon} />
+                <AppIcon icon={offer.manifest.icon} name={offer.manifest.name} />
                 <div className={styles.offerText}>
                   <span className={styles.cardName}>Add “{offer.manifest.name}”?</span>
                   <span className={styles.cardText}>
@@ -179,7 +191,7 @@ export function AppsView({ onBuild, initialApp = null }: Props): JSX.Element {
             <div className={styles.grid} data-testid="apps-grid">
               {(list ?? []).map((a) => (
                 <button key={a.slug} type="button" className={styles.card} onClick={() => setOpen(a.slug)} data-app-card={a.slug}>
-                  <Icon icon={a.icon} />
+                  <AppIcon icon={a.icon} name={a.name} />
                   <span className={styles.cardName}>{a.name}</span>
                   <span className={styles.cardText}>{a.description || 'No description yet.'}</span>
                   <span className={styles.cardWhen}>{when(a.updatedAt)}</span>
@@ -202,7 +214,7 @@ export function AppsView({ onBuild, initialApp = null }: Props): JSX.Element {
                     .filter((t) => !t.added)
                     .map((t) => (
                       <div key={t.slug} className={`${styles.card} ${styles.templateCard}`} data-template={t.slug}>
-                        <Icon icon={t.icon} />
+                        <AppIcon icon={t.icon} name={t.name} />
                         <span className={styles.cardName}>{t.name}</span>
                         <span className={styles.cardText}>{t.description}</span>
                         <button type="button" className={styles.addBtn} onClick={() => void add(t.slug)} data-testid={`apps-add-${t.slug}`}>

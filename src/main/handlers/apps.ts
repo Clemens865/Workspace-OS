@@ -216,7 +216,10 @@ export function registerAppsHandlers(ipcMain: IpcMain): void {
 
   ipcHandle(ipcMain, 'apps:list', () => {
     const root = getWorkspaceRoot()
-    return root ? apps.listApps(root) : []
+    if (!root) return []
+    // A copy of a built-in app made before it had an icon.svg shows the built-in's icon.
+    const icons = new Map(templates().map((t) => [t.slug, t.icon]))
+    return apps.listApps(root).map((a) => (!a.icon && a.from && icons.get(a.from) ? { ...a, icon: icons.get(a.from)! } : a))
   })
 
   ipcHandle(ipcMain, 'apps:templates', () => {
@@ -244,7 +247,7 @@ export function registerAppsHandlers(ipcMain: IpcMain): void {
     const slug = apps.freeSlug(root, apps.slugify(n))
     const dir = apps.appDir(root, slug)
     fs.mkdirSync(dir, { recursive: true })
-    fs.writeFileSync(path.join(dir, 'app.json'), JSON.stringify({ name: n, description: typeof description === 'string' ? description.slice(0, 240) : '', icon: n.slice(0, 1).toUpperCase(), permissions: ['ai'], entry: 'index.html' }, null, 2))
+    fs.writeFileSync(path.join(dir, 'app.json'), JSON.stringify({ name: n, description: typeof description === 'string' ? description.slice(0, 240) : '', permissions: ['ai'], entry: 'index.html' }, null, 2))
     fs.writeFileSync(path.join(dir, 'index.html'), `<!doctype html>\n<html>\n<head><title>${n.replace(/[<&]/g, '')}</title></head>\n<body>\n  <div class="wos-app"><div class="wos-main"><div class="wos-empty" data-wos-new>Describe this app in the chat, and it is built here.</div></div></div>\n</body>\n</html>\n`)
     return slug
   })

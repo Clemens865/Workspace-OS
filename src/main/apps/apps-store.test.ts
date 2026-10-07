@@ -2,9 +2,10 @@ import { describe, it, expect, beforeEach, afterEach } from 'vitest'
 import fs from 'fs'
 import os from 'os'
 import path from 'path'
-import { APP_CSP, composeApp, copyApp, freeSlug, installPackage, isSlug, lintApp, listApps, loadKit, packageFiles, readManifest, readPackage, slugify, storage, type Kit } from './apps-store'
+import { APP_CSP, composeApp, copyApp, freeSlug, iconDataUrl, installPackage, isSlug, lintApp, listApps, loadKit, packageFiles, readManifest, readPackage, slugify, storage, type Kit } from './apps-store'
 
 let root: string
+const ICON = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="#000"><circle cx="12" cy="12" r="8"/></svg>'
 const kit: Kit = { css: '.wos-btn{}', bridge: 'window.wos={}' }
 const write = (rel: string, text: string): void => {
   const p = path.join(root, rel)
@@ -101,6 +102,7 @@ describe('the design check', () => {
     write('Apps/ok/index.html', '<div class="wos-app"><button class="wos-btn ghost small" id="add-note">+</button><p>&#039;quoted&#039;</p></div><script src="app.js"></script>')
     write('Apps/ok/app.js', "const ink = getComputedStyle(document.documentElement).getPropertyValue('--ink'); wos.storage.set('a', 1); const ns = 'http://www.w3.org/2000/svg'")
     write('Apps/ok/style.css', '#add-note { color: var(--ink); font-family: var(--sans); background: rgba(var(--ink-rgb), 0.05) } /* was #ff0000 */')
+    write('Apps/ok/icon.svg', ICON)
     expect(lintApp(root, 'ok')).toEqual([])
   })
 
@@ -109,15 +111,35 @@ describe('the design check', () => {
     write('Apps/bad/style.css', '.note { background: #fff9e6; border: 1px solid #999; color: rgb(10, 20, 30); font-family: Roboto, sans-serif }')
     write('Apps/bad/app.js', "localStorage.setItem('x', 1)")
     const rules = lintApp(root, 'bad').map((f) => f.rule).sort()
-    expect(rules).toEqual(['class', 'colour', 'colour', 'font', 'network', 'storage'])
+    expect(rules).toEqual(['class', 'colour', 'colour', 'font', 'icon', 'network', 'storage'])
     expect(lintApp(root, 'bad').find((f) => f.rule === 'colour')?.detail).toContain('#fff9e6 #999')
   })
 
   it('lets a file of drawing palettes hold colours, and only that file', () => {
     write('Apps/draw/palettes.js', "// wos-design-check: names colour\nconst P = [{ bg: '#3a3e2c', accent: 'rgb(212, 240, 74)' }]")
+    write('Apps/draw/icon.svg', ICON)
     expect(lintApp(root, 'draw')).toEqual([])
     write('Apps/draw/style.css', '.side { background: #3a3e2c }')
     expect(lintApp(root, 'draw').map((f) => f.detail)).toEqual([expect.stringContaining('style.css: hard-coded colours #3a3e2c')])
+  })
+})
+
+describe('an app’s icon', () => {
+  it('is its own line drawing, never an emoji or a symbol character', () => {
+    write('Apps/a/index.html', '<button class="wos-btn">\u{1F680} Launch</button><p>Done \u2705</p>')
+    write('Apps/a/app.json', JSON.stringify({ name: 'Rocket', icon: '\u{1F680}' }))
+    const found = lintApp(root, 'a')
+    expect(found.map((f) => f.rule).sort()).toEqual(['emoji', 'icon', 'icon'])
+    expect(found.find((f) => f.rule === 'emoji')?.detail).toContain('never emoji')
+    expect(readManifest(root, 'a')?.icon).toBe('') // the emoji in app.json is never shown: the card shows its initial
+    write('Apps/a/icon.svg', ICON)
+    expect(readManifest(root, 'a')?.icon).toMatch(/^data:image\/svg\+xml;base64,/)
+  })
+
+  it('is only a plain, small drawing', () => {
+    expect(iconDataUrl(ICON)).not.toBe('')
+    for (const bad of ['<svg><script>alert(1)</script></svg>', '<svg onload="x()"></svg>', '<svg><image href="https://x.test/a.png"/></svg>', '<svg><use href="file:///etc/passwd"/></svg>', '<div>not svg</div>', '<svg>' + 'x'.repeat(17000) + '</svg>']) expect(iconDataUrl(bad)).toBe('')
+    expect(iconDataUrl('<svg><defs><path id="p"/></defs><use href="#p"/></svg>')).not.toBe('') // a reference inside the drawing is fine
   })
 })
 
@@ -130,6 +152,7 @@ describe('the built-in apps', () => {
       copyApp(path.join(dir, id), path.join(root, 'Apps', id))
       expect([id, lintApp(root, id)]).toEqual([id, []])
       expect(readManifest(root, id)?.name).toBeTruthy()
+      expect(readManifest(root, id)?.icon).toMatch(/^data:image\/svg\+xml/) // each has its own drawn icon
     }
   })
 })

@@ -35,6 +35,7 @@ export interface WosAppManifest {
   slug: string
   name: string
   description: string
+  /** The app's icon.svg as a data: URL, or '' (shown as its initial). */
   icon: string
   permissions: ('ai' | 'ai.web')[]
   libraries: 'hairline'[]
