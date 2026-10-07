@@ -143,6 +143,25 @@
   font-size: 14px;
 }
 
+/* The app's icon.svg, as a mask: always the workspace's ink, in light and dark. */
+.glyph {
+  width: 24px;
+  height: 24px;
+  background: var(--wl-ink);
+  -webkit-mask: no-repeat center / contain;
+  mask: no-repeat center / contain;
+}
+
+.runName .glyph {
+  width: 16px;
+  height: 16px;
+}
+
+.initial {
+  font-family: var(--wl-serif);
+  font-weight: 400;
+}
+
 .cardName {
   font-family: var(--wl-serif);
   font-size: 17px;

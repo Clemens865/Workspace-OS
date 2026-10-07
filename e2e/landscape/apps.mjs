@@ -97,7 +97,8 @@ process.stdin.on('end', () => {
     text = 'Fixed: the heading now uses the ink token.';
   } else if (system.includes('You build and change ONE app')) {
     const dir = path.join(process.cwd(), 'Apps', 'new-app');
-    fs.writeFileSync(path.join(dir, 'app.json'), JSON.stringify({ name: 'Counter', description: 'Counts, and remembers.', icon: '🔢', permissions: [], entry: 'index.html' }));
+    fs.writeFileSync(path.join(dir, 'app.json'), JSON.stringify({ name: 'Counter', description: 'Counts, and remembers.', permissions: [], entry: 'index.html' }));
+    fs.writeFileSync(path.join(dir, 'icon.svg'), '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="#000" stroke-width="1.6"><path d="M12 5v14M5 12h14"/></svg>');
     fs.writeFileSync(path.join(dir, 'index.html'), ${JSON.stringify(COUNTER)});
     fs.writeFileSync(path.join(dir, 'app.js'), ${JSON.stringify(COUNTER_JS_BUGGY)});
     fs.writeFileSync(path.join(dir, 'style.css'), 'h1 { color: #ff0000 }');
@@ -311,6 +312,9 @@ try {
   await settle(500)
   await shot('app-gallery.png')
   const cards = await win.$$eval('[data-app-card]', (els) => els.map((e) => e.getAttribute('data-app-card')))
+  const icons = await win.$$eval('[data-app-card]', (els) => els.map((e) => [e.getAttribute('data-app-card'), e.querySelector('[data-app-icon]')?.getAttribute('data-app-icon')]))
+  const galleryText = (await win.textContent('[data-testid="apps-view"]')) ?? ''
+  check('every app shows its own drawn icon, and no emoji anywhere', icons.length >= 3 && icons.every(([, k]) => k === 'svg') && (await win.$$('[data-template] [data-app-icon="svg"]')).length === (await win.$$('[data-template]')).length && (await win.$$('[data-template]')).length >= 4 && !/[\u{1F000}-\u{1FAFF}\u{2600}-\u{27BF}]/u.test(galleryText), JSON.stringify(icons))
   check('the gallery lists every app', ['new-app', 'new-app-copy', 'svg-generator'].every((s) => cards.includes(s)), JSON.stringify(cards))
 } catch (e) {
   check('run completed', false, e.message)

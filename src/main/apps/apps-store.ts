@@ -28,7 +28,7 @@ export interface AppManifest {
   slug: string
   name: string
   description: string
-  /** One emoji or up to two letters, for the card. */
+  /** The app's own icon (icon.svg, a line drawing) as a data: URL, or '' (the card shows its initial). Never an emoji. */
   icon: string
   permissions: Permission[]
   /** Kit libraries loaded before the app's own scripts (e.g. "hairline" → window.hairline). */
@@ -61,6 +61,30 @@ export const appDir = (root: string, slug: string): string => {
   return path.join(root, APPS_DIR, slug)
 }
 
+export const ICON_FILE = 'icon.svg'
+const ICON_BYTES = 16 * 1024
+
+/**
+ * An app's icon.svg as a data: URL, or '' when it has none or it is not a
+ * plain drawing. It is only ever shown as an image mask (it cannot run or
+ * load anything there); the checks keep it a small, self-contained drawing.
+ */
+export function iconDataUrl(svg: string): string {
+  const t = svg.trim()
+  if (!t || t.length > ICON_BYTES) return ''
+  if (!/^(<\?xml[^>]*>\s*)?<svg[\s>]/i.test(t) || !/<\/svg>$/i.test(t)) return ''
+  if (/<script|<foreignObject|<image|\son\w+\s*=|(?:xlink:)?href\s*=\s*(?!["']?#)/i.test(t)) return ''
+  return `data:image/svg+xml;base64,${Buffer.from(t).toString('base64')}`
+}
+
+function readIcon(dir: string): string {
+  try {
+    return iconDataUrl(fs.readFileSync(path.join(dir, ICON_FILE), 'utf8'))
+  } catch {
+    return ''
+  }
+}
+
 /** A manifest read defensively: a hand-edited or generated app.json never breaks the gallery. */
 export function readManifest(root: string, slug: string): AppManifest | null {
   return readManifestAt(appDir(root, slug), slug)
@@ -72,7 +96,7 @@ export function readManifestAt(dir: string, slug: string): AppManifest | null {
   try {
     raw = JSON.parse(fs.readFileSync(path.join(dir, 'app.json'), 'utf8')) as Record<string, unknown>
   } catch {
-    return fs.existsSync(path.join(dir, 'index.html')) ? { slug, name: slug, description: '', icon: slug.slice(0, 2).toUpperCase(), permissions: [], libraries: [], entry: 'index.html' } : null
+    return fs.existsSync(path.join(dir, 'index.html')) ? { slug, name: slug, description: '', icon: readIcon(dir), permissions: [], libraries: [], entry: 'index.html' } : null
   }
   const str = (v: unknown, n: number): string => (typeof v === 'string' ? v.trim().slice(0, n) : '')
   const entry = str(raw.entry, 80) || 'index.html'
@@ -80,7 +104,7 @@ export function readManifestAt(dir: string, slug: string): AppManifest | null {
     slug,
     name: str(raw.name, 60) || slug,
     description: str(raw.description, 240),
-    icon: str(raw.icon, 4) || slug.slice(0, 2).toUpperCase(),
+    icon: readIcon(dir),
     permissions: (Array.isArray(raw.permissions) ? raw.permissions : []).filter((p): p is Permission => PERMISSIONS.includes(p as Permission)),
     libraries: (Array.isArray(raw.libraries) ? raw.libraries : []).filter((l): l is Library => LIBRARIES.includes(l as Library)),
     entry: /^[\w.-]+\.html?$/.test(entry) ? entry : 'index.html',
@@ -252,10 +276,13 @@ export const KIT_CLASSES = new Set([
 ])
 
 export interface LintFinding {
-  rule: 'colour' | 'font' | 'network' | 'storage' | 'class'
+  rule: 'colour' | 'font' | 'network' | 'storage' | 'class' | 'icon' | 'emoji'
   /** What was found, as the person and the builder will read it. */
   detail: string
 }
+
+/** Emoji (pictographs and the dingbat/symbol blocks), not letters, punctuation or ✓-style marks drawn in text. */
+const EMOJI = /[\u{1F000}-\u{1FAFF}\u{2600}-\u{26FF}\u{2700}-\u{27BF}\u{2B50}\u{2B55}]\u{FE0F}?/gu
 
 /**
  * Checks an app's own files against the kit and the sandbox. Run after every
@@ -295,6 +322,15 @@ export function lintApp(root: string, slug: string): LintFinding[] {
     for (const c of new Set(text.match(/(?<![-\w])wos-[a-z-]+\b/g) ?? [])) {
       if (!KIT_CLASSES.has(c) && !/^wos-(app|bridge|kit|design-check)\b/.test(c)) add('class', `${f}: .${c} is not in the kit (modifiers are separate classes: "wos-btn ghost")`)
     }
+    const emoji = [...new Set(text.match(EMOJI) ?? [])]
+    if (emoji.length && !names.has('emoji')) add('emoji', `${f}: emoji ${emoji.slice(0, 6).join(' ')}; the interface uses line icons (inline SVG), never emoji`)
+  }
+  // Its icon: its own line drawing (icon.svg), never an emoji or a symbol character.
+  if (!readIcon(dir)) add('icon', fs.existsSync(path.join(dir, ICON_FILE)) ? `${ICON_FILE} is not a plain drawing (one <svg> under 16 KB, no scripts, images or links); redraw it` : `${ICON_FILE} is missing: draw the app's icon (a line drawing, viewBox 0 0 24 24)`)
+  try {
+    if ('icon' in JSON.parse(fs.readFileSync(path.join(dir, 'app.json'), 'utf8'))) add('icon', `app.json: remove "icon"; the app's icon is ${ICON_FILE}`)
+  } catch {
+    /* no app.json: the manifest falls back */
   }
   return found
 }
@@ -360,6 +396,7 @@ export function readPackage(entries: Record<string, Uint8Array>, fallbackName = 
   try {
     if (files['app.json']) fs.writeFileSync(path.join(tmp, 'app.json'), files['app.json'])
     if (files['index.html']) fs.writeFileSync(path.join(tmp, 'index.html'), files['index.html'])
+    if (files[ICON_FILE]) fs.writeFileSync(path.join(tmp, ICON_FILE), files[ICON_FILE])
     const m = readManifestAt(tmp, slugify(prefix.replace(/\/$/, '') || fallbackName))
     if (!m || !files[m.entry]) throw new Error('This file holds no app page (index.html)')
     if (!files['app.json']) m.name = prefix.replace(/\/$/, '') || fallbackName

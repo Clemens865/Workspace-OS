@@ -1,7 +1,6 @@
 {
   "name": "Devil's Advocate",
   "description": "Put a plan or an idea in; get the strongest case against it, the risks it hides, and what would change the verdict.",
-  "icon": "⚖",
   "permissions": ["ai"],
   "entry": "index.html"
 }

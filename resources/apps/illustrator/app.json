@@ -1,7 +1,6 @@
 {
   "name": "Illustrator Light",
   "description": "Draw vector graphics: shapes, pen and pencil, text, layers and colours; import and export SVG and PNG, or ask the AI to draw.",
-  "icon": "✎",
   "permissions": ["ai"],
   "entry": "index.html"
 }
