@@ -2,7 +2,7 @@
 
 Branch `windows-native`, from `linux-wsl-support`. Goal: a Windows x64 installer that runs the app,
 the office engine and file access natively on Windows, with agents that keep working against an
-existing setup. Status: decisions taken (below); phase 0 next.
+existing setup. Status: phase 0 run on GitHub Actions; results below. Calc rendering is the open point.
 
 ## What we know (checked 2026-10-23)
 
@@ -52,6 +52,18 @@ winget install --id Python.Python.3.13 --exact
 
 Then open a new terminal, run `claude` once to sign in, and run the Workspace OS installer from the
 release page.
+
+## Phase 0 results (GitHub Actions, windows-latest, LibreOffice 26.8.1.1)
+
+| Spike | Result | Evidence |
+|---|---|---|
+| S1 LOK on Windows, Writer | Pass | `.docx` opens; tile renders text on a white page |
+| S1 LOK on Windows, Calc load | Fixed | Loading any Calc document (also a blank one) deadlocked. Thread dump: the LOK thread holds the SolarMutex in `lo_documentLoadWithOptions` and calls `SetWindowPos` while creating the formula bar's Name Box (`ScInputWindow` → `ScPosWnd`); the window belongs to the "VCL Main" thread, which waits for the SolarMutex in `CoWaitForMultipleHandles` and does not process the sent message. The wait changed on 2025-01-10 ("Try to use CoWaitForMultipleHandles magic to handle COM message loop"): 24.8 and 25.2 use `MsgWaitForMultipleObjects(QS_SENDMESSAGE)`, 25.8 and later `CoWaitForMultipleHandles`. The host now hides the formula bar (child window 26100) in its private profile on Windows; xlsx and csv then load. |
+| S1 LOK on Windows, Calc render | **Open** | Tiles come back opaque black (alpha 255, RGB 0) at every scale, after `setPart`, and after `setClientVisibleArea` + `setClientZoom`. Not the renderer (Skia default, `SAL_DISABLESKIA=1`, `SAL_SKIA=raster`) and not the colour configuration (light appearance, explicit scheme colours). The runner reports no high-contrast mode. Linux renders the same file. |
+| S2 fd 3/4 pipes | Pass | JSON and tile frames arrive from the MSVC-built host |
+| S3 native modules | Pass | `better-sqlite3` and `node-pty` load in Electron 42.4.1 |
+| S4 installer | Pass | `electron-builder --win` builds `Workspace OS Setup 0.2.26.exe` |
+| Unit tests on Windows | Baseline | 257 of 274 files pass; the 17 failing files are POSIX assumptions (sockets, pty, paths) and the new host-profile tests' POSIX example paths |
 
 ## Phases
 
