@@ -20,6 +20,11 @@
 // Tiles ride their own pipe so bulk pixels never queue behind callbacks or
 // vice versa. INVALIDATE_TILES callbacks are coalesced engine-side (rect union).
 
+#ifdef _WIN32
+// LibreOfficeKitInit.h includes <windows.h>; keep its min/max macros away from std::min/max.
+#define NOMINMAX
+#define WIN32_LEAN_AND_MEAN
+#endif
 #define LOK_USE_UNSTABLE_API
 #include "LibreOfficeKit/LibreOfficeKit.h"
 #include "LibreOfficeKit/LibreOfficeKitInit.h"
