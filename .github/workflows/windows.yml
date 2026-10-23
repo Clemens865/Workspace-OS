@@ -129,13 +129,17 @@ jobs:
             unit-tests.log
             ${{ runner.temp }}/tiles/**/*.ppm
 
-  # Engine experiment: LibreOffice 25.2 (the last release whose VCL main thread
-  # still processes sent messages while it waits for the SolarMutex), installed
-  # normally. Calc with the formula bar shown and hidden, to tell whether the
-  # black Calc tiles come from LibreOffice 25.8+ or from hiding the formula bar.
-  engine-lo252:
+  # Engine version matrix (docs/WINDOWS-NATIVE-PLAN.md, phase 0): which LibreOffice
+  # releases deadlock when Calc creates its formula bar (shown), and which render
+  # Calc tiles black once the formula bar is hidden. Each version installed
+  # normally on its own runner.
+  engine-versions:
     runs-on: windows-latest
     timeout-minutes: 45
+    strategy:
+      fail-fast: false
+      matrix:
+        lo: ["25.2.7.2", "25.8.7.3", "26.2.7.1"]
     defaults:
       run:
         shell: pwsh
@@ -144,10 +148,11 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: 22
-      - name: Install LibreOffice 25.2.7.2
+      - name: Install LibreOffice ${{ matrix.lo }}
         run: |
-          $msi = Join-Path $env:RUNNER_TEMP "lo252.msi"
-          Invoke-WebRequest "https://downloadarchive.documentfoundation.org/libreoffice/old/25.2.7.2/win/x86_64/LibreOffice_25.2.7.2_Win_x86-64.msi" -OutFile $msi
+          $v = "${{ matrix.lo }}"
+          $msi = Join-Path $env:RUNNER_TEMP "lo.msi"
+          Invoke-WebRequest "https://downloadarchive.documentfoundation.org/libreoffice/old/$v/win/x86_64/LibreOffice_${v}_Win_x86-64.msi" -OutFile $msi
           $p = Start-Process msiexec.exe -Wait -PassThru -ArgumentList "/i `"$msi`" /qn /norestart"
           Write-Host "msiexec exit $($p.ExitCode)"
           & "C:\Program Files\LibreOffice\program\soffice.com" --version
@@ -160,7 +165,7 @@ jobs:
       - name: Build wos-lok-host.exe
         shell: cmd
         run: scripts\lok\build-host.cmd
-      - name: Calc on 25.2, formula bar shown and hidden
+      - name: Calc with the formula bar shown and hidden
         env:
           WOS_SMOKE_TIMEOUT_MS: "45000"
         run: |
@@ -171,17 +176,17 @@ jobs:
           $lo = "C:\Program Files\LibreOffice\program"
           $profile = Join-Path $env:TEMP "wos-lok-host-profile"
           foreach ($keep in "1", "0") {
-            Write-Host "=== formula bar shown: $keep"
+            Write-Host "=== LibreOffice ${{ matrix.lo }}, formula bar shown: $keep"
             Remove-Item $profile -Recurse -Force -ErrorAction SilentlyContinue
             $env:WOS_LOK_KEEP_FORMULA_BAR = $keep
             $env:WOS_SMOKE_DUMP_DIR = Join-Path $env:RUNNER_TEMP "tiles\keep-$keep"
-            node e2e/lok-host-smoke.mjs scripts\lok\wos-lok-host.exe "$lo\" "$lo\fundamental.ini" "$fx\Harbour-Terminal-Q3.xlsx" "$fx\t.csv"
+            node e2e/lok-host-smoke.mjs scripts\lok\wos-lok-host.exe "$lo\" "$lo\fundamental.ini" "$fx\Harbour-Terminal-Q3.xlsx"
             Get-Process wos-lok-host -ErrorAction SilentlyContinue | Stop-Process -Force
           }
       - name: Upload tiles
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: engine-lo252-tiles
+          name: engine-tiles-${{ matrix.lo }}
           retention-days: 14
           path: ${{ runner.temp }}/tiles
