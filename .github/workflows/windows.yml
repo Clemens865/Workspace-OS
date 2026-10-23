@@ -84,13 +84,11 @@ jobs:
           )
           foreach ($v in $variants) {
             Write-Host "=== xlsx, $($v.name)"
-            foreach ($k in $v.env.Keys) { Set-Item "env:$k" $v.env[$k] }
-            $job = Start-Job -ScriptBlock { param($wd, $lo, $doc) Set-Location $wd; foreach ($k in "SAL_DISABLE_OPENCL","SC_NO_THREADED_CALCULATION") { if ($using:v.env.ContainsKey($k)) { Set-Item "env:$k" $using:v.env[$k] } }; $env:WOS_SMOKE_TIMEOUT_MS = "30000"; node e2e/lok-host-smoke.mjs scripts\lok\wos-lok-host.exe "$lo\" "$lo\fundamental.ini" $doc 2>&1 } -ArgumentList (Get-Location).Path, $lo, "$fx\Harbour-Terminal-Q3.xlsx"
+            $job = Start-Job -ScriptBlock { param($wd, $lo, $doc, $envs) Set-Location $wd; foreach ($k in $envs.Keys) { Set-Item "env:$k" $envs[$k] }; $env:WOS_SMOKE_TIMEOUT_MS = "30000"; node e2e/lok-host-smoke.mjs scripts\lok\wos-lok-host.exe "$lo\" "$lo\fundamental.ini" $doc 2>&1 } -ArgumentList (Get-Location).Path, $lo, "$fx\Harbour-Terminal-Q3.xlsx", $v.env
             Start-Sleep -Seconds 15
             Write-Host "--- processes after 15 s:"
             Get-CimInstance Win32_Process | Where-Object { $_.ExecutablePath -like "*LibreOffice*" -or $_.Name -like "wos-lok-host*" -or $_.Name -like "opencl*" } | Select-Object ProcessId, ParentProcessId, Name, CommandLine | Format-Table -AutoSize -Wrap | Out-String -Width 300 | Write-Host
             Receive-Job $job -Wait | Write-Host
-            foreach ($k in $v.env.Keys) { Remove-Item "env:$k" -ErrorAction SilentlyContinue }
             Get-Process wos-lok-host, opencltest, soffice* -ErrorAction SilentlyContinue | Stop-Process -Force -ErrorAction SilentlyContinue
           }
 
