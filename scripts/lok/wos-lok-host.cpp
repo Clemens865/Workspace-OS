@@ -55,6 +55,7 @@
 #include <io.h>
 #include <fcntl.h>
 #include <windows.h>
+#include <objbase.h>
 typedef long long wos_ssize_t;
 static wos_ssize_t wosWrite(int fd, const void* p, size_t n) {
     return _write(fd, p, (unsigned)(n > 0x40000000u ? 0x40000000u : n));
@@ -112,6 +113,60 @@ static void hideCalcFormulaBar(const std::string& profileDir) {
     }
     std::ofstream out(file, std::ios::binary | std::ios::trunc);
     out << xml;
+}
+#endif
+
+#ifdef _WIN32
+// EXPERIMENT (WOS_LOK_STA_VCLMAIN=1): LOK starts "VCL Main" (lo_startmain) with
+// osl_createThread, whose wrapper initialises COM as MTA; SalData's request for
+// an STA then fails with RPC_E_CHANGED_MODE and the thread stays MTA. From 25.8
+// osl_waitCondition waits in CoWaitForMultipleHandles, which only pumps sent
+// messages in an STA. This patches vclplug_winlo's import of CoInitializeEx so
+// that an STA request on an MTA thread undoes the MTA init and retries.
+typedef HRESULT (WINAPI *CoInitExFn)(LPVOID, DWORD);
+static CoInitExFn g_realCoInitEx = nullptr;
+static HRESULT WINAPI hookCoInitializeEx(LPVOID reserved, DWORD coInit) {
+    HRESULT hr = g_realCoInitEx(reserved, coInit);
+    if (hr == RPC_E_CHANGED_MODE && (coInit & COINIT_APARTMENTTHREADED)) {
+        CoUninitialize(); // the osl worker wrapper's MTA init
+        hr = g_realCoInitEx(reserved, coInit);
+        fprintf(stderr, "[host] thread %lu switched to STA (hr 0x%lx)\n", GetCurrentThreadId(), (unsigned long)hr);
+    }
+    return hr;
+}
+static bool patchImport(HMODULE mod, const char* fn, void* hook, void** orig) {
+    BYTE* base = reinterpret_cast<BYTE*>(mod);
+    auto* dos = reinterpret_cast<IMAGE_DOS_HEADER*>(base);
+    auto* nt = reinterpret_cast<IMAGE_NT_HEADERS*>(base + dos->e_lfanew);
+    const IMAGE_DATA_DIRECTORY& dir = nt->OptionalHeader.DataDirectory[IMAGE_DIRECTORY_ENTRY_IMPORT];
+    if (!dir.VirtualAddress) return false;
+    for (auto* imp = reinterpret_cast<IMAGE_IMPORT_DESCRIPTOR*>(base + dir.VirtualAddress); imp->Name; ++imp) {
+        auto* names = reinterpret_cast<IMAGE_THUNK_DATA*>(base + (imp->OriginalFirstThunk ? imp->OriginalFirstThunk : imp->FirstThunk));
+        auto* addrs = reinterpret_cast<IMAGE_THUNK_DATA*>(base + imp->FirstThunk);
+        for (; names->u1.AddressOfData; ++names, ++addrs) {
+            if (IMAGE_SNAP_BY_ORDINAL(names->u1.Ordinal)) continue;
+            auto* ibn = reinterpret_cast<IMAGE_IMPORT_BY_NAME*>(base + names->u1.AddressOfData);
+            if (strcmp(reinterpret_cast<const char*>(ibn->Name), fn) != 0) continue;
+            DWORD old;
+            VirtualProtect(&addrs->u1.Function, sizeof(void*), PAGE_READWRITE, &old);
+            *orig = reinterpret_cast<void*>(addrs->u1.Function);
+            addrs->u1.Function = reinterpret_cast<ULONG_PTR>(hook);
+            VirtualProtect(&addrs->u1.Function, sizeof(void*), old, &old);
+            fprintf(stderr, "[host] patched %s import from %s\n", fn, reinterpret_cast<const char*>(base + imp->Name));
+            return true;
+        }
+    }
+    return false;
+}
+static void staVclMainExperiment(const char* installDir) {
+    const char* on = getenv("WOS_LOK_STA_VCLMAIN");
+    if (!on || *on != '1') return;
+    SetDllDirectoryA(installDir);
+    const std::string dll = std::string(installDir) + "vclplug_winlo.dll";
+    HMODULE m = LoadLibraryExA(dll.c_str(), nullptr, LOAD_WITH_ALTERED_SEARCH_PATH);
+    if (!m) { fprintf(stderr, "[host] STA experiment: cannot load %s (%lu)\n", dll.c_str(), GetLastError()); return; }
+    if (!patchImport(m, "CoInitializeEx", reinterpret_cast<void*>(hookCoInitializeEx), reinterpret_cast<void**>(&g_realCoInitEx)))
+        fprintf(stderr, "[host] STA experiment: CoInitializeEx import not found in vclplug_winlo.dll\n");
 }
 #endif
 
@@ -873,6 +928,7 @@ int main(int argc, char** argv) {
     const std::string profileDir = wosTmpDir() + (wosTmpDir().back() == '/' ? "" : "/") + "wos-lok-host-profile";
 #ifdef _WIN32
     hideCalcFormulaBar(wosTmpDir() + "\\wos-lok-host-profile");
+    staVclMainExperiment(argv[1]);
 #endif
     const std::string profileUrl = fileUrl(profileDir);
     g_lok = lok_init_2(argv[1], profileUrl.c_str());

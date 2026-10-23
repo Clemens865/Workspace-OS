@@ -139,7 +139,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        lo: ["25.2.7.2", "25.8.7.3", "26.2.7.1"]
+        lo: ["25.2.7.2", "25.8.7.3", "26.8.1.1"]
     defaults:
       run:
         shell: pwsh
@@ -175,11 +175,14 @@ jobs:
           Copy-Item examples\Harbour-Terminal-Q3.xlsx $fx
           $lo = "C:\Program Files\LibreOffice\program"
           $profile = Join-Path $env:TEMP "wos-lok-host-profile"
-          foreach ($keep in "1", "0") {
-            Write-Host "=== LibreOffice ${{ matrix.lo }}, formula bar shown: $keep"
+          $env:WOS_SMOKE_SHOW_STDERR = "1"
+          foreach ($run in @(@{ keep = "1"; sta = "0" }, @{ keep = "0"; sta = "0" }, @{ keep = "1"; sta = "1" }, @{ keep = "0"; sta = "1" })) {
+            $keep = $run.keep
+            Write-Host "=== LibreOffice ${{ matrix.lo }}, formula bar shown: $keep, VCL Main STA experiment: $($run.sta)"
             Remove-Item $profile -Recurse -Force -ErrorAction SilentlyContinue
             $env:WOS_LOK_KEEP_FORMULA_BAR = $keep
-            $env:WOS_SMOKE_DUMP_DIR = Join-Path $env:RUNNER_TEMP "tiles\keep-$keep"
+            $env:WOS_LOK_STA_VCLMAIN = $run.sta
+            $env:WOS_SMOKE_DUMP_DIR = Join-Path $env:RUNNER_TEMP "tiles\keep-$keep-sta-$($run.sta)"
             node e2e/lok-host-smoke.mjs scripts\lok\wos-lok-host.exe "$lo\" "$lo\fundamental.ini" "$fx\Harbour-Terminal-Q3.xlsx"
             Get-Process wos-lok-host -ErrorAction SilentlyContinue | Stop-Process -Force
           }

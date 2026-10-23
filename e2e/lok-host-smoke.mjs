@@ -129,5 +129,6 @@ for (const doc of DOCS) {
   console.log(`${inked ? 'ok  ' : 'FAIL'} ${doc}: type ${opened.type}, ${opened.parts} part(s), tile ink ${tile.ink ?? JSON.stringify(tile)}${solid ? ' (solid tile: not rendered)' : ''} (fd 4 frames arrive)`)
 }
 
+if (process.env.WOS_SMOKE_SHOW_STDERR === '1') console.log(`     engine stderr:\n${stderr.trim().split('\n').map((l) => '       ' + l).join('\n')}`)
 proc.stdin.write(`${next++} close\n`)
 setTimeout(() => { proc.kill(); process.exit(failed ? 1 : 0) }, 3000)
