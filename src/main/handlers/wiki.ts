@@ -1,3 +1,4 @@
+import { contentRel } from '../host-profile'
 import { BrowserWindow, IpcMain } from 'electron'
 import fs from 'fs'
 import path from 'path'
@@ -46,7 +47,10 @@ let failed: { source: string; error: string }[] = []
 
 const isReadable = (p: string): boolean => READABLE.has(path.extname(p).slice(1).toLowerCase())
 /** The wiki's own pages and the app's folder are never sources. */
-const isOwn = (rel: string): boolean => rel === WIKI_DIR || rel.startsWith(`${WIKI_DIR}/`) || rel.startsWith('.workspace-os')
+const isOwn = (root: string, rel: string): boolean => {
+  const wiki = contentRel(root, WIKI_DIR)
+  return rel === wiki || rel.startsWith(`${wiki}/`) || rel.startsWith('.workspace-os')
+}
 
 /** A file, or a folder's readable files (a few levels deep, hidden and build folders skipped). */
 function expand(root: string, abs: string): string[] {
@@ -62,7 +66,7 @@ function expand(root: string, abs: string): string[] {
       if (e.name.startsWith('.') || out.length >= MAX_PER_ADD * 4) continue
       const p = path.join(d, e.name)
       if (e.isDirectory()) {
-        if (depth < 4 && !SKIP_DIRS.has(e.name) && !isOwn(path.relative(root, p))) walk(p, depth + 1)
+        if (depth < 4 && !SKIP_DIRS.has(e.name) && !isOwn(root, path.relative(root, p).split(path.sep).join('/'))) walk(p, depth + 1)
       } else if (e.isFile() && isReadable(p)) out.push(p)
     }
   }
@@ -74,7 +78,7 @@ function expand(root: string, abs: string): string[] {
 
 /** The written pages and the index page, read into search before anyone is told. */
 async function reindex(root: string, rels: string[]): Promise<void> {
-  await indexNow([...rels, `${WIKI_DIR}/Index.md`].map((r) => path.join(root, r))).catch(() => {})
+  await indexNow([...rels.map((r) => path.join(root, r)), path.join(wiki.wikiDir(root), 'Index.md')]).catch(() => {})
 }
 
 function broadcast(): void {
@@ -125,7 +129,7 @@ export function registerWikiHandlers(ipcMain: IpcMain): void {
     for (const p of list) {
       for (const abs of expand(root, validateFilePath(p, root))) {
         const rel = path.relative(root, abs).split(path.sep).join('/')
-        if (isOwn(rel) || queued.has(abs) || files.includes(abs)) continue
+        if (isOwn(root, rel.split(path.sep).join('/')) || queued.has(abs) || files.includes(abs)) continue
         const was = known[rel]
         if (was && o.again !== true && fs.statSync(abs).mtimeMs <= was.mtimeMs + 1) {
           unchanged++

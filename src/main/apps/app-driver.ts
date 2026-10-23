@@ -1,3 +1,4 @@
+import { appsRel, appsRoot } from './apps-store'
 /**
  * Runs an app's tests (app-tests.ts) in its live preview beside the builder
  * chat, the way a person uses it: real pointer and key events at the
@@ -321,7 +322,7 @@ export async function runPlan(
   const d = new AppDriver(win, slug)
   const started = Date.now()
   const report: TestReport = { total: plan.scenarios.length, passed: 0, scenarios: [], ms: 0 }
-  const shots = path.join(root, 'Apps', slug, SHOT_DIR)
+  const shots = path.join(appsRoot(root), slug, SHOT_DIR)
   fs.rmSync(shots, { recursive: true, force: true })
   const mode: TestMode = { store: {}, ai: null, open: null, saved: [] }
   testing.set(slug, mode)
@@ -340,7 +341,7 @@ export async function runPlan(
           fs.mkdirSync(shots, { recursive: true })
           const file = `${i + 1}.png`
           fs.writeFileSync(path.join(shots, file), png)
-          r.shot = `Apps/${slug}/${SHOT_DIR}/${file}`
+          r.shot = `${appsRel(root)}/${slug}/${SHOT_DIR}/${file}`
         }
       }
       report.scenarios.push(r)

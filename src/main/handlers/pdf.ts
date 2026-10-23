@@ -1,3 +1,4 @@
+import { appStateDir } from '../host-profile'
 import { app, IpcMain, shell } from 'electron'
 import fs from 'fs/promises'
 import path from 'path'
@@ -40,7 +41,7 @@ function resolveInWorkspace(filePath: unknown): string {
  *  files in different folders never share markup. */
 function sidecarPath(root: string, pdfPath: string): string {
   const rel = path.relative(root, pdfPath).replace(/[/\\]/g, '__')
-  return path.join(root, '.workspace-os', 'annotations', `${rel}.json`)
+  return path.join(appStateDir(root), 'annotations', `${rel}.json`)
 }
 
 function assertAnnotations(value: unknown): WriteAnnotation[] {

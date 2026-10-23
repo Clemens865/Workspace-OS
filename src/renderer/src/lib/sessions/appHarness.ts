@@ -40,6 +40,13 @@ const lastTests = new Map<string, string>()
 
 const plural = (n: number, word: string): string => `${n} ${word}${n === 1 ? '' : 's'}`
 
+/** The app's folder as the builder names it: Apps/<slug>, under the content root when one is set. */
+async function appFolder(slug: string): Promise<string> {
+  let rel = ''
+  try { rel = (await window.workspace.fs.getContentRoot?.())?.rel ?? '' } catch { /* the root, as before */ }
+  return rel ? `${rel}/Apps/${slug}` : `Apps/${slug}`
+}
+
 /**
  * Before the first build: the idea becomes the app's brief. Returns what the
  * builder is told on top of the person's words ('' when there is no brief).
@@ -50,7 +57,7 @@ export async function briefFirst(id: string, slug: string, idea: string, d: Harn
     const b = await window.workspace.apps.brief(slug, idea)
     if (!b) return ''
     d.push(id, { role: 'system', text: `Product brief written (BRIEF.md): ${plural(b.checks, 'acceptance check')} the build is held to. Building…` })
-    return `\n\nThe product brief for this app is in Apps/${slug}/BRIEF.md: read it first, then build the whole app it describes and meet every acceptance check.`
+    return `\n\nThe product brief for this app is in ${await appFolder(slug)}/BRIEF.md: read it first, then build the whole app it describes and meet every acceptance check.`
   } catch (err) {
     d.push(id, { role: 'system', text: `No brief this time (${(err as Error).message.replace(/^Error invoking remote method '[^']+': (Error: )?/, '')}); building from your words.` })
     return ''
@@ -120,11 +127,11 @@ export function testLine(r: TestReport): string {
 }
 
 /** What the builder is told when tests fail, or null when none did. */
-export function testFixPrompt(slug: string, r: TestReport): string | null {
+export function testFixPrompt(slug: string, r: TestReport, folder = `Apps/${slug}`): string | null {
   const failed = r.scenarios.filter((s) => !s.ok)
   if (!failed.length) return null
   return [
-    `The app's end-to-end tests (Apps/${slug}/TESTS.json) ran in the live app with real clicks and key presses: ${r.passed} of ${r.total} passed. Fix what fails, keeping what works.`,
+    `The app's end-to-end tests (${folder}/TESTS.json) ran in the live app with real clicks and key presses: ${r.passed} of ${r.total} passed. Fix what fails, keeping what works.`,
     ...failed.map((s) => `- "${s.name}"${s.check ? ` (check: ${s.check})` : ''}: ${s.step ? `step ${s.step} failed: ` : ''}${s.error ?? 'failed'}${s.shot ? ` (the app at that moment: ${s.shot}; look at it with Read)` : ''}`),
     'If a test is wrong and the app does the right thing (a selector that changed, a step in the wrong order), fix that test in TESTS.json instead, and say so.',
   ].join('\n')
@@ -172,7 +179,7 @@ async function testAndFix(id: string, slug: string, d: HarnessDeps): Promise<boo
   const r = await runTests(id, slug, d)
   if (!r) return false
   const rounds = testRounds.get(id) ?? 0
-  const fix = testFixPrompt(slug, r)
+  const fix = testFixPrompt(slug, r, await appFolder(slug))
   if (!fix) {
     d.push(id, { role: 'system', text: `Tests: ${testLine(r)} in the running app${rounds ? ` after ${plural(rounds, 'fix round')}` : ''}.` })
     return false

@@ -88,6 +88,8 @@ contextBridge.exposeInMainWorld('workspace', {
     openFolderDialog: () => ipcRenderer.invoke('fs:open-folder-dialog'),
     saveCopyDialog: (srcPath: string) => ipcRenderer.invoke('fs:save-copy-dialog', srcPath),
     getWorkspaceRoot: () => ipcRenderer.invoke('workspace:get-root'),
+    writeAgentNote: (name: string, body: string) => ipcRenderer.invoke('workspace:write-agent-note', name, body),
+    getContentRoot: () => ipcRenderer.invoke('workspace:content-root'),
     closeWorkspace: () => ipcRenderer.invoke('workspace:close'),
     listFiles: () => ipcRenderer.invoke('fs:list-files'),
     recentWorkspaces: () => ipcRenderer.invoke('workspace:recents'),

@@ -59,6 +59,7 @@ import { initUpdater, registerUpdaterHandlers } from './updater'
 import { ipcHandle, runAllCleanups } from './ipc-registry'
 import { IPC } from './ipc-channels'
 import { mainWindow, setMainWindow } from './main-window'
+import { hardwareAcceleration } from './host-profile'
 
 // electron-vite sets ELECTRON_RENDERER_URL only when the dev server is running.
 // Keying off it (not app.isPackaged) lets the built app load its bundled
@@ -72,6 +73,10 @@ const isDev = !!rendererUrl
 // which lives in userData too. Inert unless the variable is set; the
 // standalone CLIs read the same variable (userdata-path.ts).
 if (process.env['WOS_USERDATA_DIR']) app.setPath('userData', process.env['WOS_USERDATA_DIR'])
+
+// WSLg presents a black window under GPU compositing; software compositing
+// works. Off only under WSL by default (host-profile.ts: WOS_GPU / `gpu`).
+if (!hardwareAcceleration()) app.disableHardwareAcceleration()
 
 // Only one instance may run — a second would fight over the named Docker
 // container and clobber shared workspace state.

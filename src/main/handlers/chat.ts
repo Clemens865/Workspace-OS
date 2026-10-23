@@ -1,3 +1,4 @@
+import { appStateDir } from '../host-profile'
 import { IpcMain } from 'electron'
 import fs from 'fs'
 import path from 'path'
@@ -22,7 +23,7 @@ import { getWorkspaceRoot } from '../workspace-root'
 export const MAX_UPLOAD_BYTES = 25 * 1024 * 1024
 const MAX_SESSIONS_BYTES = 40 * 1024 * 1024
 
-const appDir = (root: string): string => path.join(root, '.workspace-os')
+const appDir = (root: string): string => appStateDir(root)
 
 /** A file name that stays a file name: no folders, no hidden files, nothing a file system refuses. */
 export function safeUploadName(raw: string): string {

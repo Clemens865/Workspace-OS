@@ -3,6 +3,7 @@ import fs from 'fs'
 import path from 'path'
 import { LokHost, type OpenResult, type Tile, type TileSpec } from './lokHost'
 import { sniffCsvFilterOptions } from './csvSniff'
+import { DISTRO_ENGINE_DIR, csvSilentLoad } from '../host-profile'
 
 /**
  * Singleton manager for the LibreOfficeKit sidecar (Phase 3a M2). Resolves the
@@ -25,6 +26,17 @@ function lokPaths(): LokPaths {
   const bundledFund = res ? path.join(res, 'libreoffice/LibreOffice.app/Contents/Resources/fundamentalrc') : ''
   const bundledHost = res ? path.join(res, 'lok/wos-lok-host') : ''
 
+  // Linux uses the distribution's LibreOffice (apt install libreoffice); LOK is
+  // part of every stock build there, so nothing is bundled.
+  if (process.platform === 'linux') {
+    const program = DISTRO_ENGINE_DIR
+    return {
+      install: process.env['WOS_LOK_INSTALL'] || program,
+      fundamentalrc: process.env['WOS_LOK_FUND'] || path.join(program, 'fundamentalrc'),
+      hostBin: process.env['WOS_LOK_HOST'] || (bundledHost && fs.existsSync(bundledHost) ? bundledHost : path.join(app.getAppPath(), 'scripts/lok/wos-lok-host')),
+    }
+  }
+
   const devEngine = '/Volumes/LOBuild/core/instdir/LibreOffice.app/Contents'
   return {
     install: process.env['WOS_LOK_INSTALL'] || (bundledInstall && fs.existsSync(bundledInstall) ? bundledInstall : `${devEngine}/Frameworks/`),
@@ -44,7 +56,10 @@ export function lokAvailable(): boolean {
   return (
     fs.existsSync(hostBin) &&
     fs.existsSync(fundamentalrc) &&
-    fs.existsSync(path.join(install, 'libsofficeapp.dylib'))
+    (process.platform === 'linux'
+      // Distribution builds ship the merged library; lok_init tries both names.
+      ? ['libsofficeapp.so', 'libmergedlo.so'].some((lib) => fs.existsSync(path.join(install, lib)))
+      : fs.existsSync(path.join(install, 'libsofficeapp.dylib')))
   )
 }
 
@@ -363,7 +378,12 @@ function csvOptionsFor(absPath: string): string | undefined {
     const buf = Buffer.alloc(65536)
     const n = fs.readSync(fd, buf, 0, buf.length, 0)
     fs.closeSync(fd)
-    return sniffCsvFilterOptions(buf.subarray(0, n).toString('utf8'), ext) ?? undefined
+    const opts = sniffCsvFilterOptions(buf.subarray(0, n).toString('utf8'), ext) ?? undefined
+    // The stock engine lacks scripts/lok/csv-filteroptions-headless.patch, so the
+    // CSV import dialog request deadlocks the load. LOK's Batch option loads
+    // silently instead; it is stripped before the token reaches the filter.
+    // Side effect: Batch sets the engine's dialog-cancel mode for the process.
+    return opts && csvSilentLoad(lokPaths().install) ? `Batch=true,${opts}` : opts
   } catch {
     return undefined
   }

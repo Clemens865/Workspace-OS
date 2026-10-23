@@ -1,3 +1,4 @@
+import { appsRel } from './apps-store'
 /**
  * The app's own end-to-end tests: Apps/<slug>/TESTS.json.
  *
@@ -175,7 +176,7 @@ export async function writeTests(root: string, slug: string, request: string): P
   }
   const name = readManifest(root, slug)?.name ?? slug
   const prompt = [
-    `The app: ${name} (Apps/${slug}/).`,
+    `The app: ${name} (${appsRel(root)}/${slug}/).`,
     brief ? `Its product brief:\n\n${brief}` : 'It has no product brief: test what its files show it does.',
     request.trim() ? `What the person last asked the builder for:\n\n${request.trim().slice(0, 4000)}` : '',
     old ? `Its current tests (update them: keep what is still right, change what the request changed, add what is new):\n\n${old.slice(0, 40_000)}` : '',

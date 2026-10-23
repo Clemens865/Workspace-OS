@@ -1,3 +1,4 @@
+import { contentRoot } from '../host-profile'
 import { WORK_PARTS, promotedPath, workFolderFor, workFolderGuidance } from '../cases-work'
 import { IpcMain } from 'electron'
 import fs from 'fs'
@@ -57,7 +58,7 @@ function globalCasesDir(): string {
 function scopeDirs(): { scope: CaseScope; dir: string }[] {
   const out: { scope: CaseScope; dir: string }[] = []
   const root = getWorkspaceRoot()
-  if (root) out.push({ scope: 'workspace', dir: path.join(root, DIR) })
+  if (root) out.push({ scope: 'workspace', dir: path.join(contentRoot(root), DIR) })
   out.push({ scope: 'global', dir: globalCasesDir() })
   return out
 }
@@ -324,7 +325,7 @@ export function registerCaseHandlers(ipcMain: IpcMain): void {
     const hit = resolve(str(id, 120))
     if (!hit) return { ok: false }
     const root = getWorkspaceRoot()
-    const work = root ? workFolderFor(root, path.basename(hit.file, '.md')) : null
+    const work = root ? workFolderFor(contentRoot(root), path.basename(hit.file, '.md')) : null
     if (root && hit.scope === 'workspace') {
       await trash.moveToTrash(hit.file, 'delete', false, true)
       if (work && fs.existsSync(work)) await trash.moveToTrash(work, 'delete', true, true)
@@ -338,7 +339,7 @@ export function registerCaseHandlers(ipcMain: IpcMain): void {
     const c = load(str(id, 120))
     if (!c) throw new Error('No such case.')
     const root = getWorkspaceRoot()
-    const base = c.scope === 'global' || !root ? path.join(os.homedir(), 'Workspace-OS') : root
+    const base = c.scope === 'global' || !root ? path.join(os.homedir(), 'Workspace-OS') : contentRoot(root)
     const folder = workFolderFor(base, c.id)
     for (const part of WORK_PARTS) fs.mkdirSync(path.join(folder, part), { recursive: true })
     return { folder, guidance: workFolderGuidance(folder, root) }
@@ -350,7 +351,7 @@ export function registerCaseHandlers(ipcMain: IpcMain): void {
     if (!c) throw new Error('No such case.')
     const root = getWorkspaceRoot()
     const base = c.scope === 'global' || !root ? path.join(os.homedir(), 'Workspace-OS') : root
-    const folder = workFolderFor(base, c.id)
+    const folder = workFolderFor(c.scope === 'global' || !root ? base : contentRoot(root), c.id)
     const raw = str(filePath, 1000).trim()
     const abs = path.isAbsolute(raw) ? raw : path.join(base, raw)
     const dest = promotedPath(folder, abs)
@@ -454,7 +455,11 @@ export function registerCaseHandlers(ipcMain: IpcMain): void {
     if (!hit || !c) return null
     const r = str(rel, 1000)
     if (!c.artifacts.includes(r)) return null // membership = authorization
-    const caseRoot = path.dirname(path.dirname(hit.file)) // <root>/Cases/<id>.md → <root>
+    // <content>/Cases/<id>.md → <content>; relative artifacts are workspace-relative,
+    // so a case of the open workspace resolves against the workspace root.
+    const casesParent = path.dirname(path.dirname(hit.file))
+    const open = getWorkspaceRoot()
+    const caseRoot = hit.scope === 'workspace' && open && path.resolve(casesParent) === contentRoot(open) ? path.resolve(open) : casesParent
     const abs = path.isAbsolute(r) ? path.resolve(r) : path.resolve(caseRoot, r)
     if (!path.isAbsolute(r)) {
       // A relative artifact must stay under its case root (no ../ escape).

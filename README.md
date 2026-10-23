@@ -78,6 +78,8 @@ xattr -dr com.apple.quarantine "/Applications/Workspace OS.app"
 
 The office engine is bundled inside the app (about 650 MB of LibreOffice), so documents work with nothing else installed. Installed size is about 1.3 GB.
 
+Linux (x64), including WSL on Windows, builds against the distribution's LibreOffice; see [docs/LINUX-WSL.md](docs/LINUX-WSL.md) for the build, the host settings and the per-workspace content root.
+
 On first launch, choose a folder. That folder is the workspace: every file operation is confined to it, agents run inside it, and the app's own state lives in a `.workspace-os/` subfolder (checkpoints, trash, memory). App-wide state lives in `~/Library/Application Support/workspace-os`.
 
 ## Keyboard

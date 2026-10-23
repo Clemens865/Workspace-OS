@@ -6,7 +6,7 @@ import styles from './WikiSection.module.css'
 
 /** Files with text worth a page; mirrors the main side's READABLE. */
 const READABLE = /\.(md|markdown|txt|docx|xlsx|pptx|pdf|csv|html?)$/i
-const own = (rel: string): boolean => rel.startsWith('Wiki/') || rel.startsWith('.workspace-os') || rel.split('/').some((s) => s.startsWith('.'))
+const own = (rel: string, wiki: string): boolean => rel.startsWith(wiki) || rel.startsWith('.workspace-os') || rel.split('/').some((s) => s.startsWith('.'))
 
 const plural = (n: number, one: string, many = `${one}s`): string => `${n} ${n === 1 ? one : many}`
 
@@ -20,7 +20,8 @@ function changeLine(c: WikiChange): string {
  * The wiki that keeps itself (Library → Notes): add files, watch them being
  * read, see what each one changed and undo it, and read again what changed.
  */
-export function WikiSection({ root, pages }: { root: string; pages: number }): JSX.Element {
+/** `wiki`: the Wiki folder's workspace-relative prefix, 'Wiki/' unless a content root is set. */
+export function WikiSection({ root, wiki = 'Wiki/', pages }: { root: string; wiki?: string; pages: number }): JSX.Element {
   const [status, setStatus] = useState<WikiStatus | null>(null)
   const [recent, setRecent] = useState<WikiChange[]>([])
   const [health, setHealth] = useState<WikiCheck | null>(null)
@@ -56,7 +57,7 @@ export function WikiSection({ root, pages }: { root: string; pages: number }): J
     let live = true
     void window.workspace.fs
       .listFiles()
-      .then((l) => live && setFiles(l.filter((p) => READABLE.test(p) && !own(relPath(p, root)))))
+      .then((l) => live && setFiles(l.filter((p) => READABLE.test(p) && !own(relPath(p, root), wiki))))
       .catch(() => live && setFiles([]))
     return () => {
       live = false

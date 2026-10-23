@@ -1,3 +1,4 @@
+import { artifactScanDepth } from './host-profile'
 import fs from 'fs'
 import path from 'path'
 
@@ -78,7 +79,7 @@ export function isTrackedArtifact(filePath: string): boolean {
  * mtime. Snapshot before a run, diff after — that's how changedArtifacts detects
  * what the agent produced without a manifest.
  */
-export function snapshotArtifacts(root: string, depth = 4): Map<string, number> {
+export function snapshotArtifacts(root: string, depth = artifactScanDepth(root)): Map<string, number> {
   const out = new Map<string, number>()
   const walk = (dir: string, d: number): void => {
     if (d < 0) return

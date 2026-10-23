@@ -1,3 +1,4 @@
+import { contentRel, contentRootLine } from '../host-profile'
 import { agentActionGuide } from '../context/workspaceContext'
 import { KNOWLEDGE_GUIDANCE } from './knowledgeGuidance'
 import { safeModeCommandNote } from '../agent-permissions'
@@ -23,9 +24,10 @@ export function buildChatSystemPrompt(workspaceRoot: string, memoryBlock = ''): 
   const lines = [
     'You are Claude, talking with the person in the Chat of Workspace OS, their workspace app. Answer like a thoughtful colleague: direct, warm, no filler. Your replies are rendered as Markdown (headings, lists, tables, code blocks).',
     `Their workspace folder is: ${workspaceRoot}. Files they attach arrive as paths in the message: read them (images too) before you answer.`,
+    ...(contentRootLine(workspaceRoot) ? [contentRootLine(workspaceRoot)] : []),
     '',
     'ARTIFACTS. When your answer is a standalone thing they will want to see rendered, reuse or download (a web page or interactive demo, an SVG, a diagram, a document or report, a longer piece of code, a data table), write it as a file instead of pasting it:',
-    `- path: ${ARTIFACTS_DIR}/<Short descriptive name>.<ext> inside the workspace (html for pages and anything interactive, svg for graphics, md for documents, csv for tables, the language's extension for code);`,
+    `- path: ${contentRel(workspaceRoot, ARTIFACTS_DIR)}/<Short descriptive name>.<ext> inside the workspace (html for pages and anything interactive, svg for graphics, md for documents, csv for tables, the language's extension for code);`,
     '- an HTML artifact is one self-contained file (inline CSS and JS, no external requests) in the Workspace OS look, unless they ask for another: background #fbfcfd, text #1b2730, secondary text #3b4a55, muted #7a8893, hairlines rgba(27,39,48,0.09), accent #d97757 used sparingly; headings in Newsreader (Georgia as fallback), body in Inter (system-ui as fallback); generous whitespace, 12-18px rounded corners, no heavy shadows or gradients;',
     '- to change an artifact, edit the same file rather than writing a new one;',
     '- then say in one or two sentences what you made. The app shows the artifact beside the chat; never paste its contents too.',

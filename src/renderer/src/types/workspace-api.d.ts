@@ -354,6 +354,10 @@ export interface WorkspaceApi {
     openFolderDialog: () => Promise<string | null>
     saveCopyDialog: (srcPath: string) => Promise<string | null>
     getWorkspaceRoot: () => Promise<string | null>
+    /** Writes a note for agents into the workspace store; `ref` is how to name it from the workspace. */
+    writeAgentNote: (name: string, body: string) => Promise<{ path: string; ref: string }>
+    /** Where Cases/, Work/, Wiki/ and Apps/ live: absolute path and workspace-relative prefix ('' = the root). */
+    getContentRoot: () => Promise<{ path: string; rel: string } | null>
     closeWorkspace: () => Promise<void>
     /** Every file under the workspace root (bounded walk) — quick-open's data source. */
     listFiles: () => Promise<string[]>

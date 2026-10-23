@@ -37,6 +37,8 @@ import { endAppSession } from '../apps/app-actions'
 import { grants, AGENT_TOKEN_ENV } from './grants'
 import { claudeSettings } from './claudeSettings'
 import { ClaudeFailureTracker } from './claudeFailure'
+import { agentHooksArgs, agentHooksMode, appStateDir, contentRoot, contentRootLine, stateIsExternal } from '../host-profile'
+import { appsRel } from '../apps/apps-store'
 import { documentOutputGuidance, type AgentRunFailure } from '../../shared/agentRun'
 
 /**
@@ -169,7 +171,7 @@ export async function launchRun(o: LaunchRunOptions): Promise<{ child: ChildProc
     // Snapshot the workspace BEFORE the agent can write — the claude subprocess
     // bypasses the IPC trash layer, so this checkpoint is its safety net.
     let checkpointId: string | null = null
-    if (getWorkspaceRoot() && (await checkpoints.isGitAvailable())) {
+    if (getWorkspaceRoot() && checkpoints.enabled() && (await checkpoints.isGitAvailable())) {
       try {
         const cp = await checkpoints.createCheckpoint(`agent: ${prompt.slice(0, 60)}`)
         checkpointId = cp.id
@@ -203,6 +205,11 @@ export async function launchRun(o: LaunchRunOptions): Promise<{ child: ChildProc
     // any script the agent writes) needs it to find Cases/ and Work/.
     const wsRoot = getWorkspaceRoot()
     if (wsRoot) childEnv['WOS_WORKSPACE'] = wsRoot
+    // Where this workspace's .workspace-os store lives (outside the folder for a
+    // Windows-drive workspace under WSL — host-profile.ts).
+    if (wsRoot) childEnv['WOS_STATE_DIR'] = appStateDir(wsRoot)
+    // Where Cases/, Work/, Wiki/ and Apps/ live (the workspace root unless configured).
+    if (wsRoot) childEnv['WOS_CONTENT_DIR'] = contentRoot(wsRoot)
 
     // MCP connectors: for every enabled connector whose secret(s) are present,
     // decrypt them into childEnv, add `--mcp-config <path> --strict-mcp-config`,
@@ -287,21 +294,32 @@ export async function launchRun(o: LaunchRunOptions): Promise<{ child: ChildProc
       mcpArgs = []
       for (const key of injectedSecretKeys) delete childEnv[key]
     }
-    const permArgs = appSlug ? appBuilderArgs(appSlug) : permissionArgs(safeMode || chat ? 'safe' : 'full', mcpAllowTools, { inAppBrowserOnly, webInSafe: chat })
+    const permArgs = appSlug ? appBuilderArgs(appSlug, appsRel(cwd)) : permissionArgs(safeMode || chat ? 'safe' : 'full', mcpAllowTools, { inAppBrowserOnly, webInSafe: chat })
 
     // First turn establishes the system context (persona + IWE grounding). On a
     // resumed turn the conversation already carries it, so re-appending would
     // bloat it — pass --resume instead and skip the system prompt.
     const continuityArgs = resumeId
       ? ['--resume', resumeId]
-      : ['--append-system-prompt', appSlug ? buildAppBuilderPrompt(appSlug, cwd) : chat ? buildChatSystemPrompt(cwd, memoryBlock) : buildSystemPrompt(cwd, openFile, agent?.persona, agent?.capabilities, safeMode, memoryBlock)]
+      : ['--append-system-prompt', appSlug ? buildAppBuilderPrompt(appSlug, cwd, appsRel(cwd)) : chat ? buildChatSystemPrompt(cwd, memoryBlock) : buildSystemPrompt(cwd, openFile, agent?.persona, agent?.capabilities, safeMode, memoryBlock)]
 
     // On a resumed turn the system prompt (with the original open file) isn't
     // re-sent; nudge the agent with the *current* open file so it stays accurate.
     const turnPrompt = resumeId && openFile ? `(The document now open in the editor is: ${openFile})\n\n${fullPrompt}` : fullPrompt
 
+    // An external store sits outside cwd; grant it so the agent can read
+    // uploads, agent-context.json and the captured page.
+    const stateDirArgs = wsRoot && stateIsExternal(wsRoot) ? ['--add-dir', appStateDir(wsRoot)] : []
+
+    // Hooks stay off unless this workspace opts in (host-profile.ts agentHooks).
+    // The app builder runs with no setting sources at all, so it keeps them off.
+    const hooksMode = appSlug ? 'off' : agentHooksMode(wsRoot)
+    const hooksArgs = agentHooksArgs(hooksMode, mcpArgs.includes('--strict-mcp-config'))
+
     const claudeArgs = [
-      '--settings', claudeSettings(),
+      '--settings', claudeSettings(hooksMode === 'off'),
+      ...hooksArgs,
+      ...stateDirArgs,
       '--output-format', 'stream-json',
       '--include-partial-messages',
       '--verbose',
@@ -515,6 +533,8 @@ function buildSystemPrompt(
     `The open workspace folder is: ${workspaceRoot}`,
   )
   if (activeFile) lines.push(`The document currently open in the editor is: ${activeFile}`)
+  const contentLine = contentRootLine(workspaceRoot)
+  if (contentLine) lines.push(contentLine)
   lines.push(
     'You can read and cross-reference any file in the workspace.',
     'To create a presentation, spreadsheet, or document, use the office-docgen skill: write a JSON spec, then run `wos-gen <pptx|xlsx|docx> --spec <spec.json> --out "<workspace>/<Name>.<ext>"`. It is on your PATH. Produce a real file — never paste document contents into chat.',

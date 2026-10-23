@@ -33,7 +33,8 @@ function workspaceRoot(): string {
   if (!r) fail('no workspace open (WOS_WORKSPACE unset) — open a workspace in Workspace OS first.')
   return r as string
 }
-const casesDir = (): string => path.join(workspaceRoot(), DIR)
+// WOS_CONTENT_DIR: where the app keeps Cases/ for this workspace (host-profile.ts contentRoot).
+const casesDir = (): string => path.join(process.env['WOS_CONTENT_DIR'] || workspaceRoot(), DIR)
 const casePath = (id: string): string => path.join(casesDir(), id + '.md')
 const nowIso = (): string => new Date().toISOString()
 
