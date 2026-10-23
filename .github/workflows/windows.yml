@@ -1,0 +1,90 @@
+name: Windows build
+
+# Native Windows build of the fork's windows-native branch: phase 0 spikes
+# (docs/WINDOWS-NATIVE-PLAN.md) and the installer. Runs on push to that branch or
+# by hand. Nothing is published; the installer is an artifact of the run.
+
+on:
+  push:
+    branches: [windows-native]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  windows:
+    runs-on: windows-latest
+    timeout-minutes: 90
+    defaults:
+      run:
+        shell: pwsh
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci --legacy-peer-deps
+
+      - name: Typecheck
+        run: npm run typecheck
+
+      - name: Unit tests (baseline on Windows, not yet gating)
+        continue-on-error: true
+        run: npm test -- --reporter=dot 2>&1 | Tee-Object -FilePath unit-tests.log
+
+      - name: Install LibreOffice
+        run: |
+          choco install libreoffice-fresh -y --no-progress
+          & "C:\Program Files\LibreOffice\program\soffice.exe" --version
+          Test-Path "C:\Program Files\LibreOffice\program\fundamental.ini"
+
+      - name: Fetch LibreOfficeKit headers (oldest supported engine)
+        shell: bash
+        run: LOK_HEADER_REF=libreoffice-24.2.7.2 bash scripts/lok/fetch-headers.sh
+
+      - uses: ilammy/msvc-dev-cmd@v1
+        with:
+          arch: x64
+
+      - name: Build wos-lok-host.exe (MSVC)
+        shell: cmd
+        run: scripts\lok\build-host.cmd
+
+      - name: "S1 + S2: engine renders through fd 3/4 pipes"
+        run: |
+          $fx = Join-Path $env:RUNNER_TEMP "wos-fixtures"
+          New-Item -ItemType Directory -Force $fx | Out-Null
+          "Hello from Workspace OS on Windows`r`n`r`nSecond paragraph with some ink." | Set-Content -Encoding utf8 "$fx\test-document.txt"
+          "a;b;c`r`n1;2;3`r`n4;5;6" | Set-Content -Encoding utf8 "$fx\t.csv"
+          & "C:\Program Files\LibreOffice\program\soffice.exe" --headless --convert-to docx --outdir $fx "$fx\test-document.txt" | Out-Host
+          Copy-Item examples\Harbour-Terminal-Q3.xlsx $fx
+          node e2e/lok-host-smoke.mjs scripts\lok\wos-lok-host.exe "C:\Program Files\LibreOffice\program\" "C:\Program Files\LibreOffice\program\fundamental.ini" "$fx\test-document.docx" "$fx\Harbour-Terminal-Q3.xlsx" "$fx\t.csv"
+
+      - name: "S3: native modules for Electron"
+        run: |
+          npx electron-rebuild -f -w better-sqlite3,node-pty
+          $env:ELECTRON_RUN_AS_NODE = "1"
+          & node_modules\electron\dist\electron.exe -e "const D=require('better-sqlite3'); const r=new D(':memory:').prepare('select 41+1 as x').get(); require('node-pty'); console.log('native modules ok', JSON.stringify(r), process.versions.electron)"
+
+      - name: Build app
+        run: npm run build
+
+      - name: "S4: NSIS installer"
+        run: npx electron-builder --win --publish never
+
+      - name: Upload installer and logs
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: workspace-os-windows
+          if-no-files-found: warn
+          retention-days: 14
+          path: |
+            release/*.exe
+            release/*.yml
+            unit-tests.log

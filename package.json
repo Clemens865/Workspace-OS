@@ -64,6 +64,7 @@
     "package": "electron-builder",
     "dist:mac": "npm run rebuild:electron && npm run build && electron-builder --mac && npm run rebuild:node || (npm run rebuild:node; exit 1)",
     "dist:linux": "npm run rebuild:electron && npm run build && electron-builder --linux && npm run rebuild:node || (npm run rebuild:node; exit 1)",
+    "dist:win": "npm run rebuild:electron && npm run build && electron-builder --win",
     "e2e:lok-edit": "npm run rebuild:electron && npm run build && node e2e/lok-edit.mjs; npm run rebuild:node",
     "e2e:lok-parts": "npm run rebuild:electron && npm run build && node e2e/lok-parts.mjs; npm run rebuild:node",
     "e2e:lok-packaged": "npm run build && node e2e/lok-packaged.mjs",
@@ -241,7 +242,60 @@
       "icon": "build/icon.icns"
     },
     "win": {
-      "target": "nsis"
+      "target": [
+        {
+          "target": "nsis",
+          "arch": [
+            "x64"
+          ]
+        }
+      ],
+      "extraResources": [
+        {
+          "from": "scripts/lok/wos-lok-host.exe",
+          "to": "lok/wos-lok-host.exe"
+        },
+        {
+          "from": "resources/office-docgen",
+          "to": "office-docgen"
+        },
+        {
+          "from": "resources/office-component",
+          "to": "office-component"
+        },
+        {
+          "from": "resources/wos-metric",
+          "to": "wos-metric"
+        },
+        {
+          "from": "resources/wos-collection",
+          "to": "wos-collection"
+        },
+        {
+          "from": "resources/wos-case",
+          "to": "wos-case"
+        },
+        {
+          "from": "resources/wos-mcp-token",
+          "to": "wos-mcp-token"
+        },
+        {
+          "from": "resources/wos-action",
+          "to": "wos-action"
+        },
+        {
+          "from": "resources/templates",
+          "to": "templates"
+        },
+        {
+          "from": "resources/apps-kit",
+          "to": "apps-kit"
+        },
+        {
+          "from": "resources/apps",
+          "to": "apps"
+        }
+      ]
     },
     "linux": {
       "target": [
@@ -296,6 +350,10 @@
         }
       ]
     },
-    "afterPack": "scripts/after-pack.cjs"
+    "afterPack": "scripts/after-pack.cjs",
+    "nsis": {
+      "oneClick": true,
+      "perMachine": false
+    }
   }
 }
