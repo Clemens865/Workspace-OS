@@ -116,6 +116,9 @@ for (const doc of DOCS) {
     await probe('offset 3840,3840', 'tile 256 256 3840 3840 3840 3840')
     console.log(`     setpart 0: ${JSON.stringify(await cmd('setpart 0'))}`)
     await probe('after setpart, 1:1', 'tile 256 256 0 0 3840 3840')
+    console.log(`     visarea: ${JSON.stringify(await cmd('visarea 0 0 30000 20000'))}`)
+    console.log(`     clientzoom: ${JSON.stringify(await cmd('clientzoom 256 256 3840 3840'))}`)
+    await probe('after visarea+clientzoom, 1:1', 'tile 256 256 0 0 3840 3840')
   }
   // Some ink, but not a solid tile: an all-black or empty-alpha buffer is a render failure, not a page.
   const solid = tile.tile && tile.ink >= tile.pixels * 0.98

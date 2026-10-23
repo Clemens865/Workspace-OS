@@ -978,6 +978,20 @@ int main(int argc, char** argv) {
             int wi;
             if (sscanf(rest.c_str(), "%d", &wi) == 1) cmdWClose(id, wi);
             else sendJson("{\"id\":" + std::to_string(id) + ",\"ok\":false,\"err\":\"bad wclose\"}");
+        } else if (cmd == "clientzoom") {
+            // "clientzoom <tilePxW> <tilePxH> <tileTwipW> <tileTwipH>" — the client's tile scale (Calc uses it).
+            int pw, ph, tw, th;
+            if (g_doc && sscanf(rest.c_str(), "%d %d %d %d", &pw, &ph, &tw, &th) == 4) {
+                g_doc->pClass->setClientZoom(g_doc, pw, ph, tw, th);
+                sendJson("{\"id\":" + std::to_string(id) + ",\"ok\":true}");
+            } else sendJson("{\"id\":" + std::to_string(id) + ",\"ok\":false,\"err\":\"bad clientzoom args or no document\"}");
+        } else if (cmd == "visarea") {
+            // "visarea <x> <y> <w> <h>" in twips — the part of the document the client shows.
+            int x, y, w, h;
+            if (g_doc && sscanf(rest.c_str(), "%d %d %d %d", &x, &y, &w, &h) == 4) {
+                g_doc->pClass->setClientVisibleArea(g_doc, x, y, w, h);
+                sendJson("{\"id\":" + std::to_string(id) + ",\"ok\":true}");
+            } else sendJson("{\"id\":" + std::to_string(id) + ",\"ok\":false,\"err\":\"bad visarea args or no document\"}");
         } else if (cmd == "setpart") {
             int n;
             if (sscanf(rest.c_str(), "%d", &n) == 1) cmdSetPart(id, n);

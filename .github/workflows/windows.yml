@@ -72,37 +72,18 @@ jobs:
       # processes LibreOffice starts while it hangs. Not gating.
       # S1 open point: Calc tiles come back empty on Windows (Writer renders).
       # Try the renderers: Skia off (GDI), Skia raster. Not gating.
-      # S1 open point: Calc tiles are opaque black on Windows (Writer's page is
-      # white on a black application background). Check the runner's system
-      # colours, then seed the host profile with a light appearance, with and
-      # without explicit scheme colours. Not gating.
-      - name: "S1 diag: Calc colours"
+      # S1 open point: Calc tiles are opaque black on Windows while Writer renders.
+      # Not the renderer (Skia on/off/raster) and not the colour settings. Probe
+      # scales, setpart, and setClientVisibleArea + setClientZoom. Not gating.
+      - name: "S1 diag: Calc tile probes"
         continue-on-error: true
+        env:
+          WOS_SMOKE_PROBES: "1"
         run: |
-          Add-Type -AssemblyName System.Windows.Forms
-          $sc = [System.Drawing.SystemColors]
-          Write-Host ("high contrast: {0}; Window {1}; WindowText {2}; AppWorkspace {3}" -f [System.Windows.Forms.SystemInformation]::HighContrast, $sc::Window.Name, $sc::WindowText.Name, $sc::AppWorkspace.Name)
           $fx = Join-Path $env:RUNNER_TEMP "wos-fixtures"
           $lo = "C:\Program Files\LibreOffice\program"
-          $profile = Join-Path $env:TEMP "wos-lok-host-profile"
-          $head = '<?xml version="1.0" encoding="UTF-8"?><oor:items xmlns:oor="http://openoffice.org/2001/registry" xmlns:xs="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">'
-          $bar = '<item oor:path="/org.openoffice.Office.Views/Windows"><node oor:name="26100" oor:op="replace"><prop oor:name="Visible" oor:op="fuse"><value>false</value></prop></node></item>'
-          $light = '<item oor:path="/org.openoffice.Office.Common/Appearance"><prop oor:name="ApplicationAppearance" oor:op="fuse"><value>1</value></prop></item>'
-          $scheme = "/org.openoffice.Office.UI/ColorScheme/ColorSchemes/org.openoffice.Office.UI:ColorScheme['LibreOffice']"
-          $colors = '<item oor:path="/org.openoffice.Office.UI/ColorScheme"><prop oor:name="CurrentColorScheme" oor:op="fuse"><value>LibreOffice</value></prop></item>' +
-            "<item oor:path=`"$scheme/DocColor`"><prop oor:name=`"Color`" oor:op=`"fuse`"><value>16777215</value></prop></item>" +
-            "<item oor:path=`"$scheme/AppBackground`"><prop oor:name=`"Color`" oor:op=`"fuse`"><value>16777215</value></prop></item>" +
-            "<item oor:path=`"$scheme/FontColor`"><prop oor:name=`"Color`" oor:op=`"fuse`"><value>0</value></prop></item>"
-          foreach ($v in @(@{ n = "light"; body = $bar + $light }, @{ n = "light+colors"; body = $bar + $light + $colors })) {
-            Write-Host "=== $($v.n)"
-            Remove-Item $profile -Recurse -Force -ErrorAction SilentlyContinue
-            New-Item -ItemType Directory -Force (Join-Path $profile "user") | Out-Null
-            ($head + $v.body + '</oor:items>') | Set-Content -Encoding utf8 (Join-Path $profile "user\registrymodifications.xcu")
-            $env:WOS_SMOKE_DUMP_DIR = Join-Path $env:RUNNER_TEMP "tiles\$($v.n)"
-            node e2e/lok-host-smoke.mjs scripts\lok\wos-lok-host.exe "$lo\" "$lo\fundamental.ini" "$fx\Harbour-Terminal-Q3.xlsx" "$fx\test-document.docx"
-            Get-Process wos-lok-host -ErrorAction SilentlyContinue | Stop-Process -Force
-          }
-          Remove-Item $profile -Recurse -Force -ErrorAction SilentlyContinue
+          $env:WOS_SMOKE_DUMP_DIR = Join-Path $env:RUNNER_TEMP "tiles\probes"
+          node e2e/lok-host-smoke.mjs scripts\lok\wos-lok-host.exe "$lo\" "$lo\fundamental.ini" "$fx\Harbour-Terminal-Q3.xlsx"
 
       # Calc on LibreOffice 25.8+ needs the formula bar hidden (wos-lok-host.cpp,
       # hideCalcFormulaBar); the host does that in its private profile.
