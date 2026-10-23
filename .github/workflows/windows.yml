@@ -14,6 +14,7 @@ permissions:
 
 jobs:
   windows:
+    if: "!contains(github.event.head_commit.message, '[bisect]')"
     runs-on: windows-latest
     timeout-minutes: 90
     defaults:
@@ -134,6 +135,7 @@ jobs:
   # Calc tiles black once the formula bar is hidden. Each version installed
   # normally on its own runner.
   engine-versions:
+    if: "!contains(github.event.head_commit.message, '[bisect]')"
     runs-on: windows-latest
     timeout-minutes: 45
     strategy:
@@ -194,3 +196,56 @@ jobs:
           name: engine-tiles-${{ matrix.lo }}
           retention-days: 14
           path: ${{ runner.temp }}/tiles
+
+  # Bibisect the Calc black-tile regression over the 25.8 development cycle
+  # (https://bibisect.libreoffice.org/win64-25.8): oldest = good, master = bad.
+  # Runs only for commits whose message contains [bisect].
+  bibisect:
+    if: contains(github.event.head_commit.message, '[bisect]')
+    runs-on: windows-latest
+    timeout-minutes: 300
+    defaults:
+      run:
+        shell: pwsh
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Fetch LibreOfficeKit headers
+        shell: bash
+        run: LOK_HEADER_REF=libreoffice-24.2.7.2 bash scripts/lok/fetch-headers.sh
+      - uses: ilammy/msvc-dev-cmd@v1
+        with:
+          arch: x64
+      - name: Build wos-lok-host.exe
+        shell: cmd
+        run: scripts\lok\build-host.cmd
+      - name: Clone the bibisect repository (partial)
+        run: |
+          git config --global core.longpaths true
+          Get-PSDrive C, D | Format-Table -AutoSize | Out-Host
+          git clone --filter=blob:none --no-checkout https://bibisect.libreoffice.org/win64-25.8 C:\bb
+          Write-Host "commits: $(git -C C:\bb rev-list --count master)"
+          git -C C:\bb log -1 --format="oldest: %h %ci %s" oldest
+          git -C C:\bb log -1 --format="master: %h %ci %s" master
+      - name: Bisect
+        run: |
+          $fx = Join-Path $env:RUNNER_TEMP "wos-fixtures"
+          New-Item -ItemType Directory -Force $fx | Out-Null
+          Copy-Item examples\Harbour-Terminal-Q3.xlsx $fx
+          $ws = (Get-Location).Path
+          $step = Join-Path $ws "scripts\lok\bisect-step.ps1"
+          Set-Location C:\bb
+          git checkout -q -f master
+          & pwsh -File $step -Repo C:\bb -Workspace $ws -Fixtures $fx
+          Write-Host "master check exit: $LASTEXITCODE"
+          git checkout -q -f oldest
+          & pwsh -File $step -Repo C:\bb -Workspace $ws -Fixtures $fx
+          Write-Host "oldest check exit: $LASTEXITCODE"
+          git bisect start master oldest
+          git bisect run pwsh -File $step -Repo C:\bb -Workspace $ws -Fixtures $fx
+          Write-Host "=== bisect result"
+          git bisect log | Out-Host
+          git log -1 --format="first bad: %h %ci%n%B" refs/bisect/bad | Out-Host
+          git log --format="%h %s" refs/bisect/bad~1..refs/bisect/bad | Out-Host
