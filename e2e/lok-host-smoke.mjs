@@ -8,7 +8,7 @@
 // Exit 0 when every document opens and renders; 1 otherwise.
 // WOS_SMOKE_BATCH_ALL=1 opens every document with LOK's Batch option (no dialogs);
 // WOS_SMOKE_TIMEOUT_MS sets the per-command timeout (default 60000).
-// WOS_SMOKE_DUMP_DIR writes each rendered tile there as a .ppm image.
+// WOS_SMOKE_DUMP_DIR writes each rendered tile there as a .bmp image.
 // WOS_SMOKE_PROBES=1 also renders spreadsheets at several scales and after setpart 0,
 // and reports each tile's alpha values (diagnostics; does not change pass/fail).
 import { spawn } from 'node:child_process'
@@ -56,12 +56,14 @@ proc.stdio[4].on('data', parser((type, body) => {
   const px = body.subarray(12)
   const dump = process.env.WOS_SMOKE_DUMP_DIR
   if (dump) {
-    // BGRA → binary PPM (RGB), viewable anywhere.
+    // BGRA → 32-bit BMP (bottom-up rows), which Windows and most viewers open directly.
     const cw = body.readUInt32LE(4), ch = body.readUInt32LE(8)
-    const rgb = Buffer.alloc(cw * ch * 3)
-    for (let i = 0, j = 0; i < px.length; i += 4, j += 3) { rgb[j] = px[i + 2]; rgb[j + 1] = px[i + 1]; rgb[j + 2] = px[i] }
+    const head = Buffer.alloc(54)
+    head.write('BM', 0); head.writeUInt32LE(54 + px.length, 2); head.writeUInt32LE(54, 10)
+    head.writeUInt32LE(40, 14); head.writeInt32LE(cw, 18); head.writeInt32LE(-ch, 22) // negative height: top-down rows
+    head.writeUInt16LE(1, 26); head.writeUInt16LE(32, 28); head.writeUInt32LE(px.length, 34)
     fs.mkdirSync(dump, { recursive: true })
-    fs.writeFileSync(path.join(dump, `tile-${id}.ppm`), Buffer.concat([Buffer.from(`P6\n${cw} ${ch}\n255\n`), rgb]))
+    fs.writeFileSync(path.join(dump, `tile-${id}.bmp`), Buffer.concat([head, px]))
   }
   let ink = 0, a0 = 0, a255 = 0, nonzero = 0
   for (let i = 0; i < px.length; i += 4) {

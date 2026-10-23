@@ -72,22 +72,31 @@ jobs:
       # processes LibreOffice starts while it hangs. Not gating.
       # S1 open point: Calc tiles come back empty on Windows (Writer renders).
       # Try the renderers: Skia off (GDI), Skia raster. Not gating.
-      # S1 open point: Calc tiles are opaque black on Windows while Writer renders.
-      # Not the renderer (Skia on/off/raster) and not the colour settings. Probe
-      # scales, setpart, and setClientVisibleArea + setClientZoom. Not gating.
-      - name: "S1 diag: Calc tile probes"
-        continue-on-error: true
-        env:
-          WOS_SMOKE_PROBES: "1"
+      # A kit for checking the engine on a real Windows desktop: the host, the
+      # smoke test, the fixtures, a portable node.exe and run-engine-test.cmd.
+      # Installs nothing; needs LibreOffice on the PC.
+      - name: Assemble engine test kit
         run: |
-          $fx = Join-Path $env:RUNNER_TEMP "wos-fixtures"
-          $lo = "C:\Program Files\LibreOffice\program"
-          $env:WOS_SMOKE_DUMP_DIR = Join-Path $env:RUNNER_TEMP "tiles\probes"
-          node e2e/lok-host-smoke.mjs scripts\lok\wos-lok-host.exe "$lo\" "$lo\fundamental.ini" "$fx\Harbour-Terminal-Q3.xlsx"
+          $kit = Join-Path $env:RUNNER_TEMP "engine-test-kit"
+          New-Item -ItemType Directory -Force "$kit\fixtures" | Out-Null
+          Copy-Item scripts\lok\wos-lok-host.exe, e2e\lok-host-smoke.mjs, scripts\lok\run-engine-test.cmd $kit
+          Copy-Item (Get-Command node).Source $kit
+          Copy-Item "$env:RUNNER_TEMP\wos-fixtures\test-document.docx", "$env:RUNNER_TEMP\wos-fixtures\Harbour-Terminal-Q3.xlsx", "$env:RUNNER_TEMP\wos-fixtures\t.csv" "$kit\fixtures"
+          dumpbin /dependents "$kit\wos-lok-host.exe" | Out-Host
+          Get-ChildItem -Recurse $kit | Out-Host
+
+      - name: Upload engine test kit
+        uses: actions/upload-artifact@v4
+        with:
+          name: engine-test-kit
+          retention-days: 14
+          path: ${{ runner.temp }}/engine-test-kit
 
       # Calc on LibreOffice 25.8+ needs the formula bar hidden (wos-lok-host.cpp,
       # hideCalcFormulaBar); the host does that in its private profile.
       - name: "S1 + S2: engine renders docx, xlsx and csv through fd 3/4 pipes"
+        # Not gating until Calc tiles render on Windows (docs/WINDOWS-NATIVE-PLAN.md).
+        continue-on-error: true
         env:
           WOS_SMOKE_DUMP_DIR: ${{ runner.temp }}\tiles
         run: |
