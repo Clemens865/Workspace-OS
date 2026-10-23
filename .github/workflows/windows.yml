@@ -128,3 +128,60 @@ jobs:
             release/*.yml
             unit-tests.log
             ${{ runner.temp }}/tiles/**/*.ppm
+
+  # Engine experiment: LibreOffice 25.2 (the last release whose VCL main thread
+  # still processes sent messages while it waits for the SolarMutex), installed
+  # normally. Calc with the formula bar shown and hidden, to tell whether the
+  # black Calc tiles come from LibreOffice 25.8+ or from hiding the formula bar.
+  engine-lo252:
+    runs-on: windows-latest
+    timeout-minutes: 45
+    defaults:
+      run:
+        shell: pwsh
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Install LibreOffice 25.2.7.2
+        run: |
+          $msi = Join-Path $env:RUNNER_TEMP "lo252.msi"
+          Invoke-WebRequest "https://downloadarchive.documentfoundation.org/libreoffice/old/25.2.7.2/win/x86_64/LibreOffice_25.2.7.2_Win_x86-64.msi" -OutFile $msi
+          $p = Start-Process msiexec.exe -Wait -PassThru -ArgumentList "/i `"$msi`" /qn /norestart"
+          Write-Host "msiexec exit $($p.ExitCode)"
+          & "C:\Program Files\LibreOffice\program\soffice.com" --version
+      - name: Fetch LibreOfficeKit headers
+        shell: bash
+        run: LOK_HEADER_REF=libreoffice-24.2.7.2 bash scripts/lok/fetch-headers.sh
+      - uses: ilammy/msvc-dev-cmd@v1
+        with:
+          arch: x64
+      - name: Build wos-lok-host.exe
+        shell: cmd
+        run: scripts\lok\build-host.cmd
+      - name: Calc on 25.2, formula bar shown and hidden
+        env:
+          WOS_SMOKE_TIMEOUT_MS: "45000"
+        run: |
+          $fx = Join-Path $env:RUNNER_TEMP "wos-fixtures"
+          New-Item -ItemType Directory -Force $fx | Out-Null
+          "a;b;c`r`n1;2;3`r`n4;5;6" | Set-Content -Encoding utf8 "$fx\t.csv"
+          Copy-Item examples\Harbour-Terminal-Q3.xlsx $fx
+          $lo = "C:\Program Files\LibreOffice\program"
+          $profile = Join-Path $env:TEMP "wos-lok-host-profile"
+          foreach ($keep in "1", "0") {
+            Write-Host "=== formula bar shown: $keep"
+            Remove-Item $profile -Recurse -Force -ErrorAction SilentlyContinue
+            $env:WOS_LOK_KEEP_FORMULA_BAR = $keep
+            $env:WOS_SMOKE_DUMP_DIR = Join-Path $env:RUNNER_TEMP "tiles\keep-$keep"
+            node e2e/lok-host-smoke.mjs scripts\lok\wos-lok-host.exe "$lo\" "$lo\fundamental.ini" "$fx\Harbour-Terminal-Q3.xlsx" "$fx\t.csv"
+            Get-Process wos-lok-host -ErrorAction SilentlyContinue | Stop-Process -Force
+          }
+      - name: Upload tiles
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: engine-lo252-tiles
+          retention-days: 14
+          path: ${{ runner.temp }}/tiles
