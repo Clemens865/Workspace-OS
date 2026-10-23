@@ -8,8 +8,10 @@
 // Exit 0 when every document opens and renders; 1 otherwise.
 // WOS_SMOKE_BATCH_ALL=1 opens every document with LOK's Batch option (no dialogs);
 // WOS_SMOKE_TIMEOUT_MS sets the per-command timeout (default 60000).
+// WOS_SMOKE_DUMP_DIR writes each rendered tile there as a .ppm image.
 import { spawn } from 'node:child_process'
 import path from 'node:path'
+import fs from 'node:fs'
 
 const [HOST, INSTALL, FUND, ...RAW] = process.argv.slice(2)
 // `new:<swriter|scalc|simpress>:<path>` creates a blank document instead of opening one.
@@ -50,9 +52,18 @@ proc.stdio[4].on('data', parser((type, body) => {
   if (type !== 'T') return
   const id = body.readUInt32LE(0)
   const px = body.subarray(12)
+  const dump = process.env.WOS_SMOKE_DUMP_DIR
+  if (dump) {
+    // BGRA → binary PPM (RGB), viewable anywhere.
+    const cw = body.readUInt32LE(4), ch = body.readUInt32LE(8)
+    const rgb = Buffer.alloc(cw * ch * 3)
+    for (let i = 0, j = 0; i < px.length; i += 4, j += 3) { rgb[j] = px[i + 2]; rgb[j + 1] = px[i + 1]; rgb[j + 2] = px[i] }
+    fs.mkdirSync(dump, { recursive: true })
+    fs.writeFileSync(path.join(dump, `tile-${id}.ppm`), Buffer.concat([Buffer.from(`P6\n${cw} ${ch}\n255\n`), rgb]))
+  }
   let ink = 0
   for (let i = 0; i < px.length; i += 4) if (px[i] < 200 || px[i + 1] < 200 || px[i + 2] < 200) ink++
-  waiters.get(id)?.({ tile: true, ink })
+  waiters.get(id)?.({ tile: true, ink, pixels: px.length / 4 })
   waiters.delete(id)
 }))
 
@@ -91,9 +102,11 @@ for (const doc of DOCS) {
   }
   const tile = await cmd(`tile 256 256 0 0 ${Math.min(opened.w, 12000)} ${Math.min(opened.h, 12000)}`)
   // A blank document only has to open and paint; it has no ink to find.
-  const inked = tile.tile && (fresh ? true : tile.ink > (csv ? 10 : 50))
+  // Some ink, but not a solid tile: an all-black or empty-alpha buffer is a render failure, not a page.
+  const solid = tile.tile && tile.ink >= tile.pixels * 0.98
+  const inked = tile.tile && !solid && (fresh ? true : tile.ink > (csv ? 10 : 50))
   if (!inked) failed++
-  console.log(`${inked ? 'ok  ' : 'FAIL'} ${doc}: type ${opened.type}, ${opened.parts} part(s), tile ink ${tile.ink ?? JSON.stringify(tile)} (fd 4 frames arrive)`)
+  console.log(`${inked ? 'ok  ' : 'FAIL'} ${doc}: type ${opened.type}, ${opened.parts} part(s), tile ink ${tile.ink ?? JSON.stringify(tile)}${solid ? ' (solid tile: not rendered)' : ''} (fd 4 frames arrive)`)
 }
 
 proc.stdin.write(`${next++} close\n`)

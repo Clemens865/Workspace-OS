@@ -45,6 +45,8 @@
 #include <deque>
 #include <chrono>
 #include <sys/stat.h>
+#include <fstream>
+#include <sstream>
 
 // ---- platform shims (Windows: MSVC CRT; elsewhere: POSIX) -------------------
 // The app reads frames on fds 3 and 4. On Windows, Node/libuv hands extra pipes
@@ -76,6 +78,41 @@ static long wosFileSize(const std::string& path) {
     struct stat st; return ::stat(path.c_str(), &st) == 0 ? (long)st.st_size : 0;
 }
 static std::string wosTmpDir() { return "/tmp"; }
+#endif
+
+#ifdef _WIN32
+// LibreOffice 25.8+ on Windows: creating Calc's formula bar from the LOK thread
+// deadlocks. The Name Box's SetWindowPos is sent to the "VCL Main" thread, which
+// waits for the SolarMutex in CoWaitForMultipleHandles and no longer processes
+// sent messages (core 2025-01-10, "Try to use CoWaitForMultipleHandles magic to
+// handle COM message loop"; up to 25.2 the wait was MsgWaitForMultipleObjects
+// with QS_SENDMESSAGE). The app draws its own formula bar, so hide LibreOffice's
+// (child window FID_INPUTLINE_STATUS = 26100) in this host's private profile.
+// WOS_LOK_KEEP_FORMULA_BAR=1 leaves the profile alone.
+static void hideCalcFormulaBar(const std::string& profileDir) {
+    const char* keep = getenv("WOS_LOK_KEEP_FORMULA_BAR");
+    if (keep && *keep == '1') return;
+    const std::string userDir = profileDir + "\\user";
+    CreateDirectoryA(profileDir.c_str(), nullptr);
+    CreateDirectoryA(userDir.c_str(), nullptr);
+    const std::string file = userDir + "\\registrymodifications.xcu";
+    const std::string item =
+        "<item oor:path=\"/org.openoffice.Office.Views/Windows\"><node oor:name=\"26100\" oor:op=\"replace\">"
+        "<prop oor:name=\"Visible\" oor:op=\"fuse\"><value>false</value></prop></node></item>\n";
+    std::string xml;
+    { std::ifstream in(file, std::ios::binary); if (in) { std::stringstream ss; ss << in.rdbuf(); xml = ss.str(); } }
+    if (xml.find("oor:name=\"26100\"") != std::string::npos) return; // already there (LibreOffice keeps it)
+    const size_t end = xml.rfind("</oor:items>");
+    if (end == std::string::npos) {
+        xml = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<oor:items xmlns:oor=\"http://openoffice.org/2001/registry\" "
+              "xmlns:xs=\"http://www.w3.org/2001/XMLSchema\" xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\">\n"
+              + item + "</oor:items>\n";
+    } else {
+        xml.insert(end, item);
+    }
+    std::ofstream out(file, std::ios::binary | std::ios::trunc);
+    out << xml;
+}
 #endif
 
 // A file URL for a native path: file:///C:/dir/x.docx on Windows, file:///dir/x.docx elsewhere.
@@ -833,7 +870,11 @@ int main(int argc, char** argv) {
     _setmode(TILE_FD, _O_BINARY);
 #endif
     wosSetEnv("URE_BOOTSTRAP", (std::string("vnd.sun.star.pathname:") + argv[2]).c_str());
-    const std::string profileUrl = fileUrl(wosTmpDir() + (wosTmpDir().back() == '/' ? "" : "/") + "wos-lok-host-profile");
+    const std::string profileDir = wosTmpDir() + (wosTmpDir().back() == '/' ? "" : "/") + "wos-lok-host-profile";
+#ifdef _WIN32
+    hideCalcFormulaBar(wosTmpDir() + "\\wos-lok-host-profile");
+#endif
+    const std::string profileUrl = fileUrl(profileDir);
     g_lok = lok_init_2(argv[1], profileUrl.c_str());
     if (!g_lok) {
         fprintf(stderr, "[host] lok_init failed\n");
