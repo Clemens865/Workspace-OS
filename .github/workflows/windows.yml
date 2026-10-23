@@ -72,21 +72,15 @@ jobs:
       # processes LibreOffice starts while it hangs. Not gating.
       # S1 open point: Calc tiles come back empty on Windows (Writer renders).
       # Try the renderers: Skia off (GDI), Skia raster. Not gating.
-      - name: "S1 diag: Calc rendering backends"
+      - name: "S1 diag: Calc tile probes"
         continue-on-error: true
         env:
-          WOS_SMOKE_TIMEOUT_MS: "60000"
+          WOS_SMOKE_PROBES: "1"
         run: |
           $fx = Join-Path $env:RUNNER_TEMP "wos-fixtures"
           $lo = "C:\Program Files\LibreOffice\program"
-          foreach ($v in @(@{ n = "skia-off"; k = "SAL_DISABLESKIA"; val = "1" }, @{ n = "skia-raster"; k = "SAL_SKIA"; val = "raster" })) {
-            Write-Host "=== $($v.n)"
-            Set-Item "env:$($v.k)" $v.val
-            $env:WOS_SMOKE_DUMP_DIR = Join-Path $env:RUNNER_TEMP "tiles\$($v.n)"
-            node e2e/lok-host-smoke.mjs scripts\lok\wos-lok-host.exe "$lo\" "$lo\fundamental.ini" "$fx\Harbour-Terminal-Q3.xlsx" "$fx\test-document.docx"
-            Remove-Item "env:$($v.k)"
-            Get-Process wos-lok-host -ErrorAction SilentlyContinue | Stop-Process -Force
-          }
+          $env:WOS_SMOKE_DUMP_DIR = Join-Path $env:RUNNER_TEMP "tiles\probes"
+          node e2e/lok-host-smoke.mjs scripts\lok\wos-lok-host.exe "$lo\" "$lo\fundamental.ini" "$fx\Harbour-Terminal-Q3.xlsx" "$fx\test-document.docx"
 
       # Calc on LibreOffice 25.8+ needs the formula bar hidden (wos-lok-host.cpp,
       # hideCalcFormulaBar); the host does that in its private profile.

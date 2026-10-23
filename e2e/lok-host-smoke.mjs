@@ -9,6 +9,8 @@
 // WOS_SMOKE_BATCH_ALL=1 opens every document with LOK's Batch option (no dialogs);
 // WOS_SMOKE_TIMEOUT_MS sets the per-command timeout (default 60000).
 // WOS_SMOKE_DUMP_DIR writes each rendered tile there as a .ppm image.
+// WOS_SMOKE_PROBES=1 also renders spreadsheets at several scales and after setpart 0,
+// and reports each tile's alpha values (diagnostics; does not change pass/fail).
 import { spawn } from 'node:child_process'
 import path from 'node:path'
 import fs from 'node:fs'
@@ -61,9 +63,14 @@ proc.stdio[4].on('data', parser((type, body) => {
     fs.mkdirSync(dump, { recursive: true })
     fs.writeFileSync(path.join(dump, `tile-${id}.ppm`), Buffer.concat([Buffer.from(`P6\n${cw} ${ch}\n255\n`), rgb]))
   }
-  let ink = 0
-  for (let i = 0; i < px.length; i += 4) if (px[i] < 200 || px[i + 1] < 200 || px[i + 2] < 200) ink++
-  waiters.get(id)?.({ tile: true, ink, pixels: px.length / 4 })
+  let ink = 0, a0 = 0, a255 = 0, nonzero = 0
+  for (let i = 0; i < px.length; i += 4) {
+    if (px[i] < 200 || px[i + 1] < 200 || px[i + 2] < 200) ink++
+    if (px[i + 3] === 0) a0++
+    else if (px[i + 3] === 255) a255++
+    if (px[i] || px[i + 1] || px[i + 2] || px[i + 3]) nonzero++
+  }
+  waiters.get(id)?.({ tile: true, ink, pixels: px.length / 4, alpha0: a0, alpha255: a255, nonzero })
   waiters.delete(id)
 }))
 
@@ -102,6 +109,14 @@ for (const doc of DOCS) {
   }
   const tile = await cmd(`tile 256 256 0 0 ${Math.min(opened.w, 12000)} ${Math.min(opened.h, 12000)}`)
   // A blank document only has to open and paint; it has no ink to find.
+  if (process.env.WOS_SMOKE_PROBES === '1' && opened.type === 1) {
+    const probe = async (label, l) => { const t = await cmd(l); console.log(`     probe ${label}: ${JSON.stringify(t)}`) }
+    await probe('1:1 256px=3840tw', 'tile 256 256 0 0 3840 3840')
+    await probe('2:1 512px=3840tw', 'tile 512 512 0 0 3840 3840')
+    await probe('offset 3840,3840', 'tile 256 256 3840 3840 3840 3840')
+    console.log(`     setpart 0: ${JSON.stringify(await cmd('setpart 0'))}`)
+    await probe('after setpart, 1:1', 'tile 256 256 0 0 3840 3840')
+  }
   // Some ink, but not a solid tile: an all-black or empty-alpha buffer is a render failure, not a page.
   const solid = tile.tile && tile.ink >= tile.pixels * 0.98
   const inked = tile.tile && !solid && (fresh ? true : tile.ink > (csv ? 10 : 50))
