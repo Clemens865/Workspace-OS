@@ -70,36 +70,47 @@ jobs:
       # Diagnostics while S1 is open: Calc documents hang on load on Windows
       # while Writer renders. Try the xlsx under environment variants and list the
       # processes LibreOffice starts while it hangs. Not gating.
-      # Diagnostics while S1 is open: Calc documents hang on load on Windows while
-      # Writer renders (not OpenCL, no child process). 1) a blank Calc document;
-      # 2) all thread stacks of the hung engine via cdb with LibreOffice's public
-      # symbol server. Not gating.
-      - name: "S1 diag: blank Calc document"
+      # S1 finding: Calc deadlocks on Windows from LibreOffice 25.8 on. The VCL main
+      # thread waits for the SolarMutex in CoWaitForMultipleHandles (since core
+      # commit "Try to use CoWaitForMultipleHandles magic to handle COM message
+      # loop", 2025-01-10), which does not process the SetWindowPos that the
+      # LOK thread sends while creating the formula bar's Name Box. Up to 25.2 the
+      # wait was MsgWaitForMultipleObjects(QS_SENDMESSAGE). Two experiments:
+      # 1) LibreOffice 25.2.7.2, unpacked with msiexec /a (not installed);
+      # 2) 26.8 with the formula bar (child window 26100) hidden in the profile.
+      - name: "S1 diag: LibreOffice 25.2 and hidden formula bar"
         continue-on-error: true
+        timeout-minutes: 25
         env:
           WOS_SMOKE_TIMEOUT_MS: "30000"
         run: |
-          $lo = "C:\Program Files\LibreOffice\program"
-          $out = Join-Path $env:RUNNER_TEMP "blank.ods"
-          node e2e/lok-host-smoke.mjs scripts\lok\wos-lok-host.exe "$lo\" "$lo\fundamental.ini" "new:swriter:$env:RUNNER_TEMP\blank.odt" 
-          node e2e/lok-host-smoke.mjs scripts\lok\wos-lok-host.exe "$lo\" "$lo\fundamental.ini" "new:scalc:$out"
-
-      - name: "S1 diag: thread stacks of the hung xlsx load"
-        continue-on-error: true
-        timeout-minutes: 25
-        run: |
           $fx = Join-Path $env:RUNNER_TEMP "wos-fixtures"
-          $lo = "C:\Program Files\LibreOffice\program"
-          $cdb = Get-ChildItem "C:\Program Files (x86)\Windows Kits\10\Debuggers\x64\cdb.exe" -ErrorAction SilentlyContinue | Select-Object -First 1
-          if (-not $cdb) { Write-Host "cdb.exe not found"; exit 0 }
-          $job = Start-Job -ScriptBlock { param($wd, $lo, $doc) Set-Location $wd; $env:WOS_SMOKE_TIMEOUT_MS = "240000"; node e2e/lok-host-smoke.mjs scripts\lok\wos-lok-host.exe "$lo\" "$lo\fundamental.ini" $doc 2>&1 } -ArgumentList (Get-Location).Path, $lo, "$fx\Harbour-Terminal-Q3.xlsx"
-          Start-Sleep -Seconds 20
-          $hostPid = (Get-Process wos-lok-host -ErrorAction SilentlyContinue | Select-Object -First 1).Id
-          Write-Host "hung engine pid: $hostPid"
-          $sym = "srv*$env:RUNNER_TEMP\sym*https://dev-downloads.libreoffice.org/symstore/symbols;srv*$env:RUNNER_TEMP\sym*https://msdl.microsoft.com/download/symbols"
-          & $cdb.FullName -p $hostPid -pv -y $sym -c ".symopt+ 0x10; .reload; ~*kc 40; qd" 2>&1 | Out-String -Width 400 | Write-Host
+          $profile = Join-Path $env:TEMP "wos-lok-host-profile"
+
+          Write-Host "=== 1) LibreOffice 25.2.7.2"
+          $msi = Join-Path $env:RUNNER_TEMP "lo252.msi"
+          Invoke-WebRequest "https://downloadarchive.documentfoundation.org/libreoffice/old/25.2.7.2/win/x86_64/LibreOffice_25.2.7.2_Win_x86-64.msi" -OutFile $msi
+          $target = Join-Path $env:RUNNER_TEMP "lo252"
+          Start-Process msiexec.exe -Wait -ArgumentList "/a `"$msi`" /qn TARGETDIR=`"$target`""
+          $prog = (Get-ChildItem $target -Recurse -Filter mergedlo.dll | Select-Object -First 1).DirectoryName
+          Write-Host "program dir: $prog"
+          Remove-Item $profile -Recurse -Force -ErrorAction SilentlyContinue
+          node e2e/lok-host-smoke.mjs scripts\lok\wos-lok-host.exe "$prog\\" "$prog\fundamental.ini" "$fx\Harbour-Terminal-Q3.xlsx" "$fx\t.csv" "new:scalc:$env:RUNNER_TEMP\blank252.ods"
           Get-Process wos-lok-host -ErrorAction SilentlyContinue | Stop-Process -Force
-          Receive-Job $job -Wait | Write-Host
+
+          Write-Host "=== 2) LibreOffice 26.8, formula bar hidden in the profile"
+          $lo = "C:\Program Files\LibreOffice\program"
+          Remove-Item $profile -Recurse -Force -ErrorAction SilentlyContinue
+          New-Item -ItemType Directory -Force (Join-Path $profile "user") | Out-Null
+          @'
+          <?xml version="1.0" encoding="UTF-8"?>
+          <oor:items xmlns:oor="http://openoffice.org/2001/registry" xmlns:xs="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+          <item oor:path="/org.openoffice.Office.Views/Windows"><node oor:name="26100" oor:op="replace"><prop oor:name="Visible" oor:op="fuse"><value>false</value></prop></node></item>
+          </oor:items>
+          '@ | ForEach-Object { $_ -replace '(?m)^          ', '' } | Set-Content -Encoding utf8 (Join-Path $profile "user\registrymodifications.xcu")
+          node e2e/lok-host-smoke.mjs scripts\lok\wos-lok-host.exe "$lo\" "$lo\fundamental.ini" "$fx\Harbour-Terminal-Q3.xlsx" "$fx\t.csv"
+          Get-Process wos-lok-host -ErrorAction SilentlyContinue | Stop-Process -Force
+          Remove-Item $profile -Recurse -Force -ErrorAction SilentlyContinue
 
       - name: "S1 + S2: engine renders docx, xlsx and csv through fd 3/4 pipes"
         continue-on-error: true
