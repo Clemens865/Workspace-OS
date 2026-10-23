@@ -12,7 +12,8 @@ import { spawn } from 'node:child_process'
 import path from 'node:path'
 
 const [HOST, INSTALL, FUND, ...RAW] = process.argv.slice(2)
-const DOCS = RAW.map((d) => path.resolve(d))
+// `new:<swriter|scalc|simpress>:<path>` creates a blank document instead of opening one.
+const DOCS = RAW.map((d) => (d.startsWith('new:') ? d : path.resolve(d)))
 if (!HOST || !INSTALL || !FUND || RAW.length === 0) {
   console.error('usage: lok-host-smoke.mjs <host-bin> <install-dir> <bootstrap-ini> <doc>...')
   process.exit(2)
@@ -77,7 +78,8 @@ console.log(`ok   engine ready in ${Date.now() - t0} ms (fd 3 frames arrive)`)
 
 for (const doc of DOCS) {
   const csv = /\.csv$/i.test(doc)
-  const line = csv ? `openopts Batch=true,59,34,76,1,,1033,false,true\t${doc}` : BATCH_ALL ? `openopts Batch=true\t${doc}` : `open ${doc}`
+  const fresh = doc.startsWith('new:') ? doc.slice(4).split(/:(.*)/s) : null
+  const line = fresh ? `new ${fresh[0]} ${path.resolve(fresh[1])}` : csv ? `openopts Batch=true,59,34,76,1,,1033,false,true\t${doc}` : BATCH_ALL ? `openopts Batch=true\t${doc}` : `open ${doc}`
   const t1 = Date.now()
   const opened = await cmd(line)
   if (!opened.ok) {
@@ -88,7 +90,8 @@ for (const doc of DOCS) {
     continue
   }
   const tile = await cmd(`tile 256 256 0 0 ${Math.min(opened.w, 12000)} ${Math.min(opened.h, 12000)}`)
-  const inked = tile.tile && tile.ink > (csv ? 10 : 50)
+  // A blank document only has to open and paint; it has no ink to find.
+  const inked = tile.tile && (fresh ? true : tile.ink > (csv ? 10 : 50))
   if (!inked) failed++
   console.log(`${inked ? 'ok  ' : 'FAIL'} ${doc}: type ${opened.type}, ${opened.parts} part(s), tile ink ${tile.ink ?? JSON.stringify(tile)} (fd 4 frames arrive)`)
 }
