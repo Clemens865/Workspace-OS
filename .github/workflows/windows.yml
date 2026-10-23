@@ -55,7 +55,7 @@ jobs:
         shell: cmd
         run: scripts\lok\build-host.cmd
 
-      - name: "S1 + S2: engine renders through fd 3/4 pipes"
+      - name: Prepare engine fixtures
         run: |
           $fx = Join-Path $env:RUNNER_TEMP "wos-fixtures"
           New-Item -ItemType Directory -Force $fx | Out-Null
@@ -63,7 +63,31 @@ jobs:
           "a;b;c`r`n1;2;3`r`n4;5;6" | Set-Content -Encoding utf8 "$fx\t.csv"
           & "C:\Program Files\LibreOffice\program\soffice.exe" --headless --convert-to docx --outdir $fx "$fx\test-document.txt" | Out-Host
           Copy-Item examples\Harbour-Terminal-Q3.xlsx $fx
-          node e2e/lok-host-smoke.mjs scripts\lok\wos-lok-host.exe "C:\Program Files\LibreOffice\program\" "C:\Program Files\LibreOffice\program\fundamental.ini" "$fx\test-document.docx" "$fx\Harbour-Terminal-Q3.xlsx" "$fx\t.csv"
+          Get-ChildItem $fx | Out-Host
+
+      # Diagnostics while the spikes are open: each document alone, plain and in
+      # Batch mode, so one hang does not hide the others. Not gating.
+      - name: "S1 diag: each document alone"
+        continue-on-error: true
+        env:
+          WOS_SMOKE_TIMEOUT_MS: "45000"
+        run: |
+          $fx = Join-Path $env:RUNNER_TEMP "wos-fixtures"
+          $lo = "C:\Program Files\LibreOffice\program"
+          foreach ($doc in "Harbour-Terminal-Q3.xlsx", "t.csv", "test-document.docx") {
+            Write-Host "=== $doc (plain)"
+            node e2e/lok-host-smoke.mjs scripts\lok\wos-lok-host.exe "$lo\" "$lo\fundamental.ini" "$fx\$doc"
+          }
+          $env:WOS_SMOKE_BATCH_ALL = "1"
+          Write-Host "=== Harbour-Terminal-Q3.xlsx (Batch)"
+          node e2e/lok-host-smoke.mjs scripts\lok\wos-lok-host.exe "$lo\" "$lo\fundamental.ini" "$fx\Harbour-Terminal-Q3.xlsx"
+
+      - name: "S1 + S2: engine renders docx, xlsx and csv through fd 3/4 pipes"
+        continue-on-error: true
+        run: |
+          $fx = Join-Path $env:RUNNER_TEMP "wos-fixtures"
+          $lo = "C:\Program Files\LibreOffice\program"
+          node e2e/lok-host-smoke.mjs scripts\lok\wos-lok-host.exe "$lo\" "$lo\fundamental.ini" "$fx\test-document.docx" "$fx\Harbour-Terminal-Q3.xlsx" "$fx\t.csv"
 
       - name: "S3: native modules for Electron"
         run: |

@@ -6,6 +6,8 @@
 //   node e2e/lok-host-smoke.mjs <host-bin> <install-dir> <bootstrap-ini> <doc>...
 //
 // Exit 0 when every document opens and renders; 1 otherwise.
+// WOS_SMOKE_BATCH_ALL=1 opens every document with LOK's Batch option (no dialogs);
+// WOS_SMOKE_TIMEOUT_MS sets the per-command timeout (default 60000).
 import { spawn } from 'node:child_process'
 import path from 'node:path'
 
@@ -54,7 +56,9 @@ proc.stdio[4].on('data', parser((type, body) => {
 }))
 
 let next = 1
-const cmd = (line, ms = 60000) => {
+const TIMEOUT = Number(process.env.WOS_SMOKE_TIMEOUT_MS) || 60000
+const BATCH_ALL = process.env.WOS_SMOKE_BATCH_ALL === '1'
+const cmd = (line, ms = TIMEOUT) => {
   const id = next++
   const p = Promise.race([new Promise((r) => waiters.set(id, r)), new Promise((r) => setTimeout(() => r({ timeout: true }), ms))])
   proc.stdin.write(`${id} ${line}\n`)
@@ -73,8 +77,16 @@ console.log(`ok   engine ready in ${Date.now() - t0} ms (fd 3 frames arrive)`)
 
 for (const doc of DOCS) {
   const csv = /\.csv$/i.test(doc)
-  const opened = await cmd(csv ? `openopts Batch=true,59,34,76,1,,1033,false,true\t${doc}` : `open ${doc}`)
-  if (!opened.ok) { failed++; console.log(`FAIL open ${doc}: ${JSON.stringify(opened).slice(0, 300)}`); continue }
+  const line = csv ? `openopts Batch=true,59,34,76,1,,1033,false,true\t${doc}` : BATCH_ALL ? `openopts Batch=true\t${doc}` : `open ${doc}`
+  const t1 = Date.now()
+  const opened = await cmd(line)
+  if (!opened.ok) {
+    failed++
+    console.log(`FAIL open ${doc} after ${Date.now() - t1} ms: ${JSON.stringify(opened).slice(0, 300)}`)
+    console.log(`     engine stderr (tail): ${stderr.slice(-1500) || '(empty)'}`)
+    if (opened.timeout) break // the engine is wedged; later commands would only time out too
+    continue
+  }
   const tile = await cmd(`tile 256 256 0 0 ${Math.min(opened.w, 12000)} ${Math.min(opened.h, 12000)}`)
   const inked = tile.tile && tile.ink > (csv ? 10 : 50)
   if (!inked) failed++
