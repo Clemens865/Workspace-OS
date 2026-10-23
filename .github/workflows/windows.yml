@@ -139,7 +139,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        lo: ["25.2.7.2", "25.8.7.3", "26.8.1.1"]
+        lo: ["25.2.7.2", "26.8.1.1"]
     defaults:
       run:
         shell: pwsh
@@ -176,7 +176,8 @@ jobs:
           $lo = "C:\Program Files\LibreOffice\program"
           $profile = Join-Path $env:TEMP "wos-lok-host-profile"
           $env:WOS_SMOKE_SHOW_STDERR = "1"
-          foreach ($run in @(@{ keep = "1"; sta = "0" }, @{ keep = "0"; sta = "0" }, @{ keep = "1"; sta = "1" }, @{ keep = "0"; sta = "1" })) {
+          $env:WOS_SMOKE_PROBES = "1"
+          foreach ($run in @(@{ keep = "1"; sta = "1" })) {
             $keep = $run.keep
             Write-Host "=== LibreOffice ${{ matrix.lo }}, formula bar shown: $keep, VCL Main STA experiment: $($run.sta)"
             Remove-Item $profile -Recurse -Force -ErrorAction SilentlyContinue

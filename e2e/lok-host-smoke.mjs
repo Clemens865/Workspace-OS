@@ -114,6 +114,8 @@ for (const doc of DOCS) {
   if (process.env.WOS_SMOKE_PROBES === '1' && opened.type === 1) {
     const probe = async (label, l) => { const t = await cmd(l); console.log(`     probe ${label}: ${JSON.stringify(t)}`) }
     await probe('1:1 256px=3840tw', 'tile 256 256 0 0 3840 3840')
+    // If Calc draws the sheet scaled down (one white pixel, black around it), zooming in shows it.
+    for (const tw of [384, 38, 16]) await probe(`zoom-in 256px=${tw}tw`, `tile 256 256 0 0 ${tw} ${tw}`)
     await probe('2:1 512px=3840tw', 'tile 512 512 0 0 3840 3840')
     await probe('offset 3840,3840', 'tile 256 256 3840 3840 3840 3840')
     console.log(`     setpart 0: ${JSON.stringify(await cmd('setpart 0'))}`)
