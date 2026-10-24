@@ -95,6 +95,24 @@ jobs:
           retention-days: 14
           path: ${{ runner.temp }}/engine-test-kit
 
+      # Impress on Windows: the .pptx load hangs in the host and crashes the engine
+      # in the app. Does switching VCL Main to STA (#1) fix it? Not gating.
+      - name: "Diag: Impress with and without the VCL Main STA switch"
+        continue-on-error: true
+        env:
+          WOS_SMOKE_TIMEOUT_MS: "60000"
+          WOS_SMOKE_SHOW_STDERR: "1"
+        run: |
+          $fx = Join-Path $env:RUNNER_TEMP "wos-fixtures"
+          $lo = "C:\Program Files\LibreOffice\program"
+          foreach ($sta in "0", "1") {
+            Write-Host "=== Impress, STA switch: $sta"
+            Remove-Item (Join-Path $env:TEMP "wos-lok-host-profile") -Recurse -Force -ErrorAction SilentlyContinue
+            $env:WOS_LOK_STA_VCLMAIN = $sta
+            node e2e/lok-host-smoke.mjs scripts\lok\wos-lok-host.exe "$lo\" "$lo\fundamental.ini" "$fx\test-deck.pptx" "$fx\test-document.docx"
+            Get-Process wos-lok-host -ErrorAction SilentlyContinue | Stop-Process -Force
+          }
+
       # Calc on LibreOffice 25.8+ needs the formula bar hidden (wos-lok-host.cpp,
       # hideCalcFormulaBar); the host does that in its private profile.
       - name: "S1 + S2: engine renders docx, xlsx and csv through fd 3/4 pipes"

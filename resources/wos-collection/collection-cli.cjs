@@ -33,6 +33,13 @@ var __toESM = (mod, isNodeMode, target) => (target = mod != null ? __create(__ge
 ));
 var __toCommonJS = (mod) => __copyProps(__defProp({}, "__esModule", { value: true }), mod);
 
+// scripts/cli-electron-stub.cjs
+var require_cli_electron_stub = __commonJS({
+  "scripts/cli-electron-stub.cjs"(exports2, module2) {
+    module2.exports = {};
+  }
+});
+
 // node_modules/process-nextick-args/index.js
 var require_process_nextick_args = __commonJS({
   "node_modules/process-nextick-args/index.js"(exports2, module2) {
@@ -64542,17 +64549,17 @@ __export(collection_cli_exports, {
 module.exports = __toCommonJS(collection_cli_exports);
 
 // src/main/collections.ts
-var import_electron3 = __toESM(require("electron"), 1);
+var import_electron3 = __toESM(require_cli_electron_stub(), 1);
 var import_fs3 = __toESM(require("fs"), 1);
 var import_path3 = __toESM(require("path"), 1);
 
 // src/main/ranges.ts
-var import_electron2 = __toESM(require("electron"), 1);
+var import_electron2 = __toESM(require_cli_electron_stub(), 1);
 var import_fs2 = __toESM(require("fs"), 1);
 var import_path2 = __toESM(require("path"), 1);
 
 // src/main/transclusions.ts
-var import_electron = __toESM(require("electron"), 1);
+var import_electron = __toESM(require_cli_electron_stub(), 1);
 var import_fs = __toESM(require("fs"), 1);
 var import_path = __toESM(require("path"), 1);
 var { app } = import_electron.default;
@@ -65092,7 +65099,7 @@ var collections = new CollectionStore(
 );
 
 // src/main/collectionLinks.ts
-var import_electron4 = __toESM(require("electron"), 1);
+var import_electron4 = __toESM(require_cli_electron_stub(), 1);
 var import_fs4 = __toESM(require("fs"), 1);
 var import_path4 = __toESM(require("path"), 1);
 

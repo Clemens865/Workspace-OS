@@ -29,7 +29,9 @@ await build({
   // run time. Only `electron` is external: it's dead code here (the CLI builds
   // its own stores), and `require('electron')` under plain node just returns the
   // binary path, never dereferenced.
-  external: ['electron'],
+  // electron is dead code in the CLI; a stub keeps the bundle runnable when no
+  // electron package is resolvable (packaged resources, ELECTRON_RUN_AS_NODE).
+  alias: { electron: fileURLToPath(new URL('./cli-electron-stub.cjs', import.meta.url)) },
   banner: { js: '#!/usr/bin/env node' },
   logLevel: 'info',
 })
