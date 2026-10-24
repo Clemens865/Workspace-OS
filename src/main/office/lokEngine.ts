@@ -3,6 +3,7 @@ import fs from 'fs'
 import path from 'path'
 import { LokHost, type OpenResult, type Tile, type TileSpec } from './lokHost'
 import { sniffCsvFilterOptions } from './csvSniff'
+import { withTrailingSeparator } from '../platform-tools'
 import { DISTRO_ENGINE_DIR, csvSilentLoad } from '../host-profile'
 
 /**
@@ -40,7 +41,9 @@ function lokPaths(): LokPaths {
   // Windows uses the installed LibreOffice (winget install TheDocumentFoundation.LibreOffice).
   if (process.platform === 'win32') {
     const program = path.join(process.env['ProgramFiles'] || 'C:\\Program Files', 'LibreOffice', 'program') + path.sep
-    const install = process.env['WOS_LOK_INSTALL'] || program
+    // The host joins file names straight onto this folder, so it must end in a separator.
+    const given = process.env['WOS_LOK_INSTALL'] || program
+    const install = withTrailingSeparator(given)
     return {
       install,
       fundamentalrc: process.env['WOS_LOK_FUND'] || path.join(install, 'fundamental.ini'),

@@ -112,6 +112,11 @@ export function findTool(name: string, envVar: string, opts: FindToolOptions): s
   return null
 }
 
+/** `dir` ending in one path separator (\\ or /), adding the platform's when missing. */
+export function withTrailingSeparator(dir: string): string {
+  return /[\\/]$/.test(dir) ? dir : dir + path.sep
+}
+
 /**
  * cmd.exe arguments that run a .cmd file (Node will not spawn one directly).
  * Spawn `cmd.exe` with these and `windowsVerbatimArguments: true`; /s strips the

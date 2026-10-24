@@ -76,7 +76,25 @@ interface the app uses:
 | [tdf#174143](https://bugs.documentfoundation.org/show_bug.cgi?id=174143), [#2](https://github.com/cbruyndoncx/Workspace-OS/issues/2) | Spreadsheet tiles render black | Needs a LibreOffice fix; no workaround in the app |
 
 Spreadsheets render on LibreOffice 25.2. That series reached end of life on 2025-11-30 and gets no
-security fixes, so use it only if you need spreadsheets now and accept that:
+security fixes, so use it only if you need spreadsheets now and accept that, for example for files
+you made yourself. Two ways:
+
+**A second copy for Workspace OS only** (keeps your LibreOffice as it is). Download
+`LibreOffice_25.2.7.2_Win_x86-64.msi`, the last 25.2 release, from
+[the archive](https://downloadarchive.documentfoundation.org/libreoffice/old/25.2.7.2/win/x86_64/),
+check its `.asc` signature or the SHA-256 on its `.mirrorlist` page, then in the folder with the file:
+
+```bat
+msiexec /a LibreOffice_25.2.7.2_Win_x86-64.msi /qn TARGETDIR="%LOCALAPPDATA%\Programs\LibreOffice-25.2"
+setx WOS_LOK_INSTALL "%LOCALAPPDATA%\Programs\LibreOffice-25.2\program"
+```
+
+`msiexec /a` only unpacks the files (about 1.5 GB); nothing is registered and no administrator
+rights are needed. Restart Workspace OS from the Start menu so it sees the variable. To go back,
+remove the variable (`reg delete HKCU\Environment /v WOS_LOK_INSTALL /f`) and delete the folder.
+Checked on a Windows 11 PC next to LibreOffice 26.8.1.1: `.xlsx`, `.csv`, `.docx` and `.pptx` render.
+
+**Replace your LibreOffice** with the newest 25.2 on winget (checked in CI):
 
 ```bat
 winget uninstall --id TheDocumentFoundation.LibreOffice --exact
@@ -96,7 +114,7 @@ Environment variables for unusual setups:
 
 | Variable | Effect |
 |---|---|
-| `WOS_LOK_INSTALL` | LibreOffice `program` folder (default `%ProgramFiles%\LibreOffice\program\`) |
+| `WOS_LOK_INSTALL` | LibreOffice `program` folder (default `%ProgramFiles%\LibreOffice\program\`); see [Spreadsheets](#spreadsheets) |
 | `WOS_LOK_FUND` | Its `fundamental.ini` |
 | `WOS_LOK_HOST` | Another `wos-lok-host.exe` |
 | `WOS_LOK_WAIT_FIX=0` | Turns off the tdf#174142 workaround |

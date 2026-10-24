@@ -3,7 +3,7 @@ import fs from 'fs'
 import os from 'os'
 import path from 'path'
 import { afterEach, describe, expect, it, vi } from 'vitest'
-import { cmdFileArgs, envWithPath, findInWingetPackages, findTool, seededPath, windowsToolDirs, writeWindowsNodeShims } from './platform-tools'
+import { cmdFileArgs, envWithPath, withTrailingSeparator, findInWingetPackages, findTool, seededPath, windowsToolDirs, writeWindowsNodeShims } from './platform-tools'
 
 afterEach(() => vi.unstubAllEnvs())
 
@@ -25,6 +25,14 @@ describe.runIf(process.platform !== 'win32')('macOS and Linux keep the former be
     expect(findTool('wos-no-such-tool', 'WOS_TOOL_OVERRIDE', { posixCandidates: [] })).toBe(bin)
     expect(findTool('wos-no-such-tool', 'WOS_NO_SUCH_ENV', { posixCandidates: [path.join(dir, 'missing')] })).toBeNull()
     fs.rmSync(dir, { recursive: true, force: true })
+  })
+})
+
+describe('withTrailingSeparator', () => {
+  it('adds one separator only when missing', () => {
+    expect(withTrailingSeparator('C:\\LO\\program\\')).toBe('C:\\LO\\program\\')
+    expect(withTrailingSeparator('/usr/lib/libreoffice/program/')).toBe('/usr/lib/libreoffice/program/')
+    expect(withTrailingSeparator('C:\\LO\\program')).toBe('C:\\LO\\program' + path.sep)
   })
 })
 
