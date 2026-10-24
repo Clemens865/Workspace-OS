@@ -74,7 +74,7 @@ already installed), then the installer built by CI.
 | `.docx`, `.pptx` | Render | |
 | `.xlsx`, `.csv` on 26.8.1.1 | Black tiles (tdf#174143) | None in the app |
 | `.xlsx`, `.csv` on 25.2.7.2 | Render, with an unpacked second copy next to 26.8 used only by Workspace OS (`WOS_LOK_INSTALL`) | Documented in WINDOWS.md; trailing separator added when missing (54f517c) |
-| Agent run from the app | Not yet confirmed | |
+| Agent run from the app | Works: Claude Code (WinGet build, found in its package folder) answers from the agent panel | |
 
 ## Phases
 
@@ -150,4 +150,3 @@ Windows unit-test baseline has 17 failing files to work through).
 ## Owner actions needed
 
 - Actions enabled on the fork (public repository minutes are free).
-- Confirm an agent run from the app on the Windows PC (the last open step of the manual test).
