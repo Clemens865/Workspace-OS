@@ -37,6 +37,15 @@ function macRequiresSignature(): boolean {
   return process.platform === 'darwin' && !app.isPackaged
 }
 
+/**
+ * Releases are published for macOS only, so a Windows or Linux build has no update feed:
+ * every check would end in a 404 for latest.yml. Those builds are updated by installing a
+ * newer one by hand.
+ */
+function noFeedForPlatform(): boolean {
+  return process.platform !== 'darwin'
+}
+
 async function safeCheck(): Promise<void> {
   try {
     await autoUpdater.checkForUpdates()
@@ -58,8 +67,8 @@ async function safeCheck(): Promise<void> {
 export function initUpdater(win: BrowserWindow, isDev: boolean): void {
   mainWin = win
 
-  if (isDev || !app.isPackaged || macRequiresSignature()) {
-    log('info', '[updater] disabled (dev / unpackaged / unsigned)')
+  if (isDev || !app.isPackaged || macRequiresSignature() || noFeedForPlatform()) {
+    log('info', '[updater] disabled (dev / unpackaged / unsigned / no feed for this platform)')
     return
   }
 
@@ -119,14 +128,16 @@ export function initUpdater(win: BrowserWindow, isDev: boolean): void {
 
 /** Manual "Check for Updates…" (menu + renderer). Always gives feedback. */
 export function checkForUpdatesManual(): void {
-  if (!app.isPackaged || macRequiresSignature()) {
+  if (!app.isPackaged || macRequiresSignature() || noFeedForPlatform()) {
     if (mainWin) {
       void dialog.showMessageBox(mainWin, {
         type: 'info',
         message: 'Updates are disabled in this build',
-        detail: app.isPackaged
-          ? 'Automatic updates require a signed release build.'
-          : 'Automatic updates are disabled while running from source.',
+        detail: !app.isPackaged
+          ? 'Automatic updates are disabled while running from source.'
+          : noFeedForPlatform()
+            ? 'Updates are published for macOS only. Install a newer Windows or Linux build by hand.'
+            : 'Automatic updates require a signed release build.',
       })
     }
     return
