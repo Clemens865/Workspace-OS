@@ -58,7 +58,7 @@ installer and runs the e2e against the installed app.
 | S2 fd 3/4 pipes | Pass | JSON and tile frames arrive from the MSVC-built host |
 | S3 native modules | Pass | `better-sqlite3` and `node-pty` load in Electron 42.4.1 |
 | S4 installer | Pass | `electron-builder --win` builds `Workspace OS Setup 0.2.26.exe` |
-| Unit tests on Windows | Baseline | 257 of 274 files pass; the 17 failing files are POSIX assumptions (sockets, pty, paths) and the new host-profile tests' POSIX example paths |
+| Unit tests on Windows | Pass, gating | Started at 17 failing files of 274 (POSIX sockets, mode bits, pty helpers, paths). Fixed in the code where it was a real bug (named pipe released before restart, case-insensitive workspace keys, `/` in agent guidance), skipped where the check is POSIX-only. The recall eval is excluded in CI: it needs a downloaded embedding model and fails on Linux the same way |
 
 ## Phases
 

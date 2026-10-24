@@ -34,9 +34,9 @@ jobs:
       - name: Typecheck
         run: npm run typecheck
 
-      - name: Unit tests (baseline on Windows, not yet gating)
-        continue-on-error: true
-        run: npm test -- --reporter=dot 2>&1 | Tee-Object -FilePath unit-tests.log
+      # The recall eval needs a downloaded embedding model; it is a measurement, not a unit test.
+      - name: Unit tests
+        run: npm test -- --reporter=dot --exclude "**/*.eval.test.ts" 2>&1 | Tee-Object -FilePath unit-tests.log
 
       - name: Install LibreOffice
         run: |
