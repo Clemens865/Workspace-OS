@@ -80,6 +80,19 @@ The office engine is bundled inside the app (about 650 MB of LibreOffice), so do
 
 Linux (x64), including WSL on Windows, builds against the distribution's LibreOffice; see [docs/LINUX-WSL.md](docs/LINUX-WSL.md) for the build, the host settings and the per-workspace content root.
 
+Windows 11 and Windows 10 22H2 (x64) run natively against an installed LibreOffice and the native Claude Code. Paste this into Command Prompt or PowerShell, open a new terminal, run `claude` once to sign in, then run the installer:
+
+<!-- install-block:start -->
+```bat
+winget install --id TheDocumentFoundation.LibreOffice --exact --accept-package-agreements --accept-source-agreements
+winget install --id Anthropic.ClaudeCode --exact --accept-package-agreements --accept-source-agreements
+winget install --id Git.Git --exact --accept-package-agreements --accept-source-agreements
+winget install --id Python.Python.3.13 --exact --accept-package-agreements --accept-source-agreements
+```
+<!-- install-block:end -->
+
+The installer is a build artifact for now, unsigned, and spreadsheets render black on LibreOffice 25.8 and later until LibreOffice fixes [tdf#174143](https://bugs.documentfoundation.org/show_bug.cgi?id=174143). [docs/WINDOWS.md](docs/WINDOWS.md) has where to download it, what each program is for, the settings and the build from source.
+
 On first launch, choose a folder. That folder is the workspace: every file operation is confined to it, agents run inside it, and the app's own state lives in a `.workspace-os/` subfolder (checkpoints, trash, memory). App-wide state lives in `~/Library/Application Support/workspace-os`.
 
 ## Keyboard
@@ -109,7 +122,7 @@ Version 0.1.125, September 2026. Shipped and green in automated tests: everythin
 - Calendar has no agenda list or event search and cannot author new recurrence rules.
 - Image generation is not built.
 - Memory retrieval is lexical, not semantic.
-- macOS only. Windows and Linux targets are declared in the builder config but have never been built and would ship without the office engine.
+- Releases are macOS only. Linux (including WSL) and Windows build from source against an installed LibreOffice ([docs/LINUX-WSL.md](docs/LINUX-WSL.md), [docs/WINDOWS.md](docs/WINDOWS.md)); on Windows, spreadsheets render black on LibreOffice 25.8 and later.
 - Not signed with a Developer ID and not notarized.
 
 Planned next, per the roadmap: freeze panes and pivot tables, mail-merge from a Collection, Word comments in the Living Feed, slide master editing, mail threading and search, a messages surface, semantic memory search, and beta accounts with report collection.
@@ -204,7 +217,7 @@ The engine is a separate process. `src/main/office/lokHost.ts` spawns `wos-lok-h
 |---|---|
 | `<workspace>/Cases/*.md` | Cases, plain markdown |
 | `<workspace>/.workspace-os/` | Checkpoints (shadow git), trash, workspace memory database |
-| `~/Library/Application Support/workspace-os/` | Workspace root and recents, live metrics and ranges, collections, routines, run queue, brand kit, encrypted secrets, search and mail indexes, personal memory, the CLI shims in `bin/`, the Python venv in `pyenv/` |
+| `~/Library/Application Support/workspace-os/` (Windows: `%APPDATA%\workspace-os\`, Linux: `~/.config/workspace-os/`) | Workspace root and recents, live metrics and ranges, collections, routines, run queue, brand kit, encrypted secrets, search and mail indexes, personal memory, the CLI shims in `bin/`, the Python venv in `pyenv/` |
 
 Workspace memory and personal memory are separate databases on purpose, so a workspace can be copied, shared or deleted without carrying personal preferences along.
 

@@ -42,6 +42,11 @@ export function docgenVenvBinDir(): string {
   return path.join(venvDir(), process.platform === 'win32' ? 'Scripts' : 'bin')
 }
 
+/** The venv's Python interpreter: Scripts\python.exe on Windows, bin/python3 elsewhere. */
+export function docgenVenvPython(): string {
+  return path.join(docgenVenvBinDir(), process.platform === 'win32' ? 'python.exe' : 'python3')
+}
+
 /** Windows `wos-gen` shims: a .cmd for PowerShell/Command Prompt and a POSIX one for Git Bash. */
 function windowsShimSources(genPath: string): { cmd: string; sh: string } {
   const venv = venvDir()
@@ -154,7 +159,7 @@ export function installDocgen(): void {
 
 /** Builds the managed venv ahead of time (detached, best-effort) if absent. */
 function provisionVenvInBackground(shimPath: string): void {
-  if (fs.existsSync(path.join(docgenVenvBinDir(), process.platform === 'win32' ? 'python.exe' : 'python3'))) return // already warm
+  if (fs.existsSync(docgenVenvPython())) return // already warm
   try {
     // stdin='pipe' (not 'ignore'): 'ignore' on stdin can fail with EBADF in a
     // Finder-launched packaged app. fd1/fd2 ignored is fine.

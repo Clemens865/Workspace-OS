@@ -16,7 +16,9 @@ const isWin = (): boolean => process.platform === 'win32'
 export function windowsToolDirs(): string[] {
   const home = os.homedir()
   const local = process.env['LOCALAPPDATA'] || path.join(home, 'AppData', 'Local')
-  return [path.join(home, '.local', 'bin'), path.join(local, 'Microsoft', 'WinGet', 'Links')]
+  const programFiles = process.env['ProgramFiles'] || 'C:\\Program Files'
+  // WinGet links portable packages (Claude Code) per user, or machine-wide when installed with --scope machine.
+  return [path.join(home, '.local', 'bin'), path.join(local, 'Microsoft', 'WinGet', 'Links'), path.join(programFiles, 'WinGet', 'Links')]
 }
 
 /** The common tool directories appended after the app's own (`first`), then the inherited PATH. */

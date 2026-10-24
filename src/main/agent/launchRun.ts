@@ -110,6 +110,12 @@ export { isValidModelAlias, modelArgs } from './modelPick'
 
 let cachedBinary: string | null = null
 
+/** Run output when Git is missing, so the absent revert checkpoint is not a surprise. */
+export function missingGitWarning(platform: NodeJS.Platform): string {
+  const install = platform === 'win32' ? 'winget install --id Git.Git --exact' : platform === 'darwin' ? 'xcode-select --install' : 'your package manager'
+  return `[warning] Git was not found, so this run has no revert checkpoint. Install it with ${install}.\n`
+}
+
 export function resolveClaudeBinary(): string {
   if (cachedBinary) return cachedBinary
   // CLAUDE_BIN, then the usual install locations, then the login shell (Windows: where.exe).
@@ -159,13 +165,17 @@ export async function launchRun(o: LaunchRunOptions): Promise<{ child: ChildProc
     // Snapshot the workspace BEFORE the agent can write — the claude subprocess
     // bypasses the IPC trash layer, so this checkpoint is its safety net.
     let checkpointId: string | null = null
-    if (getWorkspaceRoot() && checkpoints.enabled() && (await checkpoints.isGitAvailable())) {
-      try {
-        const cp = await checkpoints.createCheckpoint(`agent: ${prompt.slice(0, 60)}`)
-        checkpointId = cp.id
-      } catch {
-        // A failed checkpoint must not silently drop the safety net.
-        sink.output('[warning] could not create a revert checkpoint\n')
+    if (getWorkspaceRoot() && checkpoints.enabled()) {
+      if (!(await checkpoints.isGitAvailable())) {
+        sink.output(missingGitWarning(process.platform))
+      } else {
+        try {
+          const cp = await checkpoints.createCheckpoint(`agent: ${prompt.slice(0, 60)}`)
+          checkpointId = cp.id
+        } catch {
+          // A failed checkpoint must not silently drop the safety net.
+          sink.output('[warning] could not create a revert checkpoint\n')
+        }
       }
     }
 

@@ -32,6 +32,14 @@ describe.runIf(process.platform === 'win32')('Windows', () => {
     vi.stubEnv('PATH', 'C:\\Windows')
     expect(seededPath(['C:\\a'])).toBe(['C:\\a', ...windowsToolDirs(), 'C:\\Windows'].join(';'))
   })
+  it('looks in the per-user and machine-wide WinGet links', () => {
+    vi.stubEnv('LOCALAPPDATA', 'C:\\Users\\me\\AppData\\Local')
+    vi.stubEnv('ProgramFiles', 'C:\\Program Files')
+    expect(windowsToolDirs()).toEqual(expect.arrayContaining([
+      'C:\\Users\\me\\AppData\\Local\\Microsoft\\WinGet\\Links',
+      'C:\\Program Files\\WinGet\\Links',
+    ]))
+  })
   it('replaces every case variant of PATH', () => {
     expect(envWithPath({ A: '1', Path: 'old' }, 'new')).toEqual({ A: '1', PATH: 'new' })
   })

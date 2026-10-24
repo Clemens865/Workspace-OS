@@ -41,17 +41,9 @@ existing setup. Status: phase 0 run on GitHub Actions; results below. Calc is bl
 | Node.js | Not needed | The `wos-*` CLIs run on the app's own runtime (`ELECTRON_RUN_AS_NODE`) instead of a system `node` |
 | Codex | Optional, unchanged | |
 
-README block (to be verified on a clean Windows 11 install before it is published):
-
-```bat
-winget install --id TheDocumentFoundation.LibreOffice --exact
-winget install --id Anthropic.ClaudeCode --exact
-winget install --id Git.Git --exact
-winget install --id Python.Python.3.13 --exact
-```
-
-Then open a new terminal, run `claude` once to sign in, and run the Workspace OS installer from the
-release page.
+The install block is in [WINDOWS.md](WINDOWS.md) and the README (CI checks the two are identical).
+The `install-docs` CI job runs it line by line on a clean runner, installs the app with the NSIS
+installer and runs the e2e against the installed app.
 
 ## Phase 0 results (GitHub Actions, windows-latest, LibreOffice 26.8.1.1)
 
@@ -142,4 +134,4 @@ Windows unit-test baseline has 17 failing files to work through).
 ## Owner actions needed
 
 - Actions enabled on the fork (public repository minutes are free).
-- For the final manual test: the four `winget` installs above and the built installer.
+- For the final manual test: the install in [WINDOWS.md](WINDOWS.md).

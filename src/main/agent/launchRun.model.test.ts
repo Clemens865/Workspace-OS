@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { isValidModelAlias, modelArgs, modelsUsed } from './launchRun'
+import { isValidModelAlias, missingGitWarning, modelArgs, modelsUsed } from './launchRun'
 
 describe('launchRun — model selection', () => {
   it('accepts aliases and first-party ids, rejects anything else', () => {
@@ -21,5 +21,13 @@ describe('launchRun — model selection', () => {
   it('reads the models a result line used, without the context-window suffix', () => {
     expect(modelsUsed({ modelUsage: { 'claude-opus-5[1m]': {}, 'claude-haiku-4-5': {} } })).toBe('claude-opus-5 + claude-haiku-4-5')
     expect(modelsUsed({})).toBe('')
+  })
+})
+
+describe('launchRun — checkpoints without Git', () => {
+  it('names the install command for the platform', () => {
+    expect(missingGitWarning('win32')).toContain('winget install --id Git.Git --exact')
+    expect(missingGitWarning('darwin')).toContain('xcode-select --install')
+    expect(missingGitWarning('linux')).toMatch(/^\[warning\] Git was not found, so this run has no revert checkpoint/)
   })
 })

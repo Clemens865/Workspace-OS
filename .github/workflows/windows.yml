@@ -126,6 +126,13 @@ jobs:
           $fx = Join-Path $env:RUNNER_TEMP "wos-fixtures"
           node e2e/lok-packaged-windows.mjs $fx
 
+      - name: Upload engine fixtures
+        uses: actions/upload-artifact@v4
+        with:
+          name: wos-fixtures
+          retention-days: 14
+          path: ${{ runner.temp }}/wos-fixtures
+
       - name: Upload installer and logs
         if: always()
         uses: actions/upload-artifact@v4
@@ -144,6 +151,82 @@ jobs:
   # releases deadlock when Calc creates its formula bar (shown), and which render
   # Calc tiles black once the formula bar is hidden. Each version installed
   # normally on its own runner.
+  # The install a user follows: the winget block from docs/WINDOWS.md, run line by
+  # line exactly as written, then the installer from the windows job. The e2e then
+  # runs against the installed app with the PATH a new terminal would get.
+  install-docs:
+    needs: windows
+    runs-on: windows-latest
+    timeout-minutes: 45
+    defaults:
+      run:
+        shell: pwsh
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - name: Install dependencies
+        run: npm ci --legacy-peer-deps --ignore-scripts
+      - uses: actions/download-artifact@v4
+        with:
+          name: workspace-os-windows
+          path: ${{ runner.temp }}/dist
+      - uses: actions/download-artifact@v4
+        with:
+          name: wos-fixtures
+          path: ${{ runner.temp }}/wos-fixtures
+
+      - name: "docs/WINDOWS.md: winget block, as written"
+        run: |
+          winget --version
+          $doc = Get-Content docs\WINDOWS.md
+          $start = [array]::IndexOf($doc, '<!-- install-block:start -->')
+          $end = [array]::IndexOf($doc, '<!-- install-block:end -->')
+          if ($start -lt 0 -or $end -lt $start) { throw 'install block markers not found in docs/WINDOWS.md' }
+          $readme = Get-Content README.md
+          $rs = [array]::IndexOf($readme, '<!-- install-block:start -->')
+          $re = [array]::IndexOf($readme, '<!-- install-block:end -->')
+          if ($rs -lt 0 -or (($readme[$rs..$re]) -join "`n") -ne (($doc[$start..$end]) -join "`n")) { throw 'README.md and docs/WINDOWS.md install blocks differ' }
+          $lines = $doc[($start + 1)..($end - 1)] | Where-Object { $_ -match '^winget ' }
+          if ($lines.Count -lt 4) { throw "expected 4 winget lines, found $($lines.Count)" }
+          # Already installed (Git and Python are on the runner image) is not a failure.
+          $alreadyInstalled = @(-1978335135, -1978335189)
+          foreach ($line in $lines) {
+            Write-Host "> $line"
+            cmd.exe /d /c $line
+            if ($LASTEXITCODE -ne 0 -and $alreadyInstalled -notcontains $LASTEXITCODE) { throw "exit $LASTEXITCODE from: $line" }
+          }
+          $global:LASTEXITCODE = 0
+
+      - name: "docs/WINDOWS.md: a new terminal finds the tools"
+        run: |
+          $env:Path = [Environment]::GetEnvironmentVariable('Path', 'Machine') + ';' + [Environment]::GetEnvironmentVariable('Path', 'User')
+          claude --version
+          git --version
+          py -3 --version
+          & "$env:ProgramFiles\LibreOffice\program\soffice.com" --version
+
+      - name: Install Workspace OS (NSIS, silent)
+        run: |
+          $setup = Get-ChildItem "$env:RUNNER_TEMP\dist" -Recurse -Filter "*Setup*.exe" | Select-Object -First 1
+          if (-not $setup) { throw 'installer not in the workspace-os-windows artifact' }
+          $p = Start-Process $setup.FullName -ArgumentList '/S' -Wait -PassThru
+          Write-Host "installer exit $($p.ExitCode)"
+          $exe = Get-ChildItem "$env:LOCALAPPDATA\Programs" -Recurse -Filter "Workspace OS.exe" | Select-Object -First 1
+          if (-not $exe) { throw 'Workspace OS.exe not found under %LOCALAPPDATA%\Programs' }
+          "WOS_E2E_APP=$($exe.FullName)" | Out-File -Append -Encoding utf8 $env:GITHUB_ENV
+
+      - name: "E2E: installed app with the documented setup"
+        env:
+          WOS_E2E_EXPECT: claude,python
+        run: |
+          # The runner's node is not on the registry PATH; the app gets only what a new terminal has.
+          $node = (Get-Command node).Source
+          $env:Path = [Environment]::GetEnvironmentVariable('Path', 'Machine') + ';' + [Environment]::GetEnvironmentVariable('Path', 'User')
+          & $node e2e/lok-packaged-windows.mjs "$env:RUNNER_TEMP\wos-fixtures"
+
   engine-versions:
     if: "!contains(github.event.head_commit.message, '[bisect]')"
     runs-on: windows-latest
@@ -151,7 +234,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        lo: ["25.2.7.2", "26.8.1.1"]
+        lo: ["25.2.5.2", "25.2.7.2", "26.8.1.1"]
     defaults:
       run:
         shell: pwsh

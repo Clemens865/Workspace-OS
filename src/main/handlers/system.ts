@@ -5,7 +5,7 @@ import path from 'path'
 import { IPC } from '../ipc-channels'
 import { ipcHandle } from '../ipc-registry'
 import { lokAvailable } from '../office/lokEngine'
-import { docgenVenvBinDir } from '../docgen'
+import { docgenVenvPython } from '../docgen'
 import { findTool } from '../platform-tools'
 
 /** Read-only health of the engines/tools the IWE depends on (for Settings). */
@@ -26,7 +26,7 @@ export function registerSystemHandlers(ipcMain: IpcMain): void {
     const claudePath = resolveClaude()
     return {
       engine: lokAvailable(),
-      python: fs.existsSync(path.join(docgenVenvBinDir(), 'python3')),
+      python: fs.existsSync(docgenVenvPython()),
       claude: { ok: !!claudePath, path: claudePath },
     }
   })

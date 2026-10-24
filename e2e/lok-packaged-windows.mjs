@@ -4,6 +4,10 @@
 // checked here: LibreOffice 25.8+ renders Calc tiles black on Windows (#2).
 //
 //   node e2e/lok-packaged-windows.mjs <fixtures-dir>
+//
+// WOS_E2E_APP points at an installed app instead of release/win-unpacked.
+// WOS_E2E_EXPECT=claude,python also requires the app to find Claude Code and to
+// build its Python env (the docs/WINDOWS.md install, checked by CI).
 import { _electron as electron } from 'playwright'
 import { execFileSync } from 'child_process'
 import fs from 'fs'
@@ -14,20 +18,24 @@ process.env.WOS_START_ON ??= 'stage'
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
 const root = path.resolve(__dirname, '..')
-const APP = path.join(root, 'release', 'win-unpacked', 'Workspace OS.exe')
+const APP = process.env.WOS_E2E_APP || path.join(root, 'release', 'win-unpacked', 'Workspace OS.exe')
+const EXPECT = new Set((process.env.WOS_E2E_EXPECT || '').split(',').map((s) => s.trim()).filter(Boolean))
 const FIXTURES = path.resolve(process.argv[2] || path.join(os.tmpdir(), 'wos-fixtures'))
 const USERDATA = fs.mkdtempSync(path.join(os.tmpdir(), 'wos-userdata-'))
 const SHOTS = path.join(root, 'e2e', 'shots-windows')
 
 if (process.platform !== 'win32') { console.log('SKIP: windows only'); process.exit(0) }
-if (!fs.existsSync(APP)) { console.log(`SKIP: packaged app not found at ${APP} (run electron-builder --win)`); process.exit(0) }
+if (!fs.existsSync(APP)) {
+  if (process.env.WOS_E2E_APP) { console.log(`FAIL: no app at ${APP}`); process.exit(1) }
+  console.log(`SKIP: packaged app not found at ${APP} (run electron-builder --win)`); process.exit(0)
+}
 fs.mkdirSync(SHOTS, { recursive: true })
 
 let pass = 0, fail = 0
 const ok = (c, m) => { if (c) { pass++; console.log('  ok   ' + m) } else { fail++; console.log('  FAIL ' + m) } }
 const lo = path.join(process.env.ProgramFiles || 'C:\\Program Files', 'LibreOffice', 'program')
 ok(fs.existsSync(path.join(lo, 'mergedlo.dll')) || fs.existsSync(path.join(lo, 'sofficeapp.dll')), `LibreOffice installed in ${lo}`)
-ok(fs.existsSync(path.join(root, 'release', 'win-unpacked', 'resources', 'lok', 'wos-lok-host.exe')), 'bundled wos-lok-host.exe present')
+ok(fs.existsSync(path.join(path.dirname(APP), 'resources', 'lok', 'wos-lok-host.exe')), 'bundled wos-lok-host.exe present')
 
 const env = { ...process.env, WORKSPACE_TEST_ROOT: FIXTURES, WOS_USERDATA_DIR: USERDATA }
 for (const k of ['WOS_LOK_INSTALL', 'WOS_LOK_FUND', 'WOS_LOK_HOST']) delete env[k]
@@ -66,6 +74,18 @@ for (const name of ['test-document.docx', 'test-deck.pptx']) {
   if (!fs.existsSync(path.join(FIXTURES, name))) { console.log(`  skip ${name} (no fixture)`); continue }
   ok(await renders(name), `renders ${name} live from the installed LibreOffice`)
   await win.screenshot({ path: path.join(SHOTS, `${name.replace(/\W+/g, '-')}.png`) })
+}
+
+// The app finds Claude Code and warms its Python env in the background at startup.
+if (EXPECT.size) {
+  let status = null
+  for (let i = 0; i < 120; i++) {
+    status = await win.evaluate(() => window.workspace.system.status()).catch(() => null)
+    if (status && (!EXPECT.has('python') || status.python)) break
+    await win.waitForTimeout(2000)
+  }
+  if (EXPECT.has('claude')) ok(!!status?.claude?.ok, `finds Claude Code (${status?.claude?.path ?? 'not found'})`)
+  if (EXPECT.has('python')) ok(!!status?.python, 'built its Python env for document generation')
 }
 
 await app.close()
