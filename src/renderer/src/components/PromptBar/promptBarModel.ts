@@ -1,3 +1,4 @@
+import { basename } from '../../lib/paths'
 /**
  * Pure model for the unified prompt bar — the composer every "ask an agent"
  * surface shares (dock, case Ask, calendar Ask).
@@ -52,8 +53,7 @@ export function tokenAt(text: string, caret: number): TokenQuery | null {
 
 /** Basename of a workspace path. */
 export function fileName(p: string): string {
-  const parts = p.split('/')
-  return parts[parts.length - 1] || p
+  return basename(p) || p
 }
 
 /** Do the query's characters appear in order (not necessarily adjacent)?

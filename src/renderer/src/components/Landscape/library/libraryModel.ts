@@ -2,6 +2,7 @@
  * Pure model for the landscape's Library (docs/landscape/ADOPTION.md B4):
  * which files to show, and in what order, for a search or for the shelves.
  */
+import { basename as pathBase, relPath as relativeTo } from '../../../lib/paths'
 
 export interface LibraryFile {
   path: string
@@ -12,12 +13,11 @@ export interface LibraryFile {
   snippet?: string
 }
 
-const base = (p: string): string => p.split('/').pop() ?? p
+const base = (p: string): string => pathBase(p) ?? p
 
 /** The file's path relative to the workspace, for a quiet second line. */
 export function relPath(path: string, root: string | null): string {
-  if (root && path.startsWith(root + '/')) return path.slice(root.length + 1)
-  return path
+  return relativeTo(path, root)
 }
 
 /**

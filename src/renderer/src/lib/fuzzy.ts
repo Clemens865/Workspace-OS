@@ -1,3 +1,4 @@
+import { basename } from './paths'
 /**
  * Small fuzzy matcher for the quick-open palette (⌘P). Subsequence matching
  * with the usual editor-style bonuses: word-boundary hits, consecutive runs,
@@ -72,7 +73,7 @@ export function rankFiles(query: string, paths: string[], recents: string[] = []
 
   const ranked: RankedFile[] = []
   for (const p of paths) {
-    const base = p.slice(p.lastIndexOf('/') + 1)
+    const base = basename(p)
     const baseScore = fuzzyScore(query, base)
     const pathScore = fuzzyScore(query, p)
     if (baseScore === null && pathScore === null) continue

@@ -19,6 +19,7 @@ import { PromptBar } from '../../PromptBar/PromptBar'
 import { buildDeskAsk, deskSummary, nextMorning, parseSnoozes, pickHero, type Hero } from './deskModel'
 import { agoLabel, buildActivity, greeting, moveWidget, parseLayout, serializeLayout, type WidgetConfig, type WidgetId } from './homeModel'
 import styles from './HomeDashboard.module.css'
+import { basename as pathBase, basename, dirname } from '../../../lib/paths'
 
 /**
  * Home — "the desk", v2: one loud thing plus DENSITY where the person asked
@@ -502,14 +503,14 @@ export function HomeDashboard({ recent, onNavigate, onOpenFile }: Props): JSX.El
               }}
               title={wsRoot ?? 'Open a workspace'}
             >
-              <FolderOpen size={12} /> {wsRoot ? wsRoot.split('/').pop() : 'Open workspace'} <ChevronDown size={11} />
+              <FolderOpen size={12} /> {wsRoot ? pathBase(wsRoot) : 'Open workspace'} <ChevronDown size={11} />
             </button>
             {wsOpen && (
               <div className={styles.wsMenu}>
                 {wsRecents.filter((r) => r !== wsRoot).slice(0, 6).map((r) => (
                   <button key={r} className={styles.wsItem} title={r}
                     onClick={() => { setWsOpen(false); void window.workspace.fs.openWorkspace?.(r) }}>
-                    {r.split('/').pop()}
+                    {pathBase(r)}
                     <span className={styles.wsPath}>{r.replace(/^\/Users\/[^/]+/, '~')}</span>
                   </button>
                 ))}
@@ -576,7 +577,7 @@ export function HomeDashboard({ recent, onNavigate, onOpenFile }: Props): JSX.El
                         <Icon size={14} className={styles.tileIcon} />
                         <span className={styles.listName}>{docLabel(f.path)}</span>
                         {f.tag === 'new' && <span className={styles.tileTag}>new</span>}
-                        <span className={styles.listSub}>{f.path.split('/').slice(-2, -1)[0]}</span>
+                        <span className={styles.listSub}>{basename(dirname(f.path))}</span>
                       </button>
                     )
                   })}

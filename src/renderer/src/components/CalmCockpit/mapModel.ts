@@ -18,6 +18,7 @@
  */
 
 import type { Metric, TransclusionLink, WorkCase } from '../../types/workspace-api'
+import { basename as pathBase } from '../../lib/paths'
 
 export interface MapFile {
   /** Workspace-relative key — the identity that lets a run's absolute path and a case's relative one meet. */
@@ -100,7 +101,7 @@ export function relKey(p: string, root: string | null): string {
 }
 
 function base(p: string): string {
-  return p.split('/').pop() ?? p
+  return pathBase(p) ?? p
 }
 
 function ext(p: string): string {

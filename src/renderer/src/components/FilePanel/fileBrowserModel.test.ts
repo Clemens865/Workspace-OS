@@ -270,3 +270,18 @@ describe('thumbnails', () => {
     expect(isThumbnailable(dir('Photos'))).toBe(false)
   })
 })
+
+describe('Windows paths', () => {
+  const root = 'D:\\OBS\\vault'
+  it('builds the column chain and breadcrumbs with backslashes', () => {
+    expect(columnChain(root, root + '\\Notes\\2026')).toEqual([root, root + '\\Notes', root + '\\Notes\\2026'])
+    expect(breadcrumbs(root, root + '\\Notes')).toEqual([
+      { label: 'vault', path: root },
+      { label: 'Notes', path: root + '\\Notes' },
+    ])
+  })
+  it('treats a sibling with the same prefix as outside the workspace', () => {
+    expect(columnChain(root, 'D:\\OBS\\vaul')).toEqual([root])
+    expect(breadcrumbs(root, 'D:\\OBS\\vault-old')).toEqual([{ label: 'vault', path: root }])
+  })
+})

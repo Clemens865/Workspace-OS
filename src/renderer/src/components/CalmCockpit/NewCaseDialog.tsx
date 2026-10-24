@@ -2,6 +2,7 @@ import { useState, useCallback, useEffect, useRef } from 'react'
 import { X, FolderPlus, Loader2, FileText } from 'lucide-react'
 import type { WorkCase } from '../../types/workspace-api'
 import styles from './NewCaseDialog.module.css'
+import { basename as pathBase } from '../../lib/paths'
 
 /**
  * Start a case by hand — the entry point cases were missing.
@@ -88,7 +89,7 @@ export function NewCaseDialog({
         </label>
 
         {attachFile && (
-          <div className={styles.attach}><FileText size={12} /> {attachFile.split('/').pop()}</div>
+          <div className={styles.attach}><FileText size={12} /> {pathBase(attachFile)}</div>
         )}
 
         {error && <div className={styles.error}>Couldn’t start the case — {error}</div>}

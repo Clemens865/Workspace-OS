@@ -1,4 +1,5 @@
 import type { FileEntry } from '../../types/fs'
+import { basename, isInside, joinPath, segments } from '../../lib/paths'
 
 /**
  * WOS-013 — the Files surface as a real file browser.
@@ -41,12 +42,12 @@ export function isViewMode(v: unknown): v is ViewMode {
 export function columnChain(root: string, current: string): string[] {
   if (!root) return []
   if (current === root) return [root]
-  if (!current.startsWith(`${root}/`)) return [root]
+  if (!isInside(root, current)) return [root]
 
   const chain = [root]
   let acc = root
-  for (const part of current.slice(root.length).split('/').filter(Boolean)) {
-    acc = `${acc}/${part}`
+  for (const part of segments(current.slice(root.length))) {
+    acc = joinPath(acc, part)
     chain.push(acc)
   }
   return chain
@@ -221,13 +222,13 @@ export interface Crumb {
 }
 
 export function breadcrumbs(root: string, current: string): Crumb[] {
-  const rootName = root.split('/').filter(Boolean).pop() ?? root
+  const rootName = basename(root)
   const crumbs: Crumb[] = [{ label: rootName, path: root }]
-  if (!current.startsWith(root) || current === root) return crumbs
+  if (!isInside(root, current) || current === root) return crumbs
 
   let acc = root
-  for (const part of current.slice(root.length).split('/').filter(Boolean)) {
-    acc = `${acc}/${part}`
+  for (const part of segments(current.slice(root.length))) {
+    acc = joinPath(acc, part)
     crumbs.push({ label: part, path: acc })
   }
   return crumbs

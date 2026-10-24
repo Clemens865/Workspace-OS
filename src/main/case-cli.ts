@@ -53,7 +53,8 @@ function writeCase(c: WorkCase): void {
 function relToWorkspace(p: string): string {
   const abs = path.resolve(p)
   const root = path.resolve(workspaceRoot())
-  return abs === root || abs.startsWith(root + path.sep) ? path.relative(root, abs) : p
+  // Workspace-relative paths go into case files with '/', on every platform.
+  return abs === root || abs.startsWith(root + path.sep) ? path.relative(root, abs).split(path.sep).join('/') : p
 }
 
 function parseArgs(argv: string[]): { positional: string[]; flags: Record<string, string[]> } {

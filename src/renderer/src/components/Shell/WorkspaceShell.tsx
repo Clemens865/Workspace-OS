@@ -42,6 +42,7 @@ import { useSettings } from '../../hooks/useSettings'
 import { useAgentActions } from '../../hooks/useAgentActions'
 import { setTheme } from '../../hooks/useTheme'
 import { actionManifest, ALL_ACTIONS, type SurfaceActionContext } from '../Terminal/surfaceActions'
+import { dirname } from '../../lib/paths'
 
 /**
  * The redesigned shell (feat/shell-redesign) — a left rail, a Stage with tabs,
@@ -193,7 +194,7 @@ export function WorkspaceShell({ stage }: { stage?: StageHost } = {}): JSX.Eleme
       setActiveTab('files')
       // WOS-013: remember which folder this file came from, so closing the
       // preview returns to where it was rather than back to the workspace root.
-      const parent = path.slice(0, path.lastIndexOf('/'))
+      const parent = dirname(path)
       if (parent) setBrowseFolder(parent)
     },
     [library, filesTabs],
@@ -450,7 +451,7 @@ export function WorkspaceShell({ stage }: { stage?: StageHost } = {}): JSX.Eleme
         ? peekTabs.activeFilePath
         : stageTabs.activeFilePath) ?? null
   const folderOf = (p: string | null): string | null =>
-    p ? p.slice(0, p.lastIndexOf('/')) || root : root
+    p ? dirname(p) || root : root
 
   // The live harness ctx the surfaceActions registry runs against — the SAME
   // shape a dock chip uses. Kept in a ref-like getter so the agent executor runs

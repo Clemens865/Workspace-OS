@@ -360,7 +360,8 @@ export function registerCaseHandlers(ipcMain: IpcMain): void {
     if (!fs.existsSync(abs)) throw new Error('That draft is no longer there.')
     fs.mkdirSync(path.dirname(dest), { recursive: true })
     fs.renameSync(abs, dest)
-    const rel = (p: string): string => (root && p.startsWith(root + path.sep) ? path.relative(root, p) : p)
+    // Stored in the case file with '/', so a case written on Windows still opens on macOS and Linux.
+    const rel = (p: string): string => (root && p.startsWith(root + path.sep) ? path.relative(root, p).split(path.sep).join('/') : p)
     const artifacts = c.artifacts.map((a) => (a === raw || a === abs || a === rel(abs) ? rel(dest) : a))
     if (!artifacts.includes(rel(dest))) artifacts.push(rel(dest))
     const notes = [...c.notes, { at: new Date().toISOString(), author: 'you' as const, text: `Accepted ${path.basename(dest)} — moved to outputs.` }]

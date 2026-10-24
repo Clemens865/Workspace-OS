@@ -17,6 +17,7 @@ import { AgentSettings } from './AgentSettings'
 /** Which session each agent's card shows, for this app run. */
 const chosen = new Map<string, string>()
 import styles from './AgentFocus.module.css'
+import { basename as pathBase } from '../../lib/paths'
 
 /**
  * The focused screen: what one agent is doing, in full, and what you can do
@@ -213,7 +214,7 @@ export function AgentFocus({ a }: { a: AgentPresence }): JSX.Element {
                   {a.outputs.slice(0, 4).map((p) => (
                     <li key={p}>
                       <button className={styles.file} onClick={() => act.openFile(p)}>
-                        <FileText size={14} /> {p.split('/').pop()}
+                        <FileText size={14} /> {pathBase(p)}
                         <ArrowUpRight size={13} className={styles.fileGo} />
                       </button>
                     </li>

@@ -5,6 +5,7 @@ import 'tldraw/tldraw.css'
 import { serializeDoc, parseDoc, isDirty, type CanvasSnapshot } from './tldrawDoc'
 import { frameToSlideSpec, encodeSlidePayload, type FrameSource } from './frameToShapes'
 import styles from './TldrawRenderer.module.css'
+import { basename as pathBase } from '../../../lib/paths'
 
 /**
  * Resolve tldraw's fonts/icons/translations to LOCAL bundled assets (via
@@ -145,7 +146,7 @@ export function TldrawRenderer({ filePath, onDirty, onSaveRegister }: TldrawRend
     if (!out) { flash('Export failed'); return }
     const svgPath = filePath.replace(/\.wcanvas$/i, '') + '.svg'
     await window.workspace.fs.writeFile(svgPath, out.svg)
-    flash(`Exported → ${svgPath.split('/').pop()}`)
+    flash(`Exported → ${pathBase(svgPath)}`)
   }, [filePath, flash])
 
   // Frame → slide (v1): export the selected frame to an SVG asset next to the
@@ -163,7 +164,7 @@ export function TldrawRenderer({ filePath, onDirty, onSaveRegister }: TldrawRend
     const base = filePath.replace(/\.wcanvas$/i, '')
     const slidePath = `${base}.slide.svg`
     await window.workspace.fs.writeFile(slidePath, out.svg)
-    flash(`Frame → ${slidePath.split('/').pop()} (drop into a deck)`)
+    flash(`Frame → ${pathBase(slidePath)} (drop into a deck)`)
   }, [filePath, flash])
 
   // Frame → slide (NATIVE) v1: translate the selected frame's basic shapes into
@@ -249,7 +250,7 @@ export function TldrawRenderer({ filePath, onDirty, onSaveRegister }: TldrawRend
     const targetPath = filePath.replace(/\.wcanvas$/i, '') + '.pptx'
     try {
       const res = await window.workspace.canvas.exportPptx({ targetPath, images })
-      flash(`Deck → ${res.path.split('/').pop()} (${res.slides} slides)`)
+      flash(`Deck → ${pathBase(res.path)} (${res.slides} slides)`)
     } catch (e) {
       flash(`Export failed: ${(e as Error).message}`)
     }

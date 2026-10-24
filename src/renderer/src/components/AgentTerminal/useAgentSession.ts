@@ -8,6 +8,7 @@ import { emptyLedger, recordRun, type SessionLedger } from './budgetLedger'
 import { claimRun, settleRun, steerTarget } from './codexSteer'
 import type { AgentTermHandle } from './AgentXterm'
 import type { RunArtifact } from '../../types/workspace-api'
+import { basename as pathBase } from '../../lib/paths'
 
 /** A run's classified output files, kept together so cards group by run. */
 export interface RunArtifactGroup {
@@ -182,7 +183,7 @@ export function useAgentSession(
     })
     const offArtifact = window.workspace.agent.onArtifact((runId, filePath) => {
       if (!ownedRuns.current.has(runId)) return
-      const name = filePath.split('/').pop() ?? filePath
+      const name = pathBase(filePath) ?? filePath
       write(fmtSystem(`Created and opened ${name}`))
     })
     // The classified full set for this run → artifact cards (newest run first).

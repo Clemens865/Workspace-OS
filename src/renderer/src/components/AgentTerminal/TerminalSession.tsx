@@ -11,6 +11,7 @@ import { formatLedger } from './budgetLedger'
 import { DiffSheet } from '../Checkpoints/DiffSheet'
 import styles from './TerminalSession.module.css'
 import { useAgentModels } from '../../lib/agentModels'
+import { basename as pathBase } from '../../lib/paths'
 
 interface AgentOption { name: string; mode?: 'full' | 'safe'; model?: string }
 
@@ -28,7 +29,7 @@ interface TerminalSessionProps {
 }
 
 function basename(p: string): string {
-  return p.split('/').pop() ?? p
+  return pathBase(p) ?? p
 }
 
 /**

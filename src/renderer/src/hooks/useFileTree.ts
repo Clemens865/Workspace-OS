@@ -1,5 +1,6 @@
 import { useState, useCallback, useEffect } from 'react'
 import type { TreeNode } from '../types/fs'
+import { dirname, isInside, joinPath, segments } from '../lib/paths'
 
 // The main process owns the workspace root (it's the security boundary). The
 // renderer reads it on mount and only *requests* changes via the folder dialog.
@@ -84,11 +85,11 @@ export function useFileTree(): FileTreeHook {
   // Expand the tree down to (and including) a folder path, loading each ancestor
   // level as needed. Used by breadcrumb navigation ("reveal this folder").
   const revealPath = useCallback(async (target: string) => {
-    if (!root || !target.startsWith(root) || target === root) return
-    const rel = target.slice(root.length).split('/').filter(Boolean)
+    if (!root || !isInside(root, target) || target === root) return
+    const rel = segments(target.slice(root.length))
     let cur = root
     for (const seg of rel) {
-      cur = `${cur}/${seg}`
+      cur = joinPath(cur, seg)
       const children = await loadChildren(cur).catch(() => null) // null if it's a file, not a dir
       if (children) setNodes((prev) => updateSubtree(prev, cur, children))
       // eslint-disable-next-line no-loop-func
@@ -110,7 +111,7 @@ export function useFileTree(): FileTreeHook {
   useEffect(() => {
     const removeListener = window.workspace.fs.onWatchEvent?.((event) => {
       // Refresh the parent directory of the changed file
-      const parentDir = event.path.substring(0, event.path.lastIndexOf('/'))
+      const parentDir = dirname(event.path)
       if (parentDir && expandedPaths.has(parentDir)) refresh(parentDir)
     })
     return () => removeListener?.()

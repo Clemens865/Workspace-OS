@@ -13,6 +13,7 @@ import {
   requestCloseTab,
   requestActivateTab,
 } from '../Browser/browserTabCommands'
+import { basename as pathBase } from '../../lib/paths'
 
 /**
  * PER-SURFACE ACTION TOOLSETS — a data-driven map of `surface → Action[]`.
@@ -73,7 +74,7 @@ export interface SurfaceAction {
 /** The pseudo-surface used when a document is open (openFile present). */
 export const DOCUMENT_SURFACE = 'document'
 
-const basename = (p: string): string => p.split('/').pop() ?? p
+const basename = (p: string): string => pathBase(p) ?? p
 
 /** True when the open file is an office type the doc engine can export/convert. */
 export function isOfficeFile(openFile: string | null): boolean {

@@ -8,6 +8,7 @@
  */
 import { pickHero, deskSummary, type Hero } from '../../Shell/home/deskModel'
 import { buildActivity, greeting, type ActivityItem } from '../../Shell/home/homeModel'
+import { basename as pathBase } from '../../../lib/paths'
 
 /** Case statuses that wait on the person (same set as Home). */
 export const NEEDS_YOU = new Set(['drafted', 'interview', 'offer'])
@@ -103,7 +104,7 @@ function mapGo(go: Hero['primary']['go'], caseId?: string): TodayGo {
   return caseId ? { to: 'case', caseId } : { to: 'cases' }
 }
 
-const name = (p: string): string => p.split('/').pop() ?? p
+const name = (p: string): string => pathBase(p) ?? p
 
 /** Created files first (they are news), then opened ones; one entry per path. */
 export function mergeFiles(created: TodayInput['created'], recent: TodayInput['recent'], max = 12): TodayFile[] {

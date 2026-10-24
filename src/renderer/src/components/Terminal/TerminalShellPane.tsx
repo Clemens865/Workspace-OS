@@ -6,6 +6,7 @@ import { shellQuote } from './shellQuote'
 import { xtermTheme } from './xtermThemes'
 import { currentTheme, onThemeChange } from '../../hooks/useTheme'
 import styles from './TerminalDock.module.css'
+import { basename as pathBase } from '../../lib/paths'
 
 /** Read the dropped workspace path(s) — our own MIME first, then a plain
  * absolute path (so a drag from elsewhere in the app still works). Returns
@@ -38,7 +39,7 @@ interface Props {
   context: ShellContext
 }
 
-const baseName = (p: string | null): string | null => (p ? p.split('/').pop() ?? p : null)
+const baseName = (p: string | null): string | null => (p ? pathBase(p) ?? p : null)
 
 /** Two-line DIM banner (grey) telling the user which workspace their shell + claude run in. */
 function contextBanner(c: ShellContext): string {

@@ -3,6 +3,7 @@ import { Search } from 'lucide-react'
 import { FileIcon } from '../FilePanel/fileIcons'
 import type { SearchResult } from '../../types/workspace-api'
 import styles from './CommandBar.module.css'
+import { basename as pathBase } from '../../lib/paths'
 
 interface CommandBarProps {
   onClose: () => void
@@ -10,7 +11,7 @@ interface CommandBarProps {
 }
 
 function basename(p: string): string {
-  return p.split('/').pop() ?? p
+  return pathBase(p) ?? p
 }
 
 export function CommandBar({ onClose, onOpenFile }: CommandBarProps): JSX.Element {

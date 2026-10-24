@@ -6,6 +6,7 @@
  * order. The layout persists as one small JSON blob; parsing is defensive so
  * a hand-edited or stale blob degrades to defaults instead of a blank Home.
  */
+import { basename as pathBase } from '../../../lib/paths'
 
 export type WidgetId = 'activity' | 'cases' | 'calendar' | 'agents' | 'files' | 'browser' | 'mail' | 'knowledge' | 'assistant'
 export type WidgetSize = 's' | 'm' | 'l'
@@ -145,7 +146,7 @@ export function buildActivity(input: {
     else out.push({ at: r.at, kind: 'agent', text: `${who} finished: ${what}` })
   }
   for (const f of input.files) {
-    out.push({ at: f.at, kind: 'file', text: `New in the workspace: ${f.path.split('/').pop() ?? f.path}` })
+    out.push({ at: f.at, kind: 'file', text: `New in the workspace: ${pathBase(f.path) ?? f.path}` })
   }
 
   out.sort((a, b) => b.at - a.at)

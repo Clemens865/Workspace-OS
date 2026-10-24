@@ -6,6 +6,7 @@ import { TerminalShellPane } from './TerminalShellPane'
 import { TerminalAgentPane } from './TerminalAgentPane'
 import { actionsForSurface } from './surfaceActions'
 import styles from './TerminalDock.module.css'
+import { basename as pathBase } from '../../lib/paths'
 
 export interface DockContext {
   root: string | null
@@ -46,7 +47,7 @@ interface DockTab {
 let seq = 0
 const nextId = (kind: TabKind): string => `${kind}-${Date.now()}-${seq++}`
 
-const baseName = (p: string | null): string | null => (p ? p.split('/').pop() ?? p : null)
+const baseName = (p: string | null): string | null => (p ? pathBase(p) ?? p : null)
 
 /**
  * The Integrated Terminal Dock — tabs of two kinds (real SHELL + AGENT), a

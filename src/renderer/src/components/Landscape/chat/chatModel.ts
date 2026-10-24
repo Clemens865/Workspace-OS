@@ -1,4 +1,5 @@
 import type { Session } from '../../../lib/sessions/sessionModel'
+import { basename as pathBase } from '../../../lib/paths'
 
 /** Chat's pure rules: how history is grouped, what kind of preview a file gets, where a link goes. */
 
@@ -73,4 +74,4 @@ export function csvRows(text: string, max = 200): string[][] {
     .map((l) => l.split(sep).map((c) => c.replace(/^"(.*)"$/, '$1')))
 }
 
-export const baseName = (p: string): string => p.split('/').pop() ?? p
+export const baseName = (p: string): string => pathBase(p) ?? p

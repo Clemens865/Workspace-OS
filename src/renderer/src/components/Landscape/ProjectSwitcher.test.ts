@@ -13,3 +13,10 @@ describe('project home', () => {
     expect(homeFor('/w', null)).toBe('/w')
   })
 })
+
+describe('homeFor on Windows', () => {
+  it('keeps a remembered parent for a workspace inside it, regardless of case', () => {
+    expect(homeFor('D:\\OBS\\vault\\clients\\acme', 'd:\\obs\\vault')).toBe('d:\\obs\\vault')
+    expect(homeFor('D:\\OBS\\vault-old', 'D:\\OBS\\vault')).toBe('D:\\OBS\\vault-old')
+  })
+})

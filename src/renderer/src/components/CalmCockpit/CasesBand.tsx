@@ -9,6 +9,7 @@ import { NewCaseDialog } from './NewCaseDialog'
 import { FullCaseView } from './FullCaseView'
 import { StatusPill, caseTone } from '../ui/StatusPill'
 import styles from './CasesBand.module.css'
+import { basename as pathBase } from '../../lib/paths'
 
 /**
  * The cockpit's open cases.
@@ -202,7 +203,7 @@ function CaseRow({
             <div className={styles.files}>
               {c.artifacts.map((a) => (
                 <button key={a} className={styles.file} onClick={() => void openArtifact(a)} title={a}>
-                  <FileText size={12} /> {a.split('/').pop()}
+                  <FileText size={12} /> {pathBase(a)}
                 </button>
               ))}
             </div>

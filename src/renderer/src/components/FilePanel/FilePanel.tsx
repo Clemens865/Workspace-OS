@@ -7,6 +7,7 @@ import { useSettings } from '../../hooks/useSettings'
 import { relativeShort, type WorkspaceLibrary } from '../../hooks/useWorkspaceLibrary'
 import type { TreeNode } from '../../types/fs'
 import styles from './FilePanel.module.css'
+import { basename as pathBase, joinPath } from '../../lib/paths'
 
 interface FilePanelProps {
   onFileOpen: (filePath: string) => void
@@ -18,7 +19,7 @@ interface FilePanelProps {
 }
 
 function basename(p: string): string {
-  return p.split('/').pop() ?? p
+  return pathBase(p) ?? p
 }
 
 export function FilePanel({ onFileOpen, onFileCreate, onShowTrash, refreshSignal, library: lib }: FilePanelProps): JSX.Element {
@@ -82,7 +83,7 @@ export function FilePanel({ onFileOpen, onFileCreate, onShowTrash, refreshSignal
       if (!root) return
       let name = `${base}.${ext}`
       for (let i = 2; existingNames.has(name); i++) name = `${base} ${i}.${ext}`
-      const filePath = `${root}/${name}`
+      const filePath = joinPath(root, name)
       try {
         await window.workspace.fs.writeFile(filePath, template)
         refresh()
@@ -139,7 +140,7 @@ export function FilePanel({ onFileOpen, onFileCreate, onShowTrash, refreshSignal
     <div className={styles.root}>
       <div className={styles.header}>
         <span className={styles.heading}>
-          {root ? root.split('/').pop() : 'No folder'}
+          {root ? pathBase(root) : 'No folder'}
         </span>
         <div className={styles.headerBtns}>
           {root && (

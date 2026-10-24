@@ -7,6 +7,7 @@ import {
 import { PdfPageOps } from './PdfPageOps'
 import { useFilePrint } from '../../../hooks/useFilePrint'
 import styles from './PdfAnnotator.module.css'
+import { basename as pathBase } from '../../../lib/paths'
 
 pdfjs.GlobalWorkerOptions.workerSrc = new URL('pdfjs-dist/build/pdf.worker.min.mjs', import.meta.url).toString()
 
@@ -235,7 +236,7 @@ export function PdfAnnotator({ filePath }: Props): JSX.Element {
     setStatus('Exporting…')
     try {
       const res = await window.workspace.pdf.exportAnnotated(filePath, annotations)
-      setStatus(`Saved ${res.path.split('/').pop()}`)
+      setStatus(`Saved ${pathBase(res.path)}`)
     } catch (e) {
       setStatus(`Export failed: ${(e as Error).message}`)
     }

@@ -8,6 +8,7 @@ import { lastLines } from './previewStore'
 import { sessionStore } from '../../lib/sessions/sessionStore'
 import { useSessions } from './session/SessionPane'
 import styles from './LandscapeWorld.module.css'
+import { basename as pathBase } from '../../lib/paths'
 
 interface Props {
   agent: AgentPresence
@@ -202,7 +203,7 @@ function ReviewMini({ a }: { a: AgentPresence }): JSX.Element {
   return (
     <>
       <div className={styles.mDoc}>
-        <FileText size={15} /> {a.outputs[0]?.split('/').pop() ?? a.task ?? 'Result'}
+        <FileText size={15} /> {(a.outputs[0] ? pathBase(a.outputs[0]) : undefined) ?? a.task ?? 'Result'}
       </div>
       {preview?.kind === 'image' ? (
         <img className={styles.mImg} src={preview.src} alt="" data-testid="screen-result-image" />
