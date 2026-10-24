@@ -51,6 +51,33 @@ export interface FindToolOptions {
   shellFallback?: boolean
 }
 
+/** Where WinGet unpacks portable packages for the current user. */
+export function wingetPackagesDir(): string {
+  const local = process.env['LOCALAPPDATA'] || path.join(os.homedir(), 'AppData', 'Local')
+  return path.join(local, 'Microsoft', 'WinGet', 'Packages')
+}
+
+/**
+ * `<name>.exe` at the top of a WinGet package folder, e.g. Claude Code's
+ * Packages\Anthropic.ClaudeCode_<source>\claude.exe. Without Developer Mode or
+ * admin rights WinGet cannot create the Links symlink; it adds the package
+ * folder to the user PATH instead, which an app started before the install
+ * does not see.
+ */
+export function findInWingetPackages(packagesDir: string, name: string): string | null {
+  let entries: string[]
+  try {
+    entries = fs.readdirSync(packagesDir).sort()
+  } catch {
+    return null
+  }
+  for (const entry of entries) {
+    const candidate = path.join(packagesDir, entry, `${name}.exe`)
+    if (fs.existsSync(candidate)) return candidate
+  }
+  return null
+}
+
 /**
  * Finds a CLI: the env override (e.g. CLAUDE_BIN) when it exists, else the
  * platform's usual places. On Windows only `.exe` files are returned: Node
@@ -71,7 +98,7 @@ export function findTool(name: string, envVar: string, opts: FindToolOptions): s
     } catch {
       /* not on PATH */
     }
-    return null
+    return findInWingetPackages(wingetPackagesDir(), name)
   }
   for (const c of opts.posixCandidates) if (fs.existsSync(c)) return c
   if (opts.shellFallback) {

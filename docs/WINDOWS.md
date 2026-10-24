@@ -105,7 +105,9 @@ Environment variables for unusual setups:
 | `WOS_USERDATA_DIR` | Another app data folder |
 
 The app looks for `claude.exe` in `%USERPROFILE%\.local\bin`, the per-user and machine-wide WinGet
-links folders, then on PATH.
+links folders, on PATH, then in the WinGet package folders. Without Developer Mode, WinGet cannot
+create the link and puts the package folder on the user PATH instead, which a program that was
+already running does not see; the last step covers that.
 
 ## Build from source
 

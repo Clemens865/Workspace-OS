@@ -2,7 +2,7 @@ import fs from 'fs'
 import os from 'os'
 import path from 'path'
 import { afterEach, describe, expect, it, vi } from 'vitest'
-import { envWithPath, findTool, seededPath, windowsToolDirs, writeWindowsNodeShims } from './platform-tools'
+import { envWithPath, findInWingetPackages, findTool, seededPath, windowsToolDirs, writeWindowsNodeShims } from './platform-tools'
 
 afterEach(() => vi.unstubAllEnvs())
 
@@ -24,6 +24,20 @@ describe.runIf(process.platform !== 'win32')('macOS and Linux keep the former be
     expect(findTool('wos-no-such-tool', 'WOS_TOOL_OVERRIDE', { posixCandidates: [] })).toBe(bin)
     expect(findTool('wos-no-such-tool', 'WOS_NO_SUCH_ENV', { posixCandidates: [path.join(dir, 'missing')] })).toBeNull()
     fs.rmSync(dir, { recursive: true, force: true })
+  })
+})
+
+describe('WinGet package folders', () => {
+  it('finds <name>.exe at the top of a package folder, and nothing deeper', () => {
+    const root = fs.mkdtempSync(path.join(os.tmpdir(), 'wos-winget-'))
+    fs.mkdirSync(path.join(root, 'Anthropic.ClaudeCode_Microsoft.Winget.Source_8wekyb3d8bbwe'))
+    fs.writeFileSync(path.join(root, 'Anthropic.ClaudeCode_Microsoft.Winget.Source_8wekyb3d8bbwe', 'claude.exe'), '')
+    fs.mkdirSync(path.join(root, 'Other.Tool_x', 'bin'), { recursive: true })
+    fs.writeFileSync(path.join(root, 'Other.Tool_x', 'bin', 'codex.exe'), '')
+    expect(findInWingetPackages(root, 'claude')).toBe(path.join(root, 'Anthropic.ClaudeCode_Microsoft.Winget.Source_8wekyb3d8bbwe', 'claude.exe'))
+    expect(findInWingetPackages(root, 'codex')).toBeNull()
+    expect(findInWingetPackages(path.join(root, 'missing'), 'claude')).toBeNull()
+    fs.rmSync(root, { recursive: true, force: true })
   })
 })
 
