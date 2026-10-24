@@ -60,6 +60,22 @@ installer and runs the e2e against the installed app.
 | S4 installer | Pass | `electron-builder --win` builds `Workspace OS Setup 0.2.26.exe` |
 | Unit tests on Windows | Pass, gating | Started at 17 failing files of 274 (POSIX sockets, mode bits, pty helpers, paths). Fixed in the code where it was a real bug (named pipe released before restart, case-insensitive workspace keys, `/` in agent guidance), skipped where the check is POSIX-only. The recall eval is excluded in CI: it needs a downloaded embedding model and fails on Linux the same way |
 
+## Manual test on a Windows 11 PC (2026-10-24)
+
+The install from [WINDOWS.md](WINDOWS.md) on the owner's PC (Developer Mode off, LibreOffice 26.8.1.1
+already installed), then the installer built by CI.
+
+| Step | Result | Fix |
+|---|---|---|
+| winget block | LibreOffice up to date, Claude Code installed, Git upgraded; the Python upgrade was cancelled at the prompt (3.13.1 kept) | None needed |
+| Claude Code found | WinGet could not create the `Links` symlink without Developer Mode and put the package folder on the user PATH instead | `findTool` also looks in the WinGet package folders (b063b2a) |
+| Open a workspace | A LibreOffice dialog, "bootstrap.ini is corrupt", and a console window for the engine host | `convertTo` passed `file://C:\...` as the profile URL; now a real file URL. Console programs started with `windowsHide` (f8cd317) |
+| Agent document generation | Ran the Git Bash `wos-gen` shim instead of `wos-gen.cmd` | Runs `wos-gen.cmd` through `cmd.exe` (f8cd317) |
+| `.docx`, `.pptx` | Render | |
+| `.xlsx`, `.csv` on 26.8.1.1 | Black tiles (tdf#174143) | None in the app |
+| `.xlsx`, `.csv` on 25.2.7.2 | Render, with an unpacked second copy next to 26.8 used only by Workspace OS (`WOS_LOK_INSTALL`) | Documented in WINDOWS.md; trailing separator added when missing (54f517c) |
+| Agent run from the app | Not yet confirmed | |
+
 ## Phases
 
 ### 0. Spikes (de-risk before porting)
@@ -134,4 +150,4 @@ Windows unit-test baseline has 17 failing files to work through).
 ## Owner actions needed
 
 - Actions enabled on the fork (public repository minutes are free).
-- For the final manual test: the install in [WINDOWS.md](WINDOWS.md).
+- Confirm an agent run from the app on the Windows PC (the last open step of the manual test).
