@@ -141,7 +141,9 @@ describe('storage', () => {
     expect(readSignatures(dir)).toEqual({})
   })
 
-  it('writes 0600 — it is personal config', () => {
+  // Windows has no POSIX mode bits.
+
+  it.skipIf(process.platform === 'win32')('writes 0600 — it is personal config', () => {
     saveSignature(dir, 'a', 'x')
     const mode = fs.statSync(path.join(dir, 'mail-signatures.json')).mode & 0o777
     expect(mode).toBe(0o600)

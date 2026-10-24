@@ -22,7 +22,8 @@ function sendCmd(h: LokHost, cmd: string): Promise<unknown> {
 }
 
 describe('LokHost failure classification', () => {
-  it('rejects ALL in-flight calls with a classified error when the process exits', async () => {
+  // These drive /bin/cat as a stand-in host; there is none on Windows.
+  it.skipIf(process.platform === 'win32')('rejects ALL in-flight calls with a classified error when the process exits', async () => {
     const h = fakeHost()
     const a = sendViaPing(h)
     const b = sendViaPing(h)
@@ -37,7 +38,7 @@ describe('LokHost failure classification', () => {
     }
   })
 
-  it('fails fast (not-running) on a send() after the host is known dead', async () => {
+  it.skipIf(process.platform === 'win32')('fails fast (not-running) on a send() after the host is known dead', async () => {
     const h = fakeHost()
     ;(h as unknown as { proc: { kill: (s: string) => void } | null }).proc?.kill('SIGKILL')
     // Give the 'exit' event a tick to flip the dead flag.

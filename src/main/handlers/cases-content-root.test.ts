@@ -8,9 +8,11 @@ import path from 'path'
  * case artifacts stay workspace-relative. Real handlers, fake IpcMain, temp dirs.
  */
 
-const HOME = '/tmp/wos-case-content-home'
-const USERDATA = '/tmp/wos-case-content-userdata'
-const WS = '/tmp/wos-case-content-ws'
+// os is mocked below, so the temp dir is resolved without it.
+const TMP = path.resolve(process.platform === 'win32' ? (process.env['TEMP'] || 'C:\\Windows\\Temp') : '/tmp')
+const HOME = path.join(TMP, 'wos-case-content-home')
+const USERDATA = path.join(TMP, 'wos-case-content-userdata')
+const WS = path.join(TMP, 'wos-case-content-ws')
 const SUB = 'Projects/wos'
 
 vi.mock('os', async (orig) => {

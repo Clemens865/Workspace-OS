@@ -39,16 +39,17 @@ describe('extraction mode selection', () => {
 })
 
 describe('resolveScreenshotPath (path guard)', () => {
-  const roots = ['/data', '/ws']
+  // Production roots come through path.resolve (screenshotRoots); match that here.
+  const roots = ['/data', '/ws'].map((r) => path.resolve(r))
 
   it('defaults to a .png under the first root when none given', () => {
     const p = resolveScreenshotPath(undefined, roots)
-    expect(p.startsWith('/data' + path.sep)).toBe(true)
+    expect(p.startsWith(roots[0] + path.sep)).toBe(true)
     expect(p.endsWith('.png')).toBe(true)
   })
 
   it('allows a path inside an allowed root', () => {
-    expect(resolveScreenshotPath('/ws/shots/a.png', roots)).toBe('/ws/shots/a.png')
+    expect(resolveScreenshotPath('/ws/shots/a.png', roots)).toBe(path.resolve('/ws/shots/a.png'))
   })
 
   it('rejects traversal outside every root', () => {

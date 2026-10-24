@@ -4,6 +4,9 @@ import { PassThrough } from 'stream'
 import type { spawn } from 'child_process'
 import { CodexRpc } from './codexRpc'
 
+// The transport resolves the codex binary before it uses the injected spawn; any existing file will do.
+process.env['CODEX_BIN'] ??= process.execPath
+
 function setup() {
   const child = Object.assign(new EventEmitter(), { stdin: new PassThrough(), stdout: new PassThrough(), stderr: new PassThrough(), kill: vi.fn(), exitCode: null, signalCode: null })
   const notifications = vi.fn(), requests = vi.fn(), close = vi.fn(), diagnostics = vi.fn()

@@ -36,7 +36,8 @@ afterEach(() => {
   fs.rmSync(userData, { recursive: true, force: true })
 })
 
-describe('native Linux: no workaround applies', () => {
+// The simulated Linux and WSL hosts rely on POSIX paths, so they cannot run on a real Windows host.
+describe.skipIf(realPlatform === 'win32')('native Linux: no workaround applies', () => {
   it('keeps the app defaults, even for a /mnt path', () => {
     host('linux')
     expect(hardwareAcceleration()).toBe(true)
@@ -82,7 +83,7 @@ describe('macOS: unchanged', () => {
   })
 })
 
-describe('WSL', () => {
+describe.skipIf(realPlatform === 'win32')('WSL', () => {
   it('turns GPU off and moves Windows-drive state out of the folder by default', () => {
     host('wsl')
     expect(hardwareAcceleration()).toBe(false)
@@ -131,22 +132,26 @@ describe('WSL', () => {
   })
 })
 
+// Workspace keys are resolved paths; on Windows '/data/vault' resolves to '<drive>:\\data\\vault'.
+const VAULT = path.resolve('/data/vault')
+const OTHER = path.resolve('/data/other')
+
 describe('content root (all platforms)', () => {
   it('defaults to the workspace root, with no prompt line', () => {
     host('linux')
     expect(contentRootRel('/home/me/ws')).toBe('')
-    expect(contentRoot('/home/me/ws')).toBe('/home/me/ws')
+    expect(contentRoot('/home/me/ws')).toBe(path.resolve('/home/me/ws'))
     expect(contentRel('/home/me/ws', 'Cases')).toBe('Cases')
     expect(contentRootLine('/home/me/ws')).toBe('')
   })
   it('puts the content folders under the configured folder, per workspace', () => {
     for (const kind of ['linux', 'wsl', 'darwin'] as const) {
       host(kind)
-      settings({ workspaces: { '/data/vault': { contentRoot: '50-PROJECTS/workspace-os/' } } })
-      expect(contentRoot('/data/vault')).toBe('/data/vault/50-PROJECTS/workspace-os')
-      expect(contentRel('/data/vault', 'Apps')).toBe('50-PROJECTS/workspace-os/Apps')
-      expect(contentRootLine('/data/vault')).toMatch(/inside 50-PROJECTS\/workspace-os\//)
-      expect(contentRoot('/data/other')).toBe('/data/other')
+      settings({ workspaces: { [VAULT]: { contentRoot: '50-PROJECTS/workspace-os/' } } })
+      expect(contentRoot(VAULT)).toBe(path.join(VAULT, '50-PROJECTS', 'workspace-os'))
+      expect(contentRel(VAULT, 'Apps')).toBe('50-PROJECTS/workspace-os/Apps')
+      expect(contentRootLine(VAULT)).toMatch(/inside 50-PROJECTS\/workspace-os\//)
+      expect(contentRoot(OTHER)).toBe(OTHER)
     }
   })
   it('rejects unsafe values and falls back to the root', () => {
@@ -157,8 +162,8 @@ describe('content root (all platforms)', () => {
     expect(normalizeContentRoot('./a//b/')).toBe('a/b')
     host('linux')
     const warn = vi.spyOn(console, 'warn').mockImplementation(() => {})
-    settings({ workspaces: { '/data/vault': { contentRoot: '../x' } } })
-    expect(contentRoot('/data/vault')).toBe('/data/vault')
+    settings({ workspaces: { [VAULT]: { contentRoot: '../x' } } })
+    expect(contentRoot(VAULT)).toBe(VAULT)
     expect(warn).toHaveBeenCalled()
     warn.mockRestore()
   })
@@ -167,18 +172,24 @@ describe('content root (all platforms)', () => {
 describe('agent hooks (all platforms)', () => {
   it('stays off by default and for unknown values', () => {
     host('linux')
-    expect(agentHooksMode('/data/vault')).toBe('off')
+    expect(agentHooksMode(VAULT)).toBe('off')
     expect(agentHooksMode(null)).toBe('off')
-    settings({ workspaces: { '/data/vault': { agentHooks: 'sometimes' } } })
-    expect(agentHooksMode('/data/vault')).toBe('off')
+    settings({ workspaces: { [VAULT]: { agentHooks: 'sometimes' } } })
+    expect(agentHooksMode(VAULT)).toBe('off')
   })
   it('follows the workspace entry, and the env var over it', () => {
     host('darwin')
-    settings({ workspaces: { '/data/vault': { agentHooks: 'project' } } })
-    expect(agentHooksMode('/data/vault')).toBe('project')
-    expect(agentHooksMode('/data/other')).toBe('off')
+    settings({ workspaces: { [VAULT]: { agentHooks: 'project' } } })
+    expect(agentHooksMode(VAULT)).toBe('project')
+    expect(agentHooksMode(OTHER)).toBe('off')
     vi.stubEnv('WOS_AGENT_HOOKS', 'all')
-    expect(agentHooksMode('/data/other')).toBe('all')
+    expect(agentHooksMode(OTHER)).toBe('all')
+  })
+  it('matches a Windows workspace key regardless of case and trailing separator', () => {
+    asPlatform('win32')
+    settings({ workspaces: { [VAULT.toUpperCase() + path.sep]: { agentHooks: 'project' } } })
+    expect(agentHooksMode(VAULT)).toBe('project')
+    expect(agentHooksMode(OTHER)).toBe('off')
   })
   it('builds the project-only arguments, re-adding user MCP servers unless the run is strict', () => {
     const home = fs.mkdtempSync(path.join(os.tmpdir(), 'wos-home-'))

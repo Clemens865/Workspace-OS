@@ -39,7 +39,7 @@ export function sofficeCandidates(): string[] {
     '/usr/bin/soffice',
     '/usr/local/bin/soffice',
     '/opt/homebrew/bin/soffice',
-    'C:\\Program Files\\LibreOffice\\program\\soffice.exe', // Windows system
+    path.join(process.env['ProgramFiles'] || 'C:\\Program Files', 'LibreOffice', 'program', 'soffice.exe'), // Windows system
   ].filter(Boolean) as string[]
 }
 

@@ -285,7 +285,7 @@ app.on('before-quit', async (event) => {
     shutdownAgents()
     stopRoutines()
     shutdownRunQueue()
-    stopActionBridge()
+    void stopActionBridge() // not awaited: close() waits for connected clients
     await shutdownSearch()
     shutdownHistory()
     await runAllCleanups()

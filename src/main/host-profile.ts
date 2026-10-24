@@ -225,7 +225,15 @@ export function contentRootLine(root: string): string {
 
 function workspaceEntry(root: string): WorkspaceSettings | undefined {
   const resolved = path.resolve(root)
-  return hostSettings().workspaces?.[resolved] ?? hostSettings().workspaces?.[resolved + '/']
+  const all = hostSettings().workspaces
+  if (!all) return undefined
+  const direct = all[resolved] ?? all[resolved + '/']
+  if (direct || process.platform !== 'win32') return direct
+  // Windows paths are case-insensitive and may be written with / or \ and a trailing separator.
+  const key = (p: string): string => path.resolve(p).replace(/[\\/]+$/, '').toLowerCase()
+  const want = key(resolved)
+  const hit = Object.keys(all).find((k) => key(k) === want)
+  return hit ? all[hit] : undefined
 }
 
 /** Hooks mode for agent and chat runs in this workspace. (WOS_AGENT_HOOKS / `workspaces[root].agentHooks`) */

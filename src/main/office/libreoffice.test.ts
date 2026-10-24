@@ -1,4 +1,5 @@
 import { describe, it, expect, afterEach } from 'vitest'
+import path from 'path'
 import { sofficeCandidates } from './libreoffice'
 
 const ORIGINAL = process.env['SOFFICE_BIN']
@@ -21,7 +22,7 @@ describe('sofficeCandidates', () => {
     ;(process as { resourcesPath: string }).resourcesPath = '/app/Resources'
     try {
       const list = sofficeCandidates()
-      const bundled = list.findIndex((c) => c.startsWith('/app/Resources/libreoffice/'))
+      const bundled = list.findIndex((c) => c.startsWith(path.join('/app/Resources', 'libreoffice') + path.sep))
       const system = list.indexOf('/Applications/LibreOffice.app/Contents/MacOS/soffice')
       expect(bundled).toBeGreaterThanOrEqual(0)
       expect(bundled).toBeLessThan(system)

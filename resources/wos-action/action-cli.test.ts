@@ -33,7 +33,7 @@ describe('wos-action CLI', () => {
   let lastReq: unknown
 
   beforeEach(() => {
-    sockPath = path.join(fs.mkdtempSync(path.join(os.tmpdir(), 'wos-cli-')), 's.sock')
+    sockPath = process.platform === 'win32' ? `\\\\.\\pipe\\wos-cli-${process.pid}-${Math.random().toString(36).slice(2)}` : path.join(fs.mkdtempSync(path.join(os.tmpdir(), 'wos-cli-')), 's.sock')
     server = net.createServer((sock) => {
       let buf = ''
       sock.setEncoding('utf-8')

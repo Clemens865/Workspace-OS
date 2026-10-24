@@ -130,7 +130,8 @@ describe('ptyHost', () => {
   })
 })
 
-describe('spawn-helper check', () => {
+// node-pty's spawn-helper exists only on macOS and Linux.
+describe.skipIf(process.platform === 'win32')('spawn-helper check', () => {
   beforeEach(() => {
     shutdownTerminals()
   })

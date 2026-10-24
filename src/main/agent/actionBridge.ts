@@ -258,15 +258,21 @@ export function startActionBridge(): void {
   server = srv
 }
 
-/** Stop the server and unlink the socket (called on quit). */
-export function stopActionBridge(): void {
+/**
+ * Stop the server and unlink the socket (called on quit). Resolves once the
+ * server has closed: a Windows named pipe stays taken until then, so a restart
+ * must wait for it.
+ */
+export function stopActionBridge(): Promise<void> {
   for (const [reqId, done] of pending) {
     done({ ok: false, error: 'shutting down' })
     pending.delete(reqId)
   }
-  if (server) {
-    try { server.close() } catch { /* ignore */ }
-    server = null
-  }
+  const closing = server
+  server = null
   try { fs.unlinkSync(agentSockPath()) } catch { /* already gone */ }
+  if (!closing) return Promise.resolve()
+  return new Promise((resolve) => {
+    try { closing.close(() => resolve()) } catch { resolve() }
+  })
 }

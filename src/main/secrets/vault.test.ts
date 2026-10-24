@@ -70,7 +70,8 @@ describe('secrets.json never contains plaintext', () => {
     expect(Buffer.from(b64, 'base64').toString('utf-8')).toBe('ENC::' + secret)
   })
 
-  it('writes the file mode 0o600 (owner-only)', () => {
+  // Windows has no POSIX mode bits.
+  it.skipIf(process.platform === 'win32')('writes the file mode 0o600 (owner-only)', () => {
     const v = new Vault(dir, mockStore())
     v.set('DATABASE_URL', 'x')
     const mode = fs.statSync(path.join(dir, 'secrets.json')).mode & 0o777
