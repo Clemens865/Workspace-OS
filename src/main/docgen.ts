@@ -3,6 +3,7 @@ import { spawn } from 'child_process'
 import fs from 'fs'
 import os from 'os'
 import path from 'path'
+import { cmdFileArgs } from './platform-tools'
 
 /**
  * Office document generation backing the `office-docgen` Claude skill.
@@ -165,7 +166,7 @@ function provisionVenvInBackground(shimPath: string): void {
     // Finder-launched packaged app. fd1/fd2 ignored is fine.
     // A .cmd needs cmd.exe on Windows (Node will not spawn it directly).
     const [cmd, args] = process.platform === 'win32'
-      ? ['cmd.exe', ['/d', '/s', '/c', `"${shimPath}" --provision`]]
+      ? ['cmd.exe', cmdFileArgs(shimPath, ['--provision'])]
       : [shimPath, ['--provision']]
     const child = spawn(cmd, args, {
       detached: true,

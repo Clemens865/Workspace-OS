@@ -143,6 +143,8 @@ export class LokHost extends EventEmitter {
     ensureLokXchgDir()
     const proc = spawn(opts.hostBin, [opts.installPath, opts.fundamentalrc], {
       stdio: ['pipe', 'ignore', 'inherit', 'pipe', 'pipe'],
+      // A GUI app starting a console program gets a console window unless hidden (Windows).
+      windowsHide: true,
       // The profile the app seeds and the exchange directory the macros use (lokTemp.ts).
       env: { ...process.env, WOS_LOK_PROFILE: lokProfileDir(), WOS_LOK_XCHG: lokXchgDir() },
     })

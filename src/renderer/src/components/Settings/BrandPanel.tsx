@@ -3,6 +3,7 @@ import { Check } from 'lucide-react'
 import styles from './SettingsPanel.module.css'
 import brand from './BrandPanel.module.css'
 import type { Brand, BrandPatch } from '../../types/workspace-api'
+import { fileUrl } from '../../lib/fileUrl'
 
 /**
  * "Brand kit" — the user codifies their brand ONCE (name, tagline, colours,
@@ -194,7 +195,7 @@ export function BrandPanel(): JSX.Element {
         <label className={brand.label}>Logo</label>
         <div className={brand.logoRow}>
           {value.logoPath ? (
-            <img className={brand.logoPreview} src={`file://${value.logoPath}`} alt="Brand logo" />
+            <img className={brand.logoPreview} src={fileUrl(value.logoPath)} alt="Brand logo" />
           ) : (
             <div className={brand.logoEmpty}>No logo</div>
           )}

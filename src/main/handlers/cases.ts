@@ -4,6 +4,7 @@ import { IpcMain } from 'electron'
 import fs from 'fs'
 import os from 'os'
 import path from 'path'
+import { pathToFileURL } from 'url'
 import { ipcHandle } from '../ipc-registry'
 import { notify } from '../notify'
 import { getWorkspaceRoot } from '../workspace-root'
@@ -483,7 +484,7 @@ export function registerCaseHandlers(ipcMain: IpcMain): void {
     } catch {
       return null
     }
-    return 'file://' + abs
+    return pathToFileURL(abs).href
   })
 
   /**

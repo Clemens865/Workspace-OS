@@ -1,8 +1,9 @@
+import { spawnSync } from 'child_process'
 import fs from 'fs'
 import os from 'os'
 import path from 'path'
 import { afterEach, describe, expect, it, vi } from 'vitest'
-import { envWithPath, findInWingetPackages, findTool, seededPath, windowsToolDirs, writeWindowsNodeShims } from './platform-tools'
+import { cmdFileArgs, envWithPath, findInWingetPackages, findTool, seededPath, windowsToolDirs, writeWindowsNodeShims } from './platform-tools'
 
 afterEach(() => vi.unstubAllEnvs())
 
@@ -24,6 +25,14 @@ describe.runIf(process.platform !== 'win32')('macOS and Linux keep the former be
     expect(findTool('wos-no-such-tool', 'WOS_TOOL_OVERRIDE', { posixCandidates: [] })).toBe(bin)
     expect(findTool('wos-no-such-tool', 'WOS_NO_SUCH_ENV', { posixCandidates: [path.join(dir, 'missing')] })).toBeNull()
     fs.rmSync(dir, { recursive: true, force: true })
+  })
+})
+
+describe('cmdFileArgs', () => {
+  it('quotes the .cmd and every argument inside one /s /c string', () => {
+    expect(cmdFileArgs('C:\\Users\\A B\\wos-gen.cmd', ['docx', '--out', 'C:\\t\\o.docx'])).toEqual([
+      '/d', '/s', '/c', '""C:\\Users\\A B\\wos-gen.cmd" "docx" "--out" "C:\\t\\o.docx""',
+    ])
   })
 })
 
@@ -53,6 +62,14 @@ describe.runIf(process.platform === 'win32')('Windows', () => {
       'C:\\Users\\me\\AppData\\Local\\Microsoft\\WinGet\\Links',
       'C:\\Program Files\\WinGet\\Links',
     ]))
+  })
+  it('runs a .cmd with spaced arguments through cmd.exe', () => {
+    const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'wos cmd '))
+    const cmd = path.join(dir, 'echo args.cmd')
+    fs.writeFileSync(cmd, '@echo off\r\necho [%~1] [%~2]\r\n')
+    const out = spawnSync('cmd.exe', cmdFileArgs(cmd, ['first arg', path.join(dir, 'x.docx')]), { encoding: 'utf8', windowsVerbatimArguments: true }).stdout
+    expect(out.trim()).toBe(`[first arg] [${path.join(dir, 'x.docx')}]`)
+    fs.rmSync(dir, { recursive: true, force: true })
   })
   it('replaces every case variant of PATH', () => {
     expect(envWithPath({ A: '1', Path: 'old' }, 'new')).toEqual({ A: '1', PATH: 'new' })

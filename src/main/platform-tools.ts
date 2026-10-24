@@ -112,6 +112,16 @@ export function findTool(name: string, envVar: string, opts: FindToolOptions): s
   return null
 }
 
+/**
+ * cmd.exe arguments that run a .cmd file (Node will not spawn one directly).
+ * Spawn `cmd.exe` with these and `windowsVerbatimArguments: true`; /s strips the
+ * outer quotes, leaving each argument quoted. Arguments must not contain quotes.
+ */
+export function cmdFileArgs(cmdFile: string, args: string[]): string[] {
+  const quoted = [cmdFile, ...args].map((a) => `"${a.replace(/"/g, '')}"`).join(' ')
+  return ['/d', '/s', '/c', `"${quoted}"`]
+}
+
 /** Quote a value for a `set "K=V"` line in a .cmd file. */
 const cmdValue = (v: string): string => v.replace(/%/g, '%%').replace(/"/g, '')
 

@@ -335,7 +335,7 @@ export async function launchRun(o: LaunchRunOptions): Promise<{ child: ChildProc
         // stdin is 'pipe' (not 'ignore'): a Finder-launched packaged app can
         // have an invalid parent fd 0, and 'ignore' on stdin then fails with
         // EBADF. The prompt is written to stdin below, then stdin is closed.
-        { cwd, env: childEnv, stdio: ['pipe', 'pipe', 'pipe'] }
+        { cwd, env: childEnv, stdio: ['pipe', 'pipe', 'pipe'], windowsHide: true }
       )
     } catch (err) {
       const msg = (err as Error).message

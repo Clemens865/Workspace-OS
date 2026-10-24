@@ -1,4 +1,5 @@
 import { execFile } from 'child_process'
+import { pathToFileURL } from 'url'
 import { promisify } from 'util'
 import fs from 'fs'
 import fsp from 'fs/promises'
@@ -70,12 +71,13 @@ export async function convertTo(srcPath: string, format: 'pdf' | 'html' | 'docx'
       soffice,
       [
         '--headless', '--norestore', '--nolockcheck',
-        `-env:UserInstallation=file://${profileDir}`,
+        // A real file URL: file:///C:/... on Windows (file://C:\... is rejected as a corrupt bootstrap.ini).
+        `-env:UserInstallation=${pathToFileURL(profileDir).href}`,
         '--convert-to', format,
         '--outdir', outDir,
         srcPath,
       ],
-      { timeout: 60_000, maxBuffer: 16 * 1024 * 1024 }
+      { timeout: 60_000, maxBuffer: 16 * 1024 * 1024, windowsHide: true }
     )
 
     const base = path.basename(srcPath, path.extname(srcPath))

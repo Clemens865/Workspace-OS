@@ -34,15 +34,16 @@ jobs:
       - name: Typecheck
         run: npm run typecheck
 
-      # The recall eval needs a downloaded embedding model; it is a measurement, not a unit test.
-      - name: Unit tests
-        run: npm test -- --reporter=dot --exclude "**/*.eval.test.ts" 2>&1 | Tee-Object -FilePath unit-tests.log
-
       - name: Install LibreOffice
         run: |
           choco install libreoffice-fresh -y --no-progress
           & "C:\Program Files\LibreOffice\program\soffice.exe" --version
           Test-Path "C:\Program Files\LibreOffice\program\fundamental.ini"
+
+      # After LibreOffice, so the real-conversion test (libreoffice.convert.test.ts) runs too.
+      # The recall eval needs a downloaded embedding model; it is a measurement, not a unit test.
+      - name: Unit tests
+        run: npm test -- --reporter=dot --exclude "**/*.eval.test.ts" 2>&1 | Tee-Object -FilePath unit-tests.log
 
       - name: Fetch LibreOfficeKit headers (oldest supported engine)
         shell: bash
