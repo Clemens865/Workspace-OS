@@ -64,7 +64,7 @@
     "package": "electron-builder",
     "dist:mac": "npm run rebuild:electron && npm run build && electron-builder --mac && npm run rebuild:node || (npm run rebuild:node; exit 1)",
     "dist:linux": "npm run rebuild:electron && npm run build && electron-builder --linux && npm run rebuild:node || (npm run rebuild:node; exit 1)",
-    "dist:win": "npm run rebuild:electron && npm run build && electron-builder --win",
+    "dist:win": "npm run rebuild:electron && npm run build && node scripts/patch-nsis-per-user.mjs && electron-builder --win",
     "e2e:lok-edit": "npm run rebuild:electron && npm run build && node e2e/lok-edit.mjs; npm run rebuild:node",
     "e2e:lok-parts": "npm run rebuild:electron && npm run build && node e2e/lok-parts.mjs; npm run rebuild:node",
     "e2e:lok-packaged": "npm run build && node e2e/lok-packaged.mjs",

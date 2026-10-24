@@ -118,10 +118,12 @@ npm ci --legacy-peer-deps
 scripts\lok\build-host.cmd
 npx electron-rebuild -f -w better-sqlite3,node-pty
 npm run build
+node scripts/patch-nsis-per-user.mjs
 npx electron-builder --win --publish never
 ```
 
-The installer lands in `release\`, the unpacked app in `release\win-unpacked\`. The sidecar is built
+The installer lands in `release\`, the unpacked app in `release\win-unpacked\`. `patch-nsis-per-user.mjs` fixes an
+electron-builder 25 installer crash on first install (electron-builder #10296, fixed upstream in 26.12). The sidecar is built
 against the 24.2 LibreOfficeKit headers, the oldest supported engine, so it runs on every newer one.
 `node e2e\lok-packaged-windows.mjs <fixtures-folder>` checks the unpacked app.
 

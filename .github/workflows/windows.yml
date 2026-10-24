@@ -117,7 +117,9 @@ jobs:
         run: npm run build
 
       - name: "S4: NSIS installer"
-        run: npx electron-builder --win --publish never
+        run: |
+          node scripts/patch-nsis-per-user.mjs
+          npx electron-builder --win --publish never
 
       # Phase 1/2 acceptance: the packaged app starts, renders Writer and Impress
       # from the installed LibreOffice, and installs the wos-* shims (no Node).
@@ -212,8 +214,18 @@ jobs:
         run: |
           $setup = Get-ChildItem "$env:RUNNER_TEMP\dist" -Recurse -Filter "*Setup*.exe" | Select-Object -First 1
           if (-not $setup) { throw 'installer not in the workspace-os-windows artifact' }
-          $p = Start-Process $setup.FullName -ArgumentList '/S' -Wait -PassThru
-          Write-Host "installer exit $($p.ExitCode)"
+          # A first per-user install crashed about one time in three before the
+          # NSIS patch (scripts/patch-nsis-per-user.mjs), so install six times,
+          # each as a first install (no saved InstallLocation).
+          for ($i = 1; $i -le 6; $i++) {
+            Get-ChildItem HKCU:\Software -ErrorAction SilentlyContinue | ForEach-Object {
+              $loc = (Get-ItemProperty $_.PSPath -Name InstallLocation -ErrorAction SilentlyContinue).InstallLocation
+              if ($loc -like '*workspace-os*') { Remove-ItemProperty $_.PSPath -Name InstallLocation; Write-Host "  cleared InstallLocation in $($_.Name)" }
+            }
+            $p = Start-Process $setup.FullName -ArgumentList '/S' -Wait -PassThru
+            Write-Host ("first install {0}: exit {1} (0x{2:X8})" -f $i, $p.ExitCode, $p.ExitCode)
+            if ($p.ExitCode -ne 0) { throw "installer failed on first install $i" }
+          }
           $exe = Get-ChildItem "$env:LOCALAPPDATA\Programs" -Recurse -Filter "Workspace OS.exe" | Select-Object -First 1
           if (-not $exe) { throw 'Workspace OS.exe not found under %LOCALAPPDATA%\Programs' }
           "WOS_E2E_APP=$($exe.FullName)" | Out-File -Append -Encoding utf8 $env:GITHUB_ENV
