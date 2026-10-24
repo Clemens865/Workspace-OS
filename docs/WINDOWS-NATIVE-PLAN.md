@@ -2,7 +2,7 @@
 
 Branch `windows-native`, from `linux-wsl-support`. Goal: a Windows x64 installer that runs the app,
 the office engine and file access natively on Windows, with agents that keep working against an
-existing setup. Status: phase 0 run on GitHub Actions; results below. Calc rendering is the open point.
+existing setup. Status: phase 0 run on GitHub Actions; results below. Calc is blocked by two LibreOffice 25.8+ regressions, tracked in [#1](https://github.com/cbruyndoncx/Workspace-OS/issues/1) / [tdf#174142](https://bugs.documentfoundation.org/show_bug.cgi?id=174142) and [#2](https://github.com/cbruyndoncx/Workspace-OS/issues/2) / [tdf#174143](https://bugs.documentfoundation.org/show_bug.cgi?id=174143).
 
 ## What we know (checked 2026-10-23)
 
