@@ -40,7 +40,9 @@ describe('LokHost failure classification', () => {
     expect(rb.status).toBe('rejected')
     for (const r of [ra, rb] as PromiseRejectedResult[]) {
       expect(r.reason).toBeInstanceOf(LokHostError)
-      expect((r.reason as LokHostError).reason).toBe('exit')
+      // Whichever fires first wins: the 'exit' event, or the broken stdin pipe
+      // (first on Windows). Both mean the host is gone.
+      expect(['exit', 'write']).toContain((r.reason as LokHostError).reason)
     }
   })
 
