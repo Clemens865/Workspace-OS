@@ -95,23 +95,26 @@ jobs:
           retention-days: 14
           path: ${{ runner.temp }}/engine-test-kit
 
-      # Impress on Windows: the .pptx load hangs in the host and crashes the engine
-      # in the app. Does switching VCL Main to STA (#1) fix it? Not gating.
-      - name: "Diag: Impress with and without the VCL Main STA switch"
+      # Impress on Windows: the .pptx load hangs in the host (also with the VCL
+      # Main STA switch) and crashes the engine in the app. Thread stacks of the
+      # hung load, via cdb and LibreOffice's public symbols. Not gating.
+      - name: "Diag: thread stacks of the hung .pptx load"
         continue-on-error: true
-        env:
-          WOS_SMOKE_TIMEOUT_MS: "60000"
-          WOS_SMOKE_SHOW_STDERR: "1"
+        timeout-minutes: 25
         run: |
           $fx = Join-Path $env:RUNNER_TEMP "wos-fixtures"
           $lo = "C:\Program Files\LibreOffice\program"
-          foreach ($sta in "0", "1") {
-            Write-Host "=== Impress, STA switch: $sta"
-            Remove-Item (Join-Path $env:TEMP "wos-lok-host-profile") -Recurse -Force -ErrorAction SilentlyContinue
-            $env:WOS_LOK_STA_VCLMAIN = $sta
-            node e2e/lok-host-smoke.mjs scripts\lok\wos-lok-host.exe "$lo\" "$lo\fundamental.ini" "$fx\test-deck.pptx" "$fx\test-document.docx"
-            Get-Process wos-lok-host -ErrorAction SilentlyContinue | Stop-Process -Force
-          }
+          $cdb = Get-ChildItem "C:\Program Files (x86)\Windows Kits\10\Debuggers\x64\cdb.exe" -ErrorAction SilentlyContinue | Select-Object -First 1
+          if (-not $cdb) { Write-Host "cdb.exe not found"; exit 0 }
+          Remove-Item (Join-Path $env:TEMP "wos-lok-host-profile") -Recurse -Force -ErrorAction SilentlyContinue
+          $job = Start-Job -ScriptBlock { param($wd, $lo, $doc) Set-Location $wd; $env:WOS_SMOKE_TIMEOUT_MS = "240000"; node e2e/lok-host-smoke.mjs scripts\lok\wos-lok-host.exe "$lo\" "$lo\fundamental.ini" $doc 2>&1 } -ArgumentList (Get-Location).Path, $lo, "$fx\test-deck.pptx"
+          Start-Sleep -Seconds 25
+          $hostPid = (Get-Process wos-lok-host -ErrorAction SilentlyContinue | Select-Object -First 1).Id
+          Write-Host "hung engine pid: $hostPid"
+          $sym = "srv*$env:RUNNER_TEMP\sym*https://dev-downloads.libreoffice.org/symstore/symbols;srv*$env:RUNNER_TEMP\sym*https://msdl.microsoft.com/download/symbols"
+          & $cdb.FullName -p $hostPid -pv -y $sym -c ".symopt+ 0x10; .reload; ~*kc 50; qd" 2>&1 | Out-String -Width 400 | Write-Host
+          Get-Process wos-lok-host -ErrorAction SilentlyContinue | Stop-Process -Force
+          Receive-Job $job -Wait | Write-Host
 
       # Calc on LibreOffice 25.8+ needs the formula bar hidden (wos-lok-host.cpp,
       # hideCalcFormulaBar); the host does that in its private profile.
@@ -203,6 +206,8 @@ jobs:
           New-Item -ItemType Directory -Force $fx | Out-Null
           "a;b;c`r`n1;2;3`r`n4;5;6" | Set-Content -Encoding utf8 "$fx\t.csv"
           Copy-Item examples\Harbour-Terminal-Q3.xlsx $fx
+          python -m pip install --quiet python-pptx
+          python -c "from pptx import Presentation; p = Presentation(); s = p.slides.add_slide(p.slide_layouts[1]); s.shapes.title.text = 'Workspace OS on Windows'; s.placeholders[1].text = 'A slide rendered through LibreOfficeKit'; p.save(r'$fx\test-deck.pptx')"
           $lo = "C:\Program Files\LibreOffice\program"
           $profile = Join-Path $env:TEMP "wos-lok-host-profile"
           $env:WOS_SMOKE_SHOW_STDERR = "1"
@@ -217,6 +222,11 @@ jobs:
             node e2e/lok-host-smoke.mjs scripts\lok\wos-lok-host.exe "$lo\" "$lo\fundamental.ini" "$fx\Harbour-Terminal-Q3.xlsx"
             Get-Process wos-lok-host -ErrorAction SilentlyContinue | Stop-Process -Force
           }
+          Write-Host "=== LibreOffice ${{ matrix.lo }}, Impress"
+          Remove-Item $profile -Recurse -Force -ErrorAction SilentlyContinue
+          $env:WOS_LOK_STA_VCLMAIN = "0"
+          node e2e/lok-host-smoke.mjs scripts\lok\wos-lok-host.exe "$lo\" "$lo\fundamental.ini" "$fx\test-deck.pptx"
+          Get-Process wos-lok-host -ErrorAction SilentlyContinue | Stop-Process -Force
       - name: Upload tiles
         if: always()
         uses: actions/upload-artifact@v4
