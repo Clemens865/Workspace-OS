@@ -1,14 +1,15 @@
 name: Installer diagnostics
 
 # Temporary: runs the NSIS installer from an earlier Windows build run and
-# reports why it fails. Started by hand; nothing is published.
+# reports why it fails. Runs when this file changes; nothing is published.
 
 on:
-  workflow_dispatch:
-    inputs:
-      run_id:
-        description: Windows build run that produced the installer
-        required: true
+  push:
+    branches: [windows-native]
+    paths: [.github/workflows/installer-diag.yml]
+
+env:
+  RUN_ID: "40081784257"
 
 permissions:
   contents: read
@@ -26,7 +27,7 @@ jobs:
         with:
           name: workspace-os-windows
           path: ${{ runner.temp }}/dist
-          run-id: ${{ inputs.run_id }}
+          run-id: ${{ env.RUN_ID }}
           github-token: ${{ github.token }}
       - name: Artifact contents
         run: Get-ChildItem "$env:RUNNER_TEMP\dist" -Recurse -File | Select-Object FullName, Length | Format-Table -AutoSize | Out-String -Width 300 | Write-Host
