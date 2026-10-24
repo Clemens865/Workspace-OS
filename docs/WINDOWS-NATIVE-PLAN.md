@@ -34,7 +34,7 @@ existing setup. Status: phase 0 run on GitHub Actions; results below. Calc is bl
 |---|---|---|
 | Windows | Windows 11 x64, Windows 10 22H2 x64 | ARM64 not built in this branch |
 | Install commands | `winget`, one block that runs unchanged in Command Prompt and PowerShell | `winget` ships with Windows 11 and current Windows 10 (App Installer) |
-| LibreOffice | 24.2 or newer; CI tests the current release (26.8.1.1 on 2026-10-23) | The sidecar is compiled against the 24.2 LibreOfficeKit headers, so it only calls functions every supported version has |
+| LibreOffice | 24.2 or newer for Writer and Impress. Calc on Windows renders only up to 25.2 (end of life 2025-11-30) until LibreOffice fixes tdf#174142 and tdf#174143 (#1, #2) | The sidecar is compiled against the 24.2 LibreOfficeKit headers, so it only calls functions every supported version has. CI tests the current release (26.8.1.1) |
 | Claude Code | Native Windows build, `winget install Anthropic.ClaudeCode` | WinGet installs do not auto-update: `winget upgrade Anthropic.ClaudeCode` |
 | Git for Windows | Recommended | Needed for agent-run checkpoints and gives Claude Code its Bash tool; without it checkpoints are off and Claude Code uses PowerShell |
 | Python 3.13 | Needed for document generation (`wos-gen`) | The app creates its own venv on first use |
@@ -127,15 +127,17 @@ Out of scope (decision 1).
 
 | Phase | Estimate |
 |---|---|
-| 0 Spikes | 0.5–1 day |
+| 0 Spikes | done |
 | 1 Engine port | 1–2 days |
 | 2 Platform plumbing | 2–3 days |
 | 4 Packaging and CI | 0.5–1 day |
 | 5 Tests and docs | 1–2 days |
 
-Largest risk: S1. The loader supports Windows, but whether the stock LibreOffice Windows build
-exposes and renders everything the sidecar calls has not been tested. Second risk: the fd 3/4 pipe
-inheritance (S2), which has a known fallback.
+Phase 0 is done. S1 resolved into two LibreOffice regressions with known causes (#1, #2): Writer
+works on every supported version, Calc needs a LibreOffice fix. Phases 1 and 2 go ahead for
+everything except Calc; Calc is checked against LibreOffice 25.2 in CI so the rest of the Calc path
+stays tested. Remaining risk: how much of the app assumes POSIX beyond the places listed above (the
+Windows unit-test baseline has 17 failing files to work through).
 
 ## Owner actions needed
 
