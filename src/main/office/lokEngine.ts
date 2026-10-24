@@ -37,6 +37,17 @@ function lokPaths(): LokPaths {
     }
   }
 
+  // Windows uses the installed LibreOffice (winget install TheDocumentFoundation.LibreOffice).
+  if (process.platform === 'win32') {
+    const program = path.join(process.env['ProgramFiles'] || 'C:\\Program Files', 'LibreOffice', 'program') + path.sep
+    const install = process.env['WOS_LOK_INSTALL'] || program
+    return {
+      install,
+      fundamentalrc: process.env['WOS_LOK_FUND'] || path.join(install, 'fundamental.ini'),
+      hostBin: process.env['WOS_LOK_HOST'] || (bundledHost && fs.existsSync(bundledHost + '.exe') ? bundledHost + '.exe' : path.join(app.getAppPath(), 'scripts/lok/wos-lok-host.exe')),
+    }
+  }
+
   const devEngine = '/Volumes/LOBuild/core/instdir/LibreOffice.app/Contents'
   return {
     install: process.env['WOS_LOK_INSTALL'] || (bundledInstall && fs.existsSync(bundledInstall) ? bundledInstall : `${devEngine}/Frameworks/`),
@@ -59,7 +70,9 @@ export function lokAvailable(): boolean {
     (process.platform === 'linux'
       // Distribution builds ship the merged library; lok_init tries both names.
       ? ['libsofficeapp.so', 'libmergedlo.so'].some((lib) => fs.existsSync(path.join(install, lib)))
-      : fs.existsSync(path.join(install, 'libsofficeapp.dylib')))
+      : process.platform === 'win32'
+        ? ['sofficeapp.dll', 'mergedlo.dll'].some((lib) => fs.existsSync(path.join(install, lib)))
+        : fs.existsSync(path.join(install, 'libsofficeapp.dylib')))
   )
 }
 

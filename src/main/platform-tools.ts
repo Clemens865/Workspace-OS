@@ -1,0 +1,117 @@
+import { execFileSync } from 'child_process'
+import fs from 'fs'
+import os from 'os'
+import path from 'path'
+
+/**
+ * Where command-line tools live and how child processes find them, per
+ * platform. On macOS and Linux every function returns what the call sites
+ * used before (same directories, same order, ':' separator, login-shell
+ * fallback); Windows gets its own directories, ';' and `where.exe`.
+ */
+
+const isWin = (): boolean => process.platform === 'win32'
+
+/** Where Windows installs put CLIs (native installers, WinGet) besides PATH. */
+export function windowsToolDirs(): string[] {
+  const home = os.homedir()
+  const local = process.env['LOCALAPPDATA'] || path.join(home, 'AppData', 'Local')
+  return [path.join(home, '.local', 'bin'), path.join(local, 'Microsoft', 'WinGet', 'Links')]
+}
+
+/** The common tool directories appended after the app's own (`first`), then the inherited PATH. */
+export function seededPath(first: string[]): string {
+  const home = os.homedir()
+  const common = isWin() ? windowsToolDirs() : [path.join(home, '.local', 'bin'), '/opt/homebrew/bin', '/usr/local/bin']
+  return [...first, ...common, process.env['PATH'] ?? ''].join(path.delimiter)
+}
+
+/**
+ * A child environment with PATH set. Windows treats variable names
+ * case-insensitively but a plain object copy keeps the original `Path` key, so
+ * adding `PATH` would leave two; drop every case variant first.
+ */
+export function envWithPath(base: NodeJS.ProcessEnv | Record<string, string | undefined>, value: string): Record<string, string> {
+  const out: Record<string, string> = {}
+  for (const [k, v] of Object.entries(base)) {
+    if (v === undefined) continue
+    if (isWin() && k.toLowerCase() === 'path') continue
+    out[k] = v
+  }
+  out['PATH'] = value
+  return out
+}
+
+export interface FindToolOptions {
+  /** Absolute candidates checked on macOS/Linux, in order, after the env override. */
+  posixCandidates: string[]
+  /** Ask the login shell (`command -v`) when no candidate exists. macOS/Linux only. */
+  shellFallback?: boolean
+}
+
+/**
+ * Finds a CLI: the env override (e.g. CLAUDE_BIN) when it exists, else the
+ * platform's usual places. On Windows only `.exe` files are returned: Node
+ * refuses to spawn `.cmd`/`.bat` without a shell.
+ */
+export function findTool(name: string, envVar: string, opts: FindToolOptions): string | null {
+  const override = process.env[envVar]
+  if (override && fs.existsSync(override)) return override
+  if (isWin()) {
+    for (const dir of windowsToolDirs()) {
+      const candidate = path.join(dir, `${name}.exe`)
+      if (fs.existsSync(candidate)) return candidate
+    }
+    try {
+      const out = execFileSync('where.exe', [name], { encoding: 'utf-8', windowsHide: true })
+      const exe = out.split(/\r?\n/).map((s) => s.trim()).find((s) => /\.exe$/i.test(s))
+      if (exe) return exe
+    } catch {
+      /* not on PATH */
+    }
+    return null
+  }
+  for (const c of opts.posixCandidates) if (fs.existsSync(c)) return c
+  if (opts.shellFallback) {
+    try {
+      const found = execFileSync(process.env['SHELL'] ?? '/bin/zsh', ['-lc', `command -v ${name}`], { encoding: 'utf-8' }).trim()
+      if (found) return found
+    } catch {
+      /* fall through */
+    }
+  }
+  return null
+}
+
+/** Quote a value for a `set "K=V"` line in a .cmd file. */
+const cmdValue = (v: string): string => v.replace(/%/g, '%%').replace(/"/g, '')
+
+/**
+ * Windows shims for a Node CLI bundle, run on the app's own executable as Node
+ * (ELECTRON_RUN_AS_NODE=1), so no system Node.js is needed:
+ * `<name>.cmd` for PowerShell and Command Prompt, and an extensionless POSIX
+ * shim for Git Bash (Claude Code's Bash tool on Windows).
+ */
+export function writeWindowsNodeShims(binDir: string, name: string, cliPath: string, env: Record<string, string>, note: string): void {
+  const electron = process.execPath
+  const cmd = [
+    '@echo off',
+    `rem ${name} - ${note} Auto-generated; do not edit.`,
+    'setlocal',
+    ...Object.entries(env).map(([k, v]) => `set "${k}=${cmdValue(v)}"`),
+    'set "ELECTRON_RUN_AS_NODE=1"',
+    `"${electron}" "${cliPath}" %*`,
+    '',
+  ].join('\r\n')
+  fs.writeFileSync(path.join(binDir, `${name}.cmd`), cmd)
+  const fwd = (p: string): string => p.replace(/\\/g, '/')
+  const sh = [
+    '#!/bin/sh',
+    `# ${name} - ${note} Auto-generated; do not edit.`,
+    ...Object.entries(env).map(([k, v]) => `export ${k}="${fwd(v)}"`),
+    'export ELECTRON_RUN_AS_NODE=1',
+    `exec "${fwd(electron)}" "${fwd(cliPath)}" "$@"`,
+    '',
+  ].join('\n')
+  fs.writeFileSync(path.join(binDir, name), sh, { mode: 0o755 })
+}

@@ -62,6 +62,17 @@ describe('native Linux: no workaround applies', () => {
   })
 })
 
+describe('Windows: stock engine', () => {
+  it('loads CSV silently by default (no Windows build carries the patch)', () => {
+    asPlatform('win32')
+    vi.stubEnv('WSL_DISTRO_NAME', '')
+    setWslCacheForTest(false)
+    expect(csvSilentLoad('C:\\Program Files\\LibreOffice\\program\\')).toBe(true)
+    settings({ csvSilentLoad: 'off' })
+    expect(csvSilentLoad('C:\\Program Files\\LibreOffice\\program\\')).toBe(false)
+  })
+})
+
 describe('macOS: unchanged', () => {
   it('keeps GPU, in-folder state and snapshots', () => {
     host('darwin')

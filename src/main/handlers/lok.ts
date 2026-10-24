@@ -42,6 +42,7 @@ import {
   lokEffectsPath,
 } from '../office/lokEngine'
 import { createOfficeClipboard, type OfficeClipboard } from '../office/officeClipboard'
+import { lokXchg } from '../office/lokTemp'
 
 const EXPORT_FORMATS = new Set(['pdf', 'docx', 'odt', 'rtf', 'txt', 'html', 'epub', 'xlsx', 'ods', 'csv', 'pptx', 'odp', 'png', 'svg'])
 
@@ -240,7 +241,7 @@ export function registerLokHandlers(ipcMain: IpcMain, win: BrowserWindow): void 
   // The last macro-inserted shape's bounds (1/100 mm) — see WosShapeInsert.
   ipcHandle(ipcMain, 'lok:lastshape', async () => {
     let raw = ''
-    try { raw = fs.readFileSync('/tmp/wos-asset-out.txt', 'utf8').trim() } catch { return null }
+    try { raw = fs.readFileSync(lokXchg('wos-asset-out.txt'), 'utf8').trim() } catch { return null }
     const n = raw.split('|').map((x) => Number(x))
     if (n.length < 4 || n.some((x) => Number.isNaN(x))) return null
     return { x: n[0], y: n[1], w: n[2], h: n[3] }
@@ -250,7 +251,7 @@ export function registerLokHandlers(ipcMain: IpcMain, win: BrowserWindow): void 
   ipcHandle(ipcMain, 'lok:docstatus', async () => withMacroLock(async () => {
     await lokRunMacro('WosDocStatus', '')
     let raw = ''
-    try { raw = fs.readFileSync('/tmp/wos-asset-out.txt', 'utf8').trim() } catch { return null }
+    try { raw = fs.readFileSync(lokXchg('wos-asset-out.txt'), 'utf8').trim() } catch { return null }
     const n = raw.split('|').map((x) => Number(x))
     if (n.length < 4 || n.some((x) => Number.isNaN(x))) return null
     return { page: n[0], pages: n[1], words: n[2], chars: n[3] }
@@ -311,15 +312,15 @@ export function registerLokHandlers(ipcMain: IpcMain, win: BrowserWindow): void 
     // Serialize the whole write→run→read: the shared /tmp/wos-*.txt files must
     // not interleave with a concurrent macro op (that clobbered notes before).
     return withMacroLock(async () => {
-      fs.writeFileSync('/tmp/wos-fr-in.txt', `${header}\n${findLine}\n${replLine}\n`, 'utf8')
+      fs.writeFileSync(lokXchg('wos-fr-in.txt'), `${header}\n${findLine}\n${replLine}\n`, 'utf8')
       // Remove any prior result first: if the macro aborts mid-way (e.g. a real
       // Calc-replace fault, now no longer masked), we must NOT read a stale count
       // from a previous run and report a phantom success.
-      try { fs.rmSync('/tmp/wos-asset-out.txt', { force: true }) } catch { /* best effort */ }
+      try { fs.rmSync(lokXchg('wos-asset-out.txt'), { force: true }) } catch { /* best effort */ }
       const ok = await lokRunMacro('WosFindReplace', '')
       if (!ok) return { ok: false, count: -1 }
       let raw = ''
-      try { raw = fs.readFileSync('/tmp/wos-asset-out.txt', 'utf8').trim() } catch { return { ok: false, count: -1 } }
+      try { raw = fs.readFileSync(lokXchg('wos-asset-out.txt'), 'utf8').trim() } catch { return { ok: false, count: -1 } }
       const count = Number.parseInt(raw, 10)
       return { ok: true, count: Number.isFinite(count) ? count : 0 }
     })
@@ -335,7 +336,7 @@ export function registerLokHandlers(ipcMain: IpcMain, win: BrowserWindow): void 
     if (typeof i.cell !== 'string' || !isValidA1(i.cell)) throw new IpcValidationError('Invalid anchor cell')
     const sheet = typeof i.sheet === 'string' ? i.sheet : ''
     return withMacroLock(() => {
-      fs.writeFileSync('/tmp/wos-range-in.txt', encodeGridPayload(sheet, i.cell, grid), 'utf8')
+      fs.writeFileSync(lokXchg('wos-range-in.txt'), encodeGridPayload(sheet, i.cell, grid), 'utf8')
       return lokRunMacro('WosSetRangeBlock', '')
     })
   })
@@ -354,7 +355,7 @@ export function registerLokHandlers(ipcMain: IpcMain, win: BrowserWindow): void 
     const macroName = i.macro
     const tag = i.tag
     return withMacroLock(() => {
-      fs.writeFileSync('/tmp/wos-table-in.txt', encodeTablePayload(tag, grid), 'utf8')
+      fs.writeFileSync(lokXchg('wos-table-in.txt'), encodeTablePayload(tag, grid), 'utf8')
       return lokRunMacro(macroName, '')
     })
   })
@@ -363,7 +364,7 @@ export function registerLokHandlers(ipcMain: IpcMain, win: BrowserWindow): void 
   ipcHandle(ipcMain, 'lok:capture', async () => withMacroLock(async () => {
     await lokRunMacro('WosCapture', '')
     let raw = ''
-    try { raw = fs.readFileSync('/tmp/wos-asset-out.txt', 'utf8') } catch { return null }
+    try { raw = fs.readFileSync(lokXchg('wos-asset-out.txt'), 'utf8') } catch { return null }
     const lines = raw.split('\n').map((l) => l.trim()).filter((l) => l.length > 0)
     if (lines.length < 2) return null
     const head = lines[0].split('|')
@@ -375,7 +376,7 @@ export function registerLokHandlers(ipcMain: IpcMain, win: BrowserWindow): void 
     if (!Array.isArray(elements) || elements.length === 0) return false
     const safe = elements.filter((e): e is string => typeof e === 'string').slice(0, 60).map((e) => e.replace(/[\r\n]/g, ' '))
     return withMacroLock(() => {
-      fs.writeFileSync('/tmp/wos-build-in.txt', 'header\n' + safe.join('\n') + '\n', 'utf8')
+      fs.writeFileSync(lokXchg('wos-build-in.txt'), 'header\n' + safe.join('\n') + '\n', 'utf8')
       return lokRunMacro('WosBuildCaptured', '')
     })
   })
@@ -385,7 +386,7 @@ export function registerLokHandlers(ipcMain: IpcMain, win: BrowserWindow): void 
   ipcHandle(ipcMain, 'lok:selinfo', async () => withMacroLock(async () => {
     await lokRunMacro('WosSelInfo', '')
     let raw = ''
-    try { raw = fs.readFileSync('/tmp/wos-asset-out.txt', 'utf8').trim() } catch { return null }
+    try { raw = fs.readFileSync(lokXchg('wos-asset-out.txt'), 'utf8').trim() } catch { return null }
     if (!raw) return null
     const parts = raw.split('|')
     return { name: parts[0] ?? '', w: Number(parts[1]) || 0, h: Number(parts[2]) || 0, fill: Number(parts[3]) || -1, text: parts.slice(4).join('|') }
@@ -397,7 +398,7 @@ export function registerLokHandlers(ipcMain: IpcMain, win: BrowserWindow): void 
   ipcHandle(ipcMain, 'lok:partinfo', async () => withMacroLock(async () => {
     await lokRunMacro('WosPartInfo', '')
     let raw = ''
-    try { raw = fs.readFileSync('/tmp/wos-asset-out.txt', 'utf8') } catch { return { visible: [] as boolean[] } }
+    try { raw = fs.readFileSync(lokXchg('wos-asset-out.txt'), 'utf8') } catch { return { visible: [] as boolean[] } }
     const visible = raw.split('\n').map((l) => l.trim()).filter(Boolean).slice(0, 500).map((l) => l.split('|').pop() === '1')
     return { visible }
   }))
@@ -408,9 +409,9 @@ export function registerLokHandlers(ipcMain: IpcMain, win: BrowserWindow): void 
   // 'add|preset|nodeType' gets the engine's effects.xml path appended here (the
   // renderer never sees engine paths).
   const macroText = async (name: string, args: string): Promise<string> => {
-    try { fs.unlinkSync('/tmp/wos-asset-out.txt') } catch { /* fresh */ }
+    try { fs.unlinkSync(lokXchg('wos-asset-out.txt')) } catch { /* fresh */ }
     await lokRunMacro(name, args)
-    try { return fs.readFileSync('/tmp/wos-asset-out.txt', 'utf8').slice(0, 20000) } catch { return '' }
+    try { return fs.readFileSync(lokXchg('wos-asset-out.txt'), 'utf8').slice(0, 20000) } catch { return '' }
   }
   const safeOp = (args: unknown): string => {
     const a = typeof args === 'string' ? args : ''
@@ -448,13 +449,13 @@ export function registerLokHandlers(ipcMain: IpcMain, win: BrowserWindow): void 
     const i = (input ?? {}) as { index?: unknown }
     const idx = Number.isInteger(i.index) ? (i.index as number) : -1
     return withMacroLock(async () => {
-      try { fs.rmSync('/tmp/wos-asset-out.txt', { force: true }) } catch { /* best effort */ }
+      try { fs.rmSync(lokXchg('wos-asset-out.txt'), { force: true }) } catch { /* best effort */ }
       // Pass the slide index as the macro arg (the host writes it to the generic
       // file). Empty arg = current slide. WosGetNotes writes the notes text out.
       const ok = await lokRunMacro('WosGetNotes', idx >= 0 ? String(idx) : '')
       if (!ok) return null
       let raw = ''
-      try { raw = fs.readFileSync('/tmp/wos-asset-out.txt', 'utf8') } catch { return null }
+      try { raw = fs.readFileSync(lokXchg('wos-asset-out.txt'), 'utf8') } catch { return null }
       // The macro's Print appends a trailing newline; drop exactly one.
       return { text: raw.replace(/\n$/, '') }
     })
@@ -523,12 +524,12 @@ export function registerLokHandlers(ipcMain: IpcMain, win: BrowserWindow): void 
     const native = payload.split('\n').filter((l) => l.trim().length > 0).length - 1
 
     return withMacroLock(async () => {
-      fs.writeFileSync('/tmp/wos-slide-in.txt', payload, 'utf8')
-      try { fs.rmSync('/tmp/wos-asset-out.txt', { force: true }) } catch { /* best effort */ }
+      fs.writeFileSync(lokXchg('wos-slide-in.txt'), payload, 'utf8')
+      try { fs.rmSync(lokXchg('wos-asset-out.txt'), { force: true }) } catch { /* best effort */ }
       const ok = await lokRunMacro('WosBuildSlide', '')
       if (!ok) return { ok: false, slide: -1, native: 0, images: 0 }
       let slide = -1
-      try { slide = parseInt(fs.readFileSync('/tmp/wos-asset-out.txt', 'utf8').trim(), 10) } catch { /* */ }
+      try { slide = parseInt(fs.readFileSync(lokXchg('wos-asset-out.txt'), 'utf8').trim(), 10) } catch { /* */ }
 
       // Drop each unsupported shape as a picture onto the SAME (now-current) slide.
       let images = 0

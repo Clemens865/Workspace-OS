@@ -10,6 +10,7 @@ import { dataAction } from './dataActions'
 import { documentAction } from './documentActions'
 import { allows, grants, type Grant } from './grants'
 import { runAppAction } from '../apps/app-actions'
+import { createHash } from 'crypto'
 
 /**
  * AGENT→ACTION bridge (main side).
@@ -68,6 +69,12 @@ export const AGENT_SOCK_ENV = 'WOS_AGENT_SOCK'
 
 /** The absolute path of the bridge socket ({userData}/wos-agent.sock). */
 export function agentSockPath(): string {
+  // Windows has no Unix sockets in a folder; Node's net uses a named pipe instead,
+  // one per userData directory so two profiles never share a bridge.
+  if (process.platform === 'win32') {
+    const id = createHash('sha1').update(app.getPath('userData')).digest('hex').slice(0, 12)
+    return `\\\\.\\pipe\\wos-agent-${id}`
+  }
   return path.join(app.getPath('userData'), 'wos-agent.sock')
 }
 

@@ -64,6 +64,8 @@ jobs:
           "a;b;c`r`n1;2;3`r`n4;5;6" | Set-Content -Encoding utf8 "$fx\t.csv"
           & "C:\Program Files\LibreOffice\program\soffice.exe" --headless --convert-to docx --outdir $fx "$fx\test-document.txt" | Out-Host
           Copy-Item examples\Harbour-Terminal-Q3.xlsx $fx
+          python -m pip install --quiet python-pptx
+          python -c "from pptx import Presentation; from pptx.util import Inches; p = Presentation(); s = p.slides.add_slide(p.slide_layouts[1]); s.shapes.title.text = 'Workspace OS on Windows'; s.placeholders[1].text = 'A slide rendered through LibreOfficeKit'; p.save(r'$fx\test-deck.pptx')"
           Get-ChildItem $fx | Out-Host
 
       # Diagnostics while the spikes are open: each document alone, plain and in
@@ -103,7 +105,7 @@ jobs:
         run: |
           $fx = Join-Path $env:RUNNER_TEMP "wos-fixtures"
           $lo = "C:\Program Files\LibreOffice\program"
-          node e2e/lok-host-smoke.mjs scripts\lok\wos-lok-host.exe "$lo\" "$lo\fundamental.ini" "$fx\test-document.docx" "$fx\Harbour-Terminal-Q3.xlsx" "$fx\t.csv"
+          node e2e/lok-host-smoke.mjs scripts\lok\wos-lok-host.exe "$lo\" "$lo\fundamental.ini" "$fx\test-document.docx" "$fx\test-deck.pptx" "$fx\Harbour-Terminal-Q3.xlsx" "$fx\t.csv"
 
       - name: "S3: native modules for Electron"
         run: |
@@ -117,6 +119,13 @@ jobs:
       - name: "S4: NSIS installer"
         run: npx electron-builder --win --publish never
 
+      # Phase 1/2 acceptance: the packaged app starts, renders Writer and Impress
+      # from the installed LibreOffice, and installs the wos-* shims (no Node).
+      - name: "E2E: packaged Windows app"
+        run: |
+          $fx = Join-Path $env:RUNNER_TEMP "wos-fixtures"
+          node e2e/lok-packaged-windows.mjs $fx
+
       - name: Upload installer and logs
         if: always()
         uses: actions/upload-artifact@v4
@@ -128,6 +137,7 @@ jobs:
             release/*.exe
             release/*.yml
             unit-tests.log
+            e2e/shots-windows/*.png
             ${{ runner.temp }}/tiles/**/*.ppm
 
   # Engine version matrix (docs/WINDOWS-NATIVE-PLAN.md, phase 0): which LibreOffice

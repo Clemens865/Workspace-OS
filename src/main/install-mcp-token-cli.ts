@@ -1,6 +1,7 @@
 import { app } from 'electron'
 import fs from 'fs'
 import path from 'path'
+import { writeWindowsNodeShims } from './platform-tools'
 
 /**
  * Installs the `wos-mcp-token` CLI shim — the `headersHelper` for remote OAuth
@@ -33,12 +34,13 @@ function resourceDir(): string {
 
 /** Absolute path of the installed shim — used as the .mcp.json headersHelper. */
 export function mcpTokenBinPath(): string {
-  return path.join(app.getPath('userData'), 'bin', 'wos-mcp-token')
+  return path.join(app.getPath('userData'), 'bin', process.platform === 'win32' ? 'wos-mcp-token.cmd' : 'wos-mcp-token')
 }
 
 /** The full headersHelper command for a connector: `<abs shim> <connectorId>`. */
 export function headersHelperCommand(connectorId: string): string {
-  return `${mcpTokenBinPath()} ${connectorId}`
+  // Windows paths under AppData commonly contain spaces (user names); quote them there.
+  return process.platform === 'win32' ? `"${mcpTokenBinPath()}" ${connectorId}` : `${mcpTokenBinPath()} ${connectorId}`
 }
 
 /**
@@ -68,6 +70,11 @@ export function installMcpTokenCli(): void {
     }
     const binDir = path.join(app.getPath('userData'), 'bin')
     fs.mkdirSync(binDir, { recursive: true })
+    if (process.platform === 'win32') {
+      // No system Node needed: .cmd + Git Bash shims run the bundle on the app's executable.
+      writeWindowsNodeShims(binDir, 'wos-mcp-token', cliPath, { WOS_USERDATA_DIR: app.getPath('userData') }, 'remote-OAuth MCP headersHelper.')
+      return
+    }
     const shimPath = path.join(binDir, 'wos-mcp-token')
     fs.writeFileSync(shimPath, shimSource(cliPath, process.execPath, app.getPath('userData')), { mode: 0o755 })
     fs.chmodSync(shimPath, 0o755)

@@ -2,6 +2,7 @@ import { spawn, type ChildProcess } from 'child_process'
 import type { Readable } from 'stream'
 import { EventEmitter } from 'events'
 import { seedEngineProfile, seedMacroLibrary } from './lokMacros'
+import { ensureLokXchgDir, lokProfileDir, lokXchgDir } from './lokTemp'
 
 // Generous enough for a large file open/save, short enough that a genuine wedge
 // self-heals quickly. Catches any engine stall the droppable-callback fix misses.
@@ -139,8 +140,11 @@ export class LokHost extends EventEmitter {
     // fd0=stdin (requests), fd1=ignore (engine stdout noise discarded),
     // fd2=inherit (logs), fd3=pipe (JSON responses + callbacks),
     // fd4=pipe (tile frames — bulk pixels off the latency-sensitive pipe).
+    ensureLokXchgDir()
     const proc = spawn(opts.hostBin, [opts.installPath, opts.fundamentalrc], {
       stdio: ['pipe', 'ignore', 'inherit', 'pipe', 'pipe'],
+      // The profile the app seeds and the exchange directory the macros use (lokTemp.ts).
+      env: { ...process.env, WOS_LOK_PROFILE: lokProfileDir(), WOS_LOK_XCHG: lokXchgDir() },
     })
     const jsonParser = new FrameParser((type, body) => this.dispatchFrame(type, body, resolveReady))
     const tileParser = new FrameParser((type, body) => this.dispatchFrame(type, body, resolveReady))

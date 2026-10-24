@@ -1,6 +1,7 @@
 import { app } from 'electron'
 import fs from 'fs'
 import path from 'path'
+import { writeWindowsNodeShims } from './platform-tools'
 
 /**
  * Installs the `wos-metric` CLI shim onto the agent's PATH — the metric sibling
@@ -55,6 +56,11 @@ export function installMetricCli(): void {
     }
     const binDir = path.join(app.getPath('userData'), 'bin')
     fs.mkdirSync(binDir, { recursive: true })
+    if (process.platform === 'win32') {
+      // No system Node needed: .cmd + Git Bash shims run the bundle on the app's executable.
+      writeWindowsNodeShims(binDir, 'wos-metric', cliPath, { WOS_USERDATA_DIR: app.getPath('userData') }, 'Workspace OS live-metric CLI.')
+      return
+    }
     const shimPath = path.join(binDir, 'wos-metric')
     fs.writeFileSync(shimPath, shimSource(cliPath, app.getPath('userData')), { mode: 0o755 })
     fs.chmodSync(shimPath, 0o755)

@@ -925,9 +925,13 @@ int main(int argc, char** argv) {
     _setmode(TILE_FD, _O_BINARY);
 #endif
     wosSetEnv("URE_BOOTSTRAP", (std::string("vnd.sun.star.pathname:") + argv[2]).c_str());
-    const std::string profileDir = wosTmpDir() + (wosTmpDir().back() == '/' ? "" : "/") + "wos-lok-host-profile";
+    // The app passes the profile it seeded (lokTemp.ts); otherwise the historical default.
+    const char* profileEnv = getenv("WOS_LOK_PROFILE");
+    const std::string profileDir = (profileEnv && *profileEnv)
+        ? std::string(profileEnv)
+        : wosTmpDir() + (wosTmpDir().back() == '/' ? "" : "/") + "wos-lok-host-profile";
 #ifdef _WIN32
-    hideCalcFormulaBar(wosTmpDir() + "\\wos-lok-host-profile");
+    hideCalcFormulaBar(profileDir);
     staVclMainExperiment(argv[1]);
 #endif
     const std::string profileUrl = fileUrl(profileDir);

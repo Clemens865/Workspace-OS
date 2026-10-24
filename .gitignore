@@ -55,3 +55,4 @@ build/demo/
 docs/pitch/_print.html
 docs/pitch/*.pdf
 .playwright-mcp/
+e2e/shots-windows/

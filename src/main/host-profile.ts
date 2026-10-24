@@ -127,8 +127,10 @@ export function hardwareAcceleration(): boolean {
  * CSV import dialog request deadlocks a headless load; Batch loads silently.
  */
 export function csvSilentLoad(engineInstallDir: string): boolean {
+  // Windows: every engine is a stock LibreOffice build (none carries the patch).
   return toggle('WOS_CSV_SILENT_LOAD', hostSettings().csvSilentLoad, () =>
-    process.platform === 'linux' && path.resolve(engineInstallDir) === path.resolve(DISTRO_ENGINE_DIR))
+    process.platform === 'win32' ||
+    (process.platform === 'linux' && path.resolve(engineInstallDir) === path.resolve(DISTRO_ENGINE_DIR)))
 }
 
 /** Does this workspace keep its `.workspace-os` store outside the folder? (WOS_WINDOWS_DRIVE_STATE / `windowsDriveState`) */

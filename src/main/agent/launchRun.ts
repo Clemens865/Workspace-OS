@@ -1,5 +1,5 @@
 import { app } from 'electron'
-import { spawn, ChildProcess, execFileSync } from 'child_process'
+import { spawn, ChildProcess } from 'child_process'
 import fs from 'fs'
 import path from 'path'
 import os from 'os'
@@ -40,6 +40,7 @@ import { ClaudeFailureTracker } from './claudeFailure'
 import { agentHooksArgs, agentHooksMode, appStateDir, contentRoot, contentRootLine, stateIsExternal } from '../host-profile'
 import { appsRel } from '../apps/apps-store'
 import { documentOutputGuidance, type AgentRunFailure } from '../../shared/agentRun'
+import { envWithPath, findTool } from '../platform-tools'
 
 /**
  * ONE way to launch a `claude -p` run, whoever asks for it.
@@ -111,25 +112,12 @@ let cachedBinary: string | null = null
 
 export function resolveClaudeBinary(): string {
   if (cachedBinary) return cachedBinary
-  const candidates = [
-    process.env['CLAUDE_BIN'],
-    path.join(os.homedir(), '.local', 'bin', 'claude'),
-    '/usr/local/bin/claude',
-    '/opt/homebrew/bin/claude',
-  ].filter(Boolean) as string[]
-
-  for (const c of candidates) {
-    if (fs.existsSync(c)) { cachedBinary = c; return c }
-  }
-  // Last resort: ask the user's login shell where claude lives.
-  try {
-    const found = execFileSync(process.env['SHELL'] ?? '/bin/zsh', ['-lc', 'command -v claude'], {
-      encoding: 'utf-8',
-    }).trim()
-    if (found) { cachedBinary = found; return found }
-  } catch {
-    // fall through
-  }
+  // CLAUDE_BIN, then the usual install locations, then the login shell (Windows: where.exe).
+  const found = findTool('claude', 'CLAUDE_BIN', {
+    posixCandidates: [path.join(os.homedir(), '.local', 'bin', 'claude'), '/usr/local/bin/claude', '/opt/homebrew/bin/claude'],
+    shellFallback: true,
+  })
+  if (found) { cachedBinary = found; return found }
   throw new Error('Claude CLI not found. Install Claude Code and ensure it is on your PATH.')
 }
 
@@ -190,8 +178,7 @@ export async function launchRun(o: LaunchRunOptions): Promise<{ child: ChildProc
     // for installed Python skills) and the `wos-gen` shim to the agent's PATH.
     if (provider === 'codex') o.signal?.throwIfAborted()
     const childEnv: Record<string, string> = {
-      ...process.env,
-      PATH: `${docgenVenvBinDir()}:${docgenBinDir()}:${process.env['PATH'] ?? ''}`,
+      ...envWithPath(process.env, [docgenVenvBinDir(), docgenBinDir(), process.env['PATH'] ?? ''].join(path.delimiter)),
       // AGENT→ACTION bridge: the `wos-action` CLI (on the PATH above) reaches the
       // app over this local unix socket to EXECUTE non-destructive surface
       // actions. Absent-socket is safe — the CLI just errors, the agent runs on.
