@@ -8,5 +8,5 @@ if not exist "%HERE%LibreOfficeKit\LibreOfficeKit.h" (
   echo run fetch-headers.sh first 1>&2
   exit /b 1
 )
-cl /nologo /std:c++17 /EHsc /O2 /MT /W3 /D_CRT_SECURE_NO_WARNINGS /I "%HERE%." "%HERE%wos-lok-host.cpp" /Fe:"%HERE%wos-lok-host.exe" /Fo:"%TEMP%\\" ole32.lib || exit /b 1
+cl /nologo /std:c++17 /EHsc /O2 /MT /W3 /D_CRT_SECURE_NO_WARNINGS /I "%HERE%." "%HERE%wos-lok-host.cpp" /Fe:"%HERE%wos-lok-host.exe" /Fo:"%TEMP%\\" user32.lib || exit /b 1
 echo built %HERE%wos-lok-host.exe

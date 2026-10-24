@@ -55,7 +55,6 @@
 #include <io.h>
 #include <fcntl.h>
 #include <windows.h>
-#include <objbase.h>
 typedef long long wos_ssize_t;
 static wos_ssize_t wosWrite(int fd, const void* p, size_t n) {
     return _write(fd, p, (unsigned)(n > 0x40000000u ? 0x40000000u : n));
@@ -117,24 +116,34 @@ static void hideCalcFormulaBar(const std::string& profileDir) {
 #endif
 
 #ifdef _WIN32
-// EXPERIMENT (WOS_LOK_STA_VCLMAIN=1): LOK starts "VCL Main" (lo_startmain) with
-// osl_createThread, whose wrapper initialises COM as MTA; SalData's request for
-// an STA then fails with RPC_E_CHANGED_MODE and the thread stays MTA. From 25.8
-// osl_waitCondition waits in CoWaitForMultipleHandles, which only pumps sent
-// messages in an STA. This patches vclplug_winlo's import of CoInitializeEx so
-// that an STA request on an MTA thread undoes the MTA init and retries.
-typedef HRESULT (WINAPI *CoInitExFn)(LPVOID, DWORD);
-static CoInitExFn g_realCoInitEx = nullptr;
-static HRESULT WINAPI hookCoInitializeEx(LPVOID reserved, DWORD coInit) {
-    HRESULT hr = g_realCoInitEx(reserved, coInit);
-    if (hr == RPC_E_CHANGED_MODE && (coInit & COINIT_APARTMENTTHREADED)) {
-        CoUninitialize(); // the osl worker wrapper's MTA init
-        hr = g_realCoInitEx(reserved, coInit);
-        fprintf(stderr, "[host] thread %lu switched to STA (hr 0x%lx)\n", GetCurrentThreadId(), (unsigned long)hr);
+// LibreOffice 25.8+ on Windows (#1, tdf#174142): LOK's "VCL Main" thread waits
+// for the SolarMutex in osl_waitCondition, which since core 1e2e51607a16 /
+// 6b6f8ca3dd4a uses CoWaitForMultipleHandles. That only delivers sent messages
+// in an STA, and VCL Main is in the MTA (osl_createThread's wrapper), so a
+// SetWindowPos from this thread (Calc's Name Box, Impress's view border, ...)
+// deadlocks. Up to 25.2 the wait was MsgWaitForMultipleObjects(QS_SENDMESSAGE).
+// The host redirects vclplug_winlo.dll's import of osl_waitCondition to that
+// earlier wait. On by default; WOS_LOK_WAIT_FIX=0 turns it off.
+struct WosTimeValue { unsigned int Seconds; unsigned int Nanosec; }; // sal TimeValue
+enum { WOS_COND_OK = 0, WOS_COND_ERROR = 1, WOS_COND_TIMEOUT = 2 };   // oslConditionResult
+static int hookWaitCondition(void* condition, const WosTimeValue* timeout) {
+    const DWORD ms = timeout ? timeout->Seconds * 1000 + timeout->Nanosec / 1000000 : INFINITE;
+    HANDLE h = static_cast<HANDLE>(condition);
+    for (;;) {
+        switch (MsgWaitForMultipleObjects(1, &h, FALSE, ms, QS_SENDMESSAGE)) {
+            case WAIT_OBJECT_0 + 1: {
+                // PM_NOREMOVE leaves the queue alone but delivers pending sent messages.
+                MSG msg;
+                PeekMessageW(&msg, nullptr, 0, 0, PM_NOREMOVE);
+                break;
+            }
+            case WAIT_OBJECT_0: return WOS_COND_OK;
+            case WAIT_TIMEOUT: return WOS_COND_TIMEOUT;
+            default: return WOS_COND_ERROR;
+        }
     }
-    return hr;
 }
-static bool patchImport(HMODULE mod, const char* fn, void* hook, void** orig) {
+static bool patchImport(HMODULE mod, const char* fn, void* hook) {
     BYTE* base = reinterpret_cast<BYTE*>(mod);
     auto* dos = reinterpret_cast<IMAGE_DOS_HEADER*>(base);
     auto* nt = reinterpret_cast<IMAGE_NT_HEADERS*>(base + dos->e_lfanew);
@@ -149,24 +158,24 @@ static bool patchImport(HMODULE mod, const char* fn, void* hook, void** orig) {
             if (strcmp(reinterpret_cast<const char*>(ibn->Name), fn) != 0) continue;
             DWORD old;
             VirtualProtect(&addrs->u1.Function, sizeof(void*), PAGE_READWRITE, &old);
-            *orig = reinterpret_cast<void*>(addrs->u1.Function);
             addrs->u1.Function = reinterpret_cast<ULONG_PTR>(hook);
             VirtualProtect(&addrs->u1.Function, sizeof(void*), old, &old);
-            fprintf(stderr, "[host] patched %s import from %s\n", fn, reinterpret_cast<const char*>(base + imp->Name));
             return true;
         }
     }
     return false;
 }
-static void staVclMainExperiment(const char* installDir) {
-    const char* on = getenv("WOS_LOK_STA_VCLMAIN");
-    if (!on || *on != '1') return;
+static void installWaitFix(const char* installDir) {
+    const char* off = getenv("WOS_LOK_WAIT_FIX");
+    if (off && *off == '0') return;
     SetDllDirectoryA(installDir);
     const std::string dll = std::string(installDir) + "vclplug_winlo.dll";
     HMODULE m = LoadLibraryExA(dll.c_str(), nullptr, LOAD_WITH_ALTERED_SEARCH_PATH);
-    if (!m) { fprintf(stderr, "[host] STA experiment: cannot load %s (%lu)\n", dll.c_str(), GetLastError()); return; }
-    if (!patchImport(m, "CoInitializeEx", reinterpret_cast<void*>(hookCoInitializeEx), reinterpret_cast<void**>(&g_realCoInitEx)))
-        fprintf(stderr, "[host] STA experiment: CoInitializeEx import not found in vclplug_winlo.dll\n");
+    if (!m) { fprintf(stderr, "[host] wait fix: cannot load %s (%lu)\n", dll.c_str(), GetLastError()); return; }
+    if (patchImport(m, "osl_waitCondition", reinterpret_cast<void*>(hookWaitCondition)))
+        fprintf(stderr, "[host] wait fix: vclplug_winlo osl_waitCondition -> MsgWaitForMultipleObjects(QS_SENDMESSAGE)\n");
+    else
+        fprintf(stderr, "[host] wait fix: osl_waitCondition import not found in vclplug_winlo.dll\n");
 }
 #endif
 
@@ -932,7 +941,7 @@ int main(int argc, char** argv) {
         : wosTmpDir() + (wosTmpDir().back() == '/' ? "" : "/") + "wos-lok-host-profile";
 #ifdef _WIN32
     hideCalcFormulaBar(profileDir);
-    staVclMainExperiment(argv[1]);
+    installWaitFix(argv[1]);
 #endif
     const std::string profileUrl = fileUrl(profileDir);
     g_lok = lok_init_2(argv[1], profileUrl.c_str());
