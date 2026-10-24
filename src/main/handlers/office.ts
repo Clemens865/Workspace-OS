@@ -5,7 +5,7 @@ import crypto from 'crypto'
 import { ipcHandle } from '../ipc-registry'
 import { IpcValidationError, validateFilePath } from '../ipc-validator'
 import { getWorkspaceRoot } from '../workspace-root'
-import { resolveSoffice, isLibreOfficeAvailable, convertTo } from '../office/libreoffice'
+import { resolveSoffice, isLibreOfficeAvailable, convertTo, discardConverted } from '../office/libreoffice'
 
 function cacheDir(): string {
   return path.join(app.getPath('userData'), 'office-cache')
@@ -79,7 +79,7 @@ async function toPdfCached(srcPath: string): Promise<Uint8Array> {
   const produced = await convertTo(srcPath, 'pdf')
   const bytes = await fs.readFile(produced)
   await fs.copyFile(produced, cached).catch(() => {})
-  await fs.rm(produced, { force: true }).catch(() => {})
+  await discardConverted(produced)
 
   // Drop older renders of the same source.
   for (const f of await fs.readdir(dir).catch(() => [])) {
@@ -136,12 +136,12 @@ export function registerOfficeHandlers(ipcMain: IpcMain, win: BrowserWindow): vo
       defaultPath: path.join(path.dirname(resolved), `${base}.pdf`),
       filters: [{ name: 'PDF', extensions: ['pdf'] }],
     })
-    if (save.canceled || !save.filePath) {
-      await fs.rm(producedPdf, { force: true })
-      return null
+    try {
+      if (save.canceled || !save.filePath) return null
+      await fs.copyFile(producedPdf, save.filePath)
+      return save.filePath
+    } finally {
+      await discardConverted(producedPdf)
     }
-    await fs.copyFile(producedPdf, save.filePath)
-    await fs.rm(producedPdf, { force: true })
-    return save.filePath
   })
 }

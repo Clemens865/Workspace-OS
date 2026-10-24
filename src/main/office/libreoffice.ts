@@ -58,7 +58,8 @@ export function isLibreOfficeAvailable(): boolean {
 /**
  * Converts a document to the target format in a temp dir and returns the path
  * to the produced file. Uses a per-call profile dir so concurrent conversions
- * don't collide on LibreOffice's single-instance lock.
+ * don't collide on LibreOffice's single-instance lock. Pass the result to
+ * discardConverted when done with it; a failed conversion cleans up itself.
  */
 export async function convertTo(srcPath: string, format: 'pdf' | 'html' | 'docx' | 'xlsx'): Promise<string> {
   const soffice = resolveSoffice()
@@ -66,6 +67,7 @@ export async function convertTo(srcPath: string, format: 'pdf' | 'html' | 'docx'
 
   const outDir = await fsp.mkdtemp(path.join(os.tmpdir(), 'wos-lo-'))
   const profileDir = await fsp.mkdtemp(path.join(os.tmpdir(), 'wos-lo-profile-'))
+  let ok = false
   try {
     await execFileAsync(
       soffice,
@@ -83,8 +85,18 @@ export async function convertTo(srcPath: string, format: 'pdf' | 'html' | 'docx'
     const base = path.basename(srcPath, path.extname(srcPath))
     const produced = path.join(outDir, `${base}.${format}`)
     await fsp.access(produced)
+    ok = true
     return produced
   } finally {
     fsp.rm(profileDir, { recursive: true, force: true }).catch(() => {})
+    if (!ok) fsp.rm(outDir, { recursive: true, force: true }).catch(() => {})
   }
+}
+
+/** Removes a convertTo result together with the temp folder it was produced in. */
+export async function discardConverted(produced: string): Promise<void> {
+  const dir = path.dirname(produced)
+  // Only ever a convertTo output folder, never a caller-supplied location.
+  if (path.dirname(dir) !== path.resolve(os.tmpdir()) || !path.basename(dir).startsWith('wos-lo-')) return
+  await fsp.rm(dir, { recursive: true, force: true }).catch(() => {})
 }
