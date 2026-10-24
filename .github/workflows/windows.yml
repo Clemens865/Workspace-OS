@@ -239,10 +239,13 @@ jobs:
           Set-Location C:\bb
           git checkout -q -f master
           & pwsh -File $step -Repo C:\bb -Workspace $ws -Fixtures $fx
-          Write-Host "master check exit: $LASTEXITCODE"
+          $masterExit = $LASTEXITCODE
+          Write-Host "master check exit: $masterExit"
+          if ($masterExit -ne 1) { Write-Host "master is not bad; stopping"; exit 1 }
           git checkout -q -f oldest
           & pwsh -File $step -Repo C:\bb -Workspace $ws -Fixtures $fx
           Write-Host "oldest check exit: $LASTEXITCODE"
+          if ($LASTEXITCODE -ne 0) { Write-Host "oldest is not good; stopping"; exit 1 }
           git bisect start master oldest
           git bisect run pwsh -File $step -Repo C:\bb -Workspace $ws -Fixtures $fx
           Write-Host "=== bisect result"

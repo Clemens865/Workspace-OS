@@ -5,7 +5,11 @@
 param([string]$Repo, [string]$Workspace, [string]$Fixtures)
 $prog = Join-Path $Repo "instdir\program"
 $rev = (git -C $Repo log -1 --format="%h %s").Trim()
-if (-not (Test-Path (Join-Path $prog "mergedlo.dll"))) { Write-Host "skip (no mergedlo.dll): $rev"; exit 125 }
+# Release builds are merged (mergedlo.dll); bibisect builds are not (sofficeapp.dll). lok_init takes either.
+if (-not ((Test-Path (Join-Path $prog "mergedlo.dll")) -or (Test-Path (Join-Path $prog "sofficeapp.dll")))) {
+  Write-Host "skip (no engine library): $rev"
+  exit 125
+}
 Remove-Item (Join-Path $env:TEMP "wos-lok-host-profile") -Recurse -Force -ErrorAction SilentlyContinue
 $env:WOS_LOK_STA_VCLMAIN = "1"
 $env:WOS_LOK_KEEP_FORMULA_BAR = "0"
