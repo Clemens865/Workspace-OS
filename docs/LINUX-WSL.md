@@ -135,6 +135,12 @@ A workspace can opt in with `agentHooks` in its `host-settings.json` entry (or `
 { "workspaces": { "/mnt/d/Notes/vault": { "contentRoot": "50-PROJECTS/workspace-os", "agentHooks": "project" } } }
 ```
 
+With `project` or `all`, the folder must be trusted in Claude Code: run `claude` in it once and accept
+the trust prompt. Until then Claude ignores the folder's `permissions.allow`, so a run is refused the
+tools the vault allows (an MCP skills server, for example) and says so in its answer. Agent runs are
+non-interactive, so an MCP server's tools need an allow entry in the folder's `.claude/settings.json`
+(`"permissions": { "allow": ["mcp__skills"] }`); servers without one stay unusable in the run.
+
 The app builder and the internal one-shot jobs (Agent Foundry, app briefs and tests, mail helpers)
 always run without hooks. When an app connector is enabled, the run uses a strict MCP config and the
 user's servers are not re-added.
