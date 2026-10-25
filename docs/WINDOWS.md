@@ -127,6 +127,24 @@ links folders, on PATH, then in the WinGet package folders. Without Developer Mo
 create the link and puts the package folder on the user PATH instead, which a program that was
 already running does not see; the last step covers that.
 
+### MCP servers in agent runs
+
+Chats and cases are non-interactive Claude Code runs, so a run cannot ask before it uses a tool. An
+MCP server of your own (one registered with `claude mcp add`, or a connector added in claude.ai) is
+usable in a workspace only when both of these are set:
+
+1. **The folder is trusted.** Run `claude` in the folder once and accept the trust prompt. Until then
+   Claude Code ignores the folder's `.claude\settings.json`. The answer is stored as
+   `hasTrustDialogAccepted` under the folder (written `D:/OBS/vault`) in `%USERPROFILE%\.claude.json`.
+2. **The server's tools are allowed** in the folder's `.claude\settings.json`, for example
+   `"permissions": { "allow": ["mcp__skills", "mcp__claude_ai_BOB_skills"] }`. A claude.ai
+   connector's prefix is `mcp__claude_ai_` plus its name with spaces turned into underscores.
+
+Without them the agent answers that it cannot use the server. A chat then has the server's tools but
+no shell beyond `wos-gen` and `wos-action`; a case has both. With a connector enabled under Settings →
+Connectors, the run uses only the app's connectors and loads none of your own servers. The same
+applies on Linux; see [LINUX-WSL.md](LINUX-WSL.md).
+
 ## Build from source
 
 Needs Visual Studio 2022 Build Tools (C++ workload), Node.js 22, Git for Windows and LibreOffice.
