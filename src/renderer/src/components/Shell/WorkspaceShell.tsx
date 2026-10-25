@@ -43,6 +43,7 @@ import { useAgentActions } from '../../hooks/useAgentActions'
 import { setTheme } from '../../hooks/useTheme'
 import { actionManifest, ALL_ACTIONS, type SurfaceActionContext } from '../Terminal/surfaceActions'
 import { dirname } from '../../lib/paths'
+import { keysIn, keyLabel } from '../../lib/platform'
 
 /**
  * The redesigned shell (feat/shell-redesign) — a left rail, a Stage with tabs,
@@ -608,7 +609,7 @@ export function WorkspaceShell({ stage }: { stage?: StageHost } = {}): JSX.Eleme
         type="button"
         className={styles.dockBarMain}
         onClick={() => settings.set('terminalMinimized', false)}
-        title="Restore the terminal (⌥⌘J)"
+        title={keysIn('Restore the terminal (⌥⌘J)')}
       >
         <SquareTerminal size={13} strokeWidth={1.9} />
         <span>Terminal</span>
@@ -618,7 +619,7 @@ export function WorkspaceShell({ stage }: { stage?: StageHost } = {}): JSX.Eleme
         type="button"
         className={styles.dockBarBtn}
         onClick={() => settings.set('terminalMinimized', false)}
-        title="Restore (⌥⌘J)"
+        title={keysIn('Restore (⌥⌘J)')}
         aria-label="Restore the terminal"
       >
         <ChevronUp size={13} strokeWidth={2} />
@@ -630,7 +631,7 @@ export function WorkspaceShell({ stage }: { stage?: StageHost } = {}): JSX.Eleme
           settings.set('terminalOpen', false)
           settings.set('terminalMinimized', false)
         }}
-        title="Hide (⌘J)"
+        title={keysIn('Hide (⌘J)')}
         aria-label="Hide the terminal"
       >
         <X size={13} strokeWidth={2} />
@@ -700,14 +701,14 @@ export function WorkspaceShell({ stage }: { stage?: StageHost } = {}): JSX.Eleme
           </div>
           <button className={styles.cmdk} onClick={() => setCommandOpen(true)}>
             <Search size={13} /> Search or run…
-            <span className={styles.cmdkKey}>⌘K</span>
+            <span className={styles.cmdkKey}>{keyLabel('⌘K')}</span>
           </button>
           {/* Hosted in the landscape, the dock's Terminal item is the toggle. */}
           {!stage?.dock && (
             <button
               className={`${styles.termToggle} ${dockOpen ? styles.termToggleOn : ''}`}
               onClick={() => settings.set('terminalOpen', !settings.terminalOpen)}
-              title="Terminal — shell + agent (⌘J)"
+              title={keysIn('Terminal — shell + agent (⌘J)')}
               aria-label="Toggle terminal"
               aria-pressed={dockOpen}
             >
@@ -723,7 +724,7 @@ export function WorkspaceShell({ stage }: { stage?: StageHost } = {}): JSX.Eleme
               type="button"
               className={styles.termToggle}
               onClick={() => settings.set('terminalMinimized', true)}
-              title="Minimise the terminal (⌥⌘J)"
+              title={keysIn('Minimise the terminal (⌥⌘J)')}
               aria-label="Minimise the terminal"
             >
               <ChevronDown size={15} strokeWidth={1.9} />
@@ -752,7 +753,7 @@ export function WorkspaceShell({ stage }: { stage?: StageHost } = {}): JSX.Eleme
             type="button"
             className={styles.termToggle}
             onClick={() => setExpanded(true)}
-            title="Fill the window (⌃⌘F)"
+            title={keysIn('Fill the window (⌃⌘F)')}
             aria-label="Fill the window"
           >
             <Maximize2 size={15} strokeWidth={1.9} />

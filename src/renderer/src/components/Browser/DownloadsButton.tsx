@@ -3,6 +3,7 @@ import { ArrowDownToLine, FolderOpen } from 'lucide-react'
 import type { BrowserDownload } from '../../types/workspace-api'
 import { applyDownload, progress, sizeLabel, STATE_LABEL } from './downloadsModel'
 import styles from './DownloadsButton.module.css'
+import { FILE_MANAGER } from '../../lib/platform'
 
 // One list for the app run: main keeps a download only a minute, the person
 // may look later.
@@ -83,7 +84,7 @@ export function DownloadsButton(): JSX.Element | null {
                       Open
                     </button>
                     <button type="button" onClick={() => void window.workspace.fs.reveal(d.savePath)}>
-                      <FolderOpen size={12} /> Show in Finder
+                      <FolderOpen size={12} /> Show in {FILE_MANAGER}
                     </button>
                   </div>
                 )}

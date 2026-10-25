@@ -5,6 +5,7 @@ import { laneKey } from '../Review/reviewModel'
 import { elapsed } from './cockpitModel'
 import styles from './Altitude.module.css'
 import { ArtifactThumb } from './ArtifactThumb'
+import { keyLabel } from '../../lib/platform'
 
 interface Props {
   agentId: string
@@ -47,7 +48,7 @@ export function LiveAgentZoom({ agentId, onBack, onOpenFile }: Props): JSX.Eleme
     return (
       <p className={styles.altStatus}>
         <button className={styles.zoomBack} onClick={onBack}>← team</button> All calm —
-        no agents are running. Start one from the terminal (⌘J) and it&rsquo;ll appear here.
+        no agents are running. Start one from the terminal ({keyLabel('⌘J')}) and it&rsquo;ll appear here.
       </p>
     )
   }

@@ -13,6 +13,7 @@ import { useCockpitData } from './useCockpitData'
 import { StreamView } from './StreamView'
 import { MapView } from './MapView'
 import styles from './CalmCockpit.module.css'
+import { keyLabel } from '../../lib/platform'
 
 /** The altitudes that are LIVE-wired; the rest are the mock "future" vision. */
 const LIVE_ALTITUDES: ReadonlySet<Altitude> = new Set<Altitude>(['Head-of', 'Team-lead', 'Agent'])
@@ -230,7 +231,7 @@ export function CalmCockpit({
               />
             ) : (
               <p className={styles.cleared}>
-                All calm — no agents are running. Start one from the terminal (⌘J)
+                All calm — no agents are running. Start one from the terminal ({keyLabel('⌘J')})
                 and it&rsquo;ll appear here.
               </p>
             )}

@@ -8,6 +8,7 @@ import { relativeShort, type WorkspaceLibrary } from '../../hooks/useWorkspaceLi
 import type { TreeNode } from '../../types/fs'
 import styles from './FilePanel.module.css'
 import { basename as pathBase, joinPath } from '../../lib/paths'
+import { keysIn } from '../../lib/platform'
 
 interface FilePanelProps {
   onFileOpen: (filePath: string) => void
@@ -176,7 +177,7 @@ export function FilePanel({ onFileOpen, onFileCreate, onShowTrash, refreshSignal
               <FolderX size={15} strokeWidth={1.75} />
             </button>
           )}
-          <button className={styles.iconBtn} onClick={handleOpenFolder} title="Open folder (⌘O)">
+          <button className={styles.iconBtn} onClick={handleOpenFolder} title={keysIn('Open folder (⌘O)')}>
             <FolderOpen size={15} strokeWidth={1.75} />
           </button>
         </div>

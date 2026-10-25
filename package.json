@@ -155,9 +155,6 @@
       "out/**/*",
       "package.json",
       "!**/node_modules/onnxruntime-web/**",
-      "!**/node_modules/onnxruntime-node/bin/napi-v3/linux/**",
-      "!**/node_modules/onnxruntime-node/bin/napi-v3/win32/**",
-      "!**/node_modules/onnxruntime-node/bin/napi-v3/darwin/x64/**",
       "!**/node_modules/@huggingface/transformers/dist/*.map",
       "!**/node_modules/@huggingface/transformers/dist/*web*",
       "!**/node_modules/@huggingface/transformers/dist/ort-wasm*",
@@ -239,7 +236,12 @@
           "to": "apps"
         }
       ],
-      "icon": "build/icon.icns"
+      "icon": "build/icon.icns",
+      "files": [
+        "!**/node_modules/onnxruntime-node/bin/napi-v3/linux/**",
+        "!**/node_modules/onnxruntime-node/bin/napi-v3/win32/**",
+        "!**/node_modules/onnxruntime-node/bin/napi-v3/darwin/x64/**"
+      ]
     },
     "win": {
       "target": [
@@ -295,6 +297,11 @@
           "from": "resources/apps",
           "to": "apps"
         }
+      ],
+      "files": [
+        "!**/node_modules/onnxruntime-node/bin/napi-v3/linux/**",
+        "!**/node_modules/onnxruntime-node/bin/napi-v3/darwin/**",
+        "!**/node_modules/onnxruntime-node/bin/napi-v3/win32/arm64/**"
       ]
     },
     "linux": {
@@ -348,6 +355,13 @@
           "from": "resources/apps",
           "to": "apps"
         }
+      ],
+      "files": [
+        "!**/node_modules/onnxruntime-node/bin/napi-v3/win32/**",
+        "!**/node_modules/onnxruntime-node/bin/napi-v3/darwin/**",
+        "!**/node_modules/onnxruntime-node/bin/napi-v3/linux/arm64/**",
+        "!**/node_modules/onnxruntime-node/bin/napi-v3/linux/x64/libonnxruntime_providers_cuda.so",
+        "!**/node_modules/onnxruntime-node/bin/napi-v3/linux/x64/libonnxruntime_providers_tensorrt.so"
       ]
     },
     "afterPack": "scripts/after-pack.cjs",

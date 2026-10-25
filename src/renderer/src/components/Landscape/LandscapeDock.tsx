@@ -3,6 +3,7 @@ import { BookOpen, FolderOpen, Home, Inbox, LayoutGrid, MessageCircle, MoreHoriz
 import { DOCK, type DockId } from './landscapeModel'
 import { useGlass } from './backdrop/useBackdrop'
 import styles from './LandscapeShell.module.css'
+import { keysIn } from '../../lib/platform'
 
 const ICONS: Record<DockId, typeof Home> = {
   overview: Home,
@@ -82,7 +83,7 @@ export function LandscapeDock({ active, onSelect, waiting = 0, variant = 'float'
             className={`${styles.dockItem} ${terminalOpen ? styles.termOn : ''}`}
             aria-pressed={terminalOpen}
             onClick={onTerminal}
-            title="Terminal (⌘J)"
+            title={keysIn('Terminal (⌘J)')}
           >
             <SquareTerminal size={bar ? 14 : 17} /> Terminal
           </button>

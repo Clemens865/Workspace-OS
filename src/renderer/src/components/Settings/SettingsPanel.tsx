@@ -5,6 +5,7 @@ import { useSettings } from '../../hooks/useSettings'
 import { useTheme } from '../../hooks/useTheme'
 import { BrandPanel } from './BrandPanel'
 import styles from './SettingsPanel.module.css'
+import { keyLabel, SYSTEM_NAME } from '../../lib/platform'
 
 interface SettingsPanelProps {
   onClose: () => void
@@ -169,7 +170,7 @@ export function SettingsPanel({ onClose }: SettingsPanelProps): JSX.Element {
             <GroupHead id="appearance" label="Appearance" />
             <section className={styles.section}>
               <h3 className={styles.sectionTitle}>Theme</h3>
-              <p className={styles.hint}>Light, dark, or whatever macOS is showing. Documents and web pages keep their own colours.</p>
+              <p className={styles.hint}>Light, dark, or whatever {SYSTEM_NAME} is showing. Documents and web pages keep their own colours.</p>
               <div className={styles.segmented}>
                 <button className={pref === 'light' ? styles.segOn : styles.segOff} onClick={() => setPref('light')} data-testid="theme-light">
                   <Sun size={14} /> Light
@@ -178,7 +179,7 @@ export function SettingsPanel({ onClose }: SettingsPanelProps): JSX.Element {
                   <Moon size={14} /> Dark
                 </button>
                 <button className={pref === 'system' ? styles.segOn : styles.segOff} onClick={() => setPref('system')} data-testid="theme-system">
-                  <Monitor size={14} /> Match macOS
+                  <Monitor size={14} /> Match {SYSTEM_NAME}
                 </button>
               </div>
             </section>
@@ -215,7 +216,7 @@ export function SettingsPanel({ onClose }: SettingsPanelProps): JSX.Element {
             <section className={styles.section}>
               <h3 className={styles.sectionTitle}>Terminal</h3>
               <p className={styles.hint}>
-                Where the terminal sits (⌘J or Terminal in the dock): docked at the bottom or right, or floating as a window
+                Where the terminal sits ({keyLabel('⌘J')} or Terminal in the dock): docked at the bottom or right, or floating as a window
                 you can move and resize, over the landscape too.
               </p>
               <div className={styles.segmented}>
@@ -228,7 +229,7 @@ export function SettingsPanel({ onClose }: SettingsPanelProps): JSX.Element {
             </section>
 
             <section className={styles.section}>
-              <h3 className={styles.sectionTitle}>⌘N in Files creates</h3>
+              <h3 className={styles.sectionTitle}>{keyLabel('⌘N')} in Files creates</h3>
               <select className={styles.select} value={settings.newFileFormat} onChange={(e) => settings.set('newFileFormat', e.target.value as typeof settings.newFileFormat)}>
                 {FORMATS.map((f) => <option key={f.value} value={f.value}>{f.label}</option>)}
               </select>

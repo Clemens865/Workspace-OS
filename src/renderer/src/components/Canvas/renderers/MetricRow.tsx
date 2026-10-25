@@ -9,6 +9,7 @@ import type {
 } from '../../../types/workspace-api'
 import { groupLinksByFile, humanLocation, type FileLinkGroup } from '../../../lib/linksView'
 import styles from './MetricsPanel.module.css'
+import { FILE_MANAGER } from '../../../lib/platform'
 
 export const baseName = (p: string): string => p.split(/[\\/]/).pop() || p
 
@@ -337,7 +338,7 @@ export const MetricRow = memo(function MetricRow({
                     <button
                       className={styles.revealBtn}
                       onClick={() => onRevealFile(g.filePath)}
-                      title="Reveal this file in Finder"
+                      title={`Reveal this file in ${FILE_MANAGER}`}
                     >
                       ⤴
                     </button>

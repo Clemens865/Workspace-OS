@@ -12,6 +12,7 @@ import { useEditorContent } from '../../hooks/useEditorContent'
 import type { WorkspaceLibrary } from '../../hooks/useWorkspaceLibrary'
 import type { TabManager } from '../../hooks/useTabManager'
 import styles from './Canvas.module.css'
+import { keysIn } from '../../lib/platform'
 
 // The live-transclusion preview renders through marked + the sanitizer; lazy so
 // marked code-splits into its own chunk, never the main bundle.
@@ -133,7 +134,7 @@ export function Canvas({ tabManager, library, onRefresh }: CanvasProps): JSX.Ele
           <div className={styles.empty}>
             <FilesIcon size={40} strokeWidth={1.1} className={styles.emptyIcon} />
             <p className={styles.emptyTitle}>Open a file to get started</p>
-            <p className={styles.hint}>⌘P to open a file · ⌘K to search contents</p>
+            <p className={styles.hint}>{keysIn('⌘P to open a file · ⌘K to search contents')}</p>
           </div>
         )}
       </div>

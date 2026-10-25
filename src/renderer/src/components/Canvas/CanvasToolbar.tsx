@@ -6,6 +6,7 @@ import { actionsFor } from '../../lib/fileActions'
 import { categoryOf, PRINTABLE } from '../../lib/fileCategory'
 import styles from './CanvasToolbar.module.css'
 import { segments as pathSegments, sepOf } from '../../lib/paths'
+import { keysIn } from '../../lib/platform'
 
 interface CanvasToolbarProps {
   filePath: string
@@ -80,7 +81,7 @@ export function CanvasToolbar({ filePath, isDirty, isStarred, onToggleStar, onRe
         {onSave && (
           <button
             className={styles.saveBtn}
-            title="Save (⌘S)"
+            title={keysIn('Save (⌘S)')}
             disabled={!isDirty}
             onClick={onSave}
           >

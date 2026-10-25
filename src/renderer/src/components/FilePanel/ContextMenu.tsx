@@ -2,6 +2,7 @@ import { useEffect, useRef } from 'react'
 import type { TreeNode } from '../../types/fs'
 import styles from './ContextMenu.module.css'
 import { toast } from '../Landscape/toastStore'
+import { FILE_MANAGER } from '../../lib/platform'
 
 /** The app reads the file (or the folder's documents) and writes its pages in Wiki/; Library → Notes shows the progress. */
 async function addToWiki(target: string): Promise<void> {
@@ -68,7 +69,7 @@ export function ContextMenu({ node, x, y, isStarred, onClose, onRename, onDelete
       {!node.isDirectory && item('Start a case from this file', () => onStartCase(node))}
       {item('Add to the wiki', () => void addToWiki(node.path))}
       {item('Rename', () => onRename(node))}
-      {item('Reveal in Finder', () => onReveal(node))}
+      {item(`Reveal in ${FILE_MANAGER}`, () => onReveal(node))}
       <div className={styles.separator} />
       {item('Delete', () => onDelete(node), true)}
     </div>

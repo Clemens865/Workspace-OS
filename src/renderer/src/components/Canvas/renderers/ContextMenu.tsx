@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react'
 import { placeMenu, type MenuItem } from './calcMenu'
 import styles from './ContextMenu.module.css'
+import { keyLabel } from '../../../lib/platform'
 
 interface Props {
   x: number
@@ -195,7 +196,7 @@ function MenuList({ items, onPick, autoFocus, onBack }: ListProps): JSX.Element 
           >
             <span className={styles.mark}>{item.checked ? '✓' : ''}</span>
             <span className={styles.label}>{item.label}</span>
-            {item.shortcut && <span className={styles.shortcut}>{item.shortcut}</span>}
+            {item.shortcut && <span className={styles.shortcut}>{keyLabel(item.shortcut)}</span>}
           </button>
         )
       })}

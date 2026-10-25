@@ -2,6 +2,7 @@ import { useCallback } from 'react'
 import type { RunArtifactGroup } from './useAgentSession'
 import type { ArtifactType } from '../../types/workspace-api'
 import styles from './ArtifactCards.module.css'
+import { FILE_MANAGER } from '../../lib/platform'
 
 interface ArtifactCardsProps {
   /** Recent runs' classified outputs, newest run first. */
@@ -59,7 +60,7 @@ export function ArtifactCards({ groups, onOpen }: ArtifactCardsProps): JSX.Eleme
                 <button className={styles.openBtn} onClick={() => onOpen(a.path)} title="Open in canvas">
                   Open
                 </button>
-                <button className={styles.revealBtn} onClick={() => reveal(a.path)} title="Reveal in Finder">
+                <button className={styles.revealBtn} onClick={() => reveal(a.path)} title={`Reveal in ${FILE_MANAGER}`}>
                   Reveal
                 </button>
               </div>

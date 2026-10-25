@@ -4,6 +4,7 @@ import { LivePresenceCell } from './LivePresenceCell'
 import { LiveAgentZoom } from './LiveAgentZoom'
 import { groupWorking, needsYouCategories, LENSES, type Lens, type CockpitData } from './cockpitModel'
 import styles from './CalmCockpit.module.css'
+import { keyLabel } from '../../lib/platform'
 
 interface Props {
   data: CockpitData
@@ -97,7 +98,7 @@ export function LiveTeamLead({ data, onOpenFile, onWorkspaceChanged }: Props): J
           </h2>
           {data.working.length === 0 ? (
             <p className={styles.cleared}>
-              All calm — no agents are running. Start one from the terminal (⌘J)
+              All calm — no agents are running. Start one from the terminal ({keyLabel('⌘J')})
               and it&rsquo;ll appear here.
             </p>
           ) : (

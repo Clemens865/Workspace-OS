@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 import { ChevronUp, ChevronDown, X } from 'lucide-react'
 import styles from './FindBar.module.css'
+import { keysIn } from '../../lib/platform'
 
 /**
  * Find in page (⌘F).
@@ -97,7 +98,7 @@ export function FindBar({
       <span className={styles.count}>
         {query ? (matches.total ? `${matches.active}/${matches.total}` : 'No results') : ''}
       </span>
-      <button type="button" className={styles.btn} onClick={() => step(false)} title="Previous (⇧⏎)">
+      <button type="button" className={styles.btn} onClick={() => step(false)} title={keysIn('Previous (⇧⏎)')}>
         <ChevronUp size={15} />
       </button>
       <button type="button" className={styles.btn} onClick={() => step(true)} title="Next (⏎)">
