@@ -5,7 +5,7 @@ import { useSettings } from '../../hooks/useSettings'
 import { useTheme } from '../../hooks/useTheme'
 import { BrandPanel } from './BrandPanel'
 import styles from './SettingsPanel.module.css'
-import { keyLabel, SYSTEM_NAME } from '../../lib/platform'
+import { keyLabel, SYSTEM_NAME, IS_WINDOWS } from '../../lib/platform'
 
 interface SettingsPanelProps {
   onClose: () => void
@@ -69,6 +69,54 @@ function NotificationsSection(): JSX.Element {
         <button className={styles.btn} onClick={() => void test()} data-testid="notify-test">Send a test notification</button>
         {sent && <span className={styles.keyHint}>{sent}</span>}
       </div>
+    </section>
+  )
+}
+
+type WindowStyleState = { setting: 'standard' | 'clean'; current: 'standard' | 'clean' | 'mac'; supported: boolean }
+
+/**
+ * Windows and Linux: the window's frame. Standard keeps the system title bar;
+ * Clean hides it until the pointer reaches the top edge. It applies when the
+ * window is created, so a change waits for a restart. macOS has its own look.
+ */
+function WindowSection(): JSX.Element | null {
+  const [state, setState] = useState<WindowStyleState | null>(null)
+  useEffect(() => {
+    window.workspace.window?.style?.().then(setState).catch(() => {})
+  }, [])
+  if (!state?.supported) return null
+  const choose = async (style: 'standard' | 'clean'): Promise<void> => {
+    const r = await window.workspace.window.setStyle(style)
+    setState((s) => (s ? { ...s, setting: r.setting } : s))
+  }
+  const pending = state.setting !== state.current
+  return (
+    <section className={styles.section} data-testid="settings-window">
+      <h3 className={styles.sectionTitle}>Window</h3>
+      <p className={styles.hint}>
+        Standard has the {SYSTEM_NAME} title bar. Clean hides it: point at the top edge of the screen and a thin bar slides
+        in to move the window, with minimise, maximise and close. F11 is full screen in either.
+      </p>
+      <div className={styles.segmented}>
+        <button className={state.setting === 'standard' ? styles.segOn : styles.segOff} onClick={() => void choose('standard')} data-testid="window-style-standard">Standard</button>
+        <button className={state.setting === 'clean' ? styles.segOn : styles.segOff} onClick={() => void choose('clean')} data-testid="window-style-clean">Clean</button>
+      </div>
+      {pending && (
+        <div className={styles.keyField}>
+          <span className={styles.keyHint}>Applies the next time Workspace OS starts.</span>
+          <button className={styles.btn} onClick={() => void window.workspace.window.relaunch()} data-testid="window-style-restart">Restart now</button>
+        </div>
+      )}
+      {IS_WINDOWS && (
+        <>
+          <p className={styles.hint} style={{ marginTop: 10 }}>
+            For the full-screen look, also let Windows hide the taskbar until you point at the bottom edge: turn on
+            Automatically hide the taskbar under Taskbar behaviours.
+          </p>
+          <button className={styles.btn} onClick={() => void window.workspace.window.openTaskbarSettings()} data-testid="window-taskbar-settings">Open taskbar settings</button>
+        </>
+      )}
     </section>
   )
 }
@@ -211,6 +259,8 @@ export function SettingsPanel({ onClose }: SettingsPanelProps): JSX.Element {
                 <button className={settings.startOn === 'stage' ? styles.segOn : styles.segOff} onClick={() => settings.set('startOn', 'stage')} data-testid="start-stage">Stage</button>
               </div>
             </section>
+
+            <WindowSection />
 
             <GroupHead id="workspace" label="Workspace" />
             <section className={styles.section}>

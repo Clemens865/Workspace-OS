@@ -16,7 +16,7 @@ tools, so Node.js is not needed. The build plan and the investigation behind it 
 | `wos-*` tools | Installed in `%APPDATA%\workspace-os\bin` as `.cmd` files, plus a Git Bash variant |
 | Document generation (`wos-gen`) | The app builds its own Python environment on first start |
 | Checkpoints | Need Git for Windows |
-| Window | Opens maximised with the Windows title bar and the taskbar visible; F11 toggles full screen, Alt shows the menu bar |
+| Window | Opens maximised with the Windows title bar and the taskbar visible; F11 toggles full screen, Alt shows the menu bar. Settings → Appearance → Window → Clean hides the title bar until you point at the top edge; see [Window style](#window-style) |
 
 ## Install
 
@@ -145,6 +145,22 @@ Without them the agent answers that it cannot use the server. A chat then has th
 no shell beyond `wos-gen` and `wos-action`; a case has both. With a connector enabled under Settings →
 Connectors, the run uses only the app's connectors and loads none of your own servers. The same
 applies on Linux; see [LINUX-WSL.md](LINUX-WSL.md).
+
+## Window style
+
+Settings → Appearance → Window has two styles; a change applies when the app starts again
+(**Restart now**):
+
+- **Standard**: the Windows title bar, with minimise, maximise and close.
+- **Clean**: no title bar. Point at the top edge of the screen and a thin bar slides in: drag the
+  window by it (double-click maximises or restores) and use its minimise, maximise and close buttons.
+  It slides away when you move down into the app.
+
+The taskbar is Windows' own. For the full-screen look, turn on **Automatically hide the taskbar**
+(Settings → Personalisation → Taskbar → Taskbar behaviours; the Window section has a button that opens
+the page): the maximised window then fills the screen, and the taskbar slides up when you point at
+the bottom edge. F11 is full screen in either style. The setting is `windowStyle` in
+`host-settings.json` (`WOS_WINDOW_STYLE=standard|clean` overrides it).
 
 ## Build from source
 

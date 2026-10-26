@@ -129,6 +129,9 @@ jobs:
           $fx = Join-Path $env:RUNNER_TEMP "wos-fixtures"
           node e2e/lok-packaged-windows.mjs $fx
 
+      - name: "E2E: window style (Standard → Clean → restart → top-edge bar)"
+        run: node e2e/window-style.mjs "release\win-unpacked\Workspace OS.exe"
+
       - name: Upload engine fixtures
         uses: actions/upload-artifact@v4
         with:
@@ -148,6 +151,7 @@ jobs:
             release/*.yml
             unit-tests.log
             e2e/shots-windows/*.png
+            e2e/shots-window-style/*.png
             ${{ runner.temp }}/tiles/**/*.ppm
 
   # Engine version matrix (docs/WINDOWS-NATIVE-PLAN.md, phase 0): which LibreOffice

@@ -28,9 +28,18 @@ export interface HostSettings {
   windowsDriveArtifactDepth?: number
   /** Watch a Windows-drive workspace for file changes. Default false. */
   windowsDriveWatch?: boolean
+  /**
+   * Windows and Linux: the main window's frame. 'standard' (default) keeps the
+   * system title bar; 'clean' hides it and shows minimise, maximise and close
+   * when the pointer reaches the top edge. macOS ignores it. Applies at the
+   * next start. Set from Settings → Appearance → Window.
+   */
+  windowStyle?: WindowStyle
   /** Per-workspace settings, keyed by the folder's absolute path. Apply on every platform. */
   workspaces?: Record<string, WorkspaceSettings>
 }
+
+export type WindowStyle = 'standard' | 'clean'
 
 export interface WorkspaceSettings {
   /**
@@ -77,6 +86,31 @@ export function hostSettings(): HostSettings {
 /** Test hook: forget the cached file. */
 export function resetHostSettingsCache(): void {
   cached = null
+}
+
+/**
+ * Writes one or more host settings, keeping every other key in the file as it
+ * was (the file is also edited by hand). Rereads the file first, so a hand edit
+ * made while the app runs is not lost.
+ */
+export function setHostSettings(patch: Partial<HostSettings>): void {
+  let current: Record<string, unknown> = {}
+  try {
+    const raw = JSON.parse(fs.readFileSync(hostSettingsPath(), 'utf-8')) as unknown
+    if (raw && typeof raw === 'object' && !Array.isArray(raw)) current = raw as Record<string, unknown>
+  } catch {
+    /* missing or broken: start from nothing */
+  }
+  fs.mkdirSync(path.dirname(hostSettingsPath()), { recursive: true })
+  fs.writeFileSync(hostSettingsPath(), JSON.stringify({ ...current, ...patch }, null, 2) + '\n', 'utf-8')
+  cached = null
+}
+
+/** The window style setting: WOS_WINDOW_STYLE > host-settings.json > 'standard'. */
+export function windowStyle(): WindowStyle {
+  const env = process.env['WOS_WINDOW_STYLE']
+  if (env === 'standard' || env === 'clean') return env
+  return hostSettings().windowStyle === 'clean' ? 'clean' : 'standard'
 }
 
 let wslCached: boolean | null = null

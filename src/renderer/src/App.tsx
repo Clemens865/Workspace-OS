@@ -4,6 +4,7 @@ import { LandscapeShell } from './components/Landscape/LandscapeShell'
 import { CalmCockpit } from './components/CalmCockpit/CalmCockpit'
 import { BugReporter } from './components/BugReport/BugReporter'
 import { Splash } from './components/Splash/Splash'
+import { CleanTitleBar } from './components/Shell/CleanTitleBar'
 import { useBackgroundRuns } from './components/Review/backgroundRuns'
 import { useBindWorkspaceScope } from './hooks/useWorkspaceScope'
 import { editCommandFor, resolveEditTarget, runOnTextEntry, runOnWebview, UNO_FOR } from './lib/editRouter'
@@ -70,6 +71,7 @@ export function App(): JSX.Element {
       <CodexRequests />
       {bugOpen.open && <BugReporter onClose={bugOpen.close} surface={null} openFile={null} />}
       {splash && <Splash onDone={() => setSplash(false)} />}
+      <CleanTitleBar />
     </>
   )
 }

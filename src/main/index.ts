@@ -61,6 +61,8 @@ import { IPC } from './ipc-channels'
 import { mainWindow, setMainWindow } from './main-window'
 import { hardwareAcceleration } from './host-profile'
 import { windowChrome } from './window-chrome'
+import { windowStyle } from './host-profile'
+import { registerWindowHandlers, setWindowFrameStyle } from './handlers/window'
 
 // electron-vite sets ELECTRON_RENDERER_URL only when the dev server is running.
 // Keying off it (not app.isPackaged) lets the built app load its bundled
@@ -89,7 +91,8 @@ function createWindow(): BrowserWindow {
   // macOS opens IN fullscreen — the splash + workspace are an immersive surface,
   // and the green button still exits. Windows and Linux open maximised with the
   // system title bar (./window-chrome.ts).
-  const chrome = windowChrome(process.platform)
+  const chrome = windowChrome(process.platform, windowStyle())
+  setWindowFrameStyle(chrome.style)
   const win = new BrowserWindow({
     width: 1400,
     height: 900,
@@ -267,10 +270,14 @@ app.whenReady().then(() => {
     resolveActionResult(p.reqId, p.ok, p.error, p.result)
   })
 
-  // Window control handlers
-  ipcHandle(ipcMain, IPC.WINDOW_MINIMIZE, () => win.minimize())
-  ipcHandle(ipcMain, IPC.WINDOW_MAXIMIZE, () => (win.isMaximized() ? win.unmaximize() : win.maximize()))
+  // Window control handlers (the live window, not the first one: macOS can recreate it).
+  ipcHandle(ipcMain, IPC.WINDOW_MINIMIZE, () => mainWindow()?.minimize())
+  ipcHandle(ipcMain, IPC.WINDOW_MAXIMIZE, () => {
+    const w = mainWindow()
+    if (w) (w.isMaximized() ? w.unmaximize() : w.maximize())
+  })
   ipcHandle(ipcMain, IPC.WINDOW_CLOSE, () => mainWindow()?.close())
+  registerWindowHandlers(ipcMain)
 
   app.on('activate', () => {
     if (BrowserWindow.getAllWindows().length === 0) createWindow()

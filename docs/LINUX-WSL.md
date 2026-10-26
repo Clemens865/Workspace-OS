@@ -36,6 +36,7 @@ unreadable file means every setting is `auto`.
 | `windowsDriveCheckpoints`: `true`, `false` | `WOS_WINDOWS_DRIVE_CHECKPOINTS=1/0` | `false` | see "Windows-drive folders" |
 | `windowsDriveArtifactDepth`: integer, `-1` = no scan | `WOS_WINDOWS_DRIVE_ARTIFACT_DEPTH` | `1` (elsewhere the scan depth is 4) | see "Windows-drive folders" |
 | `windowsDriveWatch`: `true`, `false` | `WOS_WINDOWS_DRIVE_WATCH=1/0` | `false` | see "Windows-drive folders" |
+| `windowStyle`: `standard`, `clean` | `WOS_WINDOW_STYLE` | `standard` | Settings → Appearance → Window; see "Window" below |
 
 The four `windowsDrive*` settings apply only to a workspace on a Windows drive under WSL
 (`/mnt/c`, `/mnt/d`, …). Folders on the Linux disk, and every folder on native Linux, keep the
@@ -148,7 +149,9 @@ user's servers are not re-added.
 ## Other notes
 
 - **Window.** The app opens maximised with the system title bar (macOS opens full screen); F11
-  toggles full screen, and Alt shows the menu bar.
+  toggles full screen, and Alt shows the menu bar. Settings → Appearance → Window → Clean hides the
+  title bar: point at the top edge for a bar to drag the window by, with minimise, maximise and close.
+  It applies at the next start.
 - **Display scaling under WSLg.** WSLg already scales X11 windows to the Windows display setting. A
   `GDK_SCALE=2` exported in the shell doubles it again; start the app with `GDK_SCALE=1`.
 - **Not in the stock engine:** `multidoc-parttile-view.patch`, so with several presentations open a

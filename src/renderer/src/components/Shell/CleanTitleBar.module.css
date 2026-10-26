@@ -1,0 +1,61 @@
+/* The clean window style's title bar (CleanTitleBar.tsx). Above everything, including the splash. */
+.zone {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 4px;
+  z-index: 2147483600;
+}
+
+.bar {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 34px;
+  display: flex;
+  align-items: stretch;
+  z-index: 2147483601;
+  background: rgba(var(--wl-paper-rgb, 251, 252, 253), 0.94);
+  backdrop-filter: blur(14px);
+  border-bottom: 1px solid rgba(var(--wl-ink-rgb, 27, 39, 48), 0.09);
+  box-shadow: 0 4px 16px rgba(var(--wl-ink-rgb, 27, 39, 48), 0.08);
+  animation: slideIn 140ms ease-out;
+}
+
+@keyframes slideIn {
+  from { transform: translateY(-100%); }
+  to { transform: translateY(0); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .bar { animation: none; }
+}
+
+.drag {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  padding-left: 14px;
+  font-size: 12px;
+  letter-spacing: 0.02em;
+  color: var(--wl-muted, #7a8893);
+  -webkit-app-region: drag;
+  user-select: none;
+}
+
+.btn {
+  -webkit-app-region: no-drag;
+  width: 46px;
+  border: 0;
+  background: transparent;
+  color: rgb(var(--wl-ink-rgb, 27, 39, 48));
+  display: grid;
+  place-items: center;
+  cursor: default;
+}
+
+.btn:hover { background: rgba(var(--wl-ink-rgb, 27, 39, 48), 0.07); }
+.btn:focus-visible { outline: 2px solid #d97757; outline-offset: -2px; }
+.close:hover { background: #c42b1c; color: #fff; }

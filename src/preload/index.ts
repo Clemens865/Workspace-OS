@@ -971,6 +971,11 @@ contextBridge.exposeInMainWorld('workspace', {
     minimize: () => ipcRenderer.invoke(IPC.WINDOW_MINIMIZE),
     maximize: () => ipcRenderer.invoke(IPC.WINDOW_MAXIMIZE),
     close: () => ipcRenderer.invoke(IPC.WINDOW_CLOSE),
+    style: () => ipcRenderer.invoke(IPC.WINDOW_STYLE),
+    setStyle: (style: 'standard' | 'clean') => ipcRenderer.invoke(IPC.WINDOW_SET_STYLE, style),
+    relaunch: () => ipcRenderer.invoke(IPC.WINDOW_RELAUNCH),
+    openTaskbarSettings: () => ipcRenderer.invoke(IPC.WINDOW_TASKBAR_SETTINGS),
+    isMaximized: () => ipcRenderer.invoke(IPC.WINDOW_IS_MAXIMIZED),
   },
 
   // Browsing history + bookmarks — ONE store. `search` is full-text over page
