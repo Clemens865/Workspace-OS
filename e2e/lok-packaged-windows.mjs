@@ -51,6 +51,8 @@ for (let i = 0; i < 40 && (await win.$('[class*="_splash_"]')); i++) {
 }
 await win.screenshot({ path: path.join(SHOTS, 'launch.png') })
 ok(true, 'app window up')
+const frame = await app.evaluate(({ BrowserWindow }) => { const w = BrowserWindow.getAllWindows()[0]; return { full: w.isFullScreen(), max: w.isMaximized() } })
+ok(!frame.full && frame.max, `opens maximised, not full screen (${JSON.stringify(frame)})`)
 
 async function renders(name) {
   await win.getByText(name).first().click()
