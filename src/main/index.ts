@@ -60,6 +60,7 @@ import { ipcHandle, runAllCleanups } from './ipc-registry'
 import { IPC } from './ipc-channels'
 import { mainWindow, setMainWindow } from './main-window'
 import { hardwareAcceleration } from './host-profile'
+import { windowChrome } from './window-chrome'
 
 // electron-vite sets ELECTRON_RENDERER_URL only when the dev server is running.
 // Keying off it (not app.isPackaged) lets the built app load its bundled
@@ -85,15 +86,16 @@ if (!app.requestSingleInstanceLock()) {
 }
 
 function createWindow(): BrowserWindow {
+  // macOS opens IN fullscreen — the splash + workspace are an immersive surface,
+  // and the green button still exits. Windows and Linux open maximised with the
+  // system title bar (./window-chrome.ts).
+  const chrome = windowChrome(process.platform)
   const win = new BrowserWindow({
     width: 1400,
     height: 900,
     minWidth: 800,
     minHeight: 600,
-    // The app opens IN fullscreen — the splash + workspace are an immersive
-    // surface, not a floating window. Esc / the green button still exits.
-    fullscreen: true,
-    titleBarStyle: 'hiddenInset',
+    ...chrome.options,
     webPreferences: {
       preload: join(__dirname, '../preload/index.cjs'),
       // Security: renderer has no Node access; all Node calls go through validated IPC
@@ -109,6 +111,8 @@ function createWindow(): BrowserWindow {
       experimentalFeatures: false,
     },
   })
+
+  if (chrome.maximize) win.maximize()
 
   // Navigation, new-window, and webview hardening (see security.ts).
   hardenWindow(win)

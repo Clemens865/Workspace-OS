@@ -147,6 +147,8 @@ user's servers are not re-added.
 
 ## Other notes
 
+- **Window.** The app opens maximised with the system title bar (macOS opens full screen); F11
+  toggles full screen, and Alt shows the menu bar.
 - **Display scaling under WSLg.** WSLg already scales X11 windows to the Windows display setting. A
   `GDK_SCALE=2` exported in the shell doubles it again; start the app with `GDK_SCALE=1`.
 - **Not in the stock engine:** `multidoc-parttile-view.patch`, so with several presentations open a

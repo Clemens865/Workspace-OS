@@ -16,6 +16,7 @@ tools, so Node.js is not needed. The build plan and the investigation behind it 
 | `wos-*` tools | Installed in `%APPDATA%\workspace-os\bin` as `.cmd` files, plus a Git Bash variant |
 | Document generation (`wos-gen`) | The app builds its own Python environment on first start |
 | Checkpoints | Need Git for Windows |
+| Window | Opens maximised with the Windows title bar and the taskbar visible; F11 toggles full screen, Alt shows the menu bar |
 
 ## Install
 
