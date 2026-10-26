@@ -1,4 +1,4 @@
-import { app, BrowserWindow, ipcMain } from 'electron'
+import { app, BrowserWindow, ipcMain, screen } from 'electron'
 import { join } from 'path'
 import { registerFsHandlers } from './handlers/fs'
 import { registerPrintHandlers } from './printing'
@@ -99,6 +99,8 @@ function createWindow(): BrowserWindow {
     minWidth: 800,
     minHeight: 600,
     ...chrome.options,
+    // Linux: shown once the page is ready (below).
+    ...(process.platform === 'linux' ? { show: false } : {}),
     webPreferences: {
       preload: join(__dirname, '../preload/index.cjs'),
       // Security: renderer has no Node access; all Node calls go through validated IPC
@@ -115,7 +117,29 @@ function createWindow(): BrowserWindow {
     },
   })
 
-  if (chrome.maximize) win.maximize()
+  // WOS_WINDOW_MODE=fullscreen (Windows and Linux) opens full screen instead, as
+  // before 0.2.26's window change; for a desktop where the window stays empty.
+  const fullscreen = process.platform !== 'darwin' && process.env['WOS_WINDOW_MODE'] === 'fullscreen'
+  if (process.platform === 'linux') {
+    // A Linux compositor (WSLg's Weston among them) may ignore a maximise sent
+    // before the window is set up, and can leave a window that never paints.
+    // Show it once the page has painted, sized to the screen's work area.
+    let shown = false
+    const reveal = (): void => {
+      if (shown || win.isDestroyed()) return
+      shown = true
+      if (fullscreen) win.setFullScreen(true)
+      else {
+        win.setBounds(screen.getDisplayMatching(win.getBounds()).workArea)
+        if (chrome.maximize) win.maximize()
+      }
+      win.show()
+    }
+    win.once('ready-to-show', reveal)
+    // Never leave the window hidden if the page is slow to paint.
+    setTimeout(reveal, 10_000)
+  } else if (fullscreen) win.setFullScreen(true)
+  else if (chrome.maximize) win.maximize()
 
   // Navigation, new-window, and webview hardening (see security.ts).
   hardenWindow(win)

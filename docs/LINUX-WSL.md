@@ -151,7 +151,9 @@ user's servers are not re-added.
 - **Window.** The app opens maximised with the system title bar (macOS opens full screen); F11
   toggles full screen, and Alt shows the menu bar. Settings → Appearance → Window → Clean hides the
   title bar: point at the top edge for a bar to drag the window by, with minimise, maximise and close.
-  It applies at the next start.
+  It applies at the next start. The window is shown once the page has painted, sized to the screen,
+  because a compositor such as WSLg's can ignore an earlier maximise and leave the window empty. If a
+  window still stays empty, `WOS_WINDOW_MODE=fullscreen wos` opens it full screen instead.
 - **Display scaling under WSLg.** WSLg already scales X11 windows to the Windows display setting. A
   `GDK_SCALE=2` exported in the shell doubles it again; start the app with `GDK_SCALE=1`.
 - **Not in the stock engine:** `multidoc-parttile-view.patch`, so with several presentations open a
