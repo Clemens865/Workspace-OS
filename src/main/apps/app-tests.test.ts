@@ -48,7 +48,7 @@ describe('writing the tests', () => {
   it('writes TESTS.json from the brief, the files and the last ask, and updates the old ones', async () => {
     fs.writeFileSync(path.join(root, 'Apps/notes/BRIEF.md'), '# Notes\n## Acceptance checks\n- [ ] Notes survive a reload')
     fs.writeFileSync(path.join(root, 'Apps/notes/TESTS.json'), JSON.stringify(PLAN))
-    run.fn.mockResolvedValue({ text: JSON.stringify(PLAN), code: 0, timedOut: false })
+    run.fn.mockResolvedValue({ text: JSON.stringify(PLAN), code: 0 })
     expect(await writeTests(root, 'notes', 'add tags')).toEqual({ scenarios: 2 })
     const o = run.fn.mock.calls[0][0]
     expect(o.prompt).toContain('Notes survive a reload')
@@ -63,7 +63,7 @@ describe('writing the tests', () => {
 
   it('keeps the old tests when no usable ones came back', async () => {
     fs.writeFileSync(path.join(root, 'Apps/notes/TESTS.json'), JSON.stringify(PLAN))
-    run.fn.mockResolvedValue({ text: 'I could not.', code: 0, timedOut: false })
+    run.fn.mockResolvedValue({ text: 'I could not.', code: 0 })
     await expect(writeTests(root, 'notes', '')).rejects.toThrow('No usable tests')
     expect(readPlan(root, 'notes')?.scenarios).toHaveLength(2)
   })

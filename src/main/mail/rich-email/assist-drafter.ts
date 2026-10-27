@@ -38,7 +38,6 @@ export type AssistFn = (input: AssistInput) => Promise<string>
 
 const MAX_DRAFT_CHARS = 12_000
 const MAX_INSTRUCTION_CHARS = 2000
-const ASSIST_TIMEOUT_MS = 90_000
 
 /** Per-action guidance appended to the base instruction. */
 const ACTION_GUIDANCE: Record<AssistAction, string> = {
@@ -110,5 +109,5 @@ export function makeAssistFn(): AssistFn {
 
 /** Runs `claude -p` with the prompt on stdin; resolves the full stdout text. */
 function runClaudeAssist(prompt: string): Promise<string> {
-  return runProviderOneShot(prompt, { timeoutMs: ASSIST_TIMEOUT_MS, label: 'The writing assistant' })
+  return runProviderOneShot(prompt, { label: 'The writing assistant' })
 }

@@ -19,9 +19,8 @@ import { parseStep, readPlan } from './app-tests'
 
 type Reply = { ok: true; result?: unknown } | { ok: false; error: string }
 
-/** The builder's scratch session per app: the test mode it set, and when it was last used. */
-const sessions = new Map<string, { mode: TestMode; idle: ReturnType<typeof setTimeout> | null }>()
-const IDLE_MS = 5 * 60_000
+/** The builder's scratch session per app: the test mode it set. It lasts the builder's whole turn, however long that takes. */
+const sessions = new Map<string, { mode: TestMode }>()
 /** The bridge's CLI waits 35 s for an answer; a test run from the builder stops before that. */
 const TEST_BUDGET_MS = 25_000
 
@@ -40,14 +39,10 @@ function scratchFromDisk(root: string, slug: string): Record<string, unknown> {
 /** The builder's session: test mode on a scratch copy of the person's data (entered once, reloading the app into it). */
 async function session(root: string, slug: string, d: AppDriver): Promise<TestMode> {
   const s = sessions.get(slug)
-  if (s && testing.get(slug) === s.mode) {
-    if (s.idle) clearTimeout(s.idle)
-    s.idle = setTimeout(() => void endAppSession(slug), IDLE_MS)
-    return s.mode
-  }
+  if (s && testing.get(slug) === s.mode) return s.mode
   const mode: TestMode = { store: scratchFromDisk(root, slug), ai: null, open: null, saved: [] }
   testing.set(slug, mode)
-  sessions.set(slug, { mode, idle: setTimeout(() => void endAppSession(slug), IDLE_MS) })
+  sessions.set(slug, { mode })
   await d.reload()
   return mode
 }
@@ -57,7 +52,6 @@ export async function endAppSession(slug: string): Promise<void> {
   const s = sessions.get(slug)
   if (!s) return
   sessions.delete(slug)
-  if (s.idle) clearTimeout(s.idle)
   if (testing.get(slug) !== s.mode) return // the tests took over, and give the app back themselves
   testing.delete(slug)
   const win = mainWindow()

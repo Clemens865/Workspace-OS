@@ -24,7 +24,6 @@ import type { ClaudeRunResult } from '../agent/claudeRun'
 import { appDir, readManifest } from './apps-store'
 
 export const BRIEF_FILE = 'BRIEF.md'
-export const HARNESS_TIMEOUT_MS = 15 * 60_000
 export const IMAGE_LIMITS = { count: 4, bytes: 6 * 1024 * 1024 }
 
 export interface SeenImage {
@@ -47,7 +46,7 @@ export function imageFromDataUrl(s: unknown): SeenImage {
  * fresh scratch folder that is the run's working directory and the only thing
  * it may read; the folder is removed afterwards.
  */
-export async function runSeeing(o: { prompt: string; systemPrompt?: string; images?: SeenImage[]; timeoutMs: number; allowedTools?: string[] }): Promise<ClaudeRunResult> {
+export async function runSeeing(o: { prompt: string; systemPrompt?: string; images?: SeenImage[]; allowedTools?: string[] }): Promise<ClaudeRunResult> {
   const images = (o.images ?? []).slice(0, IMAGE_LIMITS.count)
   const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'wos-see-'))
   try {
@@ -58,7 +57,7 @@ export async function runSeeing(o: { prompt: string; systemPrompt?: string; imag
     })
     const prompt = names.length ? `${o.prompt}\n\nBefore you answer, look at ${names.length === 1 ? 'this image' : 'these images'} with the Read tool: ${names.join(', ')}` : o.prompt
     const tools = [...(o.allowedTools ?? []), ...(names.length ? ['Read(./**)'] : [])]
-    return await runProviderJson({ prompt, systemPrompt: o.systemPrompt, cwd: dir, timeoutMs: o.timeoutMs, allowedTools: tools, isolated: true })
+    return await runProviderJson({ prompt, systemPrompt: o.systemPrompt, cwd: dir, allowedTools: tools, isolated: true })
   } finally {
     fs.rmSync(dir, { recursive: true, force: true })
   }
@@ -94,8 +93,7 @@ export function briefChecks(brief: string): string[] {
 
 /** Writes Apps/<slug>/BRIEF.md from the person's idea. Returns the brief, or throws when no usable brief came back. */
 export async function writeBrief(root: string, slug: string, idea: string): Promise<{ brief: string; checks: number }> {
-  const r = await runSeeing({ prompt: `The idea, in the person's words:\n\n${idea.trim()}`, systemPrompt: BRIEF_SYSTEM, timeoutMs: HARNESS_TIMEOUT_MS })
-  if (r.timedOut) throw new Error('Writing the brief took too long')
+  const r = await runSeeing({ prompt: `The idea, in the person's words:\n\n${idea.trim()}`, systemPrompt: BRIEF_SYSTEM })
   const brief = r.text.trim().replace(/^```(?:markdown|md)?\s*|\s*```$/g, '')
   const checks = briefChecks(brief)
   if (!/^#\s+\S/m.test(brief) || checks.length < 3) throw new Error('No usable brief came back')
@@ -184,7 +182,6 @@ export async function reviewApp(root: string, slug: string, shot: Buffer | null,
   ]
     .filter(Boolean)
     .join('\n\n')
-  const r = await runSeeing({ prompt, systemPrompt: REVIEW_SYSTEM, images: shot ? [{ data: shot, ext: 'png' }] : [], timeoutMs: HARNESS_TIMEOUT_MS })
-  if (r.timedOut) return null
+  const r = await runSeeing({ prompt, systemPrompt: REVIEW_SYSTEM, images: shot ? [{ data: shot, ext: 'png' }] : [] })
   return parseReview(r.text)
 }

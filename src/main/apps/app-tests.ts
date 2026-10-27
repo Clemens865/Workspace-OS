@@ -13,7 +13,7 @@
 import fs from 'fs'
 import path from 'path'
 import { appDir, readManifest } from './apps-store'
-import { appSources, BRIEF_FILE, HARNESS_TIMEOUT_MS, runSeeing } from './app-harness'
+import { appSources, BRIEF_FILE, runSeeing } from './app-harness'
 
 export const TESTS_FILE = 'TESTS.json'
 export const TEST_LIMITS = { scenarios: 10, steps: 30, waitMs: 5000, timeoutMs: 15000 }
@@ -183,8 +183,7 @@ export async function writeTests(root: string, slug: string, request: string): P
   ]
     .filter(Boolean)
     .join('\n\n')
-  const r = await runSeeing({ prompt, systemPrompt: TESTS_SYSTEM, timeoutMs: HARNESS_TIMEOUT_MS })
-  if (r.timedOut) throw new Error('Writing the tests took too long')
+  const r = await runSeeing({ prompt, systemPrompt: TESTS_SYSTEM })
   const plan = parsePlan(r.text)
   if (!plan) throw new Error('No usable tests came back')
   fs.writeFileSync(path.join(dir, TESTS_FILE), JSON.stringify(plan, null, 2) + '\n')

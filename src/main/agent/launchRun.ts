@@ -46,7 +46,7 @@ import { documentOutputGuidance, type AgentRunFailure } from '../../shared/agent
  * work) must spawn the agent identically: same permission lists, same MCP
  * injection, same checkpoint, same stream parsing. This module is that path,
  * extracted verbatim from the IPC handler; the callers differ only in where
- * the events GO (a `RunSink`) and in whether an idle timeout is armed.
+ * the events GO (a `RunSink`) and in whether the run is unattended.
  *
  * Security posture is unchanged and lives here now: the prompt rides stdin,
  * never argv; nothing is spawned through a shell; both modes run scoped
@@ -89,8 +89,8 @@ export interface LaunchRunOptions {
   /** Which agent CLI runs this: Claude Code (default) or Codex. */
   provider?: ProviderId
   signal?: AbortSignal
-  /** Kill the child after this long with NO stdout. Unset = no idle limit (the dock). */
-  idleTimeoutMs?: number
+  /** Nobody is watching (a background routine): a provider that asks for approval is declined, never waited on. No run has a time limit. */
+  unattended?: boolean
   /**
    * What the run may reach through wos-action: a capability list (its surfaces)
    * or 'all' for the legacy full grant of a plain dock run. See ./grants.ts.
@@ -256,7 +256,7 @@ export async function launchRun(o: LaunchRunOptions): Promise<{ child: ChildProc
         const child = await launchCodexSession({
           runId: id, cwd, prompt: fullPrompt, model: o.model, effort: getCodexEffort(), resumeId,
           instructions: codexGuidance(cwd, openFile, agent, safeMode, memoryBlock),
-          safeMode, env: childEnv, connectors, skills, signal: o.signal, idleTimeoutMs: o.idleTimeoutMs, sink,
+          safeMode, env: childEnv, connectors, skills, signal: o.signal, unattended: o.unattended, sink,
           onQuestion: (q) => sendToWindow('codex:question', q),
           onAction: (actionId, args) => invokeGrantedAction({ cmd: 'run', actionId, args, token: childEnv[AGENT_TOKEN_ENV] }),
           onFinish: (code) => {
@@ -346,19 +346,6 @@ export async function launchRun(o: LaunchRunOptions): Promise<{ child: ChildProc
     for (const key of injectedSecretKeys) delete childEnv[key]
     injectedSecretKeys = []
 
-    // HEADLESS runs get an IDLE timeout — no output for this long means a hung
-    // child, and nobody is watching to notice. Wall-clock limits are wrong for
-    // work that legitimately takes an hour; silence is the honest signal.
-    let idle: ReturnType<typeof setTimeout> | null = null
-    const touch = (): void => {
-      if (!o.idleTimeoutMs) return
-      if (idle) clearTimeout(idle)
-      idle = setTimeout(() => {
-        sink.output(`\n[timeout] no output for ${Math.round(o.idleTimeoutMs! / 60_000)} min — stopping the run\n`)
-        child.kill('SIGTERM')
-      }, o.idleTimeoutMs)
-    }
-    touch()
 
     const emit = (text: string): void => {
       if (text) sink.output(text)
@@ -379,7 +366,6 @@ export async function launchRun(o: LaunchRunOptions): Promise<{ child: ChildProc
     }
     child.stdout?.setEncoding('utf8')
     child.stdout?.on('data', (data: Buffer) => {
-      touch()
       buffer += data.toString()
       let nl: number
       while ((nl = buffer.indexOf('\n')) !== -1) {
@@ -407,7 +393,6 @@ export async function launchRun(o: LaunchRunOptions): Promise<{ child: ChildProc
       const deliverable = artifacts.find((a) => a.type === 'office') ?? artifacts.find((a) => a.type === 'page')
       // A chat shows what it made beside the conversation instead.
       if (deliverable && !chat && !appSlug) sink.artifact(deliverable.path)
-      if (idle) clearTimeout(idle)
       grants.revoke(id)
       // The builder's scratch session on its app ends with its turn.
       if (appSlug) void endAppSession(appSlug)

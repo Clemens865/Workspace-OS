@@ -12,7 +12,8 @@ import { modelArgs } from './modelPick'
  * what the caller asks for — these jobs read/produce text only.
  *
  * The prompt is fed on stdin (never argv) — same security posture as the main
- * run path — and a timeout kills a hung child so an IPC call can't wedge.
+ * run path. There is no time limit: an LLM call runs until it finishes, because
+ * some agents legitimately work for a long time.
  */
 
 export interface ClaudeRunResult {
@@ -20,8 +21,6 @@ export interface ClaudeRunResult {
   text: string
   /** Process exit code (null if killed). */
   code: number | null
-  /** True if the run was killed by the timeout. */
-  timedOut: boolean
 }
 
 /** Pulls assistant text out of one stream-json line. Mirrors handlers/agent.ts. */
@@ -62,20 +61,19 @@ function resultText(line: string): string | null {
 /**
  * Runs `claude -p` once with the given prompt (via stdin) and system prompt,
  * returning the assistant's full text. Streams deltas; falls back to the
- * `result` event's text if no deltas arrived. `timeoutMs` guards against hangs.
+ * `result` event's text if no deltas arrived.
  */
 export function runClaudeJson(opts: {
   prompt: string
   systemPrompt?: string
   cwd?: string
-  timeoutMs?: number
   allowedTools?: string[]
   /** Model alias; unset = the CLI's default. */
   model?: string
   /** Load no settings files: the person's allow rules must not widen allowedTools (app answers, the app harness). */
   isolated?: boolean
 }): Promise<ClaudeRunResult> {
-  const { prompt, systemPrompt, cwd, timeoutMs = 60_000, allowedTools = [], model, isolated = false } = opts
+  const { prompt, systemPrompt, cwd, allowedTools = [], model, isolated = false } = opts
   const binary = resolveClaudeBinary()
 
   const args = [
@@ -96,13 +94,6 @@ export function runClaudeJson(opts: {
     let deltas = ''
     let finalResult = ''
     let buffer = ''
-    let timedOut = false
-
-    const timer = setTimeout(() => {
-      timedOut = true
-      child.kill('SIGTERM')
-    }, timeoutMs)
-    timer.unref?.()
 
     child.stdin?.on('error', () => { /* EPIPE if child died early */ })
     child.stdin?.write(prompt)
@@ -123,14 +114,13 @@ export function runClaudeJson(opts: {
     child.stdout?.on('data', (d: Buffer) => consume(d.toString()))
     child.on('error', () => { /* reported via empty text + code */ })
     child.on('close', (code) => {
-      clearTimeout(timer)
       if (buffer.trim()) {
         deltas += textFromLine(buffer)
         const r = resultText(buffer)
         if (r !== null) finalResult = r
       }
       const text = deltas.trim() ? deltas : finalResult
-      resolve({ text, code, timedOut })
+      resolve({ text, code })
     })
   })
 }

@@ -24,14 +24,14 @@ import { notify } from '../notify'
  *    per-run bridge authorization (M3) has not landed yet. In -p mode a tool
  *    outside the allowlist is denied, not prompted, so a run never hangs on a
  *    question — it finishes, and the feed shows it as pending review.
- *  - AN IDLE TIMEOUT. Fifteen minutes with no output means a hung child.
+ *  - NO TIME LIMIT. A routine may work quietly for hours; a stuck one is
+ *    stopped by the person (cancel), never by a clock.
  *
  * Every event is recorded on the job (persisted) AND forwarded to the window
  * on the same agent channels the dock uses, keyed by the job id, so the
  * cockpit, Home and Stream see a background run exactly like a dock run.
  */
 
-const IDLE_TIMEOUT_MS = 15 * 60_000
 const PROMPT_MAX = 20_000
 
 let queue: RunQueue | null = null
@@ -67,7 +67,7 @@ async function launcher(job: BackgroundJob, sink: JobSink): Promise<{ kill: () =
     agent,
     model: routinePick.model || undefined,
     provider: routinePick.provider,
-    idleTimeoutMs: IDLE_TIMEOUT_MS,
+    unattended: true,
     // Exactly what the job declares — a routine's grant is its own, never the
     // dock's 'all'. An unattended run with no declared capability reaches nothing.
     capabilities: job.capabilities,

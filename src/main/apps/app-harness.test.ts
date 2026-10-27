@@ -34,9 +34,9 @@ describe('images an app shows the model', () => {
     let seen: { cwd: string; files: string[]; tools: string[]; prompt: string; isolated: boolean } | null = null
     run.fn.mockImplementation(async (o: { cwd: string; allowedTools: string[]; prompt: string; isolated: boolean }) => {
       seen = { cwd: o.cwd, files: fs.readdirSync(o.cwd), tools: o.allowedTools, prompt: o.prompt, isolated: o.isolated }
-      return { text: 'ok', code: 0, timedOut: false }
+      return { text: 'ok', code: 0 }
     })
-    await runSeeing({ prompt: 'Improve it', images: [imageFromDataUrl(PNG)], timeoutMs: 1000 })
+    await runSeeing({ prompt: 'Improve it', images: [imageFromDataUrl(PNG)] })
     expect(seen!.files).toEqual(['image-1.png'])
     expect(seen!.tools).toEqual(['Read(./**)'])
     expect(seen!.prompt).toContain('./image-1.png')
@@ -45,8 +45,8 @@ describe('images an app shows the model', () => {
   })
 
   it('gives a run without images no tool at all', async () => {
-    run.fn.mockResolvedValue({ text: 'ok', code: 0, timedOut: false })
-    await runSeeing({ prompt: 'Hi', timeoutMs: 1000 })
+    run.fn.mockResolvedValue({ text: 'ok', code: 0 })
+    await runSeeing({ prompt: 'Hi' })
     expect(run.fn.mock.calls[0][0].allowedTools).toEqual([])
   })
 })
@@ -58,14 +58,14 @@ describe('the brief', () => {
   })
 
   it('writes BRIEF.md from the idea', async () => {
-    run.fn.mockResolvedValue({ text: '```markdown\n' + BRIEF + '\n```', code: 0, timedOut: false })
+    run.fn.mockResolvedValue({ text: '```markdown\n' + BRIEF + '\n```', code: 0 })
     expect(await writeBrief(root, 'notes', 'a notes app')).toMatchObject({ checks: 3 })
     expect(fs.readFileSync(path.join(root, 'Apps/notes/BRIEF.md'), 'utf8')).toMatch(/^# Quick Notes/)
     expect(run.fn.mock.calls[0][0].prompt).toContain('a notes app')
   })
 
   it('writes nothing when no usable brief came back', async () => {
-    run.fn.mockResolvedValue({ text: 'Done.', code: 0, timedOut: false })
+    run.fn.mockResolvedValue({ text: 'Done.', code: 0 })
     await expect(writeBrief(root, 'notes', 'a notes app')).rejects.toThrow('No usable brief')
     expect(fs.existsSync(path.join(root, 'Apps/notes/BRIEF.md'))).toBe(false)
   })
@@ -91,7 +91,7 @@ describe('the review', () => {
     let files: string[] = []
     run.fn.mockImplementation(async (o: { cwd: string }) => {
       files = fs.readdirSync(o.cwd)
-      return { text: '{"checks":[],"looks":[],"next":["Add tags"]}', code: 0, timedOut: false }
+      return { text: '{"checks":[],"looks":[],"next":["Add tags"]}', code: 0 }
     })
     expect(await reviewApp(root, 'notes', Buffer.from('png'))).toEqual({ checks: [], looks: [], next: ['Add tags'] })
     const prompt = run.fn.mock.calls[0][0].prompt as string

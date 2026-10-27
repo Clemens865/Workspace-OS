@@ -11,7 +11,6 @@ export interface CodexTextOptions {
   model?: string
   systemPrompt?: string
   cwd?: string
-  timeoutMs?: number
   allowRead?: boolean
 }
 
@@ -40,22 +39,16 @@ export async function runCodexText(opts: CodexTextOptions): Promise<ClaudeRunRes
     delete env.WOS_AGENT_SOCK
     try { child = spawn(resolveCodexBinary(), args, { cwd: opts.cwd ?? dir, env, stdio: ['pipe', 'ignore', 'pipe'] }) }
     catch (err) { fs.rmSync(dir, { recursive: true, force: true }); reject(err); return }
-    let timedOut = false
     let failure: Error | undefined
     // Drain diagnostics without mixing them into structured mail/Foundry output.
     child.stderr?.on('data', () => {})
-    const timer = setTimeout(() => { timedOut = true; child.kill('SIGTERM'); escalation = setTimeout(() => child.kill('SIGKILL'), 2000); escalation.unref() }, opts.timeoutMs ?? 60000)
-    let escalation: ReturnType<typeof setTimeout> | undefined
-    timer.unref()
     child.on('error', (err) => { failure = err })
     child.on('close', (code) => {
-      clearTimeout(timer)
-      if (escalation) clearTimeout(escalation)
       let text = ''
       try { text = fs.readFileSync(output, 'utf8') } catch { /* no final answer */ }
       fs.rmSync(dir, { recursive: true, force: true })
       if (failure) reject(failure)
-      else resolve({ text, code: code ?? 130, timedOut })
+      else resolve({ text, code: code ?? 130 })
     })
     child.stdin?.on('error', () => {})
     child.stdin?.end(opts.prompt)
