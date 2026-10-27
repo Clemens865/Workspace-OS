@@ -56,6 +56,5 @@ docs/pitch/_print.html
 docs/pitch/*.pdf
 .playwright-mcp/
 e2e/shots-windows/
-e2e/shots-bob-connector/
 e2e/shots-window-style/
 e2e/lok-packaged-linux-*.png

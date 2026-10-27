@@ -75,7 +75,7 @@ already installed), then the installer built by CI.
 | `.xlsx`, `.csv` on 26.8.1.1 | Black tiles (tdf#174143) | None in the app |
 | `.xlsx`, `.csv` on 25.2.7.2 | Render, with an unpacked second copy next to 26.8 used only by Workspace OS (`WOS_LOK_INSTALL`) | Documented in WINDOWS.md; trailing separator added when missing (54f517c) |
 | Agent run from the app | Works: Claude Code (WinGet build) answers from the agent panel | |
-| Vault on `D:` as workspace, open a note, back to the folder | "Path escapes workspace root": the renderer split paths on `/` only and cut a character off `D:\OBS\brncx-skills` | Separator-agnostic renderer path helpers (`lib/paths.ts`) everywhere paths are split, joined or compared (e7604db); confirmed fixed on the PC |
+| Vault on `D:` as workspace, open a note, back to the folder | "Path escapes workspace root": the renderer split paths on `/` only and cut a character off a path such as `D:\Notes\my-vault` | Separator-agnostic renderer path helpers (`lib/paths.ts`) everywhere paths are split, joined or compared (e7604db); confirmed fixed on the PC |
 
 ## Phases
 
