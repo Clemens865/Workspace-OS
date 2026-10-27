@@ -1,5 +1,5 @@
 /**
- * Pure model for the redesigned shell's rail + Stage.
+ * Pure model for the stage: its surfaces and tabs.
  *
  * Kept free of React/DOM so it's unit-testable in the node vitest environment
  * (the renderer test suite has no jsdom). The shell components import these
@@ -7,16 +7,17 @@
  * lives here as data.
  */
 
-/** Rail destinations (top-level surfaces), matching docs/design/prototype.html. */
+/**
+ * The stage's surfaces. Still called "rail" ids: the left rail that listed them
+ * was retired (tag backup/stage-rail-before-retire); the landscape's Menu and
+ * dock reach them now.
+ */
 export type RailId =
-  | 'home'
   | 'files'
   | 'mail'
   | 'calendar'
-  | 'chats'
   | 'browser'
   | 'agents'
-  | 'cockpit'
   | 'knowledge'
   | 'memory'
   | 'connectors'
@@ -25,22 +26,15 @@ export type RailId =
 export interface RailItem {
   id: RailId
   label: string
-  /** Placeholder surfaces are "coming soon" for this increment. */
-  placeholder?: boolean
 }
 
-/** Rail order from the prototype (Home · Files · Mail · Calendar · Chats ·
- * Browser · Agents · Knowledge · Settings). Calendar/Chats are
- * placeholders until their real components land. */
+/** Every stage surface, in Menu order. */
 export const RAIL_ITEMS: RailItem[] = [
-  { id: 'home', label: 'Home' },
   { id: 'files', label: 'Files' },
   { id: 'mail', label: 'Mail' },
   { id: 'calendar', label: 'Calendar' },
-  { id: 'chats', label: 'Chats', placeholder: true },
   { id: 'browser', label: 'Browser' },
   { id: 'agents', label: 'Agents' },
-  { id: 'cockpit', label: 'Cockpit' },
   { id: 'knowledge', label: 'Knowledge' },
   { id: 'memory', label: 'Memory' },
   { id: 'connectors', label: 'Connectors' },
@@ -56,6 +50,7 @@ export interface StageTab {
   closable: boolean
 }
 
+/** Never shown: the first entry of the tab list, meaning "no document is active". */
 export const HOME_TAB: StageTab = { key: 'home', label: 'Home', closable: false }
 
 /** Basename label for a document path (no path module needed at call sites). */
@@ -106,9 +101,4 @@ export function resolveOpenPath(path: string, root: string | null): string {
   if (path.startsWith('/') || /^[A-Za-z]:[\\/]/.test(path)) return path
   const rel = path.replace(/^\.\//, '')
   return root ? `${root.replace(/\/$/, '')}/${rel}` : path
-}
-
-/** Whether a rail id is a real (non-placeholder) destination. */
-export function isPlaceholder(id: RailId): boolean {
-  return RAIL_ITEMS.find((r) => r.id === id)?.placeholder ?? false
 }

@@ -79,6 +79,11 @@ try {
   await win.waitForSelector('[data-shell="landscape"]', { timeout: 15000 })
   await win.waitForTimeout(800)
   check('"Open on: Stage" opens on the stage', (await view()) === 'stage')
+  const stageLayout = await win.evaluate(() => ({
+    rails: document.querySelectorAll('nav[aria-label="Primary"]').length,
+    surface: document.querySelector('[data-testid="stage-surface-tab"]')?.textContent ?? null,
+  }))
+  check('…in the new layout: no left rail, on Files', stageLayout.rails === 0 && stageLayout.surface === 'Files', JSON.stringify(stageLayout))
   await dismissSplash(win)
   await win.click('[data-testid="stage-landscape"]')
   await win.waitForTimeout(700)

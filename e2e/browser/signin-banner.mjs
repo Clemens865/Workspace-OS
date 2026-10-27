@@ -3,6 +3,7 @@
 // The failure that matters is the false positive: a scary bar over a working
 // page is worse than the silence it replaced. So this checks both directions.
 import { _electron as electron } from 'playwright'
+import { openSurface } from '../office/_harness.mjs'
 import path from 'path'
 // The landscape is the only shell (docs/landscape/PLAN.md, phase 7); these tests drive
 // the flat stage's surfaces, so the app opens on the stage.
@@ -14,10 +15,8 @@ const app = await electron.launch({
 })
 const win = await app.firstWindow({ timeout: 30000 })
 await win.waitForSelector('#root', { timeout: 30000 })
-await win.evaluate(() => localStorage.setItem('workspace-os:settings', JSON.stringify({ newShell: true })))
-await win.reload(); await win.waitForSelector('#root'); await win.waitForTimeout(3500)
-await win.evaluate(() => [...document.querySelectorAll('nav[aria-label="Primary"] button')]
-  .find(e => (e.textContent || '').trim().toLowerCase() === 'browser')?.click())
+await win.waitForTimeout(3500)
+await openSurface(win, 'browser')
 await win.waitForTimeout(3500)
 
 const go = async (url) => {

@@ -2,6 +2,7 @@
 // printer call is replaced with printToPDF, so this never sends paper to a device.
 // Uses an isolated profile/workspace; does not close the user's running app.
 import { _electron as electron } from 'playwright'
+import { openSurface } from './office/_harness.mjs'
 import fs from 'node:fs/promises'
 import path from 'node:path'
 import os from 'node:os'
@@ -131,7 +132,7 @@ try {
 
   // Files keeps the Stage editor mounted, even for this same path. Its older
   // buffer must not intercept the visible Files pane's native Print action.
-  await win.getByRole('button', { name: 'Files', exact: true }).click()
+  await openSurface(win, 'files')
   await win.getByText('other.md', { exact: true }).filter({ visible: true }).first().click()
   const filesEditor = win.locator('.monaco-editor:visible textarea').first()
   await filesEditor.focus()

@@ -7,12 +7,6 @@ describe('landscape menu', () => {
     expect(unreachableRails()).toEqual([])
   })
 
-  it('lists no placeholder surface', () => {
-    const placeholders = new Set(RAIL_ITEMS.filter((r) => r.placeholder).map((r) => r.id))
-    const listed = menuGroups().flatMap((g) => g.items.map((i) => i.rail))
-    expect(listed.filter((r) => placeholders.has(r))).toEqual([])
-  })
-
   it('lists each surface once, with a label and a hint', () => {
     const items = menuGroups().flatMap((g) => g.items)
     expect(new Set(items.map((i) => i.rail)).size).toBe(items.length)
@@ -39,7 +33,7 @@ describe('landscape dock', () => {
   })
 
   it('points stage items at real surfaces', () => {
-    const real = new Set(RAIL_ITEMS.filter((r) => !r.placeholder).map((r) => r.id))
+    const real = new Set(RAIL_ITEMS.map((r) => r.id))
     for (const d of DOCK) if (d.stage) expect(real.has(d.stage)).toBe(true)
   })
 })

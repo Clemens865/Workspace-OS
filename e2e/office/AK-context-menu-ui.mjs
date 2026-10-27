@@ -7,7 +7,7 @@
 // the native menu bar's check marks follow the engine's state (Bold).
 import fs from 'node:fs'
 import path from 'node:path'
-import { launch, newDoc, focusDoc, type, selectAll, save, docXml, poll, makeReporter, enginePresent, shot, TESTROOT } from './_harness.mjs'
+import { launch, newDoc, focusDoc, type, selectAll, save, docXml, poll, makeReporter, enginePresent, shot, TESTROOT, dismissSplash } from './_harness.mjs'
 // The landscape is the only shell (docs/landscape/PLAN.md, phase 7); these tests drive
 // the flat stage's surfaces, so the app opens on the stage.
 process.env.WOS_START_ON ??= 'stage'
@@ -30,10 +30,7 @@ await win.reload()
 await win.waitForSelector('#root', { timeout: 20000 })
 await win.waitForTimeout(800)
 // The startup splash returns after a reload; Enter lets us in.
-for (let i = 0; i < 20 && await win.locator('[class*=splash]').first().isVisible().catch(() => false); i++) {
-  await win.keyboard.press('Enter')
-  await win.waitForTimeout(300)
-}
+await dismissSplash(win)
 
 const MENU = '[data-testid="context-menu"]'
 const rightClickDoc = async (x, y) => {

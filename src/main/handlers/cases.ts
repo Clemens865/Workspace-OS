@@ -270,7 +270,7 @@ export function registerCaseHandlers(ipcMain: IpcMain): void {
     // Off by default: most status changes are the person's own hand. When it
     // is on, an agent moving a case to "waiting on you" is worth hearing.
     if (WAITING_ON_YOU.has(next) && c.status !== next) {
-      notify({ source: 'cases', key: c.id, title: c.title, body: `now ${next} — waiting on you.`, rail: 'cockpit' })
+      notify({ source: 'cases', key: c.id, title: c.title, body: `now ${next} — waiting on you.`, rail: 'cases' })
     }
     return saved
   })

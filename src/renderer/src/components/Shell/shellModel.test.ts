@@ -7,31 +7,24 @@ import {
   closeDocTab,
   isDocTab,
   resolveOpenPath,
-  isPlaceholder,
 } from './shellModel'
 
-describe('shellModel — rail', () => {
-  it('starts with Home and ends with Settings', () => {
-    expect(RAIL_ITEMS[0].id).toBe('home')
+describe('shellModel — surfaces', () => {
+  it('starts with Files and ends with Settings', () => {
+    expect(RAIL_ITEMS[0].id).toBe('files')
     expect(RAIL_ITEMS[RAIL_ITEMS.length - 1].id).toBe('settings')
   })
 
-  it('marks Chats as a placeholder and real surfaces as not', () => {
-    // Calendar graduated from placeholder to a real CalDAV/ICS surface; Chats
-    // (communication channel #2) is the remaining one.
-    expect(isPlaceholder('chats')).toBe(true)
-    expect(isPlaceholder('calendar')).toBe(false)
-    expect(isPlaceholder('browser')).toBe(false)
-    expect(isPlaceholder('files')).toBe(false)
-    expect(isPlaceholder('mail')).toBe(false)
-    expect(isPlaceholder('agents')).toBe(false)
-  })
-
-  it('exposes every composed surface in the rail', () => {
+  it('exposes every composed surface', () => {
     const ids = RAIL_ITEMS.map((r) => r.id)
-    for (const id of ['home', 'files', 'mail', 'agents', 'knowledge', 'settings'] as const) {
+    for (const id of ['files', 'mail', 'calendar', 'browser', 'agents', 'knowledge', 'memory', 'connectors', 'settings'] as const) {
       expect(ids).toContain(id)
     }
+  })
+
+  it('no longer lists the retired Home, Chats and Cockpit', () => {
+    const ids: string[] = RAIL_ITEMS.map((r) => r.id)
+    for (const id of ['home', 'chats', 'cockpit']) expect(ids).not.toContain(id)
   })
 })
 

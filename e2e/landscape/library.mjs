@@ -94,7 +94,7 @@ try {
 
   await win.click('[data-testid="library-browse"]')
   await settle(1000)
-  const rail = await win.evaluate(() => document.querySelector('[data-testid="stage-surface-tab"]')?.textContent ?? document.querySelector('nav[aria-label="Primary"] [aria-current="page"]')?.getAttribute('title'))
+  const rail = await win.evaluate(() => document.querySelector('[data-testid="stage-surface-tab"]')?.textContent)
   check('Browse all files opens Files on the stage', (await view()) === 'stage' && rail === 'Files', `${await view()} ${rail}`)
   await win.click('[data-stage-dock="library"]')
   await settle()
