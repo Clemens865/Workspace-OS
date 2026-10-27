@@ -73,7 +73,7 @@ await H.shot(win, 'B-page-break')
 // The ribbon row is the one that also holds the "Home" tab — disambiguate via it.
 const ribbonTabs = win.locator('div', { has: win.getByRole('button', { name: 'Home', exact: true }) }).last()
 await ribbonTabs.getByRole('button', { name: 'Review', exact: true }).click()
-await win.getByTitle('Track changes').click(); await win.waitForTimeout(200)
+await win.getByTitle('Record changes').click(); await win.waitForTimeout(200)
 await H.focusDoc(win); await H.type(win, ' TRACKEDEDIT')
 r.ok(await H.poll(async () => { await H.save(win); return /w:ins\b/.test(H.docXml(file, 'Word')) }), 'track changes records edits as tracked insertions (w:ins)')
 await H.shot(win, 'B-review')

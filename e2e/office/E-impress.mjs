@@ -31,7 +31,10 @@ const slideText = () => { try { return execSync(`unzip -p '${file}' ppt/slides/s
 r.ok(await H.poll(async () => { await H.save(win); return slideText().includes('Quarterly Review') }), 'typed text persists in the slide')
 
 // --- New slide → 2 slides ---
-await win.getByTitle('New slide').click()
+// The text box stays selected after Escape, so the ribbon shows the Shape tab;
+// "New slide" lives on Home.
+await win.getByRole('button', { name: 'Home', exact: true }).first().click()
+await win.getByTitle('New slide').first().click()
 r.ok(await H.poll(async () => (await tabCount(win)) >= 2), 'New slide → second slide tab appears')
 r.ok(await H.poll(async () => { await H.save(win); return slideCount(file) >= 2 }), 'saved .pptx has 2 slides')
 await H.shot(win, 'E-new-slide')

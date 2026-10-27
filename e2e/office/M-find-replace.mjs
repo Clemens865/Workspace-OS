@@ -38,8 +38,8 @@ if (!H.enginePresent()) { console.log('SKIP: engine/host missing'); process.exit
   // Open the Find bar via ⌘F, fill both fields, click Replace all.
   await win.keyboard.press('Meta+f')
   await win.waitForTimeout(300)
-  r.ok(await win.getByPlaceholder('Find').isVisible().catch(() => false), 'Find bar opens on ⌘F (Writer)')
-  await win.getByPlaceholder('Find').fill('apple')
+  r.ok(await win.getByPlaceholder('Find', { exact: true }).isVisible().catch(() => false), 'Find bar opens on ⌘F (Writer)')
+  await win.getByPlaceholder('Find', { exact: true }).fill('apple')
   await win.getByPlaceholder('Replace').fill('orange')
   await win.getByTitle('Replace all matches').click()
 

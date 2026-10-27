@@ -5,7 +5,7 @@
 import path from 'path'
 import fs from 'fs'
 import { execSync } from 'child_process'
-import { launch, killAll, poll, shot, makeReporter } from './_harness.mjs'
+import { launch, killAll, poll, shot, makeReporter, clickFile } from './_harness.mjs'
 // The landscape is the only shell (docs/landscape/PLAN.md, phase 7); these tests drive
 // the flat stage's surfaces, so the app opens on the stage.
 process.env.WOS_START_ON ??= 'stage'
@@ -29,7 +29,7 @@ const readTabs = (win) =>
   )
 
 async function openFromTree(win, fileName) {
-  await win.getByText(fileName).first().click()
+  await clickFile(win, fileName)
   await poll(async () => (await readTabs(win)).some((t) => t.path?.endsWith(fileName)))
 }
 

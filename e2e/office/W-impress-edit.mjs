@@ -25,7 +25,7 @@ const r = H.makeReporter('PHASE W — native Impress editing')
 if (!H.enginePresent()) { console.log('SKIP: engine/host missing'); process.exit(0) }
 
 const FILE = '/tmp/wos-test/New Presentation.pptx'
-const TAG = `wos-wtbl-${Date.now().toString(36)}`
+const TAG = `wos-range-wtbl-${Date.now().toString(36)}`
 const GRID = [['Region', 'Rev'], ['EMEA', '12']]
 // Distinctive fill so the assertion can't collide with theme defaults: pure red.
 const FILL_HEX = 'FF0000'
@@ -46,7 +46,7 @@ async function waitEngineDoc(win, budgetMs = 120000) {
 }
 
 async function reopenInRenderer(win, budgetMs = 120000) {
-  await win.getByText('New Presentation.pptx').first().click()
+  await H.clickFile(win, 'New Presentation.pptx')
   const deadline = Date.now() + budgetMs
   while (Date.now() < deadline) {
     if (await win.locator('[data-testid=metrics-toggle]').isVisible().catch(() => false)) { await win.waitForTimeout(400); return }

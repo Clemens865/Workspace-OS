@@ -1032,6 +1032,16 @@ export function LokRenderer({ filePath, onNativeFail }: LokRendererProps): JSX.E
     setShowAnim(true)
   }, [graphicSel, animOp])
 
+  // Stable props for the memoized Ribbon: an inline arrow is a new prop on every
+  // render, which re-rendered the whole ribbon on each caret move.
+  const onPaintbrush = useCallback(() => {
+    runUno('.uno:FormatPaintbrush')
+    setPainterArmed(true)
+    setToast('Copy formatting: click a cell to apply it')
+  }, [runUno])
+  const onTransition = useCallback((c: string) => void doTransition(c), [doTransition])
+  const onAnimate = useCallback((c: string) => void doAnimate(c), [doAnimate])
+
   // ── B6c/B8: ruler, table grips, outline groups, client-side views.
   const [officeView, setOfficeView] = useState<'sorter' | 'outline' | 'preview' | null>(null)
   const [slideTexts, setSlideTexts] = useState<SlideText[]>([])
@@ -1123,6 +1133,8 @@ export function LokRenderer({ filePath, onNativeFail }: LokRendererProps): JSX.E
 
   // Calc view toggles without engine state (formulas, value highlighting, autocalc): read back from the view.
   const [viewFlags, setViewFlags] = useState<Record<string, string>>({})
+  // Calc's ribbon state with its view toggles merged in, kept as one object until either changes (the Ribbon is memoized).
+  const ribbonActive = useMemo(() => (parts.type === 1 ? { ...active, ...viewFlags } : active), [parts.type, active, viewFlags])
   const refreshViewFlags = useCallback(async () => {
     try {
       const r = await window.workspace.lok.officeMacro('WosViewInfo', '')
@@ -1645,7 +1657,7 @@ export function LokRenderer({ filePath, onNativeFail }: LokRendererProps): JSX.E
     <div className={styles.root}>
       <Ribbon
         docType={parts.type}
-        active={parts.type === 1 ? { ...active, ...viewFlags } : active}
+        active={ribbonActive}
         context={graphicSel && selRects.length === 0 ? (/Graphic/.test(officeContext) ? 'picture' : 'shape') : tableSelected && parts.type !== 1 ? 'table' : null}
         dirty={dirty}
         saving={saving}
@@ -1663,11 +1675,7 @@ export function LokRenderer({ filePath, onNativeFail }: LokRendererProps): JSX.E
         onInsertTable={openInsertTable}
         onFormatCells={openFormatCells}
         painterArmed={painterArmed}
-        onPaintbrush={() => {
-          runUno('.uno:FormatPaintbrush')
-          setPainterArmed(true)
-          setToast('Copy formatting: click a cell to apply it')
-        }}
+        onPaintbrush={onPaintbrush}
         onInsertSymbol={openSpecialChar}
         onHyperlink={openHyperlink}
         onInsertImage={insertImage}
@@ -1675,9 +1683,9 @@ export function LokRenderer({ filePath, onNativeFail }: LokRendererProps): JSX.E
         notesOn={showNotes}
         onToggleNotes={toggleNotes}
         transition={transitions[parts.cur] ?? null}
-        onTransition={(c) => void doTransition(c)}
+        onTransition={onTransition}
         effects={effects}
-        onAnimate={(c) => void doAnimate(c)}
+        onAnimate={onAnimate}
         animPaneOpen={showAnim}
         requestTab={ribbonTab}
         rulerOn={isWriter && rulerOn}

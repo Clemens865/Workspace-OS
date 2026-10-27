@@ -1,5 +1,5 @@
-// Sprint 2 navigation smoke: quick-open (⌘P + Go menu), sidebar Search panel
-// (FTS5 content hit), and View-menu panel toggles. Engine-independent — uses
+// Navigation smoke: quick-open (⌘P + Go menu), Library search (FTS5 content
+// hit), and the View-menu Files/terminal toggles. Engine-independent — uses
 // a markdown file, so it runs even without the LibreOffice build mounted.
 import fs from 'fs'
 import path from 'path'
@@ -18,13 +18,6 @@ const clickMenu = (app, id) =>
     if (!item) throw new Error(`menu item not found: ${itemId}`)
     item.click()
   }, id)
-
-/** Visibility of a CSS-module element ('_name_hash…'), false when unmounted/hidden. */
-const moduleVisible = (win, name) =>
-  win.evaluate((n) => {
-    const el = document.querySelector(`[class*="_${n}_"]`)
-    return !!el && el.offsetParent !== null
-  }, name)
 
 async function main() {
   fs.mkdirSync(TESTROOT, { recursive: true })
@@ -60,44 +53,51 @@ async function main() {
   await win.keyboard.press('Escape')
   await poll(async () => !(await win.getByTestId('quick-open-input').isVisible().catch(() => true)))
 
-  // ── 3. Sidebar Search panel returns a content hit from the FTS index ──────
-  await win.getByRole('button', { name: 'Search', exact: true }).click()
-  const spInput = win.getByTestId('search-panel-input')
-  t.ok(await spInput.isVisible().catch(() => false), 'sidebar Search tab shows the search panel')
-
-  await spInput.fill(TOKEN)
+  // ── 3. Library search returns a content hit from the FTS index ───────────
+  // (the old sidebar Search panel is retired; content search lives in the Library)
+  await win.click('[data-stage-dock="library"]')
+  const lib = win.getByTestId('library-search')
+  t.ok(await poll(() => lib.isVisible().catch(() => false)), 'the stage topbar opens the Library search')
+  await win.evaluate(() => window.workspace.search.start().catch(() => {}))
+  const hitSel = `[data-library-file="${NAV_FILE}"]`
   const hit = await poll(async () => {
     // Retype to re-trigger the debounce in case indexing finished after the query.
-    const visible = await win.getByText(NAV_FILE).and(win.locator(`[class*="_hitName_"]`)).first().isVisible().catch(() => false)
-    if (!visible) { await spInput.fill(''); await spInput.fill(TOKEN) }
-    return visible
-  }, { timeout: 30000, interval: 900 })
-  t.ok(!!hit, `search panel finds "${TOKEN}" inside ${NAV_FILE} (content index)`)
+    await lib.fill('')
+    await lib.fill(TOKEN)
+    await win.waitForTimeout(700)
+    return win.locator(hitSel).isVisible().catch(() => false)
+  }, { timeout: 30000, interval: 200 })
+  t.ok(!!hit, `Library search finds "${TOKEN}" inside ${NAV_FILE} (content index)`)
   await shot(win, 'nav-search-panel')
 
-  // Clicking the hit opens/activates the file.
-  await win.locator(`[class*="_hit_"]`).first().click()
-  const stillOpen = await poll(() => win.locator('.monaco-editor').first().isVisible().catch(() => false))
-  t.ok(!!stillOpen, 'clicking a search hit opens the file')
+  // Clicking the hit opens the file on the stage.
+  await win.click(hitSel)
+  const opened = await poll(() => win.locator('.monaco-editor').first().isVisible().catch(() => false))
+  t.ok(!!opened, 'clicking a search hit opens the file')
 
-  // ── 4. View menu toggles the panels ────────────────────────────────────────
-  t.ok(await moduleVisible(win, 'filePanel'), 'file panel starts visible')
+  // ── 4. View menu: Files and the terminal ──────────────────────────────────
+  const surface = () => win.evaluate(() => document.querySelector('[data-testid="stage-surface-tab"]')?.textContent ?? '')
+  await win.click('[data-stage-dock="menu"]')
+  await win.click('[data-menu="settings"]')
+  await poll(async () => (await surface()) === 'Settings')
   await clickMenu(app, 'view-toggle-files')
-  t.ok(await poll(async () => !(await moduleVisible(win, 'filePanel'))), 'View ▸ Toggle File Panel hides the sidebar')
-  await clickMenu(app, 'view-toggle-files')
-  t.ok(await poll(() => moduleVisible(win, 'filePanel')), 'toggling again restores the sidebar')
+  t.ok(await poll(async () => (await surface()) === 'Files'), 'View ▸ Toggle File Panel brings Files forward on the stage')
 
-  t.ok(await moduleVisible(win, 'terminal'), 'terminal starts visible')
+  const terminalOpen = () => win.evaluate(() => {
+    const d = document.querySelector('[data-testid="terminal-dock"]')
+    return !!d && d.getBoundingClientRect().height > 0
+  })
+  const before = await terminalOpen()
   await clickMenu(app, 'view-toggle-terminal')
-  t.ok(await poll(async () => !(await moduleVisible(win, 'terminal'))), 'View ▸ Toggle Terminal hides the terminal strip')
+  t.ok(await poll(async () => (await terminalOpen()) !== before), 'View ▸ Toggle Terminal toggles the terminal dock')
   await clickMenu(app, 'view-toggle-terminal')
-  t.ok(await poll(() => moduleVisible(win, 'terminal')), 'toggling again restores the terminal')
+  t.ok(await poll(async () => (await terminalOpen()) === before), 'toggling again restores it')
 
   // ⌘J keyboard path drives the same toggle.
   await win.keyboard.press('Meta+j')
-  t.ok(await poll(async () => !(await moduleVisible(win, 'terminal'))), '⌘J toggles the terminal')
+  t.ok(await poll(async () => (await terminalOpen()) !== before), '⌘J toggles the terminal')
   await win.keyboard.press('Meta+j')
-  await poll(() => moduleVisible(win, 'terminal'))
+  await poll(async () => (await terminalOpen()) === before)
 
   await shot(win, 'nav-final')
   await app.close()

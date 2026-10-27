@@ -18,7 +18,7 @@ await win.getByTitle('Document properties').click()
 await win.waitForTimeout(300)
 r.ok(await win.getByText('Document properties', { exact: false }).isVisible().catch(() => false), 'properties modal opens')
 r.ok(await win.getByText('Text document', { exact: false }).isVisible().catch(() => false), 'shows document type')
-r.ok(await win.getByText('KB', { exact: false }).isVisible().catch(() => false), 'shows size on disk')
+r.ok(/\d KB/.test(await win.locator('dt', { hasText: 'Size on disk' }).locator('xpath=following-sibling::dd[1]').textContent().catch(() => '')), 'shows size on disk')
 await H.shot(win, 'C-properties')
 await win.getByText('Close', { exact: true }).click()
 

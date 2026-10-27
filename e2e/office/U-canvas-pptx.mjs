@@ -64,7 +64,7 @@ r.ok(slidePartCount() === 3, `the deck has 3 slide parts on disk (got ${slidePar
 
 // ---- 2. Open it in the REAL LOK engine and assert the engine sees 3 slides ----
 const { app, win } = await U.launch()
-await win.getByText('U-canvas-deck.pptx').first().click()
+await U.clickFile(win, 'U-canvas-deck.pptx')
 await U.waitRender(win, 'Design') // Impress "Design" ribbon tab ⇒ a deck really opened
 
 let parts = null

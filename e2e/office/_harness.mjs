@@ -21,6 +21,16 @@ const ENGINE = process.env.WOS_SUITE_ENGINE === 'bundled'
 export const SHOTS = path.join(__dirname, 'shots')
 export const TESTROOT = '/tmp/wos-test'
 
+// The shared office fixtures scripts copy from TESTROOT. /tmp is wiped on
+// reboot, so they are seeded from the repo whenever a script loads the harness.
+for (const f of ['test-sheet.xlsx', 'test-deck.pptx', 'test-document.docx']) {
+  const dst = path.join(TESTROOT, f)
+  if (!fs.existsSync(dst)) {
+    fs.mkdirSync(TESTROOT, { recursive: true })
+    fs.copyFileSync(path.join(__dirname, 'fixtures', f), dst)
+  }
+}
+
 export function enginePresent() {
   return fs.existsSync(path.join(ROOT, 'scripts/lok/wos-lok-host')) && fs.existsSync(ENGINE + '/Resources/fundamentalrc')
 }
@@ -176,14 +186,35 @@ export async function newDoc(win, kind) {
   else await win.getByText(kind === 'Excel' ? 'Excel spreadsheet' : 'PowerPoint').click()
   // Wait for the doc-type-specific tab so we never return on a stale canvas.
   await waitRender(win, KIND_TAB[kind])
-  return path.join(TESTROOT, `${base}.${KIND_EXT[kind]}`)
+  // The app picks the name from its file list, which may not have seen the
+  // deletion above yet ("New Document 2.docx"). Every earlier file of this base
+  // is gone, so the one on disk now is the document just created.
+  const created = await poll(() => fs.readdirSync(TESTROOT).find((f) => f.startsWith(base) && f.endsWith(`.${KIND_EXT[kind]}`)), { timeout: 5000 })
+  return path.join(TESTROOT, created || `${base}.${KIND_EXT[kind]}`)
 }
 
 /** Opens an existing file from the tree. Pass `kind` to assert the doc type loaded. */
 export async function openDoc(win, fileName, kind) {
   await dismissSplash(win, { wait: 0 })
-  await win.getByText(fileName).first().click()
+  await clickFile(win, fileName)
   await waitRender(win, kind ? KIND_TAB[kind] : undefined)
+}
+
+/** Removes every live link recorded for `file`. Links persist in the app's
+ * data, so a script reusing a file name must start without the last run's. */
+export async function clearLinks(win, file) {
+  await win.evaluate((f) => window.workspace.transclusions.forFile(f).then((ls) =>
+    Promise.all(ls.map((l) => window.workspace.transclusions.remove(l.id)))), file)
+}
+
+/** Clicks a file by name where the person can see it. The same name also sits
+ * on landscape tiles that are not showing, so the first match in the DOM is
+ * often a hidden one; when no visible match exists, Files is opened first. */
+export async function clickFile(win, fileName) {
+  await dismissSplash(win, { wait: 0 })
+  const visible = () => win.getByText(fileName).filter({ visible: true }).first()
+  if (!(await visible().isVisible().catch(() => false))) await openSurface(win, 'files')
+  await visible().click()
 }
 
 /** Polls an async predicate until it returns truthy or the timeout elapses.

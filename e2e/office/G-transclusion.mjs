@@ -45,7 +45,7 @@ async function waitEngineDoc(win, budgetMs = 120000) {
  * (the ∑ Metrics toggle renders only when loading has cleared) — this is what
  * lets the on-open re-sync effect run. */
 async function reopenInRenderer(win, budgetMs = 120000) {
-  await win.getByText('New Spreadsheet.xlsx').first().click()
+  await H.clickFile(win, 'New Spreadsheet.xlsx')
   const deadline = Date.now() + budgetMs
   while (Date.now() < deadline) {
     if (await win.locator('[data-testid=metrics-toggle]').isVisible().catch(() => false)) { await win.waitForTimeout(400); return }

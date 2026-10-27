@@ -57,7 +57,7 @@ async function waitEngineDoc(win, budgetMs = 120000) {
 }
 
 async function reopenInRenderer(win, budgetMs = 120000) {
-  await win.getByText('New Document.docx').first().click()
+  await H.clickFile(win, 'New Document.docx')
   const deadline = Date.now() + budgetMs
   while (Date.now() < deadline) {
     if (await win.locator('[data-testid=metrics-toggle]').isVisible().catch(() => false)) { await win.waitForTimeout(400); return }
