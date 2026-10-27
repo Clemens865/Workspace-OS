@@ -1,7 +1,6 @@
 import { IpcMain, BrowserWindow } from 'electron'
 import os from 'os'
 import { randomUUID } from 'crypto'
-import path from 'path'
 import { IPC } from '../ipc-channels'
 import { ipcHandle, registerCleanup } from '../ipc-registry'
 import { validateShellInput, validateShellResize, IpcValidationError } from '../ipc-validator'
@@ -24,6 +23,7 @@ import { resolveMcpInjection } from '../mcp/mcp-runtime'
 import { headersHelperCommand } from '../install-mcp-token-cli'
 import { isValidMcpTool } from '../agent-permissions'
 import { sendToWindow, setMainWindow } from '../main-window'
+import { envWithPath, seededPath } from '../platform-tools'
 
 /**
  * Agent broker v2: an INTERACTIVE `claude` session hosted in a real PTY.
@@ -98,23 +98,15 @@ export function registerAgentPtyHandlers(ipcMain: IpcMain, win: BrowserWindow): 
     // Seed the same tool dirs the shell/-p pipeline seed: the office-docgen venv
     // (python-pptx/openpyxl/python-docx) and the `wos-gen` shim, so skills work
     // inside the interactive session too.
-    const home = os.homedir()
-    const seedPath = [
-      docgenVenvBinDir(),
-      docgenBinDir(),
-      path.join(home, '.local', 'bin'),
-      '/opt/homebrew/bin',
-      '/usr/local/bin',
-      process.env['PATH'] ?? '',
-    ].join(':')
+    const seedPath = seededPath([docgenVenvBinDir(), docgenBinDir()])
 
     // MCP connectors: mirror the -p pipeline. Decrypt enabled connectors'
     // secrets into the PTY env and pass `--mcp-config <path> --strict-mcp-config`
     // + `--allowedTools mcp__<id>__*`. The interactive session still prompts for
     // native permissions, so MCP tools are gated by BOTH the allowlist and the
     // human. Secrets ride env only — never argv, never the config literal.
-    const cwd = getWorkspaceRoot() ?? home
-    const ptyEnv: Record<string, string> = { ...process.env, PATH: seedPath } as Record<string, string>
+    const cwd = getWorkspaceRoot() ?? os.homedir()
+    const ptyEnv: Record<string, string> = envWithPath(process.env, seedPath)
     let mcpArgs: string[] = []
     try {
       const injection = resolveMcpInjection(

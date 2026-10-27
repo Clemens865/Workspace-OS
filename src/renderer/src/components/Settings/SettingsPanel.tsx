@@ -5,6 +5,7 @@ import { useSettings } from '../../hooks/useSettings'
 import { useTheme } from '../../hooks/useTheme'
 import { BrandPanel } from './BrandPanel'
 import styles from './SettingsPanel.module.css'
+import { keyLabel, SYSTEM_NAME, IS_WINDOWS } from '../../lib/platform'
 
 interface SettingsPanelProps {
   onClose: () => void
@@ -68,6 +69,54 @@ function NotificationsSection(): JSX.Element {
         <button className={styles.btn} onClick={() => void test()} data-testid="notify-test">Send a test notification</button>
         {sent && <span className={styles.keyHint}>{sent}</span>}
       </div>
+    </section>
+  )
+}
+
+type WindowStyleState = { setting: 'standard' | 'clean'; current: 'standard' | 'clean' | 'mac'; supported: boolean }
+
+/**
+ * Windows and Linux: the window's frame. Standard keeps the system title bar;
+ * Clean hides it until the pointer reaches the top edge. It applies when the
+ * window is created, so a change waits for a restart. macOS has its own look.
+ */
+function WindowSection(): JSX.Element | null {
+  const [state, setState] = useState<WindowStyleState | null>(null)
+  useEffect(() => {
+    window.workspace.window?.style?.().then(setState).catch(() => {})
+  }, [])
+  if (!state?.supported) return null
+  const choose = async (style: 'standard' | 'clean'): Promise<void> => {
+    const r = await window.workspace.window.setStyle(style)
+    setState((s) => (s ? { ...s, setting: r.setting } : s))
+  }
+  const pending = state.setting !== state.current
+  return (
+    <section className={styles.section} data-testid="settings-window">
+      <h3 className={styles.sectionTitle}>Window</h3>
+      <p className={styles.hint}>
+        Standard has the {SYSTEM_NAME} title bar. Clean hides it: point at the top edge of the screen and a thin bar slides
+        in to move the window, with minimise, maximise and close. F11 is full screen in either.
+      </p>
+      <div className={styles.segmented}>
+        <button className={state.setting === 'standard' ? styles.segOn : styles.segOff} onClick={() => void choose('standard')} data-testid="window-style-standard">Standard</button>
+        <button className={state.setting === 'clean' ? styles.segOn : styles.segOff} onClick={() => void choose('clean')} data-testid="window-style-clean">Clean</button>
+      </div>
+      {pending && (
+        <div className={styles.keyField}>
+          <span className={styles.keyHint}>Applies the next time Workspace OS starts.</span>
+          <button className={styles.btn} onClick={() => void window.workspace.window.relaunch()} data-testid="window-style-restart">Restart now</button>
+        </div>
+      )}
+      {IS_WINDOWS && (
+        <>
+          <p className={styles.hint} style={{ marginTop: 10 }}>
+            For the full-screen look, also let Windows hide the taskbar until you point at the bottom edge: turn on
+            Automatically hide the taskbar under Taskbar behaviours.
+          </p>
+          <button className={styles.btn} onClick={() => void window.workspace.window.openTaskbarSettings()} data-testid="window-taskbar-settings">Open taskbar settings</button>
+        </>
+      )}
     </section>
   )
 }
@@ -169,7 +218,7 @@ export function SettingsPanel({ onClose }: SettingsPanelProps): JSX.Element {
             <GroupHead id="appearance" label="Appearance" />
             <section className={styles.section}>
               <h3 className={styles.sectionTitle}>Theme</h3>
-              <p className={styles.hint}>Light, dark, or whatever macOS is showing. Documents and web pages keep their own colours.</p>
+              <p className={styles.hint}>Light, dark, or whatever {SYSTEM_NAME} is showing. Documents and web pages keep their own colours.</p>
               <div className={styles.segmented}>
                 <button className={pref === 'light' ? styles.segOn : styles.segOff} onClick={() => setPref('light')} data-testid="theme-light">
                   <Sun size={14} /> Light
@@ -178,7 +227,7 @@ export function SettingsPanel({ onClose }: SettingsPanelProps): JSX.Element {
                   <Moon size={14} /> Dark
                 </button>
                 <button className={pref === 'system' ? styles.segOn : styles.segOff} onClick={() => setPref('system')} data-testid="theme-system">
-                  <Monitor size={14} /> Match macOS
+                  <Monitor size={14} /> Match {SYSTEM_NAME}
                 </button>
               </div>
             </section>
@@ -211,11 +260,13 @@ export function SettingsPanel({ onClose }: SettingsPanelProps): JSX.Element {
               </div>
             </section>
 
+            <WindowSection />
+
             <GroupHead id="workspace" label="Workspace" />
             <section className={styles.section}>
               <h3 className={styles.sectionTitle}>Terminal</h3>
               <p className={styles.hint}>
-                Where the terminal sits (⌘J or Terminal in the dock): docked at the bottom or right, or floating as a window
+                Where the terminal sits ({keyLabel('⌘J')} or Terminal in the dock): docked at the bottom or right, or floating as a window
                 you can move and resize, over the landscape too.
               </p>
               <div className={styles.segmented}>
@@ -228,7 +279,7 @@ export function SettingsPanel({ onClose }: SettingsPanelProps): JSX.Element {
             </section>
 
             <section className={styles.section}>
-              <h3 className={styles.sectionTitle}>⌘N in Files creates</h3>
+              <h3 className={styles.sectionTitle}>{keyLabel('⌘N')} in Files creates</h3>
               <select className={styles.select} value={settings.newFileFormat} onChange={(e) => settings.set('newFileFormat', e.target.value as typeof settings.newFileFormat)}>
                 {FORMATS.map((f) => <option key={f.value} value={f.value}>{f.label}</option>)}
               </select>

@@ -65,6 +65,7 @@ import { menuStateSnapshot, sameSnapshot, type MenuStateSnapshot } from './offic
 import { perfBump } from './perfCount'
 import type { DragGhost } from './dragGhost'
 import styles from './LokRenderer.module.css'
+import { basename as pathBase, joinPath } from '../../../lib/paths'
 
 interface LokRendererProps {
   filePath: string
@@ -705,11 +706,11 @@ export function LokRenderer({ filePath, onNativeFail }: LokRendererProps): JSX.E
       }
       // Persist the traced SVG at the workspace root as an editable asset.
       const root = await window.workspace.fs.getWorkspaceRoot()
-      const base = (src.split('/').pop() ?? 'image').replace(/\.[^.]+$/, '')
+      const base = (pathBase(src) ?? 'image').replace(/\.[^.]+$/, '')
       const name = `${base}-vector-${Date.now()}.svg`
       let savedPath: string | null = null
       if (root) {
-        savedPath = `${root}/${name}`
+        savedPath = joinPath(root, name)
         await window.workspace.fs.writeFile(savedPath, svg)
       }
       // On a slide, drop the SVG in as a scalable vector graphic.
@@ -912,7 +913,7 @@ export function LokRenderer({ filePath, onNativeFail }: LokRendererProps): JSX.E
   const doExport = useCallback(async (format: string) => {
     const r = await window.workspace.lok.exportAs(format)
     if (r.ok && r.path) {
-      setToast(`Exported ${r.path.split('/').pop()}`)
+      setToast(`Exported ${pathBase(r.path)}`)
       setTimeout(() => setToast(null), 2600)
     } else {
       setToast('Export failed')
@@ -1662,7 +1663,7 @@ export function LokRenderer({ filePath, onNativeFail }: LokRendererProps): JSX.E
         dirty={dirty}
         saving={saving}
         zoom={zoom}
-        fileName={filePath.split('/').pop()}
+        fileName={pathBase(filePath)}
         onUno={runUno}
         onStyle={applyStyle}
         onSave={doSave}
@@ -1795,7 +1796,7 @@ export function LokRenderer({ filePath, onNativeFail }: LokRendererProps): JSX.E
         showProps={showProps}
         onPropsClose={() => setShowProps(false)}
         props={props}
-        fileName={filePath.split('/').pop()}
+        fileName={pathBase(filePath)}
         docType={parts.type}
         partCount={parts.names.length}
         docSizeTw={docRef.current}

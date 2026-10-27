@@ -63,6 +63,8 @@
     "e2e:mail": "node e2e/mail/send-smtp.mjs",
     "package": "electron-builder",
     "dist:mac": "npm run rebuild:electron && npm run build && electron-builder --mac && npm run rebuild:node || (npm run rebuild:node; exit 1)",
+    "dist:linux": "npm run rebuild:electron && npm run build && electron-builder --linux && npm run rebuild:node || (npm run rebuild:node; exit 1)",
+    "dist:win": "npm run rebuild:electron && npm run build && node scripts/patch-nsis-per-user.mjs && electron-builder --win",
     "e2e:lok-edit": "npm run rebuild:electron && npm run build && node e2e/lok-edit.mjs; npm run rebuild:node",
     "e2e:lok-parts": "npm run rebuild:electron && npm run build && node e2e/lok-parts.mjs; npm run rebuild:node",
     "e2e:lok-packaged": "npm run build && node e2e/lok-packaged.mjs",
@@ -153,9 +155,6 @@
       "out/**/*",
       "package.json",
       "!**/node_modules/onnxruntime-web/**",
-      "!**/node_modules/onnxruntime-node/bin/napi-v3/linux/**",
-      "!**/node_modules/onnxruntime-node/bin/napi-v3/win32/**",
-      "!**/node_modules/onnxruntime-node/bin/napi-v3/darwin/x64/**",
       "!**/node_modules/@huggingface/transformers/dist/*.map",
       "!**/node_modules/@huggingface/transformers/dist/*web*",
       "!**/node_modules/@huggingface/transformers/dist/ort-wasm*",
@@ -237,14 +236,138 @@
           "to": "apps"
         }
       ],
-      "icon": "build/icon.icns"
+      "icon": "build/icon.icns",
+      "files": [
+        "!**/node_modules/onnxruntime-node/bin/napi-v3/linux/**",
+        "!**/node_modules/onnxruntime-node/bin/napi-v3/win32/**",
+        "!**/node_modules/onnxruntime-node/bin/napi-v3/darwin/x64/**"
+      ]
     },
     "win": {
-      "target": "nsis"
+      "target": [
+        {
+          "target": "nsis",
+          "arch": [
+            "x64"
+          ]
+        }
+      ],
+      "extraResources": [
+        {
+          "from": "scripts/lok/wos-lok-host.exe",
+          "to": "lok/wos-lok-host.exe"
+        },
+        {
+          "from": "resources/office-docgen",
+          "to": "office-docgen"
+        },
+        {
+          "from": "resources/office-component",
+          "to": "office-component"
+        },
+        {
+          "from": "resources/wos-metric",
+          "to": "wos-metric"
+        },
+        {
+          "from": "resources/wos-collection",
+          "to": "wos-collection"
+        },
+        {
+          "from": "resources/wos-case",
+          "to": "wos-case"
+        },
+        {
+          "from": "resources/wos-mcp-token",
+          "to": "wos-mcp-token"
+        },
+        {
+          "from": "resources/wos-action",
+          "to": "wos-action"
+        },
+        {
+          "from": "resources/templates",
+          "to": "templates"
+        },
+        {
+          "from": "resources/apps-kit",
+          "to": "apps-kit"
+        },
+        {
+          "from": "resources/apps",
+          "to": "apps"
+        }
+      ],
+      "files": [
+        "!**/node_modules/onnxruntime-node/bin/napi-v3/linux/**",
+        "!**/node_modules/onnxruntime-node/bin/napi-v3/darwin/**",
+        "!**/node_modules/onnxruntime-node/bin/napi-v3/win32/arm64/**"
+      ]
     },
     "linux": {
-      "target": "AppImage"
+      "target": [
+        "AppImage",
+        "dir"
+      ],
+      "category": "Office",
+      "extraResources": [
+        {
+          "from": "scripts/lok/wos-lok-host",
+          "to": "lok/wos-lok-host"
+        },
+        {
+          "from": "resources/office-docgen",
+          "to": "office-docgen"
+        },
+        {
+          "from": "resources/office-component",
+          "to": "office-component"
+        },
+        {
+          "from": "resources/wos-metric",
+          "to": "wos-metric"
+        },
+        {
+          "from": "resources/wos-collection",
+          "to": "wos-collection"
+        },
+        {
+          "from": "resources/wos-case",
+          "to": "wos-case"
+        },
+        {
+          "from": "resources/wos-mcp-token",
+          "to": "wos-mcp-token"
+        },
+        {
+          "from": "resources/wos-action",
+          "to": "wos-action"
+        },
+        {
+          "from": "resources/templates",
+          "to": "templates"
+        },
+        {
+          "from": "resources/apps-kit",
+          "to": "apps-kit"
+        },
+        {
+          "from": "resources/apps",
+          "to": "apps"
+        }
+      ],
+      "files": [
+        "!**/node_modules/onnxruntime-node/bin/napi-v3/win32/**",
+        "!**/node_modules/onnxruntime-node/bin/napi-v3/darwin/**",
+        "!**/node_modules/onnxruntime-node/bin/napi-v3/linux/arm64/**",
+        "!**/node_modules/onnxruntime-node/bin/napi-v3/linux/x64/libonnxruntime_providers_cuda.so",
+        "!**/node_modules/onnxruntime-node/bin/napi-v3/linux/x64/libonnxruntime_providers_tensorrt.so"
+      ]
     },
-    "afterPack": "scripts/after-pack.cjs"
+    "afterPack": "scripts/after-pack.cjs",
+    "nsis": {
+      "oneClick": true,
+      "perMachine": false
+    }
   }
 }

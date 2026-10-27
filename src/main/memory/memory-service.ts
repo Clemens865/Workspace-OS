@@ -1,3 +1,4 @@
+import { appStateDir } from '../host-profile'
 import path from 'path'
 import os from 'os'
 import { MemoryStore, toMatchQuery, type Memory, type MemoryAuthor, type MemoryInput, type MemoryKind } from './memory-store'
@@ -23,7 +24,7 @@ export { toMatchQuery }
 const stores = new Map<string, MemoryStore>()
 
 export function workspaceDbPath(root: string): string {
-  return path.join(root, '.workspace-os', 'memory.db')
+  return path.join(appStateDir(root), 'memory.db')
 }
 
 export function globalDbPath(userDataDir?: string): string {

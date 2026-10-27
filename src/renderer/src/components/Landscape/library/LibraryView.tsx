@@ -6,6 +6,7 @@ import { FileThumb } from '../../FilePanel/FileThumb'
 import { WorkspaceMemoryView } from '../../MemoryPanel/WorkspaceMemory'
 import { useCreatedAssets } from '../../../hooks/useCreatedAssets'
 import { useWorkspaceRoot } from '../../../hooks/useWorkspaceRoot'
+import { contentPrefix, useContentRel } from '../../../hooks/useContentRoot'
 import { useWorkspaceLibrary } from '../../../hooks/useWorkspaceLibrary'
 import { useGlass } from '../backdrop/useBackdrop'
 import { relPath, searchFiles, shelves, type LibraryFile } from './libraryModel'
@@ -125,6 +126,7 @@ function FilesTab({ onSurface }: { onSurface: (rail: RailId) => void }): JSX.Ele
 /** Notes: the knowledge base, most-linked first, and the notes that are referenced but not written yet. */
 function NotesTab({ onSurface }: { onSurface: (rail: RailId) => void }): JSX.Element {
   const root = useWorkspaceRoot()
+  const wiki = contentPrefix(useContentRel(), 'Wiki')
   const [nodes, setNodes] = useState<GraphNode[] | null>(null)
   useEffect(() => {
     let live = true
@@ -153,7 +155,7 @@ function NotesTab({ onSurface }: { onSurface: (rail: RailId) => void }): JSX.Ele
         </button>
       </div>
       <div className={styles.scroll}>
-        {root && <WikiSection root={root} pages={notes.filter((n) => relPath(n.id, root).startsWith('Wiki/') && relPath(n.id, root) !== 'Wiki/Index.md').length} />}
+        {root && <WikiSection root={root} wiki={wiki} pages={notes.filter((n) => relPath(n.id, root).startsWith(wiki) && relPath(n.id, root) !== `${wiki}Index.md`).length} />}
         {notes.length > 0 && (
           <ul className={styles.list}>
             {notes.map((n) => (

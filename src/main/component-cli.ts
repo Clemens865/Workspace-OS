@@ -2,6 +2,7 @@ import { app } from 'electron'
 import fs from 'fs'
 import os from 'os'
 import path from 'path'
+import { writeWindowsNodeShims } from './platform-tools'
 
 /**
  * Component generation backing the `office-component` Claude skill. The agent
@@ -53,6 +54,11 @@ export function installComponentCli(): void {
 
     const binDir = path.join(app.getPath('userData'), 'bin')
     fs.mkdirSync(binDir, { recursive: true })
+    if (process.platform === 'win32') {
+      // No system Node needed: .cmd + Git Bash shims run the bundle on the app's executable.
+      writeWindowsNodeShims(binDir, 'wos-component', cliPath, { WOS_COMPONENTS_PATH: componentsStorePath() }, 'Workspace OS component CLI.')
+      return
+    }
     const shimPath = path.join(binDir, 'wos-component')
     fs.writeFileSync(shimPath, shimSource(cliPath, componentsStorePath()), { mode: 0o755 })
     fs.chmodSync(shimPath, 0o755)

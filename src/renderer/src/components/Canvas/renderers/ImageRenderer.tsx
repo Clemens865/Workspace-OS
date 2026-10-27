@@ -1,6 +1,7 @@
 import { useEffect, useState, useRef, useCallback } from 'react'
 import { bytesToBlob } from '../../../lib/bytesToBlob'
 import styles from './ImageRenderer.module.css'
+import { basename as pathBase } from '../../../lib/paths'
 
 interface ImageRendererProps {
   filePath: string
@@ -84,7 +85,7 @@ export function ImageRenderer({ filePath }: ImageRendererProps): JSX.Element {
             cursor: dragging.current ? 'grabbing' : 'grab',
           }}
           draggable={false}
-          alt={filePath.split('/').pop()}
+          alt={pathBase(filePath)}
         />
       </div>
     </div>

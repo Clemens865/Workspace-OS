@@ -1,6 +1,7 @@
 import { app } from 'electron'
 import fs from 'fs'
 import path from 'path'
+import { writeWindowsNodeShims } from './platform-tools'
 
 /**
  * Installs the `wos-action` CLI shim onto the agent's PATH — the AGENT→ACTION
@@ -52,6 +53,11 @@ export function installActionCli(): void {
     }
     const binDir = path.join(app.getPath('userData'), 'bin')
     fs.mkdirSync(binDir, { recursive: true })
+    if (process.platform === 'win32') {
+      // No system Node needed: .cmd + Git Bash shims run the bundle on the app's executable.
+      writeWindowsNodeShims(binDir, 'wos-action', cliPath, {}, 'Workspace OS surface-action CLI.')
+      return
+    }
     const shimPath = path.join(binDir, 'wos-action')
     fs.writeFileSync(shimPath, shimSource(cliPath), { mode: 0o755 })
     fs.chmodSync(shimPath, 0o755)

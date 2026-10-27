@@ -22,15 +22,16 @@ export function workFolderFor(base: string, caseId: string): string {
  * Null when the file is not inside this case's `drafts` (nothing to promote).
  */
 export function promotedPath(folder: string, file: string): string | null {
-  const drafts = path.join(folder, 'drafts')
+  const drafts = path.resolve(folder, 'drafts')
   const abs = path.resolve(file)
   if (!abs.startsWith(drafts + path.sep)) return null
-  return path.join(folder, 'outputs', path.relative(drafts, abs))
+  return path.resolve(folder, 'outputs', path.relative(drafts, abs))
 }
 
 /** Guidance for a case run's prompt: where to put what it makes. */
 export function workFolderGuidance(folder: string, root: string | null): string {
-  const shown = root && folder.startsWith(root + path.sep) ? path.relative(root, folder) : folder
+  // Workspace-relative paths are shown with / on every platform, like the rest of the prompt.
+  const shown = root && folder.startsWith(root + path.sep) ? path.relative(root, folder).split(path.sep).join('/') : folder
   return [
     `This case has its own folder: ${shown}/`,
     `Save documents you produce under ${shown}/drafts/ and material you collect (pages, exports, notes on sources) under ${shown}/sources/.`,

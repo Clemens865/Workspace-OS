@@ -3,6 +3,7 @@ import { Sparkles, Loader2, AlertCircle, Plus, Trash2, BarChart3, Table2, Link2,
 import type { EmailBlock, EmailThemeId, EmailAssistAction, MailLiveData } from '../../types/workspace-api'
 import { blockLabel, ctaBlock, editableKind, type RichComposeState } from './richComposeModel'
 import styles from './MailCompose.module.css'
+import { basename as pathBase } from '../../lib/paths'
 
 /** The design themes offered in the picker (labels mirror themes.ts). */
 const THEMES: { id: EmailThemeId; label: string }[] = [
@@ -205,7 +206,7 @@ export function MailComposeRich({
       <div className={styles.richBar}>
         <span className={styles.richBarKey}><FileSpreadsheet size={12} /> From a file</span>
         <button type="button" className={styles.assistChip} onClick={() => void pickWorkbook()}>
-          {sourceFile ? sourceFile.split('/').pop() : 'Choose a spreadsheet…'}
+          {sourceFile ? pathBase(sourceFile) : 'Choose a spreadsheet…'}
         </button>
         {sourceFile &&
           FROM_FILE_INTENTS.map((it) => (

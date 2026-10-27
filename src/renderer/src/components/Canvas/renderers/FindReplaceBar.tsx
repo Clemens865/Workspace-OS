@@ -3,6 +3,7 @@ import {
   Search, ChevronUp, ChevronDown, Replace, ReplaceAll, X, CaseSensitive, WholeWord, Regex,
 } from 'lucide-react'
 import styles from './FindReplaceBar.module.css'
+import { keysIn } from '../../../lib/platform'
 
 export type FindReplaceMode = 'findnext' | 'findprev' | 'replaceall'
 
@@ -94,7 +95,7 @@ export function FindReplaceBar({ onRun, onClose, supported }: FindReplaceBarProp
             onClick={() => setRegex((v) => !v)}
           ><Regex size={15} strokeWidth={2} /></button>
         </div>
-        <button className={styles.btn} title="Find previous (⇧Enter)" disabled={!supported || !find || busy} onClick={() => void run('findprev')}>
+        <button className={styles.btn} title={keysIn('Find previous (⇧Enter)')} disabled={!supported || !find || busy} onClick={() => void run('findprev')}>
           <ChevronUp size={15} strokeWidth={2} />
         </button>
         <button className={styles.btn} title="Find next (Enter)" disabled={!supported || !find || busy} onClick={() => void run('findnext')}>

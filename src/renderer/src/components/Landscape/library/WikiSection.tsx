@@ -3,24 +3,26 @@ import { BookOpen, Plus, Search, Undo2 } from 'lucide-react'
 import type { WikiChange, WikiCheck, WikiStatus } from '../../../types/workspace-api'
 import { relPath } from './libraryModel'
 import styles from './WikiSection.module.css'
+import { basename as pathBase, segments, joinPath } from '../../../lib/paths'
 
 /** Files with text worth a page; mirrors the main side's READABLE. */
 const READABLE = /\.(md|markdown|txt|docx|xlsx|pptx|pdf|csv|html?)$/i
-const own = (rel: string): boolean => rel.startsWith('Wiki/') || rel.startsWith('.workspace-os') || rel.split('/').some((s) => s.startsWith('.'))
+const own = (rel: string, wiki: string): boolean => rel.startsWith(wiki) || rel.startsWith('.workspace-os') || segments(rel).some((s) => s.startsWith('.'))
 
 const plural = (n: number, one: string, many = `${one}s`): string => `${n} ${n === 1 ? one : many}`
 
 /** "From Offer.docx: new Northwind, Anna Berg · updated Contoso" */
 function changeLine(c: WikiChange): string {
   const parts = [c.created.length && `new ${c.created.join(', ')}`, c.updated.length && `updated ${c.updated.join(', ')}`].filter(Boolean)
-  return `From ${c.source.split('/').pop()}: ${parts.join(' · ') || 'nothing changed'}`
+  return `From ${pathBase(c.source)}: ${parts.join(' · ') || 'nothing changed'}`
 }
 
 /**
  * The wiki that keeps itself (Library → Notes): add files, watch them being
  * read, see what each one changed and undo it, and read again what changed.
  */
-export function WikiSection({ root, pages }: { root: string; pages: number }): JSX.Element {
+/** `wiki`: the Wiki folder's workspace-relative prefix, 'Wiki/' unless a content root is set. */
+export function WikiSection({ root, wiki = 'Wiki/', pages }: { root: string; wiki?: string; pages: number }): JSX.Element {
   const [status, setStatus] = useState<WikiStatus | null>(null)
   const [recent, setRecent] = useState<WikiChange[]>([])
   const [health, setHealth] = useState<WikiCheck | null>(null)
@@ -56,7 +58,7 @@ export function WikiSection({ root, pages }: { root: string; pages: number }): J
     let live = true
     void window.workspace.fs
       .listFiles()
-      .then((l) => live && setFiles(l.filter((p) => READABLE.test(p) && !own(relPath(p, root)))))
+      .then((l) => live && setFiles(l.filter((p) => READABLE.test(p) && !own(relPath(p, root), wiki))))
       .catch(() => live && setFiles([]))
     return () => {
       live = false
@@ -94,7 +96,7 @@ export function WikiSection({ root, pages }: { root: string; pages: number }): J
         <span className={styles.title}>Wiki</span>
         <span className={styles.sub} data-testid="wiki-line">
           {busy
-            ? `Reading ${status?.current?.split('/').pop() ?? 'the next file'}…${status && status.queued ? ` ${status.queued} more waiting.` : ''}`
+            ? `Reading ${(status?.current ? pathBase(status?.current) : undefined) ?? 'the next file'}…${status && status.queued ? ` ${status.queued} more waiting.` : ''}`
             : pages
               ? `${plural(pages, 'page')} kept from ${plural(added.size, 'file')}. Edit any page; the next update builds on it.`
               : 'Add files and the agent writes a page for each person, organization, project and topic in them, linked to each other.'}
@@ -107,7 +109,7 @@ export function WikiSection({ root, pages }: { root: string; pages: number }): J
       {note && <p className={styles.note} data-testid="wiki-note">{note}</p>}
       {!!status?.failed.length && !busy && (
         <p className={styles.note} data-testid="wiki-failed">
-          Could not read {status.failed.map((f) => `${f.source.split('/').pop()} (${f.error})`).join(', ')}.
+          Could not read {status.failed.map((f) => `${pathBase(f.source)} (${f.error})`).join(', ')}.
         </p>
       )}
 
@@ -142,15 +144,15 @@ export function WikiSection({ root, pages }: { root: string; pages: number }): J
 
       {!!health?.changed.length && (
         <p className={styles.row} data-testid="wiki-changed">
-          {plural(health.changed.length, 'file')} changed since added: {health.changed.map((c) => c.split('/').pop()).join(', ')}.
-          <button type="button" className={styles.link} onClick={() => void add(health.changed.map((c) => `${root}/${c}`), true)} data-testid="wiki-reread">
+          {plural(health.changed.length, 'file')} changed since added: {health.changed.map((c) => pathBase(c)).join(', ')}.
+          <button type="button" className={styles.link} onClick={() => void add(health.changed.map((c) => joinPath(root, c)), true)} data-testid="wiki-reread">
             Read again
           </button>
         </p>
       )}
       {!!health?.missing.length && (
         <p className={styles.row}>
-          {plural(health.missing.length, 'source')} no longer there: {health.missing.map((c) => c.split('/').pop()).join(', ')}. Their pages stay.
+          {plural(health.missing.length, 'source')} no longer there: {health.missing.map((c) => pathBase(c)).join(', ')}. Their pages stay.
         </p>
       )}
 

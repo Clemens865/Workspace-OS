@@ -1,3 +1,4 @@
+import { appsRel, appsRoot } from './apps-store'
 /**
  * The builder's hands and eyes on its own app, while it builds: `wos-action
  * run app.<verb>` from the builder's run (actionBridge.ts routes them here; a
@@ -68,10 +69,10 @@ async function look(root: string, slug: string, d: AppDriver, shot: boolean): Pr
   if (shot) {
     const png = await d.shot().catch(() => null)
     if (png) {
-      const dir = path.join(root, 'Apps', slug, SHOT_DIR)
+      const dir = path.join(appsRoot(root), slug, SHOT_DIR)
       fs.mkdirSync(dir, { recursive: true })
       fs.writeFileSync(path.join(dir, 'look.png'), png)
-      file = `Apps/${slug}/${SHOT_DIR}/look.png`
+      file = `${appsRel(root)}/${slug}/${SHOT_DIR}/look.png`
     }
   }
   return { ...page, errors, ...(file ? { screenshot: `${file} (look at it with Read)` } : {}) }
@@ -89,7 +90,7 @@ export async function runAppAction(slug: string, actionId: string, args: unknown
   try {
     if (verb === 'test') {
       const plan = readPlan(root, slug)
-      if (!plan) return { ok: false, error: `Apps/${slug}/TESTS.json has no tests yet` }
+      if (!plan) return { ok: false, error: `${appsRel(root)}/${slug}/TESTS.json has no tests yet` }
       const only = typeof a.scenario === 'string' ? plan.scenarios.filter((s) => s.name.toLowerCase().includes((a.scenario as string).toLowerCase())) : plan.scenarios
       if (!only.length) return { ok: false, error: `No scenario is called "${a.scenario}"` }
       sessions.delete(slug) // the run gives the app back; the next action starts a fresh scratch session

@@ -20,6 +20,11 @@
 // Tiles ride their own pipe so bulk pixels never queue behind callbacks or
 // vice versa. INVALIDATE_TILES callbacks are coalesced engine-side (rect union).
 
+#ifdef _WIN32
+// LibreOfficeKitInit.h includes <windows.h>; keep its min/max macros away from std::min/max.
+#define NOMINMAX
+#define WIN32_LEAN_AND_MEAN
+#endif
 #define LOK_USE_UNSTABLE_API
 #include "LibreOfficeKit/LibreOfficeKit.h"
 #include "LibreOfficeKit/LibreOfficeKitInit.h"
@@ -33,7 +38,6 @@
 #include <vector>
 #include <list>
 #include <iostream>
-#include <unistd.h>
 #include <cerrno>
 #include <thread>
 #include <mutex>
@@ -41,6 +45,159 @@
 #include <deque>
 #include <chrono>
 #include <sys/stat.h>
+#include <fstream>
+#include <sstream>
+
+// ---- platform shims (Windows: MSVC CRT; elsewhere: POSIX) -------------------
+// The app reads frames on fds 3 and 4. On Windows, Node/libuv hands extra pipes
+// to a CRT child as low fds, so _write(3/4) reaches them; they must be binary.
+#ifdef _WIN32
+#include <io.h>
+#include <fcntl.h>
+#include <windows.h>
+typedef long long wos_ssize_t;
+static wos_ssize_t wosWrite(int fd, const void* p, size_t n) {
+    return _write(fd, p, (unsigned)(n > 0x40000000u ? 0x40000000u : n));
+}
+static void wosSetEnv(const char* k, const char* v) { _putenv_s(k, v); }
+static long wosFileSize(const std::string& path) {
+    struct _stat64 st; return _stat64(path.c_str(), &st) == 0 ? (long)st.st_size : 0;
+}
+static std::string wosTmpDir() {
+    char buf[MAX_PATH + 1]; DWORD n = GetTempPathA(MAX_PATH, buf);
+    std::string d = (n > 0 && n <= MAX_PATH) ? std::string(buf, n) : std::string("C:\\Windows\\Temp\\");
+    while (!d.empty() && (d.back() == '\\' || d.back() == '/')) d.pop_back();
+    return d;
+}
+#else
+#include <unistd.h>
+typedef ssize_t wos_ssize_t;
+static wos_ssize_t wosWrite(int fd, const void* p, size_t n) { return write(fd, p, n); }
+static void wosSetEnv(const char* k, const char* v) { setenv(k, v, 1); }
+static long wosFileSize(const std::string& path) {
+    struct stat st; return ::stat(path.c_str(), &st) == 0 ? (long)st.st_size : 0;
+}
+static std::string wosTmpDir() { return "/tmp"; }
+#endif
+
+#ifdef _WIN32
+// LibreOffice 25.8+ on Windows: creating Calc's formula bar from the LOK thread
+// deadlocks. The Name Box's SetWindowPos is sent to the "VCL Main" thread, which
+// waits for the SolarMutex in CoWaitForMultipleHandles and no longer processes
+// sent messages (core 2025-01-10, "Try to use CoWaitForMultipleHandles magic to
+// handle COM message loop"; up to 25.2 the wait was MsgWaitForMultipleObjects
+// with QS_SENDMESSAGE). The app draws its own formula bar, so hide LibreOffice's
+// (child window FID_INPUTLINE_STATUS = 26100) in this host's private profile.
+// WOS_LOK_KEEP_FORMULA_BAR=1 leaves the profile alone.
+static void hideCalcFormulaBar(const std::string& profileDir) {
+    const char* keep = getenv("WOS_LOK_KEEP_FORMULA_BAR");
+    if (keep && *keep == '1') return;
+    const std::string userDir = profileDir + "\\user";
+    CreateDirectoryA(profileDir.c_str(), nullptr);
+    CreateDirectoryA(userDir.c_str(), nullptr);
+    const std::string file = userDir + "\\registrymodifications.xcu";
+    const std::string item =
+        "<item oor:path=\"/org.openoffice.Office.Views/Windows\"><node oor:name=\"26100\" oor:op=\"replace\">"
+        "<prop oor:name=\"Visible\" oor:op=\"fuse\"><value>false</value></prop></node></item>\n";
+    std::string xml;
+    { std::ifstream in(file, std::ios::binary); if (in) { std::stringstream ss; ss << in.rdbuf(); xml = ss.str(); } }
+    if (xml.find("oor:name=\"26100\"") != std::string::npos) return; // already there (LibreOffice keeps it)
+    const size_t end = xml.rfind("</oor:items>");
+    if (end == std::string::npos) {
+        xml = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<oor:items xmlns:oor=\"http://openoffice.org/2001/registry\" "
+              "xmlns:xs=\"http://www.w3.org/2001/XMLSchema\" xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\">\n"
+              + item + "</oor:items>\n";
+    } else {
+        xml.insert(end, item);
+    }
+    std::ofstream out(file, std::ios::binary | std::ios::trunc);
+    out << xml;
+}
+#endif
+
+#ifdef _WIN32
+// LibreOffice 25.8+ on Windows (#1, tdf#174142): LOK's "VCL Main" thread waits
+// for the SolarMutex in osl_waitCondition, which since core 1e2e51607a16 /
+// 6b6f8ca3dd4a uses CoWaitForMultipleHandles. That only delivers sent messages
+// in an STA, and VCL Main is in the MTA (osl_createThread's wrapper), so a
+// SetWindowPos from this thread (Calc's Name Box, Impress's view border, ...)
+// deadlocks. Up to 25.2 the wait was MsgWaitForMultipleObjects(QS_SENDMESSAGE).
+// The host redirects vclplug_winlo.dll's import of osl_waitCondition to that
+// earlier wait. On by default; WOS_LOK_WAIT_FIX=0 turns it off.
+struct WosTimeValue { unsigned int Seconds; unsigned int Nanosec; }; // sal TimeValue
+enum { WOS_COND_OK = 0, WOS_COND_ERROR = 1, WOS_COND_TIMEOUT = 2 };   // oslConditionResult
+static int hookWaitCondition(void* condition, const WosTimeValue* timeout) {
+    const DWORD ms = timeout ? timeout->Seconds * 1000 + timeout->Nanosec / 1000000 : INFINITE;
+    HANDLE h = static_cast<HANDLE>(condition);
+    for (;;) {
+        switch (MsgWaitForMultipleObjects(1, &h, FALSE, ms, QS_SENDMESSAGE)) {
+            case WAIT_OBJECT_0 + 1: {
+                // PM_NOREMOVE leaves the queue alone but delivers pending sent messages.
+                MSG msg;
+                PeekMessageW(&msg, nullptr, 0, 0, PM_NOREMOVE);
+                break;
+            }
+            case WAIT_OBJECT_0: return WOS_COND_OK;
+            case WAIT_TIMEOUT: return WOS_COND_TIMEOUT;
+            default: return WOS_COND_ERROR;
+        }
+    }
+}
+static bool patchImport(HMODULE mod, const char* fn, void* hook) {
+    BYTE* base = reinterpret_cast<BYTE*>(mod);
+    auto* dos = reinterpret_cast<IMAGE_DOS_HEADER*>(base);
+    auto* nt = reinterpret_cast<IMAGE_NT_HEADERS*>(base + dos->e_lfanew);
+    const IMAGE_DATA_DIRECTORY& dir = nt->OptionalHeader.DataDirectory[IMAGE_DIRECTORY_ENTRY_IMPORT];
+    if (!dir.VirtualAddress) return false;
+    for (auto* imp = reinterpret_cast<IMAGE_IMPORT_DESCRIPTOR*>(base + dir.VirtualAddress); imp->Name; ++imp) {
+        auto* names = reinterpret_cast<IMAGE_THUNK_DATA*>(base + (imp->OriginalFirstThunk ? imp->OriginalFirstThunk : imp->FirstThunk));
+        auto* addrs = reinterpret_cast<IMAGE_THUNK_DATA*>(base + imp->FirstThunk);
+        for (; names->u1.AddressOfData; ++names, ++addrs) {
+            if (IMAGE_SNAP_BY_ORDINAL(names->u1.Ordinal)) continue;
+            auto* ibn = reinterpret_cast<IMAGE_IMPORT_BY_NAME*>(base + names->u1.AddressOfData);
+            if (strcmp(reinterpret_cast<const char*>(ibn->Name), fn) != 0) continue;
+            DWORD old;
+            VirtualProtect(&addrs->u1.Function, sizeof(void*), PAGE_READWRITE, &old);
+            addrs->u1.Function = reinterpret_cast<ULONG_PTR>(hook);
+            VirtualProtect(&addrs->u1.Function, sizeof(void*), old, &old);
+            return true;
+        }
+    }
+    return false;
+}
+static void installWaitFix(const char* installDir) {
+    const char* off = getenv("WOS_LOK_WAIT_FIX");
+    if (off && *off == '0') return;
+    SetDllDirectoryA(installDir);
+    const std::string dll = std::string(installDir) + "vclplug_winlo.dll";
+    HMODULE m = LoadLibraryExA(dll.c_str(), nullptr, LOAD_WITH_ALTERED_SEARCH_PATH);
+    if (!m) { fprintf(stderr, "[host] wait fix: cannot load %s (%lu)\n", dll.c_str(), GetLastError()); return; }
+    if (patchImport(m, "osl_waitCondition", reinterpret_cast<void*>(hookWaitCondition)))
+        fprintf(stderr, "[host] wait fix: vclplug_winlo osl_waitCondition -> MsgWaitForMultipleObjects(QS_SENDMESSAGE)\n");
+    else
+        fprintf(stderr, "[host] wait fix: osl_waitCondition import not found in vclplug_winlo.dll\n");
+}
+#endif
+
+// A file URL for a native path: file:///C:/dir/x.docx on Windows, file:///dir/x.docx elsewhere.
+static std::string fileUrl(std::string path) {
+#ifdef _WIN32
+    for (char& c : path) if (c == '\\') c = '/';
+    if (path.size() > 1 && path[1] == ':') return "file:///" + path;
+#endif
+    return "file://" + path;
+}
+
+// Where the engine-side macros exchange files with the app (WOS_LOK_XCHG, else the temp dir).
+static std::string xchgPath(const char* name) {
+    const char* d = getenv("WOS_LOK_XCHG");
+    std::string dir = (d && *d) ? std::string(d) : wosTmpDir();
+#ifdef _WIN32
+    return dir + "\\" + name;
+#else
+    return dir + "/" + name;
+#endif
+}
 
 static LibreOfficeKit* g_lok = nullptr;
 // g_doc/g_docUrl/g_docPath always mirror the CURRENT document so the command
@@ -192,7 +349,7 @@ static void drainLoop(std::deque<std::vector<unsigned char>>& q, std::mutex& mtx
         const unsigned char* p = frame.data();
         size_t n = frame.size();
         while (n) {
-            ssize_t k = write(fd, p, n);
+            wos_ssize_t k = wosWrite(fd, p, n);
             if (k > 0) { p += k; n -= (size_t)k; continue; }
             if (k < 0 && errno == EINTR) continue;
             break; // pipe closed / fatal — drop the rest
@@ -348,7 +505,7 @@ static void cmdOpen(long id, const std::string& path, const std::string& fopts =
             return;
         }
     }
-    std::string url = "file://" + path;
+    std::string url = fileUrl(path);
     // UpdateDocMode=0 (NO_UPDATE): don't refresh embedded/linked content on load —
     // safer/faster, and avoids recalc-on-load hangs. (Not combined with fopts:
     // a CSV token must reach the import filter verbatim.)
@@ -356,7 +513,7 @@ static void cmdOpen(long id, const std::string& path, const std::string& fopts =
         g_lok, url.c_str(), fopts.empty() ? "UpdateDocMode=0" : fopts.c_str());
     if (!d) {
         char* e = g_lok->pClass->getError(g_lok);
-        sendJson("{\"id\":" + std::to_string(id) + ",\"ok\":false,\"err\":\"load failed: " + (e ? e : "") + "\"}");
+        sendJson("{\"id\":" + std::to_string(id) + ",\"ok\":false,\"err\":\"load failed: " + jsonEscape(e ? e : "") + "\"}");
         return;
     }
     adoptCurrent(d, url, path, fopts);
@@ -373,10 +530,10 @@ static void cmdNew(long id, const std::string& factory, const std::string& path)
     LibreOfficeKitDocument* d = g_lok->pClass->documentLoad(g_lok, furl.c_str());
     if (!d) {
         char* e = g_lok->pClass->getError(g_lok);
-        sendJson("{\"id\":" + std::to_string(id) + ",\"ok\":false,\"err\":\"factory failed: " + (e ? e : "") + "\"}");
+        sendJson("{\"id\":" + std::to_string(id) + ",\"ok\":false,\"err\":\"factory failed: " + jsonEscape(e ? e : "") + "\"}");
         return;
     }
-    std::string url = "file://" + path;
+    std::string url = fileUrl(path);
     std::string fmt = extOf(path);
     int ok = d->pClass->saveAs(d, url.c_str(), fmt.empty() ? nullptr : fmt.c_str(), nullptr);
     if (!ok) { d->pClass->destroy(d); sendJson("{\"id\":" + std::to_string(id) + ",\"ok\":false,\"err\":\"saveAs failed\"}"); return; }
@@ -546,7 +703,7 @@ static void cmdDlgEvent(long id, unsigned long long winId, const std::string& js
     } catch (const std::exception& e) {
         std::string msg = e.what();
         for (char& c : msg) if (c == '"' || c == '\\' || c < 0x20) c = ' ';
-        sendJson("{\"id\":" + std::to_string(id) + ",\"ok\":false,\"err\":\"dialog event failed: " + msg + "\"}");
+        sendJson("{\"id\":" + std::to_string(id) + ",\"ok\":false,\"err\":\"dialog event failed: " + jsonEscape(msg) + "\"}");
         return;
     }
     sendJson("{\"id\":" + std::to_string(id) + ",\"ok\":true}");
@@ -590,7 +747,7 @@ static void cmdUno(long id, const std::string& command, const std::string& args)
     } catch (const std::exception& e) {
         std::string msg = e.what();
         for (char& c : msg) if (c == '"' || c == '\\' || c < 0x20) c = ' ';
-        sendJson("{\"id\":" + std::to_string(id) + ",\"ok\":false,\"err\":\"uno failed: " + msg + "\"}");
+        sendJson("{\"id\":" + std::to_string(id) + ",\"ok\":false,\"err\":\"uno failed: " + jsonEscape(msg) + "\"}");
         return;
     }
     sendJson("{\"id\":" + std::to_string(id) + ",\"ok\":true}");
@@ -677,7 +834,7 @@ static void cmdPasteBuf(long id, const std::string& mime, const std::string& b64
 // Writes the current doc's filesystem path so a macro can resolve the right
 // component — Basic's ThisComponent goes stale across multi-doc tab switches.
 static void writeActiveDocFile() {
-    FILE* df = fopen("/tmp/wos-macro-doc.txt", "w");
+    FILE* df = fopen(xchgPath("wos-macro-doc.txt").c_str(), "w");
     if (df) { fputs(g_docPath.c_str(), df); fputc('\n', df); fclose(df); }
 }
 
@@ -685,7 +842,7 @@ static void cmdSetBorder(long id, const std::string& preset, long color, int wid
     if (!g_doc) { sendJson("{\"id\":" + std::to_string(id) + ",\"ok\":false,\"err\":\"no document\"}"); return; }
     if (width <= 0) width = 26;
     writeActiveDocFile();
-    FILE* af = fopen("/tmp/wos-macro-args.txt", "w");
+    FILE* af = fopen(xchgPath("wos-macro-args.txt").c_str(), "w");
     if (af) { fprintf(af, "%s|%ld|%d\n", preset.c_str(), color, width); fclose(af); }
     g_inMacro = true;
     int ok = g_lok->pClass->runMacro(g_lok, "macro:///Standard.Module1.WosSetBorder");
@@ -698,7 +855,7 @@ static void cmdSetBorder(long id, const std::string& preset, long color, int wid
 static void cmdSetSize(long id, const std::string& kind, long index, long size) {
     if (!g_doc) { sendJson("{\"id\":" + std::to_string(id) + ",\"ok\":false,\"err\":\"no document\"}"); return; }
     writeActiveDocFile();
-    FILE* af = fopen("/tmp/wos-macro-size.txt", "w");
+    FILE* af = fopen(xchgPath("wos-macro-size.txt").c_str(), "w");
     if (af) { fprintf(af, "%s|%ld|%ld\n", kind.c_str(), index, size); fclose(af); }
     g_inMacro = true;
     int ok = g_lok->pClass->runMacro(g_lok, "macro:///Standard.Module1.WosSetSize");
@@ -714,7 +871,7 @@ static void cmdRunMacro(long id, const std::string& name, const std::string& arg
     for (char c : name) if (!isalnum((unsigned char)c)) okName = false;
     if (!okName) { sendJson("{\"id\":" + std::to_string(id) + ",\"ok\":false,\"err\":\"bad macro name\"}"); return; }
     writeActiveDocFile();
-    FILE* af = fopen("/tmp/wos-macro-generic.txt", "w");
+    FILE* af = fopen(xchgPath("wos-macro-generic.txt").c_str(), "w");
     if (af) { fputs(args.c_str(), af); fputc('\n', af); fclose(af); }
     // The Wos* library is split across Module1 + Module2 (StarBasic ~64KB/module
     // limit). Try Module1 first; runMacro returns 0 only when the name is NOT
@@ -733,7 +890,7 @@ static void cmdRunMacro(long id, const std::string& name, const std::string& arg
 // leaving the original document untouched.
 static void cmdExport(long id, const std::string& format, const std::string& path) {
     if (!g_doc) { sendJson("{\"id\":" + std::to_string(id) + ",\"ok\":false,\"err\":\"no document\"}"); return; }
-    std::string url = "file://" + path;
+    std::string url = fileUrl(path);
     int ok = g_doc->pClass->saveAs(g_doc, url.c_str(), format.c_str(), nullptr);
     sendJson("{\"id\":" + std::to_string(id) + ",\"ok\":" + (ok ? "true" : "false") + "}");
 }
@@ -757,13 +914,13 @@ static void cmdSave(long id) {
 // bytes. Decides whether native vector rendering is fast enough to be viable.
 static void cmdSvgSpike(long id, const std::string& path) {
     if (!g_doc) { sendJson("{\"id\":" + std::to_string(id) + ",\"ok\":false,\"err\":\"no document\"}"); return; }
-    std::string url = "file://" + path;
+    std::string url = fileUrl(path);
     auto t0 = std::chrono::steady_clock::now();
     int ok = g_doc->pClass->saveAs(g_doc, url.c_str(), "svg", nullptr);
     auto t1 = std::chrono::steady_clock::now();
     long ms = std::chrono::duration_cast<std::chrono::milliseconds>(t1 - t0).count();
     long bytes = 0;
-    if (ok) { struct stat st; if (::stat(path.c_str(), &st) == 0) bytes = (long)st.st_size; }
+    if (ok) bytes = wosFileSize(path);
     sendJson("{\"id\":" + std::to_string(id) + ",\"ok\":" + (ok ? "true" : "false")
              + ",\"ms\":" + std::to_string(ms) + ",\"bytes\":" + std::to_string(bytes) + "}");
 }
@@ -772,8 +929,22 @@ int main(int argc, char** argv) {
     if (argc < 3) { fprintf(stderr, "usage: %s <install_path/> <fundamentalrc>\n", argv[0]); return 2; }
     std::thread writer(writerLoop);         // drains JSON/callback frames (fd3) off the engine thread
     std::thread tileWriter(tileWriterLoop); // drains tile frames (fd4)
-    setenv("URE_BOOTSTRAP", (std::string("vnd.sun.star.pathname:") + argv[2]).c_str(), 1);
-    g_lok = lok_init_2(argv[1], "file:///tmp/wos-lok-host-profile");
+#ifdef _WIN32
+    _setmode(FRAME_FD, _O_BINARY);
+    _setmode(TILE_FD, _O_BINARY);
+#endif
+    wosSetEnv("URE_BOOTSTRAP", (std::string("vnd.sun.star.pathname:") + argv[2]).c_str());
+    // The app passes the profile it seeded (lokTemp.ts); otherwise the historical default.
+    const char* profileEnv = getenv("WOS_LOK_PROFILE");
+    const std::string profileDir = (profileEnv && *profileEnv)
+        ? std::string(profileEnv)
+        : wosTmpDir() + (wosTmpDir().back() == '/' ? "" : "/") + "wos-lok-host-profile";
+#ifdef _WIN32
+    hideCalcFormulaBar(profileDir);
+    installWaitFix(argv[1]);
+#endif
+    const std::string profileUrl = fileUrl(profileDir);
+    g_lok = lok_init_2(argv[1], profileUrl.c_str());
     if (!g_lok) {
         fprintf(stderr, "[host] lok_init failed\n");
         { std::lock_guard<std::mutex> lk(g_outMtx); g_outDone = true; } g_outCv.notify_one(); writer.join();
@@ -876,6 +1047,20 @@ int main(int argc, char** argv) {
             int wi;
             if (sscanf(rest.c_str(), "%d", &wi) == 1) cmdWClose(id, wi);
             else sendJson("{\"id\":" + std::to_string(id) + ",\"ok\":false,\"err\":\"bad wclose\"}");
+        } else if (cmd == "clientzoom") {
+            // "clientzoom <tilePxW> <tilePxH> <tileTwipW> <tileTwipH>" — the client's tile scale (Calc uses it).
+            int pw, ph, tw, th;
+            if (g_doc && sscanf(rest.c_str(), "%d %d %d %d", &pw, &ph, &tw, &th) == 4) {
+                g_doc->pClass->setClientZoom(g_doc, pw, ph, tw, th);
+                sendJson("{\"id\":" + std::to_string(id) + ",\"ok\":true}");
+            } else sendJson("{\"id\":" + std::to_string(id) + ",\"ok\":false,\"err\":\"bad clientzoom args or no document\"}");
+        } else if (cmd == "visarea") {
+            // "visarea <x> <y> <w> <h>" in twips — the part of the document the client shows.
+            int x, y, w, h;
+            if (g_doc && sscanf(rest.c_str(), "%d %d %d %d", &x, &y, &w, &h) == 4) {
+                g_doc->pClass->setClientVisibleArea(g_doc, x, y, w, h);
+                sendJson("{\"id\":" + std::to_string(id) + ",\"ok\":true}");
+            } else sendJson("{\"id\":" + std::to_string(id) + ",\"ok\":false,\"err\":\"bad visarea args or no document\"}");
         } else if (cmd == "setpart") {
             int n;
             if (sscanf(rest.c_str(), "%d", &n) == 1) cmdSetPart(id, n);

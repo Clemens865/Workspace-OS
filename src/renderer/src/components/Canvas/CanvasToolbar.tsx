@@ -5,6 +5,8 @@ import { ActionMenu } from './ActionMenu'
 import { actionsFor } from '../../lib/fileActions'
 import { categoryOf, PRINTABLE } from '../../lib/fileCategory'
 import styles from './CanvasToolbar.module.css'
+import { segments as pathSegments, sepOf } from '../../lib/paths'
+import { keysIn } from '../../lib/platform'
 
 interface CanvasToolbarProps {
   filePath: string
@@ -23,12 +25,15 @@ interface CanvasToolbarProps {
  */
 export function CanvasToolbar({ filePath, isDirty, isStarred, onToggleStar, onRefresh, onCloseFile, onSave }: CanvasToolbarProps): JSX.Element {
   const [menuOpen, setMenuOpen] = useState(false)
-  const segments = filePath.split('/').filter(Boolean)
+  const segments = pathSegments(filePath)
   const fileName = segments[segments.length - 1] ?? ''
   const trailStart = Math.max(0, segments.length - 3)
   const trail = segments.slice(trailStart, segments.length - 1)
   // Full path of the folder crumb at display index i (for click-to-reveal).
-  const crumbPath = (i: number): string => '/' + segments.slice(0, trailStart + i + 1).join('/')
+  const crumbPath = (i: number): string => {
+    const parts = segments.slice(0, trailStart + i + 1)
+    return sepOf(filePath) === '\\' ? parts.join('\\') : '/' + parts.join('/')
+  }
   const revealFolder = (i: number): void => {
     window.dispatchEvent(new CustomEvent('wos:reveal-path', { detail: crumbPath(i) }))
   }
@@ -76,7 +81,7 @@ export function CanvasToolbar({ filePath, isDirty, isStarred, onToggleStar, onRe
         {onSave && (
           <button
             className={styles.saveBtn}
-            title="Save (⌘S)"
+            title={keysIn('Save (⌘S)')}
             disabled={!isDirty}
             onClick={onSave}
           >

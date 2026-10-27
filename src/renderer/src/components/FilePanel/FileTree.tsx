@@ -6,6 +6,7 @@ import { ContextMenu } from './ContextMenu'
 import { NewCaseDialog } from '../CalmCockpit/NewCaseDialog'
 import { NameDialog } from './NameDialog'
 import styles from './FileTree.module.css'
+import { basename as pathBase, dirname } from '../../lib/paths'
 
 interface FileTreeProps {
   nodes: TreeNode[]
@@ -53,7 +54,7 @@ export function FileTree({ nodes, expandedPaths, onToggle, onFileOpen, onRefresh
     const trimmed = renameValue.trim()
     if (trimmed && trimmed !== node.name) {
       await window.workspace.fs.rename(node.path, trimmed)
-      const parent = node.path.substring(0, node.path.lastIndexOf('/'))
+      const parent = dirname(node.path)
       onRefresh(parent)
     }
     setRenamingPath(null)
@@ -66,7 +67,7 @@ export function FileTree({ nodes, expandedPaths, onToggle, onFileOpen, onRefresh
   const confirmDelete = useCallback(async (node: TreeNode) => {
     setDialog(null)
     await window.workspace.fs.delete(node.path)
-    const parent = node.path.substring(0, node.path.lastIndexOf('/'))
+    const parent = dirname(node.path)
     onRefresh(parent)
   }, [onRefresh])
 
@@ -205,7 +206,7 @@ export function FileTree({ nodes, expandedPaths, onToggle, onFileOpen, onRefresh
 
       {startCaseFile && (
         <NewCaseDialog
-          initialTitle={(startCaseFile.split('/').pop() ?? '').replace(/\.[^.]+$/, '')}
+          initialTitle={(pathBase(startCaseFile) ?? '').replace(/\.[^.]+$/, '')}
           attachFile={startCaseFile}
           onClose={() => setStartCaseFile(null)}
           onCreated={() => setStartCaseFile(null)}

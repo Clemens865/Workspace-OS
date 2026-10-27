@@ -6,6 +6,7 @@ import { useGlass } from '../backdrop/useBackdrop'
 import { toast } from '../toastStore'
 import { AppHost } from './AppHost'
 import styles from './AppsView.module.css'
+import { FILE_MANAGER } from '../../../lib/platform'
 
 const when = (t: number): string => {
   if (!t) return ''
@@ -151,7 +152,7 @@ export function AppsView({ onBuild, initialApp = null }: Props): JSX.Element {
               <button type="button" className={styles.ghost} onClick={() => void exportApp(open)} title="Save it as a file to share (without its data)" data-testid="apps-export">
                 <Upload size={14} /> Export
               </button>
-              <button type="button" className={styles.ghost} onClick={() => void window.workspace.apps.reveal(open)} title="Show its folder in Finder">
+              <button type="button" className={styles.ghost} onClick={() => void window.workspace.apps.reveal(open)} title={`Show its folder in ${FILE_MANAGER}`}>
                 <FolderOpen size={14} />
               </button>
             </div>

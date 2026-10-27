@@ -118,7 +118,7 @@ function runOneShotAttempt(prompt: string, opts: OneShotOptions): Promise<string
         ...(opts.model ? ['--model', opts.model] : []),
         '-p',
       ],
-      { stdio: ['pipe', 'pipe', 'pipe'] },
+      { stdio: ['pipe', 'pipe', 'pipe'], windowsHide: true },
     )
 
     let out = ''

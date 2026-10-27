@@ -22,6 +22,7 @@ import { clampLevel, levelToPercent } from './zoom'
 import { saveSession, loadSession } from './session-restore'
 import { HistorySearch, type LibraryScope } from './HistorySearch'
 import { everyAction, isActionId, type ActionId } from './page-actions'
+import { keysIn } from '../../lib/platform'
 
 /** One hour in ms — the unit the Clear Browsing History ranges are built from. */
 const HOUR = 60 * 60 * 1000
@@ -1154,7 +1155,7 @@ export function BrowserSurface(): JSX.Element {
               type="button"
               className={styles.zoomBadge}
               onClick={() => applyZoom(0)}
-              title="Reset zoom (⌘0)"
+              title={keysIn('Reset zoom (⌘0)')}
             >
               {levelToPercent(zoomLevel)}%
             </button>
@@ -1184,7 +1185,7 @@ export function BrowserSurface(): JSX.Element {
               type="button"
               className={styles.assistantHide}
               onClick={() => setAssistantOpen(false)}
-              title="Hide the assistant (⌥⌘A)"
+              title={keysIn('Hide the assistant (⌥⌘A)')}
               aria-label="Hide the assistant"
             >
               <PanelRightClose size={15} strokeWidth={1.9} />
@@ -1199,7 +1200,7 @@ export function BrowserSurface(): JSX.Element {
           type="button"
           className={styles.assistantShow}
           onClick={() => setAssistantOpen(true)}
-          title="Show the assistant (⌥⌘A)"
+          title={keysIn('Show the assistant (⌥⌘A)')}
           aria-label="Show the assistant"
         >
           <Sparkles size={15} strokeWidth={1.9} />

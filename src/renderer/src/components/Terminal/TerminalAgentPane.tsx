@@ -5,6 +5,7 @@ import { PromptBar } from '../PromptBar/PromptBar'
 import { sessionStore } from '../../lib/sessions/sessionStore'
 import { useSessions } from '../Landscape/session/SessionPane'
 import styles from './TerminalDock.module.css'
+import { basename as pathBase } from '../../lib/paths'
 
 interface HarnessContext {
   root: string | null
@@ -57,7 +58,7 @@ export function TerminalAgentPane({ sessionId, context, agentName, onOpenFile }:
   const live = sessionStore.live(id)
   const busy = live.running
   const messages: Msg[] = (s?.messages ?? []).map((m) => ({ role: m.role, text: m.text }))
-  const files = (s?.files ?? []).slice(-6).map((p) => ({ name: p.split('/').pop() ?? p, path: p }))
+  const files = (s?.files ?? []).slice(-6).map((p) => ({ name: pathBase(p) ?? p, path: p }))
   // Discovered skills — the slash menu's commands.
   const [skills, setSkills] = useState<{ name: string; description: string }[]>([])
   useEffect(() => {

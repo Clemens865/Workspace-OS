@@ -132,7 +132,7 @@ function workspaceRoot() {
   if (!r) fail("no workspace open (WOS_WORKSPACE unset) \u2014 open a workspace in Workspace OS first.");
   return r;
 }
-var casesDir = () => import_path.default.join(workspaceRoot(), DIR);
+var casesDir = () => import_path.default.join(process.env["WOS_CONTENT_DIR"] || workspaceRoot(), DIR);
 var casePath = (id) => import_path.default.join(casesDir(), id + ".md");
 var nowIso = () => (/* @__PURE__ */ new Date()).toISOString();
 function loadCase(id) {

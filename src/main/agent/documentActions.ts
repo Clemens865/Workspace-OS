@@ -7,6 +7,7 @@ import { promisify } from 'util'
 import { getWorkspaceRoot } from '../workspace-root'
 import { validateFilePath } from '../ipc-validator'
 import { docgenBinDir } from '../docgen'
+import { cmdFileArgs } from '../platform-tools'
 import type { ActionReply } from './actionBridge'
 
 const exec = promisify(execFile)
@@ -43,7 +44,12 @@ export async function documentAction(action: string, raw: unknown): Promise<Acti
       const spec = path.join(temp, 'spec.json')
       const output = path.join(temp, `output.${format}`)
       await fs.writeFile(spec, JSON.stringify(input.spec), { mode: 0o600 })
-      await exec(path.join(docgenBinDir(), 'wos-gen'), [format, '--spec', spec, '--out', output], { cwd: root, timeout: 120000, maxBuffer: 1024 * 1024 })
+      const gen = path.join(docgenBinDir(), 'wos-gen')
+      const genArgs = [format, '--spec', spec, '--out', output]
+      const opts = { cwd: root, timeout: 120000, maxBuffer: 1024 * 1024, windowsHide: true }
+      // On Windows wos-gen is a .cmd (the extensionless file is the Git Bash shim).
+      if (process.platform === 'win32') await exec('cmd.exe', cmdFileArgs(`${gen}.cmd`, genArgs), { ...opts, windowsVerbatimArguments: true })
+      else await exec(gen, genArgs, opts)
       // No overwrite: the user can review the new artifact before replacing an original.
       validateFilePath(target, root)
       await fs.copyFile(output, target, constants.COPYFILE_EXCL)

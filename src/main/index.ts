@@ -1,4 +1,4 @@
-import { app, BrowserWindow, ipcMain } from 'electron'
+import { app, BrowserWindow, ipcMain, screen } from 'electron'
 import { join } from 'path'
 import { registerFsHandlers } from './handlers/fs'
 import { registerPrintHandlers } from './printing'
@@ -59,6 +59,10 @@ import { initUpdater, registerUpdaterHandlers } from './updater'
 import { ipcHandle, runAllCleanups } from './ipc-registry'
 import { IPC } from './ipc-channels'
 import { mainWindow, setMainWindow } from './main-window'
+import { hardwareAcceleration } from './host-profile'
+import { windowChrome } from './window-chrome'
+import { windowStyle } from './host-profile'
+import { registerWindowHandlers, setWindowFrameStyle } from './handlers/window'
 
 // electron-vite sets ELECTRON_RENDERER_URL only when the dev server is running.
 // Keying off it (not app.isPackaged) lets the built app load its bundled
@@ -73,6 +77,10 @@ const isDev = !!rendererUrl
 // standalone CLIs read the same variable (userdata-path.ts).
 if (process.env['WOS_USERDATA_DIR']) app.setPath('userData', process.env['WOS_USERDATA_DIR'])
 
+// WSLg presents a black window under GPU compositing; software compositing
+// works. Off only under WSL by default (host-profile.ts: WOS_GPU / `gpu`).
+if (!hardwareAcceleration()) app.disableHardwareAcceleration()
+
 // Only one instance may run — a second would fight over the named Docker
 // container and clobber shared workspace state.
 if (!app.requestSingleInstanceLock()) {
@@ -80,15 +88,19 @@ if (!app.requestSingleInstanceLock()) {
 }
 
 function createWindow(): BrowserWindow {
+  // macOS opens IN fullscreen — the splash + workspace are an immersive surface,
+  // and the green button still exits. Windows and Linux open maximised with the
+  // system title bar (./window-chrome.ts).
+  const chrome = windowChrome(process.platform, windowStyle())
+  setWindowFrameStyle(chrome.style)
   const win = new BrowserWindow({
     width: 1400,
     height: 900,
     minWidth: 800,
     minHeight: 600,
-    // The app opens IN fullscreen — the splash + workspace are an immersive
-    // surface, not a floating window. Esc / the green button still exits.
-    fullscreen: true,
-    titleBarStyle: 'hiddenInset',
+    ...chrome.options,
+    // Linux: shown once the page is ready (below).
+    ...(process.platform === 'linux' ? { show: false } : {}),
     webPreferences: {
       preload: join(__dirname, '../preload/index.cjs'),
       // Security: renderer has no Node access; all Node calls go through validated IPC
@@ -104,6 +116,30 @@ function createWindow(): BrowserWindow {
       experimentalFeatures: false,
     },
   })
+
+  // WOS_WINDOW_MODE=fullscreen (Windows and Linux) opens full screen instead, as
+  // before 0.2.26's window change; for a desktop where the window stays empty.
+  const fullscreen = process.platform !== 'darwin' && process.env['WOS_WINDOW_MODE'] === 'fullscreen'
+  if (process.platform === 'linux') {
+    // A Linux compositor (WSLg's Weston among them) may ignore a maximise sent
+    // before the window is set up, and can leave a window that never paints.
+    // Show it once the page has painted, sized to the screen's work area.
+    let shown = false
+    const reveal = (): void => {
+      if (shown || win.isDestroyed()) return
+      shown = true
+      if (fullscreen) win.setFullScreen(true)
+      else {
+        win.setBounds(screen.getDisplayMatching(win.getBounds()).workArea)
+        if (chrome.maximize) win.maximize()
+      }
+      win.show()
+    }
+    win.once('ready-to-show', reveal)
+    // Never leave the window hidden if the page is slow to paint.
+    setTimeout(reveal, 10_000)
+  } else if (fullscreen) win.setFullScreen(true)
+  else if (chrome.maximize) win.maximize()
 
   // Navigation, new-window, and webview hardening (see security.ts).
   hardenWindow(win)
@@ -258,10 +294,14 @@ app.whenReady().then(() => {
     resolveActionResult(p.reqId, p.ok, p.error, p.result)
   })
 
-  // Window control handlers
-  ipcHandle(ipcMain, IPC.WINDOW_MINIMIZE, () => win.minimize())
-  ipcHandle(ipcMain, IPC.WINDOW_MAXIMIZE, () => (win.isMaximized() ? win.unmaximize() : win.maximize()))
+  // Window control handlers (the live window, not the first one: macOS can recreate it).
+  ipcHandle(ipcMain, IPC.WINDOW_MINIMIZE, () => mainWindow()?.minimize())
+  ipcHandle(ipcMain, IPC.WINDOW_MAXIMIZE, () => {
+    const w = mainWindow()
+    if (w) (w.isMaximized() ? w.unmaximize() : w.maximize())
+  })
   ipcHandle(ipcMain, IPC.WINDOW_CLOSE, () => mainWindow()?.close())
+  registerWindowHandlers(ipcMain)
 
   app.on('activate', () => {
     if (BrowserWindow.getAllWindows().length === 0) createWindow()
@@ -280,7 +320,7 @@ app.on('before-quit', async (event) => {
     shutdownAgents()
     stopRoutines()
     shutdownRunQueue()
-    stopActionBridge()
+    void stopActionBridge() // not awaited: close() waits for connected clients
     await shutdownSearch()
     shutdownHistory()
     await runAllCleanups()

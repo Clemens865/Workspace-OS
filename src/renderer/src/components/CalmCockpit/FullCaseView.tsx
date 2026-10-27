@@ -7,6 +7,7 @@ import { CaseAgentActivity } from './CaseAgentActivity'
 import { PromptBar } from '../PromptBar/PromptBar'
 import { ApprovalCard } from '../ApprovalCard/ApprovalCard'
 import styles from './FullCaseView.module.css'
+import { basename as pathBase } from '../../lib/paths'
 
 /**
  * The case, full screen — a place you work, not a card you glance at.
@@ -160,7 +161,7 @@ export function FullCaseView({
                   <button key={p} className={styles.art} onClick={() => void openArtifact(p)} title={p}>
                     <div className={styles.thumb}><ArtThumb path={p} /></div>
                     <div className={styles.artMeta}>
-                      <div className={styles.nm}>{p.split('/').pop()}</div>
+                      <div className={styles.nm}>{pathBase(p)}</div>
                       <div className={styles.ty}>{(p.split('.').pop() || 'file').toLowerCase()}</div>
                     </div>
                   </button>

@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { bytesToBlob } from '../../../lib/bytesToBlob'
 import styles from './MediaRenderer.module.css'
+import { basename as pathBase } from '../../../lib/paths'
 
 interface MediaRendererProps {
   filePath: string
@@ -40,7 +41,7 @@ export function MediaRenderer({ filePath, type }: MediaRendererProps): JSX.Eleme
         <video className={styles.video} src={src} controls autoPlay={false} />
       ) : (
         <div className={styles.audioWrap}>
-          <div className={styles.audioLabel}>{filePath.split('/').pop()}</div>
+          <div className={styles.audioLabel}>{pathBase(filePath)}</div>
           <audio className={styles.audio} src={src} controls />
         </div>
       )}

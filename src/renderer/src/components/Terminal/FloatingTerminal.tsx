@@ -3,6 +3,7 @@ import { ChevronDown, ChevronUp, PanelBottom, PanelRight, SquareTerminal, X } fr
 import { BackdropContext, useGlass } from '../Landscape/backdrop/useBackdrop'
 import { moveRect, resizeRect, snapZone, type Handle, type Rect } from './floatModel'
 import styles from './FloatingTerminal.module.css'
+import { keysIn } from '../../lib/platform'
 
 const HANDLES: Handle[] = ['n', 's', 'e', 'w', 'ne', 'nw', 'se', 'sw']
 
@@ -98,7 +99,7 @@ export function FloatingTerminal({ rect, minimized, onRect, onDock, onMinimize, 
           <button type="button" className={styles.btn} onClick={() => onDock('bottom')} title="Dock at the bottom" aria-label="Dock at the bottom" data-testid="terminal-dock-bottom">
             <PanelBottom size={14} />
           </button>
-          <button type="button" className={styles.btn} onClick={onClose} title="Hide (⌘J)" aria-label="Hide the terminal">
+          <button type="button" className={styles.btn} onClick={onClose} title={keysIn('Hide (⌘J)')} aria-label="Hide the terminal">
             <X size={14} />
           </button>
         </div>

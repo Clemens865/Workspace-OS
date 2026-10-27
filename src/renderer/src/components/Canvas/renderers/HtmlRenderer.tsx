@@ -4,6 +4,7 @@ import { useFilePrint } from '../../../hooks/useFilePrint'
 import { useWorkspaceRoot } from '../../../hooks/useWorkspaceRoot'
 import { printTextDocument } from '../../../lib/printDocument'
 import styles from './HtmlRenderer.module.css'
+import { isInside, relPath } from '../../../lib/paths'
 
 interface HtmlRendererProps {
   filePath: string
@@ -17,9 +18,8 @@ export function HtmlRenderer({ filePath, onDirty }: HtmlRendererProps): JSX.Elem
   const [html, setHtml] = useState<string | null>(null)
   const [error, setError] = useState<string | null>(null)
   const root = useWorkspaceRoot()
-  const base = root?.replace(/\/+$/, '')
   const [loads, setLoads] = useState(0)
-  const pageSrc = base && filePath.startsWith(base + '/') ? `wos-app://file/?path=${encodeURIComponent(filePath.slice(base.length + 1))}&v=${loads}` : null
+  const pageSrc = root && isInside(root, filePath) ? `wos-app://file/?path=${encodeURIComponent(relPath(filePath, root))}&v=${loads}` : null
 
   useFilePrint(filePath, view === 'preview' ? async () => {
     if (html === null || error) throw new Error(error || 'The document is still loading')

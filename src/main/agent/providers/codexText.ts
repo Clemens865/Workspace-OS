@@ -37,7 +37,7 @@ export async function runCodexText(opts: CodexTextOptions): Promise<ClaudeRunRes
     const env = { ...process.env }
     delete env.WOS_AGENT_TOKEN
     delete env.WOS_AGENT_SOCK
-    try { child = spawn(resolveCodexBinary(), args, { cwd: opts.cwd ?? dir, env, stdio: ['pipe', 'ignore', 'pipe'] }) }
+    try { child = spawn(resolveCodexBinary(), args, { cwd: opts.cwd ?? dir, env, stdio: ['pipe', 'ignore', 'pipe'], windowsHide: true }) }
     catch (err) { fs.rmSync(dir, { recursive: true, force: true }); reject(err); return }
     let failure: Error | undefined
     // Drain diagnostics without mixing them into structured mail/Foundry output.

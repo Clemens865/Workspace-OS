@@ -10,6 +10,7 @@ import { dataAction } from './dataActions'
 import { documentAction } from './documentActions'
 import { allows, grants, type Grant } from './grants'
 import { runAppAction } from '../apps/app-actions'
+import { createHash } from 'crypto'
 
 /**
  * AGENT→ACTION bridge (main side).
@@ -68,6 +69,12 @@ export const AGENT_SOCK_ENV = 'WOS_AGENT_SOCK'
 
 /** The absolute path of the bridge socket ({userData}/wos-agent.sock). */
 export function agentSockPath(): string {
+  // Windows has no Unix sockets in a folder; Node's net uses a named pipe instead,
+  // one per userData directory so two profiles never share a bridge.
+  if (process.platform === 'win32') {
+    const id = createHash('sha1').update(app.getPath('userData')).digest('hex').slice(0, 12)
+    return `\\\\.\\pipe\\wos-agent-${id}`
+  }
   return path.join(app.getPath('userData'), 'wos-agent.sock')
 }
 
@@ -251,15 +258,21 @@ export function startActionBridge(): void {
   server = srv
 }
 
-/** Stop the server and unlink the socket (called on quit). */
-export function stopActionBridge(): void {
+/**
+ * Stop the server and unlink the socket (called on quit). Resolves once the
+ * server has closed: a Windows named pipe stays taken until then, so a restart
+ * must wait for it.
+ */
+export function stopActionBridge(): Promise<void> {
   for (const [reqId, done] of pending) {
     done({ ok: false, error: 'shutting down' })
     pending.delete(reqId)
   }
-  if (server) {
-    try { server.close() } catch { /* ignore */ }
-    server = null
-  }
+  const closing = server
+  server = null
   try { fs.unlinkSync(agentSockPath()) } catch { /* already gone */ }
+  if (!closing) return Promise.resolve()
+  return new Promise((resolve) => {
+    try { closing.close(() => resolve()) } catch { resolve() }
+  })
 }

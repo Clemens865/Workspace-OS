@@ -3,6 +3,7 @@ import { AlignCenter, AlignCenterHorizontal, AlignEndHorizontal, AlignHorizontal
 import { perfBump } from './perfCount'
 import { ANIMATION_PRESETS, NODE_TYPES, TRANSITIONS, TRANSITION_DURATIONS, transitionOf, type AnimEffect, type SlideTransition } from './animationModel'
 import styles from './Ribbon.module.css'
+import { keysIn } from '../../../lib/platform'
 
 /** Export formats offered per document type: [format, label]. */
 const EXPORTS: Record<number, [string, string][]> = {
@@ -229,7 +230,7 @@ export const Ribbon = memo(function Ribbon(props: RibbonProps): JSX.Element {
               </>
             )}
           </div>
-          <button className={styles.save} onClick={onSave} disabled={saving || !dirty} title="Save (⌘S)">
+          <button className={styles.save} onClick={onSave} disabled={saving || !dirty} title={keysIn('Save (⌘S)')}>
             <Save size={13} strokeWidth={2} /> {saving ? 'Saving…' : dirty ? 'Save' : 'Saved'}
           </button>
           <div className={styles.zoom}>
@@ -336,8 +337,8 @@ export const Ribbon = memo(function Ribbon(props: RibbonProps): JSX.Element {
                 <button className={styles.btn} title="Insert columns" onClick={() => onUno('.uno:InsertColumns')}><Columns3 size={15} strokeWidth={2.2} /> <Plus size={10} /></button>
                 <button className={styles.btn} title="Delete rows" onClick={() => onUno('.uno:DeleteRows')}><Rows3 size={15} strokeWidth={2.2} /> −</button>
                 <button className={styles.btn} title="Delete columns" onClick={() => onUno('.uno:DeleteColumns')}><Columns3 size={15} strokeWidth={2.2} /> −</button>
-                <button className={styles.btn} title="Fill down (⌘D)" onClick={() => onUno('.uno:FillDown')}><ArrowDownToLine size={15} strokeWidth={2.2} /></button>
-                <button className={styles.btn} title="Fill right (⌘R)" onClick={() => onUno('.uno:FillRight')}><ArrowRightToLine size={15} strokeWidth={2.2} /></button>
+                <button className={styles.btn} title={keysIn('Fill down (⌘D)')} onClick={() => onUno('.uno:FillDown')}><ArrowDownToLine size={15} strokeWidth={2.2} /></button>
+                <button className={styles.btn} title={keysIn('Fill right (⌘R)')} onClick={() => onUno('.uno:FillRight')}><ArrowRightToLine size={15} strokeWidth={2.2} /></button>
                 <button className={styles.btn} title="Hide rows" onClick={() => onUno('.uno:HideRow')}><EyeOff size={15} strokeWidth={2.2} /></button>
                 <button className={styles.btn} title="Show rows" onClick={() => onUno('.uno:ShowRow')}><Eye size={15} strokeWidth={2.2} /></button>
                 <button className={styles.btn} title="Optimal column width" onClick={() => onUno('.uno:SetOptimalColumnWidth')}><MoveHorizontal size={15} strokeWidth={2.2} /></button>
@@ -377,8 +378,8 @@ export const Ribbon = memo(function Ribbon(props: RibbonProps): JSX.Element {
             </>
           )}
           <Group label="Undo">
-            <button className={styles.btn} title="Undo (⌘Z)" onClick={() => onUno('.uno:Undo')}><Undo2 size={15} strokeWidth={2.2} /></button>
-            <button className={styles.btn} title="Redo (⇧⌘Z)" onClick={() => onUno('.uno:Redo')}><Redo2 size={15} strokeWidth={2.2} /></button>
+            <button className={styles.btn} title={keysIn('Undo (⌘Z)')} onClick={() => onUno('.uno:Undo')}><Undo2 size={15} strokeWidth={2.2} /></button>
+            <button className={styles.btn} title={keysIn('Redo (⇧⌘Z)')} onClick={() => onUno('.uno:Redo')}><Redo2 size={15} strokeWidth={2.2} /></button>
           </Group>
         </div>
       )}
@@ -880,7 +881,7 @@ export const Ribbon = memo(function Ribbon(props: RibbonProps): JSX.Element {
           </Group>
           <Group label="Calculation">
             <button className={styles.wideBtn} title="Recalculate (F9)" onClick={() => onUno('.uno:Calculate')}><RefreshCw size={14} strokeWidth={2} /> Recalculate</button>
-            <button className={styles.wideBtn} title="Recalculate hard (⇧⌘F9)" onClick={() => onUno('.uno:CalculateHard')}><RefreshCw size={14} strokeWidth={2} /> Hard</button>
+            <button className={styles.wideBtn} title={keysIn('Recalculate hard (⇧⌘F9)')} onClick={() => onUno('.uno:CalculateHard')}><RefreshCw size={14} strokeWidth={2} /> Hard</button>
             <button className={on('.uno:AutomaticCalculation')} title="AutoCalculate" onClick={() => onUno('.uno:AutomaticCalculation')}><Sparkles size={15} strokeWidth={2} /></button>
             <button className={styles.wideBtn} title="Formula to value" onClick={() => onUno('.uno:ConvertFormulaToValue')}><Hash size={14} strokeWidth={2} /> To value</button>
             <button className={on('.uno:ToggleFormula')} data-testid="show-formulas" title="Show formulas instead of results" onClick={() => onUno('.uno:ToggleFormula')}><Eye size={15} strokeWidth={2} /></button>

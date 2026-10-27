@@ -89,7 +89,7 @@ export function runClaudeJson(opts: {
   ]
 
   return new Promise<ClaudeRunResult>((resolve) => {
-    const child = spawn(binary, args, { cwd, stdio: ['pipe', 'pipe', 'pipe'] })
+    const child = spawn(binary, args, { cwd, stdio: ['pipe', 'pipe', 'pipe'], windowsHide: true })
 
     let deltas = ''
     let finalResult = ''

@@ -13,6 +13,7 @@ import {
   requestCloseTab,
   requestActivateTab,
 } from '../Browser/browserTabCommands'
+import { basename as pathBase } from '../../lib/paths'
 
 /**
  * PER-SURFACE ACTION TOOLSETS — a data-driven map of `surface → Action[]`.
@@ -73,7 +74,7 @@ export interface SurfaceAction {
 /** The pseudo-surface used when a document is open (openFile present). */
 export const DOCUMENT_SURFACE = 'document'
 
-const basename = (p: string): string => p.split('/').pop() ?? p
+const basename = (p: string): string => pathBase(p) ?? p
 
 /** True when the open file is an office type the doc engine can export/convert. */
 export function isOfficeFile(openFile: string | null): boolean {
@@ -405,9 +406,8 @@ const BROWSER_ACTIONS: SurfaceAction[] = [
       const root = ctx.root
       if (!root) return { error: 'No workspace is open, so there is nowhere to put the page.' }
 
-      // Alongside agent-context.json, which is already the place this app
-      // leaves things for agents to read.
-      const dest = `${root}/.workspace-os/current-page.md`
+      // Alongside agent-context.json, in the workspace store — which is
+      // .workspace-os/ in the folder, or outside it (host-profile.ts).
       const body = [
         `# ${cur.title || cur.url}`,
         '',
@@ -419,19 +419,19 @@ const BROWSER_ACTIONS: SurfaceAction[] = [
         text || '(the page had no readable text)',
         '',
       ].join('\n')
-      await window.workspace.fs.writeFile(dest, body)
+      const note = await window.workspace.fs.writeAgentNote('current-page.md', body)
 
       return {
-        path: dest,
+        path: note.path,
         url: cur.url,
         title: cur.title ?? '',
         // The dock types this into the active shell. NOT submitted — the user
         // presses Enter, so a button never puts words in their session.
-        insert: `Read .workspace-os/current-page.md — it's the page I'm looking at (${cur.url})`,
+        insert: `Read ${note.ref} — it's the page I'm looking at (${cur.url})`,
       }
     },
     agentHint:
-      'capture the page the user is looking at to .workspace-os/current-page.md and return its path — use this when asked about "this page" or "what I am looking at"',
+      'capture the page the user is looking at to current-page.md in the workspace store and return its path — use this when asked about "this page" or "what I am looking at"',
   },
   {
     id: 'browser.extract',

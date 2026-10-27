@@ -6,6 +6,7 @@ import type { SessionStatus } from './useAgentSession'
 import { loadSettings } from '../../hooks/useSettings'
 import { FLEET_LAUNCH_EVENT, type FleetLaunchDetail } from '../Review/useFleetLaunch'
 import styles from './AgentTerminal.module.css'
+import { basename as pathBase } from '../../lib/paths'
 
 interface AgentTerminalProps {
   focused: boolean
@@ -176,7 +177,7 @@ export function AgentTerminal({ focused, onBlur, activeFile, onWorkspaceChanged,
             <span className={styles.menuIcon}>✦</span> Agent
           </button>
           <span className={styles.hint}>
-            {activeFile ? activeFile.split('/').pop() : 'no file'} in context
+            {activeFile ? pathBase(activeFile) : 'no file'} in context
           </span>
         </div>
       </div>

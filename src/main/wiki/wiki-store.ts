@@ -1,3 +1,5 @@
+import { contentRoot } from '../host-profile'
+import { appStateDir } from '../host-profile'
 import fs from 'fs'
 import path from 'path'
 import { randomUUID } from 'crypto'
@@ -37,8 +39,8 @@ interface WikiState {
   changes: WikiChange[]
 }
 
-const stateFile = (root: string): string => path.join(root, '.workspace-os', 'wiki.json')
-export const wikiDir = (root: string): string => path.join(root, WIKI_DIR)
+const stateFile = (root: string): string => path.join(appStateDir(root), 'wiki.json')
+export const wikiDir = (root: string): string => path.join(contentRoot(root), WIKI_DIR)
 
 function readState(root: string): WikiState {
   try {

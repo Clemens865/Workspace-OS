@@ -1,5 +1,5 @@
 import { app } from 'electron'
-import { spawn, ChildProcess, execFileSync } from 'child_process'
+import { spawn, ChildProcess } from 'child_process'
 import fs from 'fs'
 import path from 'path'
 import os from 'os'
@@ -37,7 +37,10 @@ import { endAppSession } from '../apps/app-actions'
 import { grants, AGENT_TOKEN_ENV } from './grants'
 import { claudeSettings } from './claudeSettings'
 import { ClaudeFailureTracker } from './claudeFailure'
+import { agentHooksArgs, agentHooksMode, appStateDir, contentRoot, contentRootLine, stateIsExternal } from '../host-profile'
+import { appsRel } from '../apps/apps-store'
 import { documentOutputGuidance, type AgentRunFailure } from '../../shared/agentRun'
+import { envWithPath, findTool } from '../platform-tools'
 
 /**
  * ONE way to launch a `claude -p` run, whoever asks for it.
@@ -107,27 +110,20 @@ export { isValidModelAlias, modelArgs } from './modelPick'
 
 let cachedBinary: string | null = null
 
+/** Run output when Git is missing, so the absent revert checkpoint is not a surprise. */
+export function missingGitWarning(platform: NodeJS.Platform): string {
+  const install = platform === 'win32' ? 'winget install --id Git.Git --exact' : platform === 'darwin' ? 'xcode-select --install' : 'your package manager'
+  return `[warning] Git was not found, so this run has no revert checkpoint. Install it with ${install}.\n`
+}
+
 export function resolveClaudeBinary(): string {
   if (cachedBinary) return cachedBinary
-  const candidates = [
-    process.env['CLAUDE_BIN'],
-    path.join(os.homedir(), '.local', 'bin', 'claude'),
-    '/usr/local/bin/claude',
-    '/opt/homebrew/bin/claude',
-  ].filter(Boolean) as string[]
-
-  for (const c of candidates) {
-    if (fs.existsSync(c)) { cachedBinary = c; return c }
-  }
-  // Last resort: ask the user's login shell where claude lives.
-  try {
-    const found = execFileSync(process.env['SHELL'] ?? '/bin/zsh', ['-lc', 'command -v claude'], {
-      encoding: 'utf-8',
-    }).trim()
-    if (found) { cachedBinary = found; return found }
-  } catch {
-    // fall through
-  }
+  // CLAUDE_BIN, then the usual install locations, then the login shell (Windows: where.exe).
+  const found = findTool('claude', 'CLAUDE_BIN', {
+    posixCandidates: [path.join(os.homedir(), '.local', 'bin', 'claude'), '/usr/local/bin/claude', '/opt/homebrew/bin/claude'],
+    shellFallback: true,
+  })
+  if (found) { cachedBinary = found; return found }
   throw new Error('Claude CLI not found. Install Claude Code and ensure it is on your PATH.')
 }
 
@@ -169,13 +165,17 @@ export async function launchRun(o: LaunchRunOptions): Promise<{ child: ChildProc
     // Snapshot the workspace BEFORE the agent can write — the claude subprocess
     // bypasses the IPC trash layer, so this checkpoint is its safety net.
     let checkpointId: string | null = null
-    if (getWorkspaceRoot() && (await checkpoints.isGitAvailable())) {
-      try {
-        const cp = await checkpoints.createCheckpoint(`agent: ${prompt.slice(0, 60)}`)
-        checkpointId = cp.id
-      } catch {
-        // A failed checkpoint must not silently drop the safety net.
-        sink.output('[warning] could not create a revert checkpoint\n')
+    if (getWorkspaceRoot() && checkpoints.enabled()) {
+      if (!(await checkpoints.isGitAvailable())) {
+        sink.output(missingGitWarning(process.platform))
+      } else {
+        try {
+          const cp = await checkpoints.createCheckpoint(`agent: ${prompt.slice(0, 60)}`)
+          checkpointId = cp.id
+        } catch {
+          // A failed checkpoint must not silently drop the safety net.
+          sink.output('[warning] could not create a revert checkpoint\n')
+        }
       }
     }
 
@@ -188,8 +188,7 @@ export async function launchRun(o: LaunchRunOptions): Promise<{ child: ChildProc
     // for installed Python skills) and the `wos-gen` shim to the agent's PATH.
     if (provider === 'codex') o.signal?.throwIfAborted()
     const childEnv: Record<string, string> = {
-      ...process.env,
-      PATH: `${docgenVenvBinDir()}:${docgenBinDir()}:${process.env['PATH'] ?? ''}`,
+      ...envWithPath(process.env, [docgenVenvBinDir(), docgenBinDir(), process.env['PATH'] ?? ''].join(path.delimiter)),
       // AGENT→ACTION bridge: the `wos-action` CLI (on the PATH above) reaches the
       // app over this local unix socket to EXECUTE non-destructive surface
       // actions. Absent-socket is safe — the CLI just errors, the agent runs on.
@@ -203,6 +202,11 @@ export async function launchRun(o: LaunchRunOptions): Promise<{ child: ChildProc
     // any script the agent writes) needs it to find Cases/ and Work/.
     const wsRoot = getWorkspaceRoot()
     if (wsRoot) childEnv['WOS_WORKSPACE'] = wsRoot
+    // Where this workspace's .workspace-os store lives (outside the folder for a
+    // Windows-drive workspace under WSL — host-profile.ts).
+    if (wsRoot) childEnv['WOS_STATE_DIR'] = appStateDir(wsRoot)
+    // Where Cases/, Work/, Wiki/ and Apps/ live (the workspace root unless configured).
+    if (wsRoot) childEnv['WOS_CONTENT_DIR'] = contentRoot(wsRoot)
 
     // MCP connectors: for every enabled connector whose secret(s) are present,
     // decrypt them into childEnv, add `--mcp-config <path> --strict-mcp-config`,
@@ -287,21 +291,32 @@ export async function launchRun(o: LaunchRunOptions): Promise<{ child: ChildProc
       mcpArgs = []
       for (const key of injectedSecretKeys) delete childEnv[key]
     }
-    const permArgs = appSlug ? appBuilderArgs(appSlug) : permissionArgs(safeMode || chat ? 'safe' : 'full', mcpAllowTools, { inAppBrowserOnly, webInSafe: chat })
+    const permArgs = appSlug ? appBuilderArgs(appSlug, appsRel(cwd)) : permissionArgs(safeMode || chat ? 'safe' : 'full', mcpAllowTools, { inAppBrowserOnly, webInSafe: chat })
 
     // First turn establishes the system context (persona + IWE grounding). On a
     // resumed turn the conversation already carries it, so re-appending would
     // bloat it — pass --resume instead and skip the system prompt.
     const continuityArgs = resumeId
       ? ['--resume', resumeId]
-      : ['--append-system-prompt', appSlug ? buildAppBuilderPrompt(appSlug, cwd) : chat ? buildChatSystemPrompt(cwd, memoryBlock) : buildSystemPrompt(cwd, openFile, agent?.persona, agent?.capabilities, safeMode, memoryBlock)]
+      : ['--append-system-prompt', appSlug ? buildAppBuilderPrompt(appSlug, cwd, appsRel(cwd)) : chat ? buildChatSystemPrompt(cwd, memoryBlock) : buildSystemPrompt(cwd, openFile, agent?.persona, agent?.capabilities, safeMode, memoryBlock)]
 
     // On a resumed turn the system prompt (with the original open file) isn't
     // re-sent; nudge the agent with the *current* open file so it stays accurate.
     const turnPrompt = resumeId && openFile ? `(The document now open in the editor is: ${openFile})\n\n${fullPrompt}` : fullPrompt
 
+    // An external store sits outside cwd; grant it so the agent can read
+    // uploads, agent-context.json and the captured page.
+    const stateDirArgs = wsRoot && stateIsExternal(wsRoot) ? ['--add-dir', appStateDir(wsRoot)] : []
+
+    // Hooks stay off unless this workspace opts in (host-profile.ts agentHooks).
+    // The app builder runs with no setting sources at all, so it keeps them off.
+    const hooksMode = appSlug ? 'off' : agentHooksMode(wsRoot)
+    const hooksArgs = agentHooksArgs(hooksMode, mcpArgs.includes('--strict-mcp-config'))
+
     const claudeArgs = [
-      '--settings', claudeSettings(),
+      '--settings', claudeSettings(hooksMode === 'off'),
+      ...hooksArgs,
+      ...stateDirArgs,
       '--output-format', 'stream-json',
       '--include-partial-messages',
       '--verbose',
@@ -320,7 +335,7 @@ export async function launchRun(o: LaunchRunOptions): Promise<{ child: ChildProc
         // stdin is 'pipe' (not 'ignore'): a Finder-launched packaged app can
         // have an invalid parent fd 0, and 'ignore' on stdin then fails with
         // EBADF. The prompt is written to stdin below, then stdin is closed.
-        { cwd, env: childEnv, stdio: ['pipe', 'pipe', 'pipe'] }
+        { cwd, env: childEnv, stdio: ['pipe', 'pipe', 'pipe'], windowsHide: true }
       )
     } catch (err) {
       const msg = (err as Error).message
@@ -500,6 +515,8 @@ function buildSystemPrompt(
     `The open workspace folder is: ${workspaceRoot}`,
   )
   if (activeFile) lines.push(`The document currently open in the editor is: ${activeFile}`)
+  const contentLine = contentRootLine(workspaceRoot)
+  if (contentLine) lines.push(contentLine)
   lines.push(
     'You can read and cross-reference any file in the workspace.',
     'To create a presentation, spreadsheet, or document, use the office-docgen skill: write a JSON spec, then run `wos-gen <pptx|xlsx|docx> --spec <spec.json> --out "<workspace>/<Name>.<ext>"`. It is on your PATH. Produce a real file — never paste document contents into chat.',

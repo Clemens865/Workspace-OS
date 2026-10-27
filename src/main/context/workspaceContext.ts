@@ -1,3 +1,4 @@
+import { appStateDir, contentRoot } from '../host-profile'
 import fs from 'fs'
 import path from 'path'
 import { getWorkspaceRoot } from '../workspace-root'
@@ -109,6 +110,8 @@ export function getContextEnv(): Record<string, string> {
   const root = context.root ?? getWorkspaceRoot() ?? ''
   return {
     WOS_WORKSPACE: root,
+    // Where Cases/, Work/, Wiki/ and Apps/ live (host-profile.ts contentRoot).
+    WOS_CONTENT_DIR: root ? contentRoot(root) : '',
     WOS_SURFACE: context.surface ?? '',
     // `||`, not `??`: an empty folder string is "no folder", and a shell spawned
     // with cwd '' lands in `/` instead of the workspace.
@@ -167,7 +170,7 @@ function writeContextFile(): void {
   const root = context.root ?? getWorkspaceRoot()
   if (!root) return
   try {
-    const dir = path.join(root, '.workspace-os')
+    const dir = appStateDir(root)
     fs.mkdirSync(dir, { recursive: true })
     fs.writeFileSync(
       path.join(dir, 'agent-context.json'),

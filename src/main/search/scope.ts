@@ -1,3 +1,4 @@
+import { contentRel } from '../host-profile'
 /**
  * The search index is one database for every workspace ever opened
  * (userData/search-index.db), so its answers must be cut down to the open
@@ -48,7 +49,8 @@ export function scopeGraph(g: Graph, root: string | null): Graph {
   if (!root) return { ...g, nodes: [], edges: [] }
   // An app's own files (Apps/<app>/…: its skill texts, licences) and the app's working folder are not notes.
   const base = root.replace(/[/\\]+$/, '')
-  const owned = (p: string): boolean => p.startsWith(`${base}/Apps/`) || p.startsWith(`${base}/.workspace-os/`)
+  const apps = contentRel(base, 'Apps')
+  const owned = (p: string): boolean => p.startsWith(`${base}/${apps}/`) || p.startsWith(`${base}/.workspace-os/`)
   const notes = new Set(g.nodes.filter((n) => n.kind === 'note' && inRoot(n.id, root) && !owned(n.id)).map((n) => n.id))
   const edges = g.edges.filter((e) => notes.has(e.source) && (notes.has(e.target) || e.target.startsWith('stub:')))
   const stubs = new Set(edges.filter((e) => e.target.startsWith('stub:')).map((e) => e.target))

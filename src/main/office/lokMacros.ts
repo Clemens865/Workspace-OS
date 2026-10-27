@@ -1,6 +1,7 @@
 import fs from 'fs'
 import path from 'path'
 import { assertBasicModuleValid } from './validateBasicModule'
+import { lokProfileDir, macroModuleForPlatform } from './lokTemp'
 
 /**
  * Engine profile + model-API macro seeding for the LOK sidecar. Split out of
@@ -9,7 +10,7 @@ import { assertBasicModuleValid } from './validateBasicModule'
  */
 
 // The host's LibreOffice user profile (must match wos-lok-host.cpp's lok_init).
-const ENGINE_PROFILE = '/tmp/wos-lok-host-profile'
+const ENGINE_PROFILE = lokProfileDir()
 
 // Disable LibreOffice document locking. The bundled engine is the SOLE editor of
 // these files, so the per-document `.~lock.<file>#` files serve no purpose and,
@@ -4133,9 +4134,10 @@ export function seedMacroLibrary(): void {
     fs.mkdirSync(basicDir, { recursive: true })
     fs.writeFileSync(path.join(userDir, 'basic', 'script.xlc'), BASIC_XLC)
     fs.writeFileSync(path.join(basicDir, 'script.xlb'), BASIC_XLB)
-    fs.writeFileSync(path.join(basicDir, 'Module1.xba'), BASIC_MODULE)
-    fs.writeFileSync(path.join(basicDir, 'Module2.xba'), BASIC_MODULE_2)
-    fs.writeFileSync(path.join(basicDir, 'Module3.xba'), BASIC_MODULE_3)
+    // Exchange paths are written as /tmp/wos-…; on Windows they point at lokXchgDir().
+    fs.writeFileSync(path.join(basicDir, 'Module1.xba'), macroModuleForPlatform(BASIC_MODULE))
+    fs.writeFileSync(path.join(basicDir, 'Module2.xba'), macroModuleForPlatform(BASIC_MODULE_2))
+    fs.writeFileSync(path.join(basicDir, 'Module3.xba'), macroModuleForPlatform(BASIC_MODULE_3))
   } catch {
     /* best effort */
   }

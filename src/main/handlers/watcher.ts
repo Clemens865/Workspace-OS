@@ -4,6 +4,7 @@ import path from 'path'
 import { IPC } from '../ipc-channels'
 import { ipcHandle } from '../ipc-registry'
 import { getWorkspaceRoot, setWorkspaceRoot } from '../workspace-root'
+import { appStateDir, contentRoot, contentRootRel } from '../host-profile'
 import { IpcValidationError, validateFilePath } from '../ipc-validator'
 import { sendToWindow, setMainWindow } from '../main-window'
 import { rebuildMenu } from '../menu'
@@ -56,6 +57,29 @@ export function registerWatcherHandlers(ipcMain: IpcMain, win: BrowserWindow): v
 
   // Returns the persisted root (if any) so the renderer can restore its tree on launch.
   ipcHandle(ipcMain, 'workspace:get-root', () => getWorkspaceRoot())
+
+  // Where the app's content folders (Cases/, Work/, Wiki/, Apps/) live for the
+  // open workspace: absolute path and workspace-relative prefix ("" = the root).
+  ipcHandle(ipcMain, 'workspace:content-root', () => {
+    const root = getWorkspaceRoot()
+    return root ? { path: contentRoot(root), rel: contentRootRel(root) } : null
+  })
+
+  // Writes a note for agents (e.g. the captured browser page) into this
+  // workspace's store, wherever host-profile.ts puts it. Returns the absolute
+  // path and how to refer to it from the workspace (relative when inside it).
+  ipcHandle(ipcMain, 'workspace:write-agent-note', async (_e, name: unknown, body: unknown) => {
+    const root = getWorkspaceRoot()
+    if (!root) throw new Error('No workspace folder is open')
+    if (typeof name !== 'string' || !/^[a-z0-9][a-z0-9-]{0,60}\.md$/.test(name)) throw new Error('Invalid note name')
+    if (typeof body !== 'string' || body.length > 2 * 1024 * 1024) throw new Error('Invalid note body')
+    const dir = appStateDir(root)
+    await fs.mkdir(dir, { recursive: true })
+    const file = path.join(dir, name)
+    await fs.writeFile(file, body, 'utf-8')
+    const rel = path.relative(root, file)
+    return { path: file, ref: rel.startsWith('..') ? file : rel }
+  })
 
   // Reveal in Finder/Explorer
   ipcHandle(ipcMain, 'fs:reveal', (_event, filePath: unknown) => {

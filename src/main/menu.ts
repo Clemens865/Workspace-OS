@@ -228,12 +228,17 @@ function buildMenu(): void {
         { role: 'about' },
         { label: 'Check for Updates…', click: () => checkForUpdatesManual() },
         { type: 'separator' },
-        { role: 'services' },
-        { type: 'separator' },
-        { role: 'hide' },
-        { role: 'hideOthers' },
-        { role: 'unhide' },
-        { type: 'separator' },
+        // Services and hiding the app are macOS menu roles; elsewhere they do nothing.
+        ...(process.platform === 'darwin'
+          ? ([
+              { role: 'services' },
+              { type: 'separator' },
+              { role: 'hide' },
+              { role: 'hideOthers' },
+              { role: 'unhide' },
+              { type: 'separator' },
+            ] as MI[])
+          : []),
         { role: 'quit' },
       ],
     },

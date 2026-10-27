@@ -26,7 +26,7 @@ export class CodexRpc {
   private decoder = new StringDecoder('utf8')
   private stderrDecoder = new StringDecoder('utf8')
   constructor(private options: RpcOptions = {}) {
-    this.child = (options.spawnProcess ?? spawn)(resolveCodexBinary(), ['app-server', '--stdio'], { cwd: options.cwd, env: options.env, stdio: ['pipe', 'pipe', 'pipe'] })
+    this.child = (options.spawnProcess ?? spawn)(resolveCodexBinary(), ['app-server', '--stdio'], { cwd: options.cwd, env: options.env, stdio: ['pipe', 'pipe', 'pipe'], windowsHide: true })
     this.child.stdin?.on('error', (e) => this.fail(e))
     this.child.stdout?.on('data', (chunk: Buffer) => this.consume(this.decoder.write(chunk)))
     this.child.stderr?.on('data', (chunk: Buffer) => {

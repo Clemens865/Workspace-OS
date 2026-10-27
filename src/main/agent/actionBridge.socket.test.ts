@@ -84,9 +84,10 @@ describe('actionBridge socket protocol', () => {
     })
     startActionBridge()
   })
-  afterEach(() => stopActionBridge())
+  afterEach(() => stopActionBridge()) // resolves once closed: a Windows pipe name stays taken until then
 
-  it('creates the socket with 0600 perms', async () => {
+  // A socket file with mode bits exists only on macOS and Linux (Windows uses a named pipe).
+  it.skipIf(process.platform === 'win32')('creates the socket with 0600 perms', async () => {
     // listen() + chmod are async; wait for the socket file, then check perms.
     for (let i = 0; i < 50 && !fs.existsSync(agentSockPath()); i++) {
       await new Promise((r) => setTimeout(r, 10))

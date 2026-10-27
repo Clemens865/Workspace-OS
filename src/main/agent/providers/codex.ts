@@ -12,8 +12,8 @@ import fs from 'fs'
 import { isValidModelAlias, parseConversation } from '../modelPick'
 import os from 'os'
 import path from 'path'
-import { execFileSync } from 'child_process'
 import { toolToChip, toolToKind, toolToLabel, type AgentActivity } from '../../handlers/agent-activity'
+import { findTool } from '../../platform-tools'
 import type { AgentRunMeta } from '../launchRun'
 
 let cachedBinary: string | null = null
@@ -26,17 +26,11 @@ const NOT_FOUND = 'Codex CLI not found. Install it (npm i -g @openai/codex) and 
 export function resolveCodexBinary(): string {
   if (cachedBinary) return cachedBinary
   if (missedAt && Date.now() - missedAt < MISS_TTL_MS) throw new Error(NOT_FOUND)
-  const candidates = [
-    process.env['CODEX_BIN'],
-    '/opt/homebrew/bin/codex',
-    '/usr/local/bin/codex',
-    path.join(os.homedir(), '.local', 'bin', 'codex'),
-  ].filter(Boolean) as string[]
-  for (const c of candidates) if (fs.existsSync(c)) { cachedBinary = c; return c }
-  try {
-    const found = execFileSync(process.env['SHELL'] ?? '/bin/zsh', ['-lc', 'command -v codex'], { encoding: 'utf-8' }).trim()
-    if (found) { cachedBinary = found; return found }
-  } catch { /* fall through */ }
+  const found = findTool('codex', 'CODEX_BIN', {
+    posixCandidates: ['/opt/homebrew/bin/codex', '/usr/local/bin/codex', path.join(os.homedir(), '.local', 'bin', 'codex')],
+    shellFallback: true,
+  })
+  if (found) { cachedBinary = found; return found }
   missedAt = Date.now()
   throw new Error(NOT_FOUND)
 }

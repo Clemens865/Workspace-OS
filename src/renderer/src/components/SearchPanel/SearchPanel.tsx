@@ -3,6 +3,7 @@ import { Search, X, FileSearch, Hash } from 'lucide-react'
 import { FileIcon } from '../FilePanel/fileIcons'
 import type { SearchResult, SymbolResult } from '../../types/workspace-api'
 import styles from './SearchPanel.module.css'
+import { basename as pathBase, relPath } from '../../lib/paths'
 
 interface SearchPanelProps {
   onFileOpen: (filePath: string) => void
@@ -13,7 +14,7 @@ interface SearchPanelProps {
 }
 
 function basename(p: string): string {
-  return p.split('/').pop() ?? p
+  return pathBase(p) ?? p
 }
 
 /**
@@ -58,7 +59,7 @@ export function SearchPanel({ onFileOpen, root, active }: SearchPanelProps): JSX
   }, [query])
 
   const relative = useCallback((p: string): string => {
-    return root && p.startsWith(root + '/') ? p.slice(root.length + 1) : p
+    return relPath(p, root)
   }, [root])
 
   return (

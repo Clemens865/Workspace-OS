@@ -33,6 +33,13 @@ var __toESM = (mod, isNodeMode, target) => (target = mod != null ? __create(__ge
 ));
 var __toCommonJS = (mod) => __copyProps(__defProp({}, "__esModule", { value: true }), mod);
 
+// scripts/cli-electron-stub.cjs
+var require_cli_electron_stub = __commonJS({
+  "scripts/cli-electron-stub.cjs"(exports2, module2) {
+    module2.exports = {};
+  }
+});
+
 // node_modules/exceljs/lib/utils/under-dash.js
 var require_under_dash = __commonJS({
   "node_modules/exceljs/lib/utils/under-dash.js"(exports2, module2) {
@@ -64529,7 +64536,7 @@ var require_excel = __commonJS({
 });
 
 // src/main/metrics.ts
-var import_electron = __toESM(require("electron"), 1);
+var import_electron = __toESM(require_cli_electron_stub(), 1);
 var import_fs = __toESM(require("fs"), 1);
 var import_path = __toESM(require("path"), 1);
 var { app } = import_electron.default;
@@ -64679,7 +64686,7 @@ var metrics = new MetricStore(
 );
 
 // src/main/transclusions.ts
-var import_electron2 = __toESM(require("electron"), 1);
+var import_electron2 = __toESM(require_cli_electron_stub(), 1);
 var import_fs2 = __toESM(require("fs"), 1);
 var import_path2 = __toESM(require("path"), 1);
 var { app: app2 } = import_electron2.default;
@@ -64814,7 +64821,7 @@ var transclusions = new TransclusionStore(
 );
 
 // src/main/ranges.ts
-var import_electron3 = __toESM(require("electron"), 1);
+var import_electron3 = __toESM(require_cli_electron_stub(), 1);
 var import_fs3 = __toESM(require("fs"), 1);
 var import_path3 = __toESM(require("path"), 1);
 var { app: app3 } = import_electron3.default;
@@ -65022,7 +65029,7 @@ var RangeStore = class {
 var ranges = new RangeStore(() => import_path3.default.join(app3.getPath("userData"), "ranges.json"));
 
 // src/main/rangeLinks.ts
-var import_electron4 = __toESM(require("electron"), 1);
+var import_electron4 = __toESM(require_cli_electron_stub(), 1);
 var import_fs4 = __toESM(require("fs"), 1);
 var import_path4 = __toESM(require("path"), 1);
 var { app: app4 } = import_electron4.default;

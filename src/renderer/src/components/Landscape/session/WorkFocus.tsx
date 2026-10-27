@@ -10,6 +10,7 @@ import { openCase } from '../agentActions'
 import { toast } from '../toastStore'
 import { SessionPane, useSessions } from './SessionPane'
 import styles from '../AgentFocus.module.css'
+import { basename as pathBase } from '../../../lib/paths'
 
 const chosen = new Map<string, string>()
 const openFile = (path: string): void => {
@@ -123,7 +124,7 @@ export function WorkFocus({ w }: { w: AgentPresence }): JSX.Element {
                 {w.outputs.slice(0, 5).map((p) => (
                   <li key={p}>
                     <button className={styles.file} onClick={() => openFile(p)}>
-                      <FileThumb entry={{ name: p.split('/').pop() ?? p, path: p, isDirectory: false }} size={18} /> {p.split('/').pop()}
+                      <FileThumb entry={{ name: pathBase(p) ?? p, path: p, isDirectory: false }} size={18} /> {pathBase(p)}
                     </button>
                   </li>
                 ))}

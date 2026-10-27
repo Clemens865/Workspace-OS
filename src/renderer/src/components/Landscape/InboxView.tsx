@@ -10,6 +10,7 @@ import * as act from './agentActions'
 import { resumeRun } from './pauseResume'
 import { toast } from './toastStore'
 import styles from './InboxView.module.css'
+import { basename as pathBase } from '../../lib/paths'
 
 const TEXT_EXT = /\.(md|markdown|txt|csv|tsv|json|ya?ml|html?|xml|log|ts|tsx|js|py)$/i
 
@@ -169,7 +170,7 @@ export function InboxView({ items, onDismiss }: { items: InboxItem[]; onDismiss:
                 <div className={styles.files}>
                   {item.files.map((f) => (
                     <button key={f} className={styles.file} onClick={() => act.openFile(f)}>
-                      <FileText size={14} /> {f.split('/').pop()} <ArrowUpRight size={13} />
+                      <FileText size={14} /> {pathBase(f)} <ArrowUpRight size={13} />
                     </button>
                   ))}
                 </div>

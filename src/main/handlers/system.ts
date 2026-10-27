@@ -5,7 +5,8 @@ import path from 'path'
 import { IPC } from '../ipc-channels'
 import { ipcHandle } from '../ipc-registry'
 import { lokAvailable } from '../office/lokEngine'
-import { docgenVenvBinDir } from '../docgen'
+import { docgenVenvPython } from '../docgen'
+import { findTool } from '../platform-tools'
 
 /** Read-only health of the engines/tools the IWE depends on (for Settings). */
 export interface SystemStatus {
@@ -15,15 +16,9 @@ export interface SystemStatus {
 }
 
 function resolveClaude(): string | null {
-  for (const c of [
-    process.env['CLAUDE_BIN'],
-    path.join(os.homedir(), '.local', 'bin', 'claude'),
-    '/opt/homebrew/bin/claude',
-    '/usr/local/bin/claude',
-  ]) {
-    if (c && fs.existsSync(c)) return c
-  }
-  return null
+  return findTool('claude', 'CLAUDE_BIN', {
+    posixCandidates: [path.join(os.homedir(), '.local', 'bin', 'claude'), '/opt/homebrew/bin/claude', '/usr/local/bin/claude'],
+  })
 }
 
 export function registerSystemHandlers(ipcMain: IpcMain): void {
@@ -31,7 +26,7 @@ export function registerSystemHandlers(ipcMain: IpcMain): void {
     const claudePath = resolveClaude()
     return {
       engine: lokAvailable(),
-      python: fs.existsSync(path.join(docgenVenvBinDir(), 'python3')),
+      python: fs.existsSync(docgenVenvPython()),
       claude: { ok: !!claudePath, path: claudePath },
     }
   })

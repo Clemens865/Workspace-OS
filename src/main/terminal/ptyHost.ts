@@ -5,6 +5,7 @@ import { getWorkspaceRoot } from '../workspace-root'
 import { getContextEnv } from '../context/workspaceContext'
 import { docgenBinDir, docgenVenvBinDir } from '../docgen'
 import { log } from '../crash-reporter'
+import { envWithPath, seededPath } from '../platform-tools'
 
 /**
  * PTY host for the integrated Terminal Dock.
@@ -135,15 +136,7 @@ const sessions = new Map<string, Session>()
 /** Builds an IDE-grade PATH so `claude`, `python3`, `wos-gen` etc. resolve even
  *  when the app was launched from Finder (thin PATH). Mirrors handlers/shell.ts. */
 function seedPath(): string {
-  const home = os.homedir()
-  return [
-    docgenVenvBinDir(),
-    docgenBinDir(),
-    path.join(home, '.local', 'bin'),
-    '/opt/homebrew/bin',
-    '/usr/local/bin',
-    process.env['PATH'] ?? '',
-  ].join(':')
+  return seededPath([docgenVenvBinDir(), docgenBinDir()])
 }
 
 export interface CreateOptions {
@@ -202,7 +195,7 @@ export function createSession(
       cols: opts.cols ?? 80,
       rows: opts.rows ?? 24,
       cwd,
-      env: { ...process.env, ...getContextEnv(), PATH: seedPath() },
+      env: envWithPath({ ...process.env, ...getContextEnv() }, seedPath()),
     })
   } catch (err) {
     // node-pty's own message carries no path. Add everything the next bug

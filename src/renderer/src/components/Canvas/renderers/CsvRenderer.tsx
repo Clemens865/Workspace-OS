@@ -4,6 +4,7 @@ import { Plus, Trash2, ArrowUpDown } from 'lucide-react'
 import { useFilePrint } from '../../../hooks/useFilePrint'
 import { escapePrintText } from '../../../lib/printDocument'
 import styles from './CsvRenderer.module.css'
+import { basename as pathBase } from '../../../lib/paths'
 
 interface CsvRendererProps {
   filePath: string
@@ -26,7 +27,7 @@ export function CsvRenderer({ filePath, onDirty, onSaveRegister }: CsvRendererPr
     if (error) throw new Error(error)
     const cells = (row: string[], tag: 'th' | 'td'): string => row.map((c) => `<${tag}>${escapePrintText(c)}</${tag}>`).join('')
     const html = `<table><thead><tr>${cells(headers, 'th')}</tr></thead><tbody>${rows.map((r) => `<tr>${cells(r, 'td')}</tr>`).join('')}</tbody></table>`
-    await window.workspace.print.document(filePath.split('/').pop() ?? filePath, html)
+    await window.workspace.print.document(pathBase(filePath) ?? filePath, html)
   })
 
   useEffect(() => {

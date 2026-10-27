@@ -14,6 +14,7 @@ import { appendStep, type TraceStep } from '../../components/AgentTerminal/runTr
 import { loadSettings } from '../../hooks/useSettings'
 import { afterTurn, briefFirst, type AutoTurn, type HarnessDeps } from './appHarness'
 import { runIdFor, caseOnFirstAsk, sessionDigest, shouldSuggestCase, titleFromPrompt, trimMessages, turnNotes, wantsReflection, type Session, type SessionMsg } from './sessionModel'
+import { basename as pathBase } from '../paths'
 
 /** What only the running app knows about a session. */
 export interface SessionLive {
@@ -303,7 +304,7 @@ export const sessionStore = {
     const s = sessions.find((x) => x.id === id)
     if (!s || live.get(id)?.running) return
     const attached = ctx.attachments ?? []
-    const ask = text.trim() || [...mentions, ...attached].map((m) => m.split('/').pop()).join(', ')
+    const ask = text.trim() || [...mentions, ...attached].map((m) => pathBase(m)).join(', ')
     if (!ask) return
     const chat = s.kind === 'chat'
     const mode = loadSettings().sessionCases ?? 'suggest'

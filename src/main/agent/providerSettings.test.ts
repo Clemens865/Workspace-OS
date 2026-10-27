@@ -11,7 +11,7 @@ describe('provider settings are available before the renderer starts', () => {
     loadProviderSettings(dir); setProviderModel('codex:test-model'); setCodexEffort('high')
     loadProviderSettings(dir)
     expect(getProviderModel()).toBe('codex:test-model'); expect(getCodexEffort()).toBe('high')
-    expect(fs.statSync(path.join(dir, 'agent-provider.json')).mode & 0o777).toBe(0o600)
+    if (!(process.platform === 'win32')) expect(fs.statSync(path.join(dir, 'agent-provider.json')).mode & 0o777).toBe(0o600) // no POSIX modes on Windows
   })
   it('keeps the legacy Claude default on first launch and rejects corrupt effort', () => {
     const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'wos-model-')); dirs.push(dir)

@@ -2,6 +2,7 @@ import { useMemo, useState } from 'react'
 import { Sparkles, ChevronDown, ChevronRight } from 'lucide-react'
 import { suggestedActions, everyAction, type Action, type PageSignals } from './page-actions'
 import styles from './PageActions.module.css'
+import { keyLabel } from '../../lib/platform'
 
 /**
  * "Here you can…" — the discoverability surface.
@@ -49,7 +50,7 @@ export function PageActions({
       {a.agentic && <Sparkles className={styles.spark} size={12} />}
       <span className={styles.label}>{busy === a.id ? 'Working…' : a.label}</span>
       {/* Shown, never required — this is how the shortcut gets learned. */}
-      {a.shortcut && <kbd className={styles.kbd}>{a.shortcut}</kbd>}
+      {a.shortcut && <kbd className={styles.kbd}>{keyLabel(a.shortcut)}</kbd>}
     </button>
   )
 

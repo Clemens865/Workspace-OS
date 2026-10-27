@@ -11,7 +11,7 @@ const CLI = path.join(__dirname, 'action-cli.cjs')
 
 function withStubSocket(fn: (sock: string, requests: unknown[]) => Promise<void>): Promise<void> {
   const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'wos-cli-'))
-  const sock = path.join(dir, 's.sock')
+  const sock = process.platform === 'win32' ? `\\\\.\\pipe\\wos-cli-${process.pid}-${Math.random().toString(36).slice(2)}` : path.join(dir, 's.sock')
   const requests: unknown[] = []
   const server = net.createServer((c) => {
     let buf = ''

@@ -354,6 +354,10 @@ export interface WorkspaceApi {
     openFolderDialog: () => Promise<string | null>
     saveCopyDialog: (srcPath: string) => Promise<string | null>
     getWorkspaceRoot: () => Promise<string | null>
+    /** Writes a note for agents into the workspace store; `ref` is how to name it from the workspace. */
+    writeAgentNote: (name: string, body: string) => Promise<{ path: string; ref: string }>
+    /** Where Cases/, Work/, Wiki/ and Apps/ live: absolute path and workspace-relative prefix ('' = the root). */
+    getContentRoot: () => Promise<{ path: string; rel: string } | null>
     closeWorkspace: () => Promise<void>
     /** Every file under the workspace root (bounded walk) — quick-open's data source. */
     listFiles: () => Promise<string[]>
@@ -1281,6 +1285,14 @@ export interface WorkspaceApi {
     minimize: () => Promise<void>
     maximize: () => Promise<void>
     close: () => Promise<void>
+    /** Windows/Linux window style: the setting, and the style this window was created with ('mac' on macOS). */
+    style: () => Promise<{ platform: string; setting: 'standard' | 'clean'; current: 'standard' | 'clean' | 'mac'; supported: boolean }>
+    setStyle: (style: 'standard' | 'clean') => Promise<{ ok: true; setting: 'standard' | 'clean' }>
+    /** Restart the app (to apply a new window style). */
+    relaunch: () => Promise<{ ok: true }>
+    /** Windows: open the taskbar page of Windows Settings. */
+    openTaskbarSettings: () => Promise<{ ok: boolean }>
+    isMaximized: () => Promise<boolean>
   }
   /** Cases — the thread of work that binds a subject, its documents and its notes. */
   /** Where the app opens when a test asks for it (WOS_START_ON); null = the person's own setting. */

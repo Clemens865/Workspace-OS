@@ -107,7 +107,7 @@ describe('writeCodexMcpProfile', () => {
     expect(prof).not.toBeNull()
     expect(prof!.name).toBe('wos-run-e2e-run-1')
     expect(prof!.path).toBe(path.join(home, 'wos-run-e2e-run-1.config.toml'))
-    expect(fs.statSync(prof!.path).mode & 0o777).toBe(0o600)
+    if (!(process.platform === 'win32')) expect(fs.statSync(prof!.path).mode & 0o777).toBe(0o600) // no POSIX modes on Windows
     expect(fs.readFileSync(prof!.path, 'utf-8')).toContain('[mcp_servers.filesystem]')
     prof!.cleanup()
     expect(fs.existsSync(prof!.path)).toBe(false)

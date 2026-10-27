@@ -1,0 +1,371 @@
+name: Windows build
+
+# Native Windows build of the fork's windows-native branch: phase 0 spikes
+# (docs/WINDOWS-NATIVE-PLAN.md) and the installer. Runs on push to that branch or
+# by hand. Nothing is published; the installer is an artifact of the run.
+
+on:
+  push:
+    branches: [windows-native]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  windows:
+    if: "!contains(github.event.head_commit.message, '[bisect]')"
+    runs-on: windows-latest
+    timeout-minutes: 90
+    defaults:
+      run:
+        shell: pwsh
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci --legacy-peer-deps
+
+      - name: Typecheck
+        run: npm run typecheck
+
+      - name: Install LibreOffice
+        run: |
+          choco install libreoffice-fresh -y --no-progress
+          & "C:\Program Files\LibreOffice\program\soffice.exe" --version
+          Test-Path "C:\Program Files\LibreOffice\program\fundamental.ini"
+
+      # After LibreOffice, so the real-conversion test (libreoffice.convert.test.ts) runs too.
+      # The recall eval needs a downloaded embedding model; it is a measurement, not a unit test.
+      - name: Unit tests
+        run: npm test -- --reporter=dot --exclude "**/*.eval.test.ts" 2>&1 | Tee-Object -FilePath unit-tests.log
+
+      - name: Fetch LibreOfficeKit headers (oldest supported engine)
+        shell: bash
+        run: LOK_HEADER_REF=libreoffice-24.2.7.2 bash scripts/lok/fetch-headers.sh
+
+      - uses: ilammy/msvc-dev-cmd@v1
+        with:
+          arch: x64
+
+      - name: Build wos-lok-host.exe (MSVC)
+        shell: cmd
+        run: scripts\lok\build-host.cmd
+
+      - name: Prepare engine fixtures
+        run: |
+          $fx = Join-Path $env:RUNNER_TEMP "wos-fixtures"
+          New-Item -ItemType Directory -Force $fx | Out-Null
+          "Hello from Workspace OS on Windows`r`n`r`nSecond paragraph with some ink." | Set-Content -Encoding utf8 "$fx\test-document.txt"
+          "a;b;c`r`n1;2;3`r`n4;5;6" | Set-Content -Encoding utf8 "$fx\t.csv"
+          & "C:\Program Files\LibreOffice\program\soffice.exe" --headless --convert-to docx --outdir $fx "$fx\test-document.txt" | Out-Host
+          Copy-Item examples\Harbour-Terminal-Q3.xlsx $fx
+          python -m pip install --quiet python-pptx
+          python -c "from pptx import Presentation; from pptx.util import Inches; p = Presentation(); s = p.slides.add_slide(p.slide_layouts[1]); s.shapes.title.text = 'Workspace OS on Windows'; s.placeholders[1].text = 'A slide rendered through LibreOfficeKit'; p.save(r'$fx\test-deck.pptx')"
+          Get-ChildItem $fx | Out-Host
+
+      # Diagnostics while the spikes are open: each document alone, plain and in
+      # Batch mode, so one hang does not hide the others. Not gating.
+      # Diagnostics while S1 is open: Calc documents hang on load on Windows
+      # while Writer renders. Try the xlsx under environment variants and list the
+      # processes LibreOffice starts while it hangs. Not gating.
+      # S1 open point: Calc tiles come back empty on Windows (Writer renders).
+      # Try the renderers: Skia off (GDI), Skia raster. Not gating.
+      # A kit for checking the engine on a real Windows desktop: the host, the
+      # smoke test, the fixtures, a portable node.exe and run-engine-test.cmd.
+      # Installs nothing; needs LibreOffice on the PC.
+      - name: Assemble engine test kit
+        run: |
+          $kit = Join-Path $env:RUNNER_TEMP "engine-test-kit"
+          New-Item -ItemType Directory -Force "$kit\fixtures" | Out-Null
+          Copy-Item scripts\lok\wos-lok-host.exe, e2e\lok-host-smoke.mjs, scripts\lok\run-engine-test.cmd $kit
+          Copy-Item (Get-Command node).Source $kit
+          Copy-Item "$env:RUNNER_TEMP\wos-fixtures\test-document.docx", "$env:RUNNER_TEMP\wos-fixtures\Harbour-Terminal-Q3.xlsx", "$env:RUNNER_TEMP\wos-fixtures\t.csv" "$kit\fixtures"
+          dumpbin /dependents "$kit\wos-lok-host.exe" | Out-Host
+          Get-ChildItem -Recurse $kit | Out-Host
+
+      - name: Upload engine test kit
+        uses: actions/upload-artifact@v4
+        with:
+          name: engine-test-kit
+          retention-days: 14
+          path: ${{ runner.temp }}/engine-test-kit
+
+      # Calc on LibreOffice 25.8+ needs the formula bar hidden (wos-lok-host.cpp,
+      # hideCalcFormulaBar); the host does that in its private profile.
+      - name: "S1 + S2: engine renders docx, xlsx and csv through fd 3/4 pipes"
+        # Not gating until Calc tiles render on Windows (docs/WINDOWS-NATIVE-PLAN.md).
+        continue-on-error: true
+        env:
+          WOS_SMOKE_DUMP_DIR: ${{ runner.temp }}\tiles
+        run: |
+          $fx = Join-Path $env:RUNNER_TEMP "wos-fixtures"
+          $lo = "C:\Program Files\LibreOffice\program"
+          node e2e/lok-host-smoke.mjs scripts\lok\wos-lok-host.exe "$lo\" "$lo\fundamental.ini" "$fx\test-document.docx" "$fx\test-deck.pptx" "$fx\Harbour-Terminal-Q3.xlsx" "$fx\t.csv"
+
+      - name: "S3: native modules for Electron"
+        run: |
+          npx electron-rebuild -f -w better-sqlite3,node-pty
+          $env:ELECTRON_RUN_AS_NODE = "1"
+          & node_modules\electron\dist\electron.exe -e "const D=require('better-sqlite3'); const r=new D(':memory:').prepare('select 41+1 as x').get(); require('node-pty'); console.log('native modules ok', JSON.stringify(r), process.versions.electron)"
+
+      - name: Build app
+        run: npm run build
+
+      - name: "S4: NSIS installer"
+        run: |
+          node scripts/patch-nsis-per-user.mjs
+          npx electron-builder --win --publish never
+
+      # Phase 1/2 acceptance: the packaged app starts, renders Writer and Impress
+      # from the installed LibreOffice, and installs the wos-* shims (no Node).
+      - name: "E2E: packaged Windows app"
+        run: |
+          $fx = Join-Path $env:RUNNER_TEMP "wos-fixtures"
+          node e2e/lok-packaged-windows.mjs $fx
+
+      - name: "E2E: window style (Standard → Clean → restart → top-edge bar)"
+        run: node e2e/window-style.mjs "release\win-unpacked\Workspace OS.exe"
+
+      - name: Upload engine fixtures
+        uses: actions/upload-artifact@v4
+        with:
+          name: wos-fixtures
+          retention-days: 14
+          path: ${{ runner.temp }}/wos-fixtures
+
+      - name: Upload installer and logs
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: workspace-os-windows
+          if-no-files-found: warn
+          retention-days: 14
+          path: |
+            release/*.exe
+            release/*.yml
+            unit-tests.log
+            e2e/shots-windows/*.png
+            e2e/shots-window-style/*.png
+            ${{ runner.temp }}/tiles/**/*.ppm
+
+  # Engine version matrix (docs/WINDOWS-NATIVE-PLAN.md, phase 0): which LibreOffice
+  # releases deadlock when Calc creates its formula bar (shown), and which render
+  # Calc tiles black once the formula bar is hidden. Each version installed
+  # normally on its own runner.
+  # The install a user follows: the winget block from docs/WINDOWS.md, run line by
+  # line exactly as written, then the installer from the windows job. The e2e then
+  # runs against the installed app with the PATH a new terminal would get.
+  install-docs:
+    needs: windows
+    runs-on: windows-latest
+    timeout-minutes: 45
+    defaults:
+      run:
+        shell: pwsh
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - name: Install dependencies
+        run: npm ci --legacy-peer-deps --ignore-scripts
+      - uses: actions/download-artifact@v4
+        with:
+          name: workspace-os-windows
+          path: ${{ runner.temp }}/dist
+      - uses: actions/download-artifact@v4
+        with:
+          name: wos-fixtures
+          path: ${{ runner.temp }}/wos-fixtures
+
+      - name: "docs/WINDOWS.md: winget block, as written"
+        run: |
+          winget --version
+          $doc = Get-Content docs\WINDOWS.md
+          $start = [array]::IndexOf($doc, '<!-- install-block:start -->')
+          $end = [array]::IndexOf($doc, '<!-- install-block:end -->')
+          if ($start -lt 0 -or $end -lt $start) { throw 'install block markers not found in docs/WINDOWS.md' }
+          $readme = Get-Content README.md
+          $rs = [array]::IndexOf($readme, '<!-- install-block:start -->')
+          $re = [array]::IndexOf($readme, '<!-- install-block:end -->')
+          if ($rs -lt 0 -or (($readme[$rs..$re]) -join "`n") -ne (($doc[$start..$end]) -join "`n")) { throw 'README.md and docs/WINDOWS.md install blocks differ' }
+          $lines = $doc[($start + 1)..($end - 1)] | Where-Object { $_ -match '^winget ' }
+          if ($lines.Count -lt 4) { throw "expected 4 winget lines, found $($lines.Count)" }
+          # Already installed (Git and Python are on the runner image) is not a failure.
+          $alreadyInstalled = @(-1978335135, -1978335189)
+          foreach ($line in $lines) {
+            Write-Host "> $line"
+            cmd.exe /d /c $line
+            if ($LASTEXITCODE -ne 0 -and $alreadyInstalled -notcontains $LASTEXITCODE) { throw "exit $LASTEXITCODE from: $line" }
+          }
+          $global:LASTEXITCODE = 0
+
+      - name: "docs/WINDOWS.md: a new terminal finds the tools"
+        run: |
+          $env:Path = [Environment]::GetEnvironmentVariable('Path', 'Machine') + ';' + [Environment]::GetEnvironmentVariable('Path', 'User')
+          claude --version
+          git --version
+          py -3 --version
+          & "$env:ProgramFiles\LibreOffice\program\soffice.com" --version
+
+      - name: Install Workspace OS (NSIS, silent)
+        run: |
+          $setup = Get-ChildItem "$env:RUNNER_TEMP\dist" -Recurse -Filter "*Setup*.exe" | Select-Object -First 1
+          if (-not $setup) { throw 'installer not in the workspace-os-windows artifact' }
+          # A first per-user install crashed about one time in three before the
+          # NSIS patch (scripts/patch-nsis-per-user.mjs), so install six times,
+          # each as a first install (no saved InstallLocation).
+          for ($i = 1; $i -le 6; $i++) {
+            Get-ChildItem HKCU:\Software -ErrorAction SilentlyContinue | ForEach-Object {
+              $loc = (Get-ItemProperty $_.PSPath -Name InstallLocation -ErrorAction SilentlyContinue).InstallLocation
+              if ($loc -like '*workspace-os*') { Remove-ItemProperty $_.PSPath -Name InstallLocation; Write-Host "  cleared InstallLocation in $($_.Name)" }
+            }
+            $p = Start-Process $setup.FullName -ArgumentList '/S' -Wait -PassThru
+            Write-Host ("first install {0}: exit {1} (0x{2:X8})" -f $i, $p.ExitCode, $p.ExitCode)
+            if ($p.ExitCode -ne 0) { throw "installer failed on first install $i" }
+          }
+          $exe = Get-ChildItem "$env:LOCALAPPDATA\Programs" -Recurse -Filter "Workspace OS.exe" | Select-Object -First 1
+          if (-not $exe) { throw 'Workspace OS.exe not found under %LOCALAPPDATA%\Programs' }
+          "WOS_E2E_APP=$($exe.FullName)" | Out-File -Append -Encoding utf8 $env:GITHUB_ENV
+
+      - name: "E2E: installed app with the documented setup"
+        env:
+          WOS_E2E_EXPECT: claude,python
+        run: |
+          # The runner's node is not on the registry PATH; the app gets only what a new terminal has.
+          $node = (Get-Command node).Source
+          $env:Path = [Environment]::GetEnvironmentVariable('Path', 'Machine') + ';' + [Environment]::GetEnvironmentVariable('Path', 'User')
+          & $node e2e/lok-packaged-windows.mjs "$env:RUNNER_TEMP\wos-fixtures"
+
+  engine-versions:
+    if: "!contains(github.event.head_commit.message, '[bisect]')"
+    runs-on: windows-latest
+    timeout-minutes: 45
+    strategy:
+      fail-fast: false
+      matrix:
+        lo: ["25.2.5.2", "25.2.7.2", "26.8.1.1"]
+    defaults:
+      run:
+        shell: pwsh
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Install LibreOffice ${{ matrix.lo }}
+        run: |
+          $v = "${{ matrix.lo }}"
+          $msi = Join-Path $env:RUNNER_TEMP "lo.msi"
+          Invoke-WebRequest "https://downloadarchive.documentfoundation.org/libreoffice/old/$v/win/x86_64/LibreOffice_${v}_Win_x86-64.msi" -OutFile $msi
+          $p = Start-Process msiexec.exe -Wait -PassThru -ArgumentList "/i `"$msi`" /qn /norestart"
+          Write-Host "msiexec exit $($p.ExitCode)"
+          & "C:\Program Files\LibreOffice\program\soffice.com" --version
+      - name: Fetch LibreOfficeKit headers
+        shell: bash
+        run: LOK_HEADER_REF=libreoffice-24.2.7.2 bash scripts/lok/fetch-headers.sh
+      - uses: ilammy/msvc-dev-cmd@v1
+        with:
+          arch: x64
+      - name: Build wos-lok-host.exe
+        shell: cmd
+        run: scripts\lok\build-host.cmd
+      - name: Calc with the formula bar shown and hidden
+        env:
+          WOS_SMOKE_TIMEOUT_MS: "45000"
+        run: |
+          $fx = Join-Path $env:RUNNER_TEMP "wos-fixtures"
+          New-Item -ItemType Directory -Force $fx | Out-Null
+          "a;b;c`r`n1;2;3`r`n4;5;6" | Set-Content -Encoding utf8 "$fx\t.csv"
+          Copy-Item examples\Harbour-Terminal-Q3.xlsx $fx
+          python -m pip install --quiet python-pptx
+          python -c "from pptx import Presentation; p = Presentation(); s = p.slides.add_slide(p.slide_layouts[1]); s.shapes.title.text = 'Workspace OS on Windows'; s.placeholders[1].text = 'A slide rendered through LibreOfficeKit'; p.save(r'$fx\test-deck.pptx')"
+          $lo = "C:\Program Files\LibreOffice\program"
+          $profile = Join-Path $env:TEMP "wos-lok-host-profile"
+          $env:WOS_SMOKE_SHOW_STDERR = "1"
+          $env:WOS_SMOKE_PROBES = "1"
+          foreach ($run in @(@{ keep = "1"; fix = "1" }, @{ keep = "1"; fix = "0" })) {
+            $keep = $run.keep
+            Write-Host "=== LibreOffice ${{ matrix.lo }}, formula bar shown: $keep, wait fix: $($run.fix)"
+            Remove-Item $profile -Recurse -Force -ErrorAction SilentlyContinue
+            $env:WOS_LOK_KEEP_FORMULA_BAR = $keep
+            $env:WOS_LOK_WAIT_FIX = $run.fix
+            $env:WOS_SMOKE_DUMP_DIR = Join-Path $env:RUNNER_TEMP "tiles\keep-$keep-fix-$($run.fix)"
+            node e2e/lok-host-smoke.mjs scripts\lok\wos-lok-host.exe "$lo\" "$lo\fundamental.ini" "$fx\Harbour-Terminal-Q3.xlsx"
+            Get-Process wos-lok-host -ErrorAction SilentlyContinue | Stop-Process -Force
+          }
+          Write-Host "=== LibreOffice ${{ matrix.lo }}, Impress (wait fix on)"
+          Remove-Item $profile -Recurse -Force -ErrorAction SilentlyContinue
+          $env:WOS_LOK_WAIT_FIX = "1"
+          node e2e/lok-host-smoke.mjs scripts\lok\wos-lok-host.exe "$lo\" "$lo\fundamental.ini" "$fx\test-deck.pptx"
+          Get-Process wos-lok-host -ErrorAction SilentlyContinue | Stop-Process -Force
+      - name: Upload tiles
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: engine-tiles-${{ matrix.lo }}
+          retention-days: 14
+          path: ${{ runner.temp }}/tiles
+
+  # Bibisect the Calc black-tile regression over the 25.8 development cycle
+  # (https://bibisect.libreoffice.org/win64-25.8): oldest = good, master = bad.
+  # Runs only for commits whose message contains [bisect].
+  bibisect:
+    if: contains(github.event.head_commit.message, '[bisect]')
+    runs-on: windows-latest
+    timeout-minutes: 300
+    defaults:
+      run:
+        shell: pwsh
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Fetch LibreOfficeKit headers
+        shell: bash
+        run: LOK_HEADER_REF=libreoffice-24.2.7.2 bash scripts/lok/fetch-headers.sh
+      - uses: ilammy/msvc-dev-cmd@v1
+        with:
+          arch: x64
+      - name: Build wos-lok-host.exe
+        shell: cmd
+        run: scripts\lok\build-host.cmd
+      - name: Clone the bibisect repository (partial)
+        run: |
+          git config --global core.longpaths true
+          Get-PSDrive C, D | Format-Table -AutoSize | Out-Host
+          git clone --filter=blob:none --no-checkout https://bibisect.libreoffice.org/win64-25.8 C:\bb
+          Write-Host "commits: $(git -C C:\bb rev-list --count master)"
+          git -C C:\bb log -1 --format="oldest: %h %ci %s" oldest
+          git -C C:\bb log -1 --format="master: %h %ci %s" master
+      - name: Bisect
+        run: |
+          $fx = Join-Path $env:RUNNER_TEMP "wos-fixtures"
+          New-Item -ItemType Directory -Force $fx | Out-Null
+          Copy-Item examples\Harbour-Terminal-Q3.xlsx $fx
+          $ws = (Get-Location).Path
+          $step = Join-Path $ws "scripts\lok\bisect-step.ps1"
+          Set-Location C:\bb
+          git checkout -q -f master
+          & pwsh -File $step -Repo C:\bb -Workspace $ws -Fixtures $fx
+          $masterExit = $LASTEXITCODE
+          Write-Host "master check exit: $masterExit"
+          if ($masterExit -ne 1) { Write-Host "master is not bad; stopping"; exit 1 }
+          git checkout -q -f oldest
+          & pwsh -File $step -Repo C:\bb -Workspace $ws -Fixtures $fx
+          Write-Host "oldest check exit: $LASTEXITCODE"
+          if ($LASTEXITCODE -ne 0) { Write-Host "oldest is not good; stopping"; exit 1 }
+          git bisect start master oldest
+          git bisect run pwsh -File $step -Repo C:\bb -Workspace $ws -Fixtures $fx
+          Write-Host "=== bisect result"
+          git bisect log | Out-Host
+          git log -1 --format="first bad: %h %ci%n%B" refs/bisect/bad | Out-Host
+          git log --format="%h %s" refs/bisect/bad~1..refs/bisect/bad | Out-Host

@@ -1,6 +1,5 @@
 import { IpcMain, BrowserWindow } from 'electron'
 import os from 'os'
-import path from 'path'
 import { IPC } from '../ipc-channels'
 import { ipcHandle, registerCleanup } from '../ipc-registry'
 import { validateShellInput, validateShellResize } from '../ipc-validator'
@@ -8,6 +7,7 @@ import { assertMainFrame } from '../security'
 import { getWorkspaceRoot } from '../workspace-root'
 import { docgenBinDir, docgenVenvBinDir } from '../docgen'
 import { sendToWindow, setMainWindow } from '../main-window'
+import { envWithPath, seededPath } from '../platform-tools'
 
 // node-pty is a native module loaded at runtime
 // eslint-disable-next-line @typescript-eslint/no-require-imports
@@ -49,15 +49,7 @@ export function registerShellHandlers(ipcMain: IpcMain, win: BrowserWindow): voi
     //  2. seed common tool dirs + our office-docgen venv (so `python3`/`pip` have
     //     python-pptx/openpyxl/python-docx) and `wos-gen` are always on PATH —
     //     making the shell a first-class place to run `claude` and skills.
-    const home = os.homedir()
-    const seedPath = [
-      docgenVenvBinDir(),
-      docgenBinDir(),
-      path.join(home, '.local', 'bin'),
-      '/opt/homebrew/bin',
-      '/usr/local/bin',
-      process.env['PATH'] ?? '',
-    ].join(':')
+    const seedPath = seededPath([docgenVenvBinDir(), docgenBinDir()])
 
     // Non-login interactive shell (sources ~/.zshrc, not ~/.zprofile) — a login
     // shell can trigger profile side-effects (session managers, etc.) that
@@ -69,7 +61,7 @@ export function registerShellHandlers(ipcMain: IpcMain, win: BrowserWindow): voi
       rows: 24,
       // Open in the active workspace folder, like an IDE's integrated terminal.
       cwd: getWorkspaceRoot() ?? process.env['HOME'] ?? os.homedir(),
-      env: { ...process.env, PATH: seedPath },
+      env: envWithPath(process.env, seedPath),
     })
 
     proc.onData((data: string) => {

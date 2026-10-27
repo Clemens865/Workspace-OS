@@ -59,7 +59,7 @@ export function validateFilePath(filePath: unknown, workspaceRoot: string): stri
   const real = realPathSafe(resolved)
 
   if (real !== root && !real.startsWith(root + path.sep)) {
-    throw new IpcValidationError('Path escapes workspace root')
+    throw new IpcValidationError(`Path escapes workspace root: ${resolved} is not inside ${base}`)
   }
   return resolved
 }

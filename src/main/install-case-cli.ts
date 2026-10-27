@@ -1,6 +1,7 @@
 import { app } from 'electron'
 import fs from 'fs'
 import path from 'path'
+import { writeWindowsNodeShims } from './platform-tools'
 
 /**
  * Installs the `wos-case` CLI shim onto the agent's PATH — the case sibling of
@@ -47,6 +48,11 @@ export function installCaseCli(): void {
     }
     const binDir = path.join(app.getPath('userData'), 'bin')
     fs.mkdirSync(binDir, { recursive: true })
+    if (process.platform === 'win32') {
+      // No system Node needed: .cmd + Git Bash shims run the bundle on the app's executable.
+      writeWindowsNodeShims(binDir, 'wos-case', cliPath, {}, 'Workspace OS case CLI.')
+      return
+    }
     const shimPath = path.join(binDir, 'wos-case')
     fs.writeFileSync(shimPath, shimSource(cliPath), { mode: 0o755 })
     fs.chmodSync(shimPath, 0o755)

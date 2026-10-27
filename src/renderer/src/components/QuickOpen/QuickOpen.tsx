@@ -4,6 +4,8 @@ import { FileIcon } from '../FilePanel/fileIcons'
 import { rankFiles } from '../../lib/fuzzy'
 import type { RecentEntry } from '../../hooks/useWorkspaceLibrary'
 import styles from './QuickOpen.module.css'
+import { basename as pathBase, dirname, relPath } from '../../lib/paths'
+import { keyLabel } from '../../lib/platform'
 
 interface QuickOpenProps {
   onClose: () => void
@@ -16,7 +18,7 @@ interface QuickOpenProps {
 const MAX_RESULTS = 50
 
 function basename(p: string): string {
-  return p.split('/').pop() ?? p
+  return pathBase(p) ?? p
 }
 
 /**
@@ -76,9 +78,7 @@ export function QuickOpen({ onClose, onOpenFile, recent, root }: QuickOpenProps)
   }, [selected])
 
   const relative = useCallback((p: string): string => {
-    const rel = root && p.startsWith(root + '/') ? p.slice(root.length + 1) : p
-    const dir = rel.slice(0, rel.lastIndexOf('/'))
-    return dir
+    return dirname(relPath(p, root))
   }, [root])
 
   return (
@@ -129,7 +129,7 @@ export function QuickOpen({ onClose, onOpenFile, recent, root }: QuickOpenProps)
           <span className={styles.hint}><kbd className={styles.kbd}>↑↓</kbd> navigate</span>
           <span className={styles.hint}><kbd className={styles.kbd}>↵</kbd> open</span>
           <span className={styles.hint}><kbd className={styles.kbd}>esc</kbd> close</span>
-          <span className={styles.hintRight}><kbd className={styles.kbd}>⌘K</kbd> content search</span>
+          <span className={styles.hintRight}><kbd className={styles.kbd}>{keyLabel('⌘K')}</kbd> content search</span>
         </div>
       </div>
     </div>

@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import type { ArtifactInsight, CaseViewResult } from '../../types/workspace-api'
 import { Chart, Kpis, Preview } from '../CalmCockpit/FullCaseView'
 import styles from './CaseActions.module.css'
+import { basename as pathBase } from '../../lib/paths'
 
 /**
  * A case's own numbers (ADOPTION.md B3, from the Cockpit's full case view):
@@ -37,7 +38,7 @@ export function CaseData({ caseId }: { caseId: string }): JSX.Element {
       )}
       {data.map((d) => (
         <div key={d.file} className={styles.dcard} data-file={d.file}>
-          <div className={styles.dhead}>{d.file.split('/').pop()}</div>
+          <div className={styles.dhead}>{pathBase(d.file)}</div>
           <Kpis kpis={d.kpis} />
           {d.chart && <Chart chart={d.chart} />}
           {d.preview.length > 1 && <Preview preview={d.preview} />}

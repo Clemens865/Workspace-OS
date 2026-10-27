@@ -340,6 +340,11 @@ export const IPC = {
   WINDOW_MINIMIZE: 'window:minimize',
   WINDOW_MAXIMIZE: 'window:maximize',
   WINDOW_CLOSE: 'window:close',
+  WINDOW_STYLE: 'window:style',
+  WINDOW_SET_STYLE: 'window:set-style',
+  WINDOW_RELAUNCH: 'window:relaunch',
+  WINDOW_TASKBAR_SETTINGS: 'window:taskbar-settings',
+  WINDOW_IS_MAXIMIZED: 'window:is-maximized',
 } as const
 
 export type IpcChannel = (typeof IPC)[keyof typeof IPC]

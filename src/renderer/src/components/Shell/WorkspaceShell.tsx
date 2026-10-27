@@ -39,6 +39,8 @@ import { useSettings } from '../../hooks/useSettings'
 import { useAgentActions } from '../../hooks/useAgentActions'
 import { setTheme } from '../../hooks/useTheme'
 import { actionManifest, ALL_ACTIONS, type SurfaceActionContext } from '../Terminal/surfaceActions'
+import { dirname } from '../../lib/paths'
+import { keysIn, keyLabel } from '../../lib/platform'
 
 /**
  * The stage: the surfaces and open documents behind the Screen Landscape. It
@@ -160,7 +162,7 @@ export function WorkspaceShell({ stage }: { stage?: StageHost } = {}): JSX.Eleme
       setActiveTab('files')
       // WOS-013: remember which folder this file came from, so closing the
       // preview returns to where it was rather than back to the workspace root.
-      const parent = path.slice(0, path.lastIndexOf('/'))
+      const parent = dirname(path)
       if (parent) setBrowseFolder(parent)
     },
     [library, filesTabs],
@@ -408,7 +410,7 @@ export function WorkspaceShell({ stage }: { stage?: StageHost } = {}): JSX.Eleme
   const activeFilePath =
     (rail === 'files' && !isDocTab(tabs, activeTab) ? filesTabs.activeFilePath : stageTabs.activeFilePath) ?? null
   const folderOf = (p: string | null): string | null =>
-    p ? p.slice(0, p.lastIndexOf('/')) || root : root
+    p ? dirname(p) || root : root
 
   // The live harness ctx the surfaceActions registry runs against — the SAME
   // shape a dock chip uses. Kept in a ref-like getter so the agent executor runs
@@ -562,7 +564,7 @@ export function WorkspaceShell({ stage }: { stage?: StageHost } = {}): JSX.Eleme
         type="button"
         className={styles.dockBarMain}
         onClick={() => settings.set('terminalMinimized', false)}
-        title="Restore the terminal (⌥⌘J)"
+        title={keysIn('Restore the terminal (⌥⌘J)')}
       >
         <SquareTerminal size={13} strokeWidth={1.9} />
         <span>Terminal</span>
@@ -572,7 +574,7 @@ export function WorkspaceShell({ stage }: { stage?: StageHost } = {}): JSX.Eleme
         type="button"
         className={styles.dockBarBtn}
         onClick={() => settings.set('terminalMinimized', false)}
-        title="Restore (⌥⌘J)"
+        title={keysIn('Restore (⌥⌘J)')}
         aria-label="Restore the terminal"
       >
         <ChevronUp size={13} strokeWidth={2} />
@@ -584,7 +586,7 @@ export function WorkspaceShell({ stage }: { stage?: StageHost } = {}): JSX.Eleme
           settings.set('terminalOpen', false)
           settings.set('terminalMinimized', false)
         }}
-        title="Hide (⌘J)"
+        title={keysIn('Hide (⌘J)')}
         aria-label="Hide the terminal"
       >
         <X size={13} strokeWidth={2} />
@@ -648,14 +650,14 @@ export function WorkspaceShell({ stage }: { stage?: StageHost } = {}): JSX.Eleme
           </div>
           <button className={styles.cmdk} onClick={() => setCommandOpen(true)}>
             <Search size={13} /> Search or run…
-            <span className={styles.cmdkKey}>⌘K</span>
+            <span className={styles.cmdkKey}>{keyLabel('⌘K')}</span>
           </button>
           {/* Hosted in the landscape, the dock's Terminal item is the toggle. */}
           {!stage?.dock && (
             <button
               className={`${styles.termToggle} ${dockOpen ? styles.termToggleOn : ''}`}
               onClick={() => settings.set('terminalOpen', !settings.terminalOpen)}
-              title="Terminal — shell + agent (⌘J)"
+              title={keysIn('Terminal — shell + agent (⌘J)')}
               aria-label="Toggle terminal"
               aria-pressed={dockOpen}
             >
@@ -671,7 +673,7 @@ export function WorkspaceShell({ stage }: { stage?: StageHost } = {}): JSX.Eleme
               type="button"
               className={styles.termToggle}
               onClick={() => settings.set('terminalMinimized', true)}
-              title="Minimise the terminal (⌥⌘J)"
+              title={keysIn('Minimise the terminal (⌥⌘J)')}
               aria-label="Minimise the terminal"
             >
               <ChevronDown size={15} strokeWidth={1.9} />
@@ -700,7 +702,7 @@ export function WorkspaceShell({ stage }: { stage?: StageHost } = {}): JSX.Eleme
             type="button"
             className={styles.termToggle}
             onClick={() => setExpanded(true)}
-            title="Fill the window (⌃⌘F)"
+            title={keysIn('Fill the window (⌃⌘F)')}
             aria-label="Fill the window"
           >
             <Maximize2 size={15} strokeWidth={1.9} />

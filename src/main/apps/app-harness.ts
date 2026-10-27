@@ -1,3 +1,4 @@
+import { appsRel } from './apps-store'
 /**
  * The harness around the app builder: what makes a rough idea a good app.
  *
@@ -174,7 +175,7 @@ export async function reviewApp(root: string, slug: string, shot: Buffer | null,
   }
   const name = readManifest(root, slug)?.name ?? slug
   const prompt = [
-    `The app: ${name} (Apps/${slug}/).`,
+    `The app: ${name} (${appsRel(root)}/${slug}/).`,
     brief ? `Its product brief:\n\n${brief}` : 'It has no product brief.',
     `Its files:\n\n${appSources(root, slug)}`,
     tests ? `Its end-to-end tests, just run in the live app with real clicks: ${tests}` : '',

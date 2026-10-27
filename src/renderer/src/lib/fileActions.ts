@@ -3,6 +3,7 @@ import {
   type LucideIcon,
 } from 'lucide-react'
 import { categoryOf, EDITABLE, PRINTABLE, OFFICE, type FileCategory } from './fileCategory'
+import { basename as pathBase } from './paths'
 
 /** Everything an action needs to run, supplied by the surface invoking it. */
 export interface ActionContext {
@@ -29,7 +30,7 @@ export interface FileAction {
   run: (ctx: ActionContext) => void | Promise<void>
 }
 
-const basename = (p: string): string => p.split('/').pop() ?? p
+const basename = (p: string): string => pathBase(p) ?? p
 
 /**
  * The single source of truth for per-file actions. Surfaces (canvas toolbar,

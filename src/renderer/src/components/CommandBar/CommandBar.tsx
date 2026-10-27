@@ -3,6 +3,8 @@ import { Search } from 'lucide-react'
 import { FileIcon } from '../FilePanel/fileIcons'
 import type { SearchResult } from '../../types/workspace-api'
 import styles from './CommandBar.module.css'
+import { basename as pathBase } from '../../lib/paths'
+import { IS_MAC } from '../../lib/platform'
 
 interface CommandBarProps {
   onClose: () => void
@@ -10,7 +12,7 @@ interface CommandBarProps {
 }
 
 function basename(p: string): string {
-  return p.split('/').pop() ?? p
+  return pathBase(p) ?? p
 }
 
 export function CommandBar({ onClose, onOpenFile }: CommandBarProps): JSX.Element {
@@ -110,7 +112,7 @@ export function CommandBar({ onClose, onOpenFile }: CommandBarProps): JSX.Elemen
                   <div className={styles.resultMain}>
                     <span className={styles.resultName}>{c.label}</span>
                     <span className={styles.badge}>command</span>
-                    {c.accel && <span className={styles.badge}>{c.accel.replace('CmdOrCtrl', '⌘').replace('Shift', '⇧').replace('Alt', '⌥').replace(/\+/g, '')}</span>}
+                    {c.accel && <span className={styles.badge}>{IS_MAC ? c.accel.replace('CmdOrCtrl', '⌘').replace('Shift', '⇧').replace('Alt', '⌥').replace(/\+/g, '') : c.accel.replace('CmdOrCtrl', 'Ctrl')}</span>}
                   </div>
                   <div className={styles.path}>{c.path}</div>
                 </div>

@@ -16,6 +16,7 @@
  *
  * Pure: no React, no I/O, so every sentence and every grouping is testable.
  */
+import { basename as pathBase } from '../../lib/paths'
 
 export type StreamKind = 'agent' | 'case' | 'file' | 'connector'
 
@@ -86,7 +87,7 @@ function clip(s: string, n: number): string {
 }
 
 function base(p: string): string {
-  return p.split('/').pop() ?? p
+  return pathBase(p) ?? p
 }
 
 /** Every event the workspace remembers, newest first. */

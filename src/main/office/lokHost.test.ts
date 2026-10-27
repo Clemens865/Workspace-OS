@@ -1,15 +1,22 @@
-import { describe, it, expect } from 'vitest'
+import { afterAll, describe, it, expect } from 'vitest'
+import fs from 'fs'
+import os from 'os'
+import path from 'path'
 import { LokHost, LokHostError } from './lokHost'
 
 // These unit-test the send()/exit/dispose reject paths WITHOUT LibreOffice.
-// We point the host binary at a harmless long-lived process (`cat`, which reads
-// stdin forever and never answers) so the real ChildProcess plumbing runs — the
+// The host binary is Node running a stand-in script that reads stdin until it
+// is killed and never answers, so the real ChildProcess plumbing runs — the
 // stdin pipe, the 'exit' handler, the pending map — but no command ever resolves.
 // That lets us prove the failure classification (the "kills the 20s hang" fix)
 // against real streams, not mocks. The sidecar-kill e2e (S-stability) proves the
 // same against the REAL engine; this covers the branch cheaply/deterministically.
+// LokHost spawns `hostBin installPath fundamentalrc`, so installPath is the script.
+const STAND_IN = path.join(fs.mkdtempSync(path.join(os.tmpdir(), 'wos-lok-standin-')), 'host.cjs')
+fs.writeFileSync(STAND_IN, 'process.stdin.resume()\n')
+afterAll(() => fs.rmSync(path.dirname(STAND_IN), { recursive: true, force: true }))
 function fakeHost(): LokHost {
-  return new LokHost({ hostBin: '/bin/cat', installPath: '/tmp/', fundamentalrc: '/tmp/fundamentalrc' })
+  return new LokHost({ hostBin: process.execPath, installPath: STAND_IN, fundamentalrc: 'unused' })
 }
 
 // send() is private; exercise it through the public ping() which calls it.
@@ -26,14 +33,16 @@ describe('LokHost failure classification', () => {
     const h = fakeHost()
     const a = sendViaPing(h)
     const b = sendViaPing(h)
-    // Kill the child — 'cat' dies, the host's 'exit' handler must fail both.
+    // Kill the child — the stand-in dies, the host's 'exit' handler must fail both.
     ;(h as unknown as { proc: { kill: (s: string) => void } | null }).proc?.kill('SIGKILL')
     const [ra, rb] = await Promise.allSettled([a, b])
     expect(ra.status).toBe('rejected')
     expect(rb.status).toBe('rejected')
     for (const r of [ra, rb] as PromiseRejectedResult[]) {
       expect(r.reason).toBeInstanceOf(LokHostError)
-      expect((r.reason as LokHostError).reason).toBe('exit')
+      // Whichever fires first wins: the 'exit' event, or the broken stdin pipe
+      // (first on Windows). Both mean the host is gone.
+      expect(['exit', 'write']).toContain((r.reason as LokHostError).reason)
     }
   })
 
@@ -91,7 +100,7 @@ describe('LokHost.send protocol-injection guard', () => {
   })
   it('allows a tab (the openopts field separator)', async () => {
     const h = fakeHost()
-    // 'cat' never answers, so this times out rather than resolving — but it must
+    // The stand-in never answers, so this times out rather than resolving — but it must
     // NOT be rejected with bad-command. Assert it does not reject synchronously.
     const p = sendCmd(h, 'openopts 59,34,76,1,,0,false,true\t/tmp/a.csv')
     const settled = await Promise.race([p.then(() => 'resolved', (e) => (e as { reason?: string }).reason ?? 'other'), new Promise((r) => setTimeout(() => r('pending'), 150))])

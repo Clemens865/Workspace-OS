@@ -6,6 +6,7 @@ import { PromptBar } from '../../PromptBar/PromptBar'
 import { FileThumb } from '../../FilePanel/FileThumb'
 import { toast } from '../toastStore'
 import styles from './SessionPane.module.css'
+import { basename as pathBase } from '../../../lib/paths'
 
 const openFile = (path: string): void => {
   window.dispatchEvent(new CustomEvent('wos:open-file', { detail: { path } }))
@@ -95,9 +96,9 @@ export function SessionPane({ sessionId, agentName = null, caseId = null, onCrea
       {s.files.length > 0 && (
         <div className={styles.files} data-testid="session-files">
           {s.files.slice(-6).map((f) => (
-            <button key={f} type="button" className={styles.file} onClick={() => openFile(f)} title={f} data-file={f.split('/').pop()}>
-              <FileThumb entry={{ name: f.split('/').pop() ?? f, path: f, isDirectory: false }} size={20} />
-              <span>{f.split('/').pop()}</span>
+            <button key={f} type="button" className={styles.file} onClick={() => openFile(f)} title={f} data-file={pathBase(f)}>
+              <FileThumb entry={{ name: pathBase(f) ?? f, path: f, isDirectory: false }} size={20} />
+              <span>{pathBase(f)}</span>
             </button>
           ))}
         </div>

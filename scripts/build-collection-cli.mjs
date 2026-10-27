@@ -4,9 +4,8 @@
 // CJS output means plain `node` can run it directly from disk in the packaged
 // app — an asar-bundled ESM script with shared chunks could not.
 //
-// electron is marked external: it's only reached by the store modules' dead
-// singleton exports (the CLI constructs its own stores); under plain node CJS
-// `require('electron')` harmlessly returns the binary path (never dereferenced).
+// electron is only reached by the store modules' dead singleton exports (the
+// CLI constructs its own stores), so it is aliased to an empty stub.
 import { build } from 'esbuild'
 import { fileURLToPath } from 'url'
 import path from 'path'
@@ -26,10 +25,10 @@ await build({
   target: 'node18',
   // Bundle everything (incl. exceljs) so the CLI is fully self-contained and
   // runnable by plain `node` from disk — nothing resolves from node_modules at
-  // run time. Only `electron` is external: it's dead code here (the CLI builds
-  // its own stores), and `require('electron')` under plain node just returns the
-  // binary path, never dereferenced.
-  external: ['electron'],
+  // run time.
+  // electron is dead code in the CLI; a stub keeps the bundle runnable when no
+  // electron package is resolvable (packaged resources, ELECTRON_RUN_AS_NODE).
+  alias: { electron: fileURLToPath(new URL('./cli-electron-stub.cjs', import.meta.url)) },
   banner: { js: '#!/usr/bin/env node' },
   logLevel: 'info',
 })

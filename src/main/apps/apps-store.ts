@@ -1,3 +1,4 @@
+import { contentRel, contentRoot } from '../host-profile'
 import fs from 'fs'
 import os from 'os'
 import path from 'path'
@@ -17,6 +18,11 @@ import path from 'path'
  */
 
 export const APPS_DIR = 'Apps'
+
+/** The workspace's Apps/ folder (under the configured content root — host-profile.ts). */
+export const appsRoot = (root: string): string => path.join(contentRoot(root), APPS_DIR)
+/** Workspace-relative POSIX path of Apps/, as agents and messages name it. */
+export const appsRel = (root: string): string => contentRel(root, APPS_DIR)
 /** What an app may ask for beyond its own storage and the person's file dialogs. */
 export const PERMISSIONS = ['ai', 'ai.web'] as const
 export type Permission = (typeof PERMISSIONS)[number]
@@ -58,7 +64,7 @@ export function slugify(name: string): string {
 
 export const appDir = (root: string, slug: string): string => {
   if (!isSlug(slug)) throw new Error('Not an app name')
-  return path.join(root, APPS_DIR, slug)
+  return path.join(appsRoot(root), slug)
 }
 
 export const ICON_FILE = 'icon.svg'
@@ -116,7 +122,7 @@ export function readManifestAt(dir: string, slug: string): AppManifest | null {
 export function listApps(root: string): AppSummary[] {
   let names: string[] = []
   try {
-    names = fs.readdirSync(path.join(root, APPS_DIR)).filter(isSlug)
+    names = fs.readdirSync(appsRoot(root)).filter(isSlug)
   } catch {
     return []
   }
@@ -264,7 +270,7 @@ export function copyApp(from: string, to: string): void {
 export function freeSlug(root: string, slug: string): string {
   const base = slug.slice(0, 60)
   let s = base
-  for (let i = 2; fs.existsSync(path.join(root, APPS_DIR, s)); i++) s = `${base}-${i}`
+  for (let i = 2; fs.existsSync(path.join(appsRoot(root), s)); i++) s = `${base}-${i}`
   return s
 }
 

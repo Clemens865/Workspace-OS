@@ -2,6 +2,7 @@ import { useCallback, useEffect, useRef, useState } from 'react'
 import { ChevronDown, FolderOpen, Plus } from 'lucide-react'
 import { useWorkspaceRoot } from '../../hooks/useWorkspaceRoot'
 import styles from './LandscapeShell.module.css'
+import { basename as pathBase, isInside } from '../../lib/paths'
 
 const HOME_KEY = 'workspace-os:project-home'
 
@@ -9,7 +10,7 @@ type Project = { path: string; name: string; color: string | null; home: boolean
 
 /** The folder the project list is taken from: a remembered parent, while the open workspace is inside it. */
 export function homeFor(root: string, remembered: string | null): string {
-  if (remembered && (root === remembered || root.startsWith(remembered + '/'))) return remembered
+  if (remembered && isInside(remembered, root)) return remembered
   return root
 }
 
@@ -131,7 +132,7 @@ export function ProjectSwitcher(): JSX.Element | null {
           {others.map((dir) => (
             <button key={dir} role="menuitem" className={styles.projectItem} onClick={() => void openRecent(dir)} data-recent={dir} title={dir}>
               <span className={styles.projectDot} />
-              {dir.split('/').pop() || dir}
+              {pathBase(dir) || dir}
             </button>
           ))}
           <button role="menuitem" className={styles.projectItem} onClick={() => void openFolder()} data-testid="project-open-folder">

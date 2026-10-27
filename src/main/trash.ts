@@ -4,6 +4,7 @@ import path from 'path'
 import crypto from 'crypto'
 import { pipeline } from 'stream/promises'
 import { getWorkspaceRoot } from './workspace-root'
+import { appStateDir } from './host-profile'
 
 /**
  * Recovery layer for every destructive file operation.
@@ -31,7 +32,6 @@ export interface TrashEntry {
   storedPath: string
 }
 
-const TRASH_DIRNAME = path.join('.workspace-os', 'trash')
 const MANIFEST_NAME = 'manifest.json'
 
 export type RootProvider = () => string | null
@@ -42,7 +42,7 @@ export class TrashStore {
   private trashRoot(): string {
     const root = this.getRoot()
     if (!root) throw new Error('No workspace folder is open')
-    return path.join(root, TRASH_DIRNAME)
+    return path.join(appStateDir(root), 'trash')
   }
 
   private manifestPath(): string {

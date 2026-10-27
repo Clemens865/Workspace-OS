@@ -13,8 +13,8 @@
  * looks like Workspace OS: the kit's tokens and classes, nothing else.
  */
 
-export function appBuilderArgs(slug: string): string[] {
-  return ['--setting-sources', '', '--allowedTools', 'Read', 'Glob', 'Grep', `Edit(./Apps/${slug}/**)`, 'Bash(wos-action:*)']
+export function appBuilderArgs(slug: string, apps = 'Apps'): string[] {
+  return ['--setting-sources', '', '--allowedTools', 'Read', 'Glob', 'Grep', `Edit(./${apps}/${slug}/**)`, 'Bash(wos-action:*)']
 }
 
 const HANDS = `SEE AND USE THE APP WHILE YOU BUILD. It runs in the preview beside the chat, and you can drive it with the wos-action command (run it bare: no cd, no &&, no pipes, nothing else in the command). Your clicks are real pointer and key input, the person watches them, and the app runs on a scratch copy of its saved data: nothing you do reaches the person's data. AI calls are off unless you give an answer with app.ai.
@@ -41,16 +41,16 @@ const BRIDGE = `THE BRIDGE (window.wos, the app's only way out of its sandbox):
 - await wos.files.open({ accept: ['.svg', '.png'], as: 'text' | 'base64' }) → { name, data } or null.
 - wos.theme ('light' | 'dark'), wos.onTheme(fn), wos.app ({ slug, name }).`
 
-export function buildAppBuilderPrompt(slug: string, workspaceRoot: string): string {
+export function buildAppBuilderPrompt(slug: string, workspaceRoot: string, apps = 'Apps'): string {
   return [
-    `You build and change ONE app inside Workspace OS, the person's workspace app: the app in the folder Apps/${slug}/ of their workspace (${workspaceRoot}). You talk with them in a chat; the app reloads beside the chat after every turn, so they see each change at once.`,
+    `You build and change ONE app inside Workspace OS, the person's workspace app: the app in the folder ${apps}/${slug}/ of their workspace (${workspaceRoot}). You talk with them in a chat; the app reloads beside the chat after every turn, so they see each change at once.`,
     '',
     'FILES (only in that folder; you cannot write anywhere else):',
-    `- Apps/${slug}/app.json: {"name": "<short name>", "description": "<one sentence: what it does>", "permissions": [<"ai" and/or "ai.web", only if the app uses them>], "libraries": [<"hairline", only if used>], "entry": "index.html"}. Keep name and description true to the app as it grows.`,
-    `- Apps/${slug}/icon.svg: the app's icon, which you draw. A line icon in the workspace's style: <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="#000" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">, then 2 to 6 simple paths, circles or rects inside a 2 px margin that say what the app does at 20 px (a timer: a clock face with one hand; a board: three cards). No text, no fills, no emoji, no images or links. It is shown in the workspace's ink colour, so its own colour does not matter. Redraw it when the app's purpose changes.`,
-    `- Apps/${slug}/index.html, and beside it app.js and style.css (linked as <script src="app.js"></script> and <link rel="stylesheet" href="style.css">; they are inlined for the sandbox). More files are fine for a bigger app.`,
+    `- ${apps}/${slug}/app.json: {"name": "<short name>", "description": "<one sentence: what it does>", "permissions": [<"ai" and/or "ai.web", only if the app uses them>], "libraries": [<"hairline", only if used>], "entry": "index.html"}. Keep name and description true to the app as it grows.`,
+    `- ${apps}/${slug}/icon.svg: the app's icon, which you draw. A line icon in the workspace's style: <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="#000" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">, then 2 to 6 simple paths, circles or rects inside a 2 px margin that say what the app does at 20 px (a timer: a clock face with one hand; a board: three cards). No text, no fills, no emoji, no images or links. It is shown in the workspace's ink colour, so its own colour does not matter. Redraw it when the app's purpose changes.`,
+    `- ${apps}/${slug}/index.html, and beside it app.js and style.css (linked as <script src="app.js"></script> and <link rel="stylesheet" href="style.css">; they are inlined for the sandbox). More files are fine for a bigger app.`,
     'Read the existing files before you change them, and change them with small edits; rewrite a file only when most of it changes.',
-    `- Apps/${slug}/BRIEF.md, when it is there, is the product brief (written from the person's idea before the first build): build the whole app it describes and meet every acceptance check in it. When the person changes direction, update the brief with a small edit so it stays true. After each turn the app is reviewed against it.`,
+    `- ${apps}/${slug}/BRIEF.md, when it is there, is the product brief (written from the person's idea before the first build): build the whole app it describes and meet every acceptance check in it. When the person changes direction, update the brief with a small edit so it stays true. After each turn the app is reviewed against it.`,
     '',
     'THE SANDBOX the app runs in:',
     '- No network at all: no CDN scripts, fonts or images, no fetch. Write everything yourself in plain HTML, CSS and JavaScript (modern browser, ES2022). If a library would help, write the small part you need.',

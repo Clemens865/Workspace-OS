@@ -5,6 +5,7 @@ import { WebLinksAddon } from 'xterm-addon-web-links'
 import { SearchAddon } from 'xterm-addon-search'
 import 'xterm/css/xterm.css'
 import styles from './AgentXterm.module.css'
+import { keysIn } from '../../lib/platform'
 
 export interface AgentTermHandle {
   /** Writes raw (ANSI-capable) text into the viewport. */
@@ -120,7 +121,7 @@ export function AgentXterm({ onReady }: AgentXtermProps): JSX.Element {
             ref={searchInputRef}
             className={styles.searchInput}
             value={query}
-            placeholder="Find… (Enter / ⇧Enter)"
+            placeholder={keysIn('Find… (Enter / ⇧Enter)')}
             onChange={(e) => setQuery(e.target.value)}
             onKeyDown={onSearchKeyDown}
             spellCheck={false}

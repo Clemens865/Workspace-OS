@@ -15,6 +15,7 @@ import extra from './CaseActions.module.css'
 import { SessionsList } from './session/SessionsList'
 import { sessionStore } from '../../lib/sessions/sessionStore'
 import { toast } from './toastStore'
+import { basename as pathBase } from '../../lib/paths'
 
 type Tab = 'overview' | 'files' | 'notes' | 'history' | 'data'
 const TABS: { id: Tab; label: string }[] = [
@@ -34,7 +35,7 @@ const MODES: { id: Mode; label: string }[] = [
   { id: 'sessions', label: 'Sessions' },
 ]
 
-const thumbEntry = (p: string) => ({ name: p.split('/').pop() ?? p, path: p, isDirectory: p.endsWith('/') })
+const thumbEntry = (p: string) => ({ name: pathBase(p) ?? p, path: p, isDirectory: p.endsWith('/') })
 
 const when = (iso: string): number => {
   const t = Date.parse(iso)
@@ -301,7 +302,7 @@ export function CasesView({ initialCase = null }: { initialCase?: string | null 
                       {c.artifacts.slice(0, 6).map((p) => (
                         <button key={p} className={styles.fcard} onClick={() => openFile(p)}>
                           <FileThumb entry={thumbEntry(p)} size={22} />
-                          <span>{p.split('/').pop()}</span>
+                          <span>{pathBase(p)}</span>
                         </button>
                       ))}
                     </div>

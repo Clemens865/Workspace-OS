@@ -1,3 +1,4 @@
+import { treeWatchEnabled } from '../host-profile'
 import fs from 'fs'
 import path from 'path'
 
@@ -53,6 +54,8 @@ export function withinDepth(rel: string, depth: number): boolean {
 }
 
 export function watchTree(root: string, opts: WatchTreeOptions): TreeWatcher {
+  // Off for Windows-drive folders under WSL (host-profile.ts): no events, no walk.
+  if (!treeWatchEnabled(root)) return { close: () => {} }
   const watcher = fs.watch(root, { recursive: true, persistent: true }, (kind, filename) => {
     if (!filename) return
     const rel = String(filename)
