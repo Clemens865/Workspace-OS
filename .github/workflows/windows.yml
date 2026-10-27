@@ -1,12 +1,13 @@
 name: Windows build
 
-# Native Windows build of the fork's windows-native branch: phase 0 spikes
-# (docs/WINDOWS-NATIVE-PLAN.md) and the installer. Runs on push to that branch or
-# by hand. Nothing is published; the installer is an artifact of the run.
+# Native Windows build (community-supported): phase 0 spikes
+# (docs/WINDOWS-NATIVE-PLAN.md) and the installer. Runs for every release tag,
+# so each release shows whether Windows still builds, or by hand. Nothing is
+# published; the installer is an artifact of the run.
 
 on:
   push:
-    branches: [windows-native]
+    tags: ['v*']
   workflow_dispatch:
 
 permissions:

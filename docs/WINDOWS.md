@@ -40,7 +40,7 @@ Then:
 1. Open a **new** terminal, so it sees the updated PATH.
 2. Run `claude` once and sign in.
 3. Install Workspace OS. Until a release is published, the installer is a build artifact: open the
-   [Windows build workflow](https://github.com/cbruyndoncx/Workspace-OS/actions/workflows/windows.yml)
+   [Windows build workflow](https://github.com/Clemens865/Workspace-OS/actions/workflows/windows.yml)
    (signed in to GitHub), choose the latest green run, download `workspace-os-windows`, unzip it and
    run `Workspace OS Setup <version>.exe`. It installs for the current user, without administrator
    rights, into `%LOCALAPPDATA%\Programs\workspace-os`.

@@ -260,7 +260,7 @@ td.k{white-space:nowrap;font-family:var(--mono);font-size:12.5px}
 <p>On Windows and Linux the app shows Ctrl, Alt and Shift in its hints and menus.</p>
 
 <h2 id="platforms">Windows and Linux</h2>
-<p class="what">Releases are for macOS. Builds for Windows 11 and for Linux (including WSL) exist on the fork <a href="https://github.com/cbruyndoncx/Workspace-OS">cbruyndoncx/Workspace-OS</a>; they work the same way, with these differences.</p>
+<p class="what">Releases are for macOS. Windows 11 and Linux (including WSL) are community-supported: they build from source (docs/WINDOWS.md, docs/LINUX-WSL.md) and work the same way, with these differences.</p>
 <ul><li><strong>Install</strong>: Windows uses a short <code>winget</code> block and an installer, Linux the distribution's packages; see <code>docs/WINDOWS.md</code> and <code>docs/LINUX-WSL.md</code>.</li><li><strong>Office engine</strong>: not bundled; the app uses the LibreOffice you install. On Windows, spreadsheets render black on LibreOffice 25.8 and later until LibreOffice fixes bug 174143; a second copy of LibreOffice 25.2 used only by Workspace OS works around it.</li><li><strong>Keys</strong>: Ctrl where the Mac uses ⌘ (see <a href="#keys">Keyboard</a>).</li><li><strong>App data</strong>: <code>%APPDATA%\workspace-os</code> on Windows, <code>~/.config/workspace-os</code> on Linux.</li><li><strong>Updates</strong>: none automatic; install a newer build by hand.</li></ul>
 
 <h2 id="notyet">Not yet</h2>

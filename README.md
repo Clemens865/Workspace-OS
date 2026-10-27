@@ -122,7 +122,7 @@ Version 0.1.125, September 2026. Shipped and green in automated tests: everythin
 - Calendar has no agenda list or event search and cannot author new recurrence rules.
 - Image generation is not built.
 - Memory retrieval is lexical, not semantic.
-- Releases are macOS only. Linux (including WSL) and Windows build from source against an installed LibreOffice ([docs/LINUX-WSL.md](docs/LINUX-WSL.md), [docs/WINDOWS.md](docs/WINDOWS.md)); on Windows, spreadsheets render black on LibreOffice 25.8 and later.
+- Releases are macOS only. Linux (including WSL) and Windows are community-supported and build from source against an installed LibreOffice ([docs/LINUX-WSL.md](docs/LINUX-WSL.md), [docs/WINDOWS.md](docs/WINDOWS.md)); on Windows, spreadsheets render black on LibreOffice 25.8 and later.
 - Not signed with a Developer ID and not notarized.
 
 Planned next, per the roadmap: freeze panes and pivot tables, mail-merge from a Collection, Word comments in the Living Feed, slide master editing, mail threading and search, a messages surface, semantic memory search, and beta accounts with report collection.
