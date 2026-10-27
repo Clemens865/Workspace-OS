@@ -2,18 +2,18 @@ import { nextId } from './bug-log'
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 
 /**
- * WOS-010: `analyzeBug` is exercised against a stub engine so the deadline and
- * retry rules can be asserted without waiting minutes or calling a model.
+ * `analyzeBug` is exercised against a stub engine so the retry rule and the
+ * absence of a time limit can be asserted without waiting minutes or calling a model.
  */
-const runs: { systemPrompt: string; timeoutMs: number }[] = []
+const runs: { systemPrompt: string; timeoutMs?: number }[] = []
 let replies: string[] = []
 let elapsePerRunMs = 0
 let now = 1_000_000
 vi.mock('../agent/claudeRun', () => ({
-  runClaudeJson: async (opts: { systemPrompt: string; timeoutMs: number }) => {
+  runClaudeJson: async (opts: { systemPrompt: string; timeoutMs?: number }) => {
     runs.push({ systemPrompt: opts.systemPrompt, timeoutMs: opts.timeoutMs })
     now += elapsePerRunMs
-    return { text: replies.shift() ?? '', timedOut: false }
+    return { text: replies.shift() ?? '' }
   },
 }))
 import { readFileSync } from 'fs'
@@ -317,16 +317,11 @@ describe('analyzeBug budget and retry (WOS-010)', () => {
     vi.spyOn(Date, 'now').mockImplementation(() => now)
   })
 
-  it('gives an idea a bigger budget than a bug — it has to survey the codebase', () => {
-    replies = [GOOD]
-    return analyzeBug(input('idea')).then(() => {
-      const ideaBudget = runs[0].timeoutMs
-      runs.length = 0
-      replies = [GOOD]
-      return analyzeBug(input('bug')).then(() => {
-        expect(ideaBudget).toBeGreaterThan(runs[0].timeoutMs)
-      })
-    })
+  it('never gives the model a time limit, for a bug or an idea', async () => {
+    replies = [GOOD, GOOD]
+    await analyzeBug(input('idea'))
+    await analyzeBug(input('bug'))
+    expect(runs.map((r) => r.timeoutMs)).toEqual([undefined, undefined])
   })
 
   it('sends an idea the idea prompt, not the bug prompt', async () => {
@@ -343,28 +338,14 @@ describe('analyzeBug budget and retry (WOS-010)', () => {
     expect(runs[0].systemPrompt).toMatch(/"severity"/)
   })
 
-  it('retries an unparseable reply with only the time that is LEFT', async () => {
-    // The whole call shares one deadline. Before this, each attempt got the
-    // full budget and the user waited ~4 minutes to be told it failed.
+  it('retries an unparseable reply however long the first attempt took', async () => {
+    // A slow first answer is not a reason to give up: agents may work for a long time.
     replies = ['not json at all', GOOD]
-    elapsePerRunMs = 40_000
-    const res = await analyzeBug(input('bug'))
+    elapsePerRunMs = 60 * 60_000
+    const res = await analyzeBug(input('idea'))
 
     expect(res.ok).toBe(true)
     expect(runs).toHaveLength(2)
-    expect(runs[1].timeoutMs).toBeLessThan(runs[0].timeoutMs)
-    expect(runs[0].timeoutMs - runs[1].timeoutMs).toBe(40_000)
-  })
-
-  it('does not start a retry it cannot finish', async () => {
-    // A second attempt with seconds left is just a longer failure.
-    replies = ['not json', GOOD]
-    elapsePerRunMs = 119_000 // leaves 1s of a 120s budget
-    const res = await analyzeBug(input('bug'))
-
-    expect(runs).toHaveLength(1)
-    expect(res.ok).toBe(false)
-    expect(res.error).toMatch(/did not return a usable report/)
   })
 
   it('nudges the retry to return JSON and nothing else', async () => {

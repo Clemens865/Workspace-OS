@@ -30,7 +30,6 @@ export interface BuildResult {
 }
 
 const MAX_DESCRIPTION = 2000
-const BUILD_TIMEOUT_MS = 90_000
 
 /** The catalog, rendered for the builder prompt so the model picks real ids. */
 function catalogForPrompt(): string {
@@ -160,12 +159,10 @@ export async function buildAgentSpec(description: string): Promise<BuildResult> 
       res = await runProviderJson({
         prompt: desc,
         systemPrompt: builderPrompt(attempt > 0),
-        timeoutMs: BUILD_TIMEOUT_MS,
       })
     } catch (err) {
       return { ok: false, error: `Could not start the builder: ${(err as Error).message}` }
     }
-    if (res.timedOut) return { ok: false, error: 'The builder timed out. Try a shorter description.' }
     const spec = parseSpec(res.text)
     if (spec) return { ok: true, spec }
     // else: loop retries once with the strict nudge.

@@ -64,9 +64,7 @@ function assistantTexts(ndjson: string): string[] {
 }
 
 export interface OneShotOptions {
-  /** Milliseconds before the run is killed. */
-  timeoutMs: number
-  /** Used in the timeout/exit messages, e.g. "The writing assistant". */
+  /** Used in the exit messages, e.g. "The writing assistant". */
   label: string
   /**
    * Model ALIAS to run on (e.g. "haiku") — a user setting passed through,
@@ -125,17 +123,10 @@ function runOneShotAttempt(prompt: string, opts: OneShotOptions): Promise<string
 
     let out = ''
     let errText = ''
-    const timer = setTimeout(() => {
-      child.kill('SIGTERM')
-      reject(new Error(`${opts.label} timed out.`))
-    }, opts.timeoutMs)
-    timer.unref?.()
-
     child.stdout.on('data', (d: Buffer) => { out += d.toString() })
     child.stderr.on('data', (d: Buffer) => { errText += d.toString() })
-    child.on('error', (e) => { clearTimeout(timer); reject(e) })
+    child.on('error', (e) => reject(e))
     child.on('close', (code) => {
-      clearTimeout(timer)
       const texts = assistantTexts(out)
       if (code === 0 && texts.length > 0) {
         resolve(texts[0].trim())

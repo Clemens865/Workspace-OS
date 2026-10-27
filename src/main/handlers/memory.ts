@@ -135,7 +135,7 @@ export function registerMemoryHandlers(ipcMain: IpcMain): void {
     const alias = typeof model === 'string' && model.trim() ? model.trim().slice(0, 64) : undefined
     // The workspace the session ran in, held across the model call (the person may switch meanwhile).
     const res = await proposeFromSession(ctx(), { title: str(d.title, 120) || 'a session', agentName: str(d.agentName, 80) || null, turns }, (prompt) =>
-      runProviderOneShot(prompt, { timeoutMs: 120_000, label: 'Remembering the session', model: alias }),
+      runProviderOneShot(prompt, { label: 'Remembering the session', model: alias }),
     )
     void mem.embedPending(ctx()).catch(() => {})
     return { proposed: res.proposed, skipped: res.skipped }

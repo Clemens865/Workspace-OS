@@ -73,7 +73,7 @@ describe('Codex session and isolation', () => {
   })
   it('routes structured app actions through the supplied grant handler in unattended Safe mode', async () => {
     const onAction = vi.fn(async () => ({ ok: true, result: { path: '/workspace/report.md' } }))
-    const s = await setup({ onAction, idleTimeoutMs: 1000 })
+    const s = await setup({ onAction, unattended: true })
     expect(s.rpc.request).toHaveBeenCalledWith('thread/start', expect.objectContaining({ dynamicTools: expect.arrayContaining([expect.objectContaining({ name: 'workspace_action' })]) }), 60000)
     s.rpc.options.onRequest(3, 'item/tool/call', { tool: 'workspace_action', arguments: { actionId: 'document.generate', args: { format: 'md' } } })
     await Promise.resolve()
@@ -89,14 +89,15 @@ describe('Codex session and isolation', () => {
     controller.abort()
     expect(s.onFinish).toHaveBeenCalledExactlyOnceWith(130)
   })
-  it('declines unattended approvals and ends an idle run with timeout code 124', async () => {
+  it('declines unattended approvals, and never stops a quiet run on a clock', async () => {
     vi.useFakeTimers()
-    const s = await setup({ idleTimeoutMs: 1000 })
+    const s = await setup({ unattended: true })
+    expect(s.rpc.request).toHaveBeenCalledWith('thread/start', expect.objectContaining({ approvalPolicy: 'never' }), 60000)
     s.rpc.options.onRequest(1, 'item/fileChange/requestApproval', {})
     expect(s.rpc.respond).toHaveBeenCalledWith(1, { decision: 'decline' })
     expect(s.onQuestion).not.toHaveBeenCalled()
-    await vi.advanceTimersByTimeAsync(1001)
-    expect(s.onFinish).toHaveBeenCalledExactlyOnceWith(124)
+    await vi.advanceTimersByTimeAsync(24 * 60 * 60_000)
+    expect(s.onFinish).not.toHaveBeenCalled()
   })
 
   // Review fixes 2026-09-08 (each was a verified defect on the first cut).

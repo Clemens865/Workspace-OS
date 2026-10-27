@@ -20,25 +20,6 @@ import type { BugContext, BugReport, BugSeverity, ExistingBug, SuspectFile } fro
  * corrects it before a single byte reaches the log (same shape as the Foundry).
  */
 
-/**
- * WOS-010. Bug triage and idea analysis are not the same size of job.
- *
- * Triage locates one defect. An idea has to SURVEY the codebase — search for
- * what already exists, name the files, judge the proposal against the roadmap
- * rule — which is several times the Read/Grep work. Running ideas on the
- * bug-sized budget is half of why every idea report failed.
- */
-const ANALYZE_TIMEOUT_MS = 120_000
-const IDEA_TIMEOUT_MS = 300_000
-
-/**
- * Least time worth starting a second attempt with. The budget above is an
- * OVERALL deadline, not a per-attempt one: before this, two unparseable replies
- * could each run the full clock, so the user waited ~4 minutes to be told it did
- * not work. A retry that cannot finish is just a longer failure.
- */
-const MIN_RETRY_MS = 30_000
-
 export interface AnalysisInput {
   /** A defect, or a proposal. Defaults to 'bug' for existing callers. */
   kind?: 'bug' | 'idea'
@@ -333,24 +314,15 @@ export function parseAnalysis(
 
 /**
  * Run the analysis. Retries once with a strict nudge if the model returns
- * something unparseable — the same two-attempt contract the Foundry uses, but
- * bounded by one overall deadline (WOS-010) so a retry can never double the
- * wait before the failure.
+ * something unparseable — the same two-attempt contract the Foundry uses. No
+ * time limit: an idea survey legitimately takes as long as the codebase needs.
  */
 export async function analyzeBug(input: AnalysisInput): Promise<AnalyzeResult> {
   const localized = !!input.repoRoot
   const prompt = buildAnalysisPrompt(input)
   const isIdea = input.kind === 'idea'
 
-  // WOS-010: one deadline for the WHOLE call, not per attempt. The retry gets
-  // whatever is left, and is skipped when that is too little to finish in — the
-  // old code let two attempts each burn the full budget.
-  const deadline = Date.now() + (isIdea ? IDEA_TIMEOUT_MS : ANALYZE_TIMEOUT_MS)
-
   for (let attempt = 0; attempt < 2; attempt++) {
-    const remainingMs = deadline - Date.now()
-    if (attempt > 0 && remainingMs < MIN_RETRY_MS) break
-
     let res
     try {
       res = await runProviderJson({
@@ -358,7 +330,6 @@ export async function analyzeBug(input: AnalysisInput): Promise<AnalyzeResult> {
         systemPrompt: isIdea
           ? ideaSystemPrompt(localized, attempt > 0)
           : systemPrompt(localized, attempt > 0),
-        timeoutMs: remainingMs,
         // The read-only guarantee. Without a repo there is nothing to read, so
         // the grant is empty and the model works from the description alone.
         ...(input.repoRoot
@@ -368,7 +339,6 @@ export async function analyzeBug(input: AnalysisInput): Promise<AnalyzeResult> {
     } catch (err) {
       return { ok: false, error: `Could not start the analyzer: ${(err as Error).message}` }
     }
-    if (res.timedOut) return { ok: false, error: 'The analyzer timed out. File it unanalyzed and move on.' }
     const analysis = parseAnalysis(res.text, input.existing, localized)
     if (analysis) return { ok: true, analysis }
   }

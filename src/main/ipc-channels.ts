@@ -309,7 +309,7 @@ export const IPC = {
   CONNECTIONS_SIGNOUT: 'connections:signout',
 
   // Background runs — main-owned agent runs that survive the window (routines,
-  // unattended work). Safe mode only, idle timeout. Their stream rides the
+  // unattended work). Safe mode only, no time limit. Their stream rides the
   // agent:* channels keyed by job id; UPDATED carries the persisted job record.
   RUNS_ENQUEUE: 'runs:enqueue',
   RUNS_LIST: 'runs:list',

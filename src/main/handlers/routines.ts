@@ -13,7 +13,7 @@ import { enqueueBackgroundRun, listBackgroundRuns } from './runs'
 /**
  * Routines: the store, the app-owned scheduler, and their IPC. Every run a
  * routine starts is a background job (M2) carrying the routine's id, label
- * and exactly its capabilities — safe mode, idle timeout, grant enforced at
+ * and exactly its capabilities — safe mode, no time limit, grant enforced at
  * the bridge.
  */
 

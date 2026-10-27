@@ -8,7 +8,7 @@ export interface CodexQuestion { runId: string; requestId: string; method: strin
 export interface CodexSessionOptions {
   runId: string; cwd: string; prompt: string; instructions: string; model?: string; effort?: string
   resumeId?: string; safeMode: boolean; env: NodeJS.ProcessEnv; connectors: McpJsonConfig
-  idleTimeoutMs?: number; sink: RunSink; signal?: AbortSignal
+  unattended?: boolean; sink: RunSink; signal?: AbortSignal
   onQuestion: (question: CodexQuestion | { runId: string; requestId: string; resolved: true }) => void
   onFinish: (code: number) => void
   onAction?: (actionId: string, args: unknown) => Promise<{ ok: boolean; result?: unknown; error?: string }>
@@ -104,7 +104,7 @@ export async function launchCodexSession(o: CodexSessionOptions): Promise<ChildP
   if (o.resumeId && !parseConversation('codex:' + o.resumeId)) throw new Error('Invalid Codex thread id')
   const start = Date.now()
   let resolvedModel = o.model
-  let finished = false, timedOut = false, idle: ReturnType<typeof setTimeout> | undefined
+  let finished = false
   let baseline: Record<string, number> | undefined
   let usage = { inputTokens: 0, outputTokens: 0, cachedInputTokens: 0 }
   let control: Control
@@ -112,7 +112,6 @@ export async function launchCodexSession(o: CodexSessionOptions): Promise<ChildP
   /** Release everything without reporting a completion (a failed start is reported by the caller). */
   const teardown = (): void => {
     finished = true
-    if (idle) clearTimeout(idle)
     o.signal?.removeEventListener('abort', abort)
     for (const id of control?.requests.keys() ?? []) o.onQuestion({ runId: o.runId, requestId: id, resolved: true })
     controls.delete(o.runId)
@@ -124,20 +123,13 @@ export async function launchCodexSession(o: CodexSessionOptions): Promise<ChildP
     const label = resolvedModel ? `codex ${resolvedModel}` : 'codex'
     o.sink.meta({ costUsd: 0, costKnown: false, provider: 'codex', turns: 1, durationMs: Date.now() - start, model: label, ...usage })
     o.sink.output(`\n\x1b[2m${label} · ${usage.inputTokens.toLocaleString('en-US')} in / ${usage.outputTokens.toLocaleString('en-US')} out\x1b[0m\n`)
-    o.onFinish(timedOut ? 124 : code)
-  }
-  const touch = (): void => {
-    if (!o.idleTimeoutMs || finished) return
-    if (idle) clearTimeout(idle)
-    idle = setTimeout(() => { timedOut = true; o.sink.output('\n[timeout] Codex stopped after the idle window\n'); finish(124) }, o.idleTimeoutMs)
-    idle.unref()
+    o.onFinish(code)
   }
   const rpc = new CodexRpc({
     cwd: o.cwd, env: o.env,
-    onDiagnostic: (text) => { touch(); o.sink.output(text) },
+    onDiagnostic: (text) => o.sink.output(text),
     onClose: (error) => { if (!finished) { o.sink.output(`\n[error] ${error.message}\n`); finish(130) } },
     onRequest: (id, method, params) => {
-      touch()
       if (method === 'item/tool/call' && params.tool === 'workspace_action' && o.onAction) {
         const input = params.arguments
         if (!input || typeof input.actionId !== 'string' || JSON.stringify(input).length > 2_000_000) { rpc.reject(id, 'Invalid Workspace action'); return }
@@ -149,7 +141,7 @@ export async function launchCodexSession(o: CodexSessionOptions): Promise<ChildP
         })
         return
       }
-      if (o.idleTimeoutMs) {
+      if (o.unattended) {
         if (method.endsWith('/requestApproval')) rpc.respond(id, method === 'item/permissions/requestApproval' ? { permissions: {}, scope: 'turn' } : { decision: 'decline' })
         else if (method === 'mcpServer/elicitation/request') rpc.respond(id, { action: 'decline', content: null })
         else rpc.reject(id, 'This unattended routine cannot ask a user; report the missing input.')
@@ -164,7 +156,6 @@ export async function launchCodexSession(o: CodexSessionOptions): Promise<ChildP
     onNotification: (method, p) => {
       // Subagent turns share the server but must never finish the parent run.
       if (control.thread && p.threadId && p.threadId !== control.thread) return
-      touch()
       if (method === 'turn/started') control.turn = p.turn?.id ?? ''
       else if (method === 'item/agentMessage/delta' && typeof p.delta === 'string') { delivered.add(p.itemId); o.sink.output(p.delta) }
       else if (method === 'item/completed' && p.item?.type === 'agentMessage') {
@@ -202,12 +193,11 @@ export async function launchCodexSession(o: CodexSessionOptions): Promise<ChildP
   const abort = (): void => control.cancel()
   o.signal?.addEventListener('abort', abort, { once: true })
   controls.set(o.runId, control)
-  touch()
   try {
     await rpc.initialize()
     const { config } = await rpc.request('config/read', { includeLayers: false, cwd: o.cwd })
     const threadConfig = codexThreadConfig(config ?? {}, o.connectors, o.safeMode)
-    const params = { cwd: o.cwd, model: o.model || null, sandbox: o.safeMode ? 'read-only' : 'workspace-write', approvalPolicy: o.idleTimeoutMs ? 'never' : 'on-request', approvalsReviewer: 'user', developerInstructions: o.instructions, config: threadConfig }
+    const params = { cwd: o.cwd, model: o.model || null, sandbox: o.safeMode ? 'read-only' : 'workspace-write', approvalPolicy: o.unattended ? 'never' : 'on-request', approvalsReviewer: 'user', developerInstructions: o.instructions, config: threadConfig }
     const tools = o.onAction ? { dynamicTools: [{ type: 'function', name: 'workspace_action', description: 'Run an authorized Workspace app action. Documents: document.generate with format, name, spec (Office) or content (Markdown/HTML). Live data: document.data with operation and args. The app enforces your run grant.', inputSchema: { type: 'object', properties: { actionId: { type: 'string' }, args: { type: 'object', additionalProperties: true } }, required: ['actionId', 'args'], additionalProperties: false } }] } : {}
     // Registered on resume too: a follow-up turn must keep the app tool the guidance promises.
     const result = await rpc.request(o.resumeId ? 'thread/resume' : 'thread/start', { ...params, ...tools, ...(o.resumeId ? { threadId: o.resumeId } : {}) }, 60000)

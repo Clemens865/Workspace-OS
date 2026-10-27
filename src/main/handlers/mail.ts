@@ -1091,7 +1091,7 @@ export function registerMailHandlers(ipcMain: IpcMain): void {
       ).category,
     }))
     const result = await siftItems(items, caseTitles, (prompt) =>
-      runProviderOneShot(prompt, { timeoutMs: 120_000, label: 'The mail sift', model }),
+      runProviderOneShot(prompt, { label: 'The mail sift', model }),
     )
     // The view shows sender and subject next to each verdict; the rows are
     // already in hand, so ship them together instead of a second lookup.

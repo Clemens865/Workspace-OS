@@ -17,8 +17,6 @@ import { runProviderOneShot } from '../agent/providerText'
 
 /** Max characters of source body we hand the drafter (keeps the prompt bounded). */
 const MAX_SOURCE_CHARS = 8000
-/** Hard cap on how long we wait for the model before giving up. */
-const DRAFT_TIMEOUT_MS = 90_000
 
 /** Builds the agent-backed draftFn. Kept out of the IPC handler for testability. */
 export function makeAgentDraftFn(): DraftFn {
@@ -57,5 +55,5 @@ export function buildDraftPrompt(input: DraftFnInput): string {
 
 /** Runs `claude -p` with the prompt on stdin and resolves the full stdout text. */
 function runClaudeDraft(prompt: string): Promise<string> {
-  return runProviderOneShot(prompt, { timeoutMs: DRAFT_TIMEOUT_MS, label: 'The drafting agent' })
+  return runProviderOneShot(prompt, { label: 'The drafting agent' })
 }

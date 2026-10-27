@@ -92,7 +92,7 @@ async function work(): Promise<void> {
       if (text.trim().length < MIN_TEXT) throw new Error('there is no text in it to read')
       // The person's default model: a wiki page wants more than the light model gives.
       const r = await wiki.ingest(job.root, job.rel, text, st.mtimeMs, (prompt) =>
-        runProviderOneShot(prompt, { timeoutMs: 300_000, label: 'Adding to the wiki' }),
+        runProviderOneShot(prompt, { label: 'Adding to the wiki' }),
       )
       if (r.change) Object.assign(result, { created: r.change.created, updated: r.change.updated, kept: r.change.kept })
       if (r.change?.pages.length) await reindex(job.root, r.change.pages.map((p) => p.file))
