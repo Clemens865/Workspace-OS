@@ -54,7 +54,7 @@ const isPainted = () => win.evaluate(() =>
 
 // Robust open: click the file in the tree, poll until painted. Never throws.
 async function openFile(name) {
-  await win.getByText(name).first().click()
+  await H.clickFile(win, name)
   return H.poll(isPainted, { timeout: 14000 })
 }
 

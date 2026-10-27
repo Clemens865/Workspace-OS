@@ -23,7 +23,8 @@ r.ok(selCount > 0, 'selection is visible (highlight overlay drawn)')
 await H.shot(win, 'selection-highlight')
 
 // Bold the selection → only "BOLDME" becomes bold.
-await win.getByTitle('Bold').click()
+// The ribbon's Bold, not the mini toolbar's (it shows over a selection too).
+await win.locator('button[title="Bold"]:not([data-testid="mini-toolbar"] button)').click()
 await win.waitForTimeout(300)
 await H.save(win)
 const xml = H.docXml(file, 'Word')

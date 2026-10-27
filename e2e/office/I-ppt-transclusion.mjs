@@ -46,7 +46,7 @@ async function waitEngineDoc(win, budgetMs = 120000) {
 /** Open the file via the tree and wait until the renderer is READY (the ∑ Metrics
  * toggle renders only when loading has cleared) — lets the on-open re-sync run. */
 async function reopenInRenderer(win, budgetMs = 120000) {
-  await win.getByText('New Presentation.pptx').first().click()
+  await I.clickFile(win, 'New Presentation.pptx')
   const deadline = Date.now() + budgetMs
   while (Date.now() < deadline) {
     if (await win.locator('[data-testid=metrics-toggle]').isVisible().catch(() => false)) { await win.waitForTimeout(400); return }
@@ -66,6 +66,7 @@ if (await prim.isVisible().catch(() => false)) await prim.click()
 else await win.getByText('PowerPoint').first().click()
 await waitEngineDoc(win)
 
+await I.clearLinks(win, FILE) // links from earlier runs on this file name would be counted too
 const metricId = await win.evaluate((name) => window.workspace.metrics.create(name, 42).then((m) => m.id), NAME)
 r.ok(typeof metricId === 'string' && metricId.startsWith('metric-'), 'metric "Attendees"=42 created')
 

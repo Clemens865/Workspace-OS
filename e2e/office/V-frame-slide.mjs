@@ -50,7 +50,7 @@ r.ok(fs.existsSync(FILE), 'built a 1-slide .pptx fixture to open')
 
 // ---- 2. Open it in the REAL LOK engine ----
 const { app, win } = await U.launch()
-await win.getByText('V-frame-deck.pptx').first().click()
+await U.clickFile(win, 'V-frame-deck.pptx')
 await U.waitRender(win, 'Design') // Impress "Design" tab ⇒ a real deck opened
 
 // ---- 3. Drive canvas:frame-to-slide with a 3-native-shape spec (in 1/100 mm) ----

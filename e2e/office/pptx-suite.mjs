@@ -5,7 +5,7 @@
 // (saved ppt/slides/*.xml OOXML).
 import { execSync } from 'child_process'
 import fs from 'fs'
-import { launch, newDoc, waitRender, save, makeReporter, enginePresent, poll, canvasSig, shot } from './_harness.mjs'
+import { launch, newDoc, waitRender, save, makeReporter, enginePresent, poll, canvasSig, shot, clickFile } from './_harness.mjs'
 // The landscape is the only shell (docs/landscape/PLAN.md, phase 7); these tests drive
 // the flat stage's surfaces, so the app opens on the stage.
 process.env.WOS_START_ON ??= 'stage'
@@ -28,7 +28,7 @@ const capture = () => win.evaluate(() => window.workspace.lok.capture())
 
 /** Fraction of canvas pixels within tol of an RRGGBB long. */
 const colorFrac = (rgb, tol = 28) => win.evaluate(([rgb, tol]) => {
-  const c = [...document.querySelectorAll('canvas')].reduce((a, b) => (b.width * b.height > (a?.width * a?.height || 0) ? b : a), null)
+  const c = (document.querySelector('[class*=docWrap] canvas') || [...document.querySelectorAll('canvas')].reduce((a, b) => (b.width * b.height > (a?.width * a?.height || 0) ? b : a), null))
   if (!c) return 0
   const d = c.getContext('2d').getImageData(0, 0, c.width, c.height).data
   const R = (rgb >> 16) & 255, G = (rgb >> 8) & 255, B = rgb & 255
@@ -39,7 +39,7 @@ const colorFrac = (rgb, tol = 28) => win.evaluate(([rgb, tol]) => {
 
 /** RGB long at the center of the biggest canvas. */
 const centerColor = () => win.evaluate(() => {
-  const c = [...document.querySelectorAll('canvas')].reduce((a, b) => (b.width * b.height > (a?.width * a?.height || 0) ? b : a), null)
+  const c = (document.querySelector('[class*=docWrap] canvas') || [...document.querySelectorAll('canvas')].reduce((a, b) => (b.width * b.height > (a?.width * a?.height || 0) ? b : a), null))
   const d = c.getContext('2d').getImageData(Math.floor(c.width / 2), Math.floor(c.height / 2), 1, 1).data
   return (d[0] << 16) | (d[1] << 8) | d[2]
 })
@@ -48,14 +48,14 @@ const centerColor = () => win.evaluate(() => {
  * WosShapeInsert places shapes at (5000,5000)+7000x4500 on a 25400x14288 slide,
  * so the inserted shape's center sits at fraction (0.335, 0.507). */
 const slidePoint = (fx, fy) => win.evaluate(([fx, fy]) => {
-  const c = [...document.querySelectorAll('canvas')].reduce((a, b) => (b.width * b.height > (a?.width * a?.height || 0) ? b : a), null)
+  const c = (document.querySelector('[class*=docWrap] canvas') || [...document.querySelectorAll('canvas')].reduce((a, b) => (b.width * b.height > (a?.width * a?.height || 0) ? b : a), null))
   const r = c.getBoundingClientRect()
   return { x: r.left + r.width * fx, y: r.top + r.height * fy }
 }, [fx, fy])
 const SHAPE_CX = (5000 + 3500) / 25400, SHAPE_CY = (5000 + 2250) / 14288
 /** RGB long at a slide-fraction point. */
 const colorAt = (fx, fy) => win.evaluate(([fx, fy]) => {
-  const c = [...document.querySelectorAll('canvas')].reduce((a, b) => (b.width * b.height > (a?.width * a?.height || 0) ? b : a), null)
+  const c = (document.querySelector('[class*=docWrap] canvas') || [...document.querySelectorAll('canvas')].reduce((a, b) => (b.width * b.height > (a?.width * a?.height || 0) ? b : a), null))
   const d = c.getContext('2d').getImageData(Math.floor(c.width * fx), Math.floor(c.height * fy), 1, 1).data
   return (d[0] << 16) | (d[1] << 8) | d[2]
 }, [fx, fy])
@@ -222,7 +222,7 @@ await poll(selInfo)
 await act(`office.shapefill:${RED}`)
 await sleep(300)
 const geo = await win.evaluate(() => {
-  const c = [...document.querySelectorAll('canvas')].reduce((a, b) => (b.width * b.height > (a?.width * a?.height || 0) ? b : a), null)
+  const c = (document.querySelector('[class*=docWrap] canvas') || [...document.querySelectorAll('canvas')].reduce((a, b) => (b.width * b.height > (a?.width * a?.height || 0) ? b : a), null))
   const rr = c.getBoundingClientRect()
   return { w: rr.width, h: rr.height }
 })
@@ -275,7 +275,7 @@ r.ok((await M('WosArrange', 'forward')) === true, 'ARR-02 bring-forward macro ok
 await act('office.arrange:left')
 await sleep(500)
 const leftBlue = await win.evaluate(([rgb]) => {
-  const c = [...document.querySelectorAll('canvas')].reduce((a, b) => (b.width * b.height > (a?.width * a?.height || 0) ? b : a), null)
+  const c = (document.querySelector('[class*=docWrap] canvas') || [...document.querySelectorAll('canvas')].reduce((a, b) => (b.width * b.height > (a?.width * a?.height || 0) ? b : a), null))
   const d = c.getContext('2d').getImageData(0, 0, 60, c.height).data
   const R = (rgb >> 16) & 255, G = (rgb >> 8) & 255, B = rgb & 255
   let hit = 0
@@ -521,9 +521,10 @@ r.ok(thumbFracs.length >= 2 && thumbFracs.filter((f) => f > 0.01).length >= 2,
     (m) => `${m}<p:bg><p:bgPr><a:solidFill><a:srgbClr val="FFFF00"/></a:solidFill><a:effectLst/></p:bgPr></p:bg>`)
   fs.writeFileSync(slide1, patched)
   execSync(`cd '${patchDir}' && zip '${bgFile}' 'ppt/slides/slide1.xml'`, { stdio: 'ignore' })
-  const inTree = await poll(() => win.getByText('bg-deck.pptx').first().isVisible().catch(() => false), { timeout: 12000 })
+  // Listed anywhere is enough: clickFile brings it into view (the first match can be a hidden tile).
+  const inTree = await poll(async () => (await win.getByText('bg-deck.pptx').count()) > 0, { timeout: 12000 })
   if (inTree) {
-    await win.getByText('bg-deck.pptx').first().click()
+    await clickFile(win, 'bg-deck.pptx')
     await waitRender(win, 'Design')
     const thumbBgFrac = () => win.evaluate(async ([rgb]) => {
       const im = document.querySelector('img[class*=thumb]')

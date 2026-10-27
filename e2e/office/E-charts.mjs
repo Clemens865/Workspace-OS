@@ -44,7 +44,7 @@ async function authorDataFile(file) {
 
 /** Opens `fileName` from the tree and waits until the ENGINE reports a doc. */
 async function openInEngine(win, fileName) {
-  await win.getByText(fileName).first().click()
+  await H.clickFile(win, fileName)
   for (let i = 0; i < 120; i++) {
     const p = await win.evaluate(() => window.workspace.lok.parts()).catch(() => null)
     if (p && p.parts > 0) { await win.waitForTimeout(700); return true }

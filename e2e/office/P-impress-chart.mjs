@@ -62,7 +62,7 @@ async function newDeck(win) {
 
 /** Opens a deck from the tree and waits on the engine (a slide part). */
 async function openDeck(win, fileName) {
-  await win.getByText(fileName).first().click()
+  await H.clickFile(win, fileName)
   const ok = await H.poll(async () => {
     const p = await win.evaluate(() => window.workspace.lok.parts()).catch(() => null)
     return p && p.parts > 0

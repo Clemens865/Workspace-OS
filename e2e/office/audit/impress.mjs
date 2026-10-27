@@ -9,7 +9,8 @@ import {
 } from './util.mjs'
 
 const APP = 'Impress'
-const FILE = `${TESTROOT}/New Presentation.pptx`
+// The deck newDoc actually created (the app may name it "New Presentation 2.pptx").
+let FILE = `${TESTROOT}/New Presentation.pptx`
 const slide1 = () => unzip(FILE, 'ppt/slides/slide1.xml')
 
 // Run a macro then settle — the model mutation flushes a beat after runMacro
@@ -39,7 +40,7 @@ async function waitEngineDoc(win, budgetMs = 120000) {
 export async function runImpress(win) {
   console.log('\n--- Impress macros ---')
   rmFixtures('New Presentation')
-  await H.newDoc(win, 'PowerPoint')
+  FILE = await H.newDoc(win, 'PowerPoint')
   await waitEngineDoc(win)
 
   // ---- WosShapeInsert (rect) — selInfo confirms a selected shape --------

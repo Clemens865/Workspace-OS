@@ -38,7 +38,9 @@ await win.mouse.click(700, 400).catch(() => {})
 
 for (const [label, ext] of formats) {
   await win.getByTitle('Export to another format').click()
-  await win.getByText(label, { exact: true }).click()
+  // The Export menu's item, not the file browser's same-named type filter chip.
+  await win.locator('button:not([data-testid="file-browser"] *)')
+    .filter({ hasText: new RegExp(`^${label.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}$`) }).first().click()
   // wait for an exported file with this extension to appear
   let found = ''
   for (let i = 0; i < 25; i++) {

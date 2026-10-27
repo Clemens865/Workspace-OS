@@ -29,7 +29,7 @@ const painted = () => win.evaluate(() =>
   [...document.querySelectorAll('canvas')].some((c) => c.width > 400 && c.height > 400) &&
   !document.body.innerText.includes('Rendering…'))
 async function openFile(name) {
-  await win.getByText(name, { exact: true }).first().click()
+  await H.clickFile(win, name)
   return H.poll(painted, { timeout: 16000 })
 }
 

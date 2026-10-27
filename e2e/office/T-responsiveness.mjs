@@ -33,6 +33,18 @@ const armPerf = (win) => win.evaluate(() => {
 const snap = (win) => win.evaluate(() => window.__perfGet())
 const reset = (win) => win.evaluate(() => window.__perfReset())
 
+/** Waits until no toolbar state has changed for 1 s (or 15 s pass). */
+async function settleState(win) {
+  let last = -1, quietSince = Date.now()
+  const deadline = Date.now() + 15000
+  while (Date.now() < deadline) {
+    const n = (await snap(win))['setActive.changed'] || 0
+    if (n !== last) { last = n; quietSince = Date.now() }
+    else if (Date.now() - quietSince >= 1000) return
+    await win.waitForTimeout(150)
+  }
+}
+
 const { app, win } = await H.launch()
 await armPerf(win)
 await H.newDoc(win, 'Word')
@@ -50,7 +62,10 @@ await reset(win)
 await H.clickDoc(win, 140, 80)
 await H.focusDoc(win)
 await win.keyboard.type('plain uniform text here', { delay: 25 })
-await win.waitForTimeout(400)
+// The engine sends its full toolbar state (~130 commands) once, sometimes well
+// after the first keystrokes. Measure only after it has gone quiet, or that one
+// dump is counted against the caret moves.
+await settleState(win)
 await reset(win)
 for (let i = 0; i < 10; i++) { await win.keyboard.press('ArrowLeft'); await win.waitForTimeout(45) }
 await win.waitForTimeout(400)

@@ -30,13 +30,13 @@ const deselect = async () => { await win.keyboard.press('Escape'); await sleep(2
 
 /** Page coordinates of a slide-fraction point (fx,fy in 0..1 of slide area). */
 const slidePoint = (fx, fy) => win.evaluate(([fx, fy]) => {
-  const c = [...document.querySelectorAll('canvas')].reduce((a, b) => (b.width * b.height > (a?.width * a?.height || 0) ? b : a), null)
+  const c = (document.querySelector('[class*=docWrap] canvas') || [...document.querySelectorAll('canvas')].reduce((a, b) => (b.width * b.height > (a?.width * a?.height || 0) ? b : a), null))
   const rect = c.getBoundingClientRect()
   return { x: rect.left + rect.width * fx, y: rect.top + rect.height * fy }
 }, [fx, fy])
 /** RGB long at a slide-fraction point. */
 const colorAt = (fx, fy) => win.evaluate(([fx, fy]) => {
-  const c = [...document.querySelectorAll('canvas')].reduce((a, b) => (b.width * b.height > (a?.width * a?.height || 0) ? b : a), null)
+  const c = (document.querySelector('[class*=docWrap] canvas') || [...document.querySelectorAll('canvas')].reduce((a, b) => (b.width * b.height > (a?.width * a?.height || 0) ? b : a), null))
   const d = c.getContext('2d').getImageData(Math.floor(c.width * fx), Math.floor(c.height * fy), 1, 1).data
   return (d[0] << 16) | (d[1] << 8) | d[2]
 }, [fx, fy])
@@ -137,47 +137,42 @@ r.ok(!near(outside, RED) && !near(outside, BLUE) && !near(topRow, RED) && !near(
 await deselect()
 
 // ============ (c) DISTRIBUTE horizontally: uneven → equal gaps ===============
-// Fresh slide so earlier shapes don't disturb probes or the selection.
+// Fresh slide so earlier shapes don't disturb probes or the selection. A new
+// slide gets a title/content layout; make it Blank so clicks and drags reach
+// the shapes, not the placeholders.
 await act('office.slide:.uno:InsertPage')
 await sleep(700)
-// Shape 1 (red, 3000x3000) pinned to the left edge via SINGLE align → x=0.
-await act('office.shape:rect')
-await poll(selInfo)
-await M('WosShapeSize', '3000|3000')
-await act(`office.shapefill:${RED}`)
-await act('office.arrange:left')
-await sleep(400)
-// Shape 2 (green) dragged to ~x-center 9000; shape 3 (blue) to ~13500. All
-// targets stay under ~0.5 of the slide width — the window CLIPS the slide's
-// right side, and clicks beyond it land outside the canvas (silent no-ops).
-// Exact landing doesn't matter — geometry is read back from WosCapture; it
-// only needs to keep the order 1<2<3 with clearly UNEVEN gaps.
-const CY = 6500 / SH // all three sit at y 5000..8000 after the resize
-await act('office.shape:rect')
-await poll(selInfo)
-await M('WosShapeSize', '3000|3000')
-await act(`office.shapefill:${GREEN}`)
-await sleep(300)
-await win.mouse.click((await slidePoint(6500 / SW, CY)).x, (await slidePoint(6500 / SW, CY)).y)
-await poll(selInfo)
-await drag({ x: 6500 / SW, y: CY }, { x: 9000 / SW, y: CY })
-await deselect()
-await act('office.shape:rect')
-await poll(selInfo)
-await M('WosShapeSize', '3000|3000')
-await act(`office.shapefill:${BLUE}`)
-await sleep(300)
-await win.mouse.click((await slidePoint(6500 / SW, CY)).x, (await slidePoint(6500 / SW, CY)).y)
-await poll(selInfo)
-await drag({ x: 6500 / SW, y: CY }, { x: 13500 / SW, y: CY })
-await deselect()
+await act('office.slidelayout:20')
+await sleep(500)
+// Three 3000x3000 shapes at exact positions: each is pinned to the slide's
+// top-left corner (SINGLE align → slide edge, proven in part B), then moved by
+// a known offset through the model. Shapes land in different places depending
+// on the slide size, so dragging to a guessed spot is not reliable.
+// x: red 0, green 5000, blue 11000 → gaps 2000 vs 3000 (clearly uneven). All
+// stay under ~0.5 of the slide width — the window CLIPS the slide's right side.
+const CY = 6500 / SH // all three sit at y 5000..8000
+async function placedShape(color, x) {
+  await act('office.shape:rect')
+  await poll(selInfo)
+  await M('WosShapeSize', '3000|3000')
+  await act(`office.shapefill:${color}`)
+  await act('office.arrange:left')
+  await act('office.arrange:top')
+  await sleep(300)
+  await M('WosShapeMove', `${x}|5000`)
+  await sleep(300)
+  await deselect()
+}
+await placedShape(RED, 0)
+await placedShape(GREEN, 5000)
+await placedShape(BLUE, 11000)
 // Select all three: click red, shift-click green + blue.
 const p1 = await slidePoint(1500 / SW, CY)
 await win.mouse.click(p1.x, p1.y)
 await poll(selInfo)
 await win.keyboard.down('Shift')
-await win.mouse.click((await slidePoint(9000 / SW, CY)).x, (await slidePoint(9000 / SW, CY)).y)
-await win.mouse.click((await slidePoint(13500 / SW, CY)).x, (await slidePoint(13500 / SW, CY)).y)
+await win.mouse.click((await slidePoint(6500 / SW, CY)).x, (await slidePoint(6500 / SW, CY)).y)
+await win.mouse.click((await slidePoint(12500 / SW, CY)).x, (await slidePoint(12500 / SW, CY)).y)
 await win.keyboard.up('Shift')
 const cap0 = await poll(async () => { const c = await capture(); return (c?.elements?.length ?? 0) >= 3 ? c : false })
 r.ok(cap0 !== false, `C: three shapes multi-selected (${cap0 && cap0.elements.length} captured)`)
