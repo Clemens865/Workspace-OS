@@ -120,10 +120,14 @@ export function withTrailingSeparator(dir: string): string {
 /**
  * cmd.exe arguments that run a .cmd file (Node will not spawn one directly).
  * Spawn `cmd.exe` with these and `windowsVerbatimArguments: true`; /s strips the
- * outer quotes, leaving each argument quoted. Arguments must not contain quotes.
+ * outer quotes, leaving each argument quoted. cmd.exe expands %VAR% even inside
+ * quotes and a command line has no escape for it, so an argument with % (or a
+ * quote, which would end the quoting) is refused rather than altered.
  */
 export function cmdFileArgs(cmdFile: string, args: string[]): string[] {
-  const quoted = [cmdFile, ...args].map((a) => `"${a.replace(/"/g, '')}"`).join(' ')
+  const unsafe = [cmdFile, ...args].find((a) => /[%"\r\n]/.test(a))
+  if (unsafe !== undefined) throw new Error(`Cannot pass this argument through cmd.exe safely: ${unsafe}`)
+  const quoted = [cmdFile, ...args].map((a) => `"${a}"`).join(' ')
   return ['/d', '/s', '/c', `"${quoted}"`]
 }
 

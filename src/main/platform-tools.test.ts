@@ -42,6 +42,11 @@ describe('cmdFileArgs', () => {
       '/d', '/s', '/c', '""C:\\Users\\A B\\wos-gen.cmd" "docx" "--out" "C:\\t\\o.docx""',
     ])
   })
+  it('refuses % and quotes, which cmd.exe would expand or unquote', () => {
+    expect(() => cmdFileArgs('C:\\x.cmd', ['C:\\t\\%USERNAME%.docx'])).toThrow(/cmd\.exe/)
+    expect(() => cmdFileArgs('C:\\x.cmd', ['a" & calc & "'])).toThrow(/cmd\.exe/)
+    expect(() => cmdFileArgs('C:\\100%\\x.cmd', [])).toThrow(/cmd\.exe/)
+  })
 })
 
 describe('WinGet package folders', () => {
