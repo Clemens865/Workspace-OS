@@ -41,13 +41,11 @@ export interface MenuGroup {
 }
 
 const HINTS: Partial<Record<RailId, string>> = {
-  home: 'Today: what happened, what is next, what needs you',
   files: 'The workspace folder, previews and editors',
   mail: 'Inbox, sift and compose',
   calendar: 'Your calendars and invitations',
   browser: 'The in-app browser your agents can drive',
   agents: 'Feed, fleet and approvals',
-  cockpit: 'Runs, cases and the stream',
   knowledge: 'Notes, links and backlinks',
   memory: 'What agents remember, per workspace and personal',
   connectors: 'Accounts, MCP servers and sign-ins',
@@ -55,15 +53,15 @@ const HINTS: Partial<Record<RailId, string>> = {
 }
 
 const GROUPS: { title: string; rails: RailId[] }[] = [
-  { title: 'Work', rails: ['home', 'files', 'mail', 'calendar', 'browser'] },
-  { title: 'Agents', rails: ['agents', 'cockpit'] },
+  { title: 'Work', rails: ['files', 'mail', 'calendar', 'browser'] },
+  { title: 'Agents', rails: ['agents'] },
   { title: 'Knowledge', rails: ['knowledge', 'memory'] },
   { title: 'Workspace', rails: ['connectors', 'settings'] },
 ]
 
-/** Every real (non-placeholder) rail surface, grouped for the Menu. */
+/** Every stage surface, grouped for the Menu. */
 export function menuGroups(): MenuGroup[] {
-  const real = new Map(RAIL_ITEMS.filter((r) => !r.placeholder).map((r) => [r.id, r.label]))
+  const real = new Map(RAIL_ITEMS.map((r) => [r.id, r.label]))
   return GROUPS.map((g) => ({
     title: g.title,
     items: g.rails.filter((r) => real.has(r)).map((r) => ({ rail: r, label: real.get(r)!, hint: HINTS[r] ?? '' })),
@@ -73,7 +71,7 @@ export function menuGroups(): MenuGroup[] {
 /** Rail surfaces the Menu does not reach (should stay empty: the parity check). */
 export function unreachableRails(): RailId[] {
   const reached = new Set(menuGroups().flatMap((g) => g.items.map((i) => i.rail)))
-  return RAIL_ITEMS.filter((r) => !r.placeholder && !reached.has(r.id)).map((r) => r.id)
+  return RAIL_ITEMS.filter((r) => !reached.has(r.id)).map((r) => r.id)
 }
 
 /**

@@ -12,7 +12,7 @@ import { _electron as electron } from 'playwright'
 import path from 'path'
 import fs from 'fs'
 import { fileURLToPath } from 'url'
-import { killAll } from './office/_harness.mjs'
+import { killAll, dismissSplash } from './office/_harness.mjs'
 // The landscape is the only shell (docs/landscape/PLAN.md, phase 7); these tests drive
 // the flat stage's surfaces, so the app opens on the stage.
 process.env.WOS_START_ON ??= 'stage'
@@ -77,6 +77,7 @@ await win.evaluate(() => {
 await win.reload()
 await win.waitForSelector('#root', { timeout: 20000 })
 await win.waitForTimeout(1400)
+await dismissSplash(win)
 
 try {
   // ── the IPC actually carries stat data now ────────────────────────────────

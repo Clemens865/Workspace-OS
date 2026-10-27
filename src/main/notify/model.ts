@@ -15,7 +15,7 @@
  */
 
 export type NotifySource = 'approvals' | 'routines' | 'cases' | 'connectors' | 'test'
-export type NotifyRail = 'agents' | 'cockpit' | 'connectors'
+export type NotifyRail = 'agents' | 'cases' | 'connectors'
 
 export interface NotifyPrefs {
   approvals: boolean
@@ -54,7 +54,7 @@ export function sanitizeEvent(input: unknown): NotifyEvent | null {
   const o = (input && typeof input === 'object' ? input : {}) as Record<string, unknown>
   const source = o.source
   if (source !== 'approvals' && source !== 'routines' && source !== 'cases' && source !== 'connectors' && source !== 'test') return null
-  const rail = o.rail === 'cockpit' || o.rail === 'connectors' ? o.rail : 'agents'
+  const rail = o.rail === 'cases' || o.rail === 'connectors' ? o.rail : 'agents'
   const key = typeof o.key === 'string' ? o.key.trim().slice(0, 120) : ''
   const title = typeof o.title === 'string' ? o.title.replace(/\s+/g, ' ').trim().slice(0, TITLE_MAX) : ''
   const body = typeof o.body === 'string' ? o.body.replace(/\s+/g, ' ').trim().slice(0, BODY_MAX) : ''

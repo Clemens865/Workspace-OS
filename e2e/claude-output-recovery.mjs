@@ -1,6 +1,7 @@
 // Real case UI → preload → agent IPC → launchRun → child stream → case UI.
 // Only the Claude executable is replaced. No provider requests or real case edits.
 import { _electron as electron } from 'playwright'
+import { openCase } from './office/_harness.mjs'
 import fs from 'node:fs/promises'
 import path from 'node:path'
 import os from 'node:os'
@@ -64,12 +65,9 @@ try {
   await win.evaluate(() => window.workspace.agent.onDone((id) => { window.__lastRecoveryRun = id }))
   await win.evaluate(() => window.workspace.agent.setDefaultModel('claude:sonnet'))
   const c = await win.evaluate(() => window.workspace.cases.create({ title: 'Response limit recovery', description: 'Create a document in sections.' }))
-  await win.getByRole('button', { name: 'Cockpit', exact: true }).click()
-  const row = win.locator('[class*="headWrap"]').filter({ hasText: c.title }).locator('..')
-  await row.getByRole('button', { name: 'Open full screen' }).click()
-  const full = win.locator('[class*="win"]').filter({ has: win.locator('[class*="tbTitle"]', { hasText: c.title }) })
+  const full = await openCase(win, c.id)
   const activity = full.getByTestId('case-agent-activity')
-  const input = full.getByPlaceholder('Hand to an agent — @ file · # case')
+  const input = full.getByPlaceholder('What should an agent do with this case? @ file · # case')
   await input.fill('Write the preparation document')
   await input.press('Enter')
   await activity.getByText('Claude · Response limit reached', { exact: true }).waitFor()
@@ -94,11 +92,12 @@ try {
     } catch (error) { return String(error) }
   })
   assert.match(wrongProvider, /original conversation is no longer available/)
-  await full.getByRole('button', { name: 'Close', exact: true }).click()
-  await row.getByRole('button', { name: new RegExp(c.title) }).click()
-  await row.getByTestId('case-agent-activity').getByRole('button', { name: 'Continue unfinished work' }).click()
-  await row.getByTestId('case-agent-activity').getByText('Claude · Completed', { exact: true }).waitFor()
-  await row.getByRole('button', { name: 'Open full screen' }).click()
+  await win.locator('[data-dock="overview"]:visible').first().click()
+  await openCase(win, c.id)
+  await full.getByTestId('case-agent-activity').getByRole('button', { name: 'Continue unfinished work' }).click()
+  await full.getByTestId('case-agent-activity').getByText('Claude · Completed', { exact: true }).waitFor()
+  await win.locator('[data-dock="overview"]:visible').first().click()
+  await openCase(win, c.id)
   await activity.getByText('Claude · Completed', { exact: true }).waitFor()
   assert.match(await activity.innerText(), /First section saved — résumé ready/)
   assert.match(await activity.innerText(), /Finished the remaining section/)

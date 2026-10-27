@@ -1,6 +1,7 @@
 // Exercises the real case composer, preload and IPC event path. The provider
 // launch alone is replaced, so this never starts a paid agent or edits a real case.
 import { _electron as electron } from 'playwright'
+import { openCase } from './office/_harness.mjs'
 import fs from 'node:fs/promises'
 import path from 'node:path'
 import os from 'node:os'
@@ -39,12 +40,9 @@ try {
     })
   })
   const c = await win.evaluate(() => window.workspace.cases.create({ title: 'Case agent feedback test', description: 'Check live progress in a case.' }))
-  await win.getByRole('button', { name: 'Cockpit', exact: true }).click()
-  const row = win.locator('[class*="headWrap"]').filter({ hasText: c.title }).locator('..')
-  await row.getByRole('button', { name: 'Open full screen' }).click()
-  const full = win.locator('[class*="win"]').filter({ has: win.locator('[class*="tbTitle"]', { hasText: c.title }) })
+  const full = await openCase(win, c.id)
   const activity = full.getByTestId('case-agent-activity')
-  const input = full.getByPlaceholder('Hand to an agent — @ file · # case')
+  const input = full.getByPlaceholder('What should an agent do with this case? @ file · # case')
 
   async function waitForText(locator, text) {
     await locator.getByText(text, { exact: false }).first().waitFor()
@@ -68,16 +66,17 @@ try {
   await waitForText(activity, 'Reading a file')
   await waitForText(activity, 'reviewing your experience')
   await win.screenshot({ path: path.join(dir, 'claude-running.png') })
-  await full.getByRole('button', { name: 'Close', exact: true }).click()
-  await row.getByRole('button', { name: new RegExp(c.title) }).click()
-  await waitForText(row.getByTestId('case-agent-activity'), 'Claude · Running')
+  await win.locator('[data-dock="overview"]:visible').first().click()
+  await openCase(win, c.id)
+  await waitForText(full.getByTestId('case-agent-activity'), 'Claude · Running')
   await win.evaluate((id) => window.workspace.cases.addNote(id, 'Prepared three interview talking points.', 'agent'), c.id)
   await emit('agent:done', 0, null)
-  await waitForText(row, 'Prepared three interview talking points.')
-  await waitForText(row.getByTestId('case-agent-activity'), 'Claude · Completed')
+  await waitForText(full, 'Prepared three interview talking points.')
+  await waitForText(full.getByTestId('case-agent-activity'), 'Claude · Completed')
 
-  // Reopening the full-screen view restores the same finished run.
-  await row.getByRole('button', { name: 'Open full screen' }).click()
+  // Reopening the case restores the same finished run.
+  await win.locator('[data-dock="overview"]:visible').first().click()
+  await openCase(win, c.id)
   await waitForText(activity, 'Claude · Completed')
   await app.evaluate(() => { globalThis.caseTest.provider = 'codex' })
   await input.fill('Compare the requirements')

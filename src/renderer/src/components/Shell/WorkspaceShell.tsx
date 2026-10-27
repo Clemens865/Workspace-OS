@@ -1,10 +1,8 @@
 import { useState, useCallback, useMemo, useEffect, useLayoutEffect, useRef } from 'react'
 import { createPortal } from 'react-dom'
 import { Search, ArrowUpRight, ArrowLeft, SquareTerminal, Maximize2, Minimize2, ChevronUp, ChevronDown, X, MessageCircle } from 'lucide-react'
-import { Rail } from './Rail'
-import { Home } from './Home'
 import type { RailId, StageTab } from './shellModel'
-import { HOME_TAB, openDocTab, closeDocTab, isDocTab, isPlaceholder, RAIL_ITEMS, docLabel, resolveOpenPath } from './shellModel'
+import { HOME_TAB, openDocTab, closeDocTab, isDocTab, RAIL_ITEMS, docLabel, resolveOpenPath } from './shellModel'
 import styles from './WorkspaceShell.module.css'
 
 import { FilePanel } from '../FilePanel/FilePanel'
@@ -14,7 +12,6 @@ import { MailPanel } from '../Mail/MailPanel'
 import { KnowledgePanel } from '../KnowledgePanel/KnowledgePanel'
 import { BrowserSurface } from '../Browser/BrowserSurface'
 import { ReviewFeed } from '../Review/ReviewFeed'
-import { CalmCockpit } from '../CalmCockpit/CalmCockpit'
 import { CalendarPanel } from '../Calendar/CalendarPanel'
 import { SettingsPanel } from '../Settings/SettingsPanel'
 import { ConnectorsView } from '../Connectors/ConnectorsView'
@@ -44,8 +41,8 @@ import { setTheme } from '../../hooks/useTheme'
 import { actionManifest, ALL_ACTIONS, type SurfaceActionContext } from '../Terminal/surfaceActions'
 
 /**
- * The redesigned shell (feat/shell-redesign) — a left rail, a Stage with tabs,
- * and a Home two-pane surface. It COMPOSES the existing components verbatim:
+ * The stage: the surfaces and open documents behind the Screen Landscape. It
+ * COMPOSES the existing components verbatim:
  *   Files → FilePanel      Mail → MailPanel      Knowledge → KnowledgePanel
  *   Agents → ReviewFeed    Settings → SettingsPanel
  *   opened document → Canvas (the real office/pdf/monaco/… editor)
@@ -53,9 +50,11 @@ import { actionManifest, ALL_ACTIONS, type SurfaceActionContext } from '../Termi
  *
  * Since phase 7 of docs/landscape/PLAN.md this is no longer a shell of its own:
  * the Screen Landscape shell hosts it as its flat stage
- * (docs/landscape/PLAN.md §3): every surface, shortcut and modal stays exactly
- * as here, the rail starts hidden (⌘B shows it), a Landscape button leads back,
- * and every surface change is reported so the landscape can step aside.
+ * (docs/landscape/PLAN.md §3): the landscape's dock and Menu are the
+ * navigation, a Landscape button leads back, and every surface change is
+ * reported so the landscape can step aside. The old left rail, the stage's own
+ * Home and the Cockpit surface were retired; they live on in git as the tag
+ * `backup/stage-rail-before-retire`.
  */
 export interface StageHost {
   /** The landscape is showing: hide the rail and surfaces, keep modals usable. */
@@ -65,18 +64,10 @@ export interface StageHost {
   /** A surface or document was brought forward (by the user, an event or an agent). */
   onSurface: (rail: RailId) => void
   /**
-   * The app was opened straight on the stage ("Open on: Stage"): show the
-   * rail, as the familiar workspace. Reached from the landscape, the rail stays
-   * tucked away (the landscape's dock is the navigation); ⌘B toggles it.
-   */
-  railOpen?: boolean
-  /**
    * The landscape's dock, in its top-bar form: the same component as the
    * landscape's glass dock, so there is one navigation everywhere.
    */
   dock?: React.ReactNode
-  /** Home lives in the landscape as Today: asking for it shows Today. */
-  onHome?: () => void
   /** The chat beside the stage goes back to Chat (with this conversation). */
   onChatHome?: (sessionId: string | null) => void
 }
@@ -87,37 +78,27 @@ export function WorkspaceShell({ stage }: { stage?: StageHost } = {}): JSX.Eleme
   const library = useWorkspaceLibrary(root)
 
   // The Stage's own tab manager (full-tab documents) is independent from the
-  // Home in-pane ("peek") tab manager, so opening in Home never disturbs the
-  // Stage tabs and vice-versa. Both are the real useTabManager / Canvas.
+  // The Stage tabs and the Files preview each have their own real
+  // useTabManager / Canvas, so opening in one never disturbs the other.
   const stageTabs = useTabManager()
-  const peekTabs = useTabManager()
   const filesTabs = useTabManager() // the Files surface's in-place preview (tree stays left)
   usePanelSizes() // reserved for a later increment; keeps the hook warm
 
-  // Reached from the landscape, Home is the landscape's Today: the stage opens
-  // on Files instead of a second, older Home. Opened on the stage ("Open on:
-  // Stage"), the familiar workspace keeps its Home.
-  const homeInLandscape = !!stage?.onHome && !stage.railOpen
-  const [rail, setRail] = useState<RailId>(homeInLandscape ? 'files' : 'home')
+  // The surface the stage shows. Home is the landscape's Today, so the stage
+  // opens on Files.
+  const [rail, setRail] = useState<RailId>('files')
 
   /**
    * WOS-011 — give one surface the whole window.
    *
-   * `expanded` hides the rail, the tab strip and the terminal dock at once, for
-   * when the user wants to work inside a single application. `railHidden` is the
-   * lighter version behind ⌘B: reclaim the 76px rail but keep the tabs.
+   * `expanded` hides the tab strip and the terminal dock at once, for when the
+   * user wants to work inside a single application.
    *
-   * Neither is persisted. A user who quits while expanded and reopens to a
-   * window with no rail and no tabs has no way to know what happened; the two
-   * ways back (Esc, and the button that stays visible) only help if you know
-   * you are in it.
+   * Not persisted. A user who quits while expanded and reopens to a window with
+   * no tabs has no way to know what happened; the two ways back (Esc, and the
+   * button that stays visible) only help if you know you are in it.
    */
   const [expanded, setExpanded] = useState(false)
-  const [railHidden, setRailHidden] = useState(!!stage && !stage.railOpen)
-  const railOpen = !!stage?.railOpen
-  useEffect(() => {
-    if (railOpen) setRailHidden(false)
-  }, [railOpen])
 
   /**
    * WOS-013: the folder the Files browser is showing. Set when the tree reveals
@@ -126,15 +107,12 @@ export function WorkspaceShell({ stage }: { stage?: StageHost } = {}): JSX.Eleme
    */
   const [browseFolder, setBrowseFolder] = useState<string | undefined>(undefined)
   const [tabs, setTabs] = useState<StageTab[]>([HOME_TAB])
-  const [activeTab, setActiveTab] = useState<string>(homeInLandscape ? 'files' : HOME_TAB.key)
-  // Without a Home tab, closing the last document lands on the surface the
-  // stage shows (Files by default), not on a tab that is not there.
+  const [activeTab, setActiveTab] = useState<string>('files')
+  // HOME_TAB is never shown: it only marks "no document". Closing the last
+  // document lands on the surface the stage shows (Files by default).
   useEffect(() => {
-    if (homeInLandscape && activeTab === HOME_TAB.key) {
-      setRail((r) => (r === 'home' ? 'files' : r))
-      setActiveTab((t) => (t === HOME_TAB.key ? (rail === 'home' ? 'files' : rail) : t))
-    }
-  }, [homeInLandscape, activeTab, rail])
+    if (activeTab === HOME_TAB.key) setActiveTab(rail)
+  }, [activeTab, rail])
   const [commandOpen, setCommandOpen] = useState(false)
   const [quickOpenOpen, setQuickOpenOpen] = useState(false)
   const [refreshSignal, setRefreshSignal] = useState(0)
@@ -173,17 +151,6 @@ export function WorkspaceShell({ stage }: { stage?: StageHost } = {}): JSX.Eleme
     [library, stageTabs, root],
   )
 
-  // Open a document INTO Home's right pane, keeping the triage feed on the left.
-  const openInHome = useCallback(
-    (path: string) => {
-      library.recordRecent(path)
-      peekTabs.openFile(path)
-      setRail('home')
-      setActiveTab(HOME_TAB.key)
-    },
-    [library, peekTabs],
-  )
-
   // Open a document INTO the Files surface's right pane, keeping the tree on the left.
   const openInFiles = useCallback(
     (path: string) => {
@@ -214,8 +181,7 @@ export function WorkspaceShell({ stage }: { stage?: StageHost } = {}): JSX.Eleme
 
   const selectTab = useCallback((key: string) => {
     setActiveTab(key)
-    if (key !== HOME_TAB.key) setRail('files')
-    else setRail('home')
+    setRail('files')
   }, [])
 
   // Where to return when a modal surface (Settings) closes: the last real one.
@@ -225,13 +191,9 @@ export function WorkspaceShell({ stage }: { stage?: StageHost } = {}): JSX.Eleme
   }, [rail])
 
   const selectRail = useCallback((id: RailId) => {
-    if (id === 'home' && homeInLandscape) {
-      stage?.onHome?.()
-      return
-    }
     setRail(id)
-    setActiveTab(id === 'home' ? HOME_TAB.key : id)
-  }, [homeInLandscape, stage])
+    setActiveTab(id)
+  }, [])
 
   const openSearchPanel = useCallback(() => setSearchOpen(true), [])
 
@@ -372,8 +334,8 @@ export function WorkspaceShell({ stage }: { stage?: StageHost } = {}): JSX.Eleme
       onCommandPalette: () => setCommandOpen((v) => !v),
       onQuickOpen: () => setQuickOpenOpen((v) => !v),
       onSearchPanel: () => setQuickOpenOpen((v) => !v),
-      // WOS-011: this was a no-op, so ⌘B could not even reclaim the 76px rail.
-      onToggleSidebar: () => setRailHidden((v) => !v),
+      // ⌘B: there is no rail to toggle any more; the menu keeps it for Bold.
+      onToggleSidebar: () => {},
       onToggleExpand: () => setExpanded((v) => !v),
       onToggleTerminal: () => {
         // From minimised, ⌘J RESTORES rather than hides: a user looking at a
@@ -441,14 +403,10 @@ export function WorkspaceShell({ stage }: { stage?: StageHost } = {}): JSX.Eleme
     return () => window.removeEventListener('wos:open-rail', onOpen)
   }, [selectRail])
 
-  // The file the user is currently looking at across the surfaces (Stage tab,
-  // Home peek, or Files preview) — feeds the live terminal harness.
+  // The file the user is currently looking at across the surfaces (Stage tab
+  // or Files preview) — feeds the live terminal harness.
   const activeFilePath =
-    (rail === 'files' && activeTab === HOME_TAB.key
-      ? filesTabs.activeFilePath
-      : rail === 'home'
-        ? peekTabs.activeFilePath
-        : stageTabs.activeFilePath) ?? null
+    (rail === 'files' && !isDocTab(tabs, activeTab) ? filesTabs.activeFilePath : stageTabs.activeFilePath) ?? null
   const folderOf = (p: string | null): string | null =>
     p ? p.slice(0, p.lastIndexOf('/')) || root : root
 
@@ -493,9 +451,6 @@ export function WorkspaceShell({ stage }: { stage?: StageHost } = {}): JSX.Eleme
     onSurface?.(rail)
   }, [rail, activeTab, onSurface])
 
-  const peekFilePath = peekTabs.activeFilePath
-  const onHome = rail === 'home' && activeTab === HOME_TAB.key
-  const railLabel = (id: RailId): string => RAIL_ITEMS.find((r) => r.id === id)?.label ?? id
 
   // Drag-resize the dock (col-resize for right, row-resize for bottom). Bumping
   // dockResizeSignal on each move makes the embedded xterm re-fit live.
@@ -637,19 +592,13 @@ export function WorkspaceShell({ stage }: { stage?: StageHost } = {}): JSX.Eleme
     </div>
   )
 
-  // WOS-011: expanding hides the rail as well, so the two states collapse into
-  // one question for the layout — is the rail on screen at all.
-  const railOut = expanded || railHidden
-
   return (
     <div
-      className={`wos ${styles.root} ${railOut ? styles.railOut : ''} ${expanded ? styles.expanded : ''} ${stage?.hidden ? styles.stageHidden : ''}`}
+      className={`wos ${styles.root} ${expanded ? styles.expanded : ''} ${stage?.hidden ? styles.stageHidden : ''}`}
       data-expanded={expanded ? 'true' : 'false'}
     >
-      <Rail active={rail} onSelect={selectRail} />
-
-      {/* The way back. Always rendered while expanded — a surface with no rail,
-          no tabs and no visible exit is a trap, and a control that only appears
+      {/* The way back. Always rendered while expanded — a surface with no tabs
+          and no visible exit is a trap, and a control that only appears
           on hover cannot be found by someone who does not know it is there. */}
       {expanded && (
         <button
@@ -669,7 +618,7 @@ export function WorkspaceShell({ stage }: { stage?: StageHost } = {}): JSX.Eleme
         <div className={styles.topbar}>
           {stage?.dock}
           <div className={styles.tabs}>
-            {tabs.filter((t) => !(homeInLandscape && t.key === HOME_TAB.key)).map((t) => (
+            {tabs.filter((t) => t.key !== HOME_TAB.key).map((t) => (
               <div
                 key={t.key}
                 className={`${styles.tab} ${activeTab === t.key ? styles.tabOn : ''}`}
@@ -691,7 +640,7 @@ export function WorkspaceShell({ stage }: { stage?: StageHost } = {}): JSX.Eleme
             ))}
             {/* A rail surface (Mail, Calendar …) is not a tab of its own; name it
                 anyway, so the topbar always says where you are. */}
-            {(!tabs.some((t) => t.key === activeTab) || (homeInLandscape && activeTab === HOME_TAB.key)) && (
+            {(!tabs.some((t) => t.key === activeTab) || activeTab === HOME_TAB.key) && (
               <div className={`${styles.tab} ${styles.tabOn}`} data-testid="stage-surface-tab">
                 {RAIL_ITEMS.find((r) => r.id === rail)?.label ?? 'Workspace'}
               </div>
@@ -760,20 +709,6 @@ export function WorkspaceShell({ stage }: { stage?: StageHost } = {}): JSX.Eleme
 
         <div className={styles.stageMain}>
         <div className={styles.body}>
-          {/* Home — the two-pane triage surface. Kept mounted so ReviewFeed
-              subscriptions and the peeked editor stay alive. */}
-          <div className={`${styles.surface} ${onHome ? '' : styles.hidden}`}>
-            <Home
-              library={library}
-              peekTabManager={peekTabs}
-              peekFilePath={peekFilePath}
-              onOpenInPane={openInHome}
-              onPopOut={openInStage}
-              onNavigate={selectRail}
-              onRefresh={refresh}
-            />
-          </div>
-
           {/* Stage document tabs → the real Canvas editor. */}
           <div
             className={`${styles.surface} ${rail === 'files' && isDocTab(tabs, activeTab) ? '' : styles.hidden}`}
@@ -877,13 +812,6 @@ export function WorkspaceShell({ stage }: { stage?: StageHost } = {}): JSX.Eleme
             </div>
           </div>
 
-          {/* Cockpit → the LIVE Calm Cockpit (Team-lead altitude wired to real
-              agent runs). CEO/Head-of/Agent altitudes remain the mock vision.
-              Kept mounted so its store subscriptions stay warm. */}
-          <div className={`${styles.surface} ${rail === 'cockpit' ? '' : styles.hidden}`}>
-            <CalmCockpit live onOpenFile={openInStage} onWorkspaceChanged={refresh} />
-          </div>
-
           {/* Calendar → the real CalDAV/ICS surface. Kept mounted like the other
               rail surfaces so switching back doesn't re-sync from scratch. */}
           <div className={`${styles.surface} ${rail === 'calendar' ? '' : styles.hidden}`}>
@@ -898,17 +826,6 @@ export function WorkspaceShell({ stage }: { stage?: StageHost } = {}): JSX.Eleme
           {/* Settings → SettingsPanel (renders its own modal backdrop). */}
           {rail === 'settings' && <SettingsPanel onClose={() => selectRail(lastRail.current === 'settings' ? 'files' : lastRail.current)} />}
 
-          {/* Placeholders for surfaces whose real components aren't wired yet. */}
-          {isPlaceholder(rail) && (
-            <div className={`${styles.surface}`}>
-              <div className={styles.placeholder}>
-                <div>
-                  <h1>{railLabel(rail)}</h1>
-                  <p>Coming soon in a later increment.</p>
-                </div>
-              </div>
-            </div>
-          )}
         </div>
 
           {stage && <ChatSide onHome={(id: string | null) => stage.onChatHome?.(id)} />}

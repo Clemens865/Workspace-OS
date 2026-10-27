@@ -62,12 +62,10 @@ export function LandscapeShell(): JSX.Element {
   const settings = useSettings()
   // Where the app opens: the person's setting, or the stage when a test asks (WOS_START_ON).
   const [view, setView] = useState<LandscapeView>(() => (settings.startOn === 'stage' ? 'stage' : 'overview'))
-  const [openedOnStage, setOpenedOnStage] = useState(() => settings.startOn === 'stage')
   useEffect(() => {
     void window.workspace?.startOn?.().then((v) => {
       if (v !== 'stage') return
       setView('stage')
-      setOpenedOnStage(true)
     })
   }, [])
   const [agentId, setAgentId] = useState<string | null>(null)
@@ -184,11 +182,6 @@ export function LandscapeShell(): JSX.Element {
   /** Open a stage surface by name: the shell's own rail switch, then reveal it. */
   const openSurface = useCallback(
     (rail: RailId) => {
-      // Home lives in the landscape now, as Today (ADOPTION.md B1).
-      if (rail === 'home') {
-        setView('today')
-        return
-      }
       window.dispatchEvent(new CustomEvent('wos:open-rail', { detail: { rail } }))
       showStage()
     },
@@ -324,8 +317,7 @@ export function LandscapeShell(): JSX.Element {
   return (
     <div className={`wl ${styles.root}`} data-shell="landscape" data-view={view}>
       <BackdropContext.Provider value={backdrop}>
-      <WorkspaceShell stage={{ hidden: !stageShown, onLandscape: () => showLandscape(), onSurface: onStageSurface, railOpen: openedOnStage,
-          onHome: () => setView('today'),
+      <WorkspaceShell stage={{ hidden: !stageShown, onLandscape: () => showLandscape(), onSurface: onStageSurface,
           onChatHome: (sid) => {
             chatSide.close()
             setChatFocus(sid)

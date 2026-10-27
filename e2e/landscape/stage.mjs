@@ -1,15 +1,15 @@
 /**
  * Landscape phase 1 exit test (docs/landscape/PLAN.md §7): the flat stage.
  *
- * - every real rail surface is reachable in two actions (dock Menu → item),
+ * - every stage surface is reachable in two actions (dock Menu → item),
  *   lands on the stage with that surface active, and the stage's Landscape
  *   button returns to where the user was;
  * - ⌘K and ⌘P open over the landscape; ⌘J brings the stage forward with the
- *   terminal dock; ⌘B shows the stage's rail;
+ *   terminal dock; the stage has no left rail (retired, see shellModel.ts);
  * - the dock's Inbox and Cases open landscape views; Library opens Knowledge on the stage.
  *
  * Every check reads real state: which layer is visible (computed visibility),
- * which rail button is current, whether an element has a non-zero box.
+ * which surface the stage names in its topbar, whether an element has a non-zero box.
  *
  * Run: npm run e2e:landscape
  */
@@ -60,11 +60,11 @@ await win.waitForTimeout(600)
 const state = () =>
   win.evaluate(() => {
     const layer = document.querySelector('[data-testid="landscape-layer"]')
-    const rail = document.querySelector('nav[aria-label="Primary"] [aria-current="page"]')
+    const surface = document.querySelector('[data-testid="stage-surface-tab"]')
     return {
       view: document.querySelector('[data-shell="landscape"]')?.getAttribute('data-view'),
       landscapeVisible: !!layer && getComputedStyle(layer).visibility === 'visible',
-      rail: rail?.getAttribute('title') ?? null,
+      rail: surface?.textContent ?? null,
     }
   })
 const settle = () => win.waitForTimeout(650)
@@ -80,7 +80,9 @@ try {
     await settle()
     return win.$$eval('[data-menu]', (els) => els.map((e) => ({ rail: e.getAttribute('data-menu'), label: e.querySelector('span')?.textContent })))
   })()
-  check('Menu lists the surfaces', items.length >= 11, `${items.length} items`)
+  const want = ['files', 'mail', 'calendar', 'browser', 'agents', 'knowledge', 'memory', 'connectors', 'settings']
+  const listed = items.map((i) => i.rail)
+  check('Menu lists every stage surface, and not the retired Home or Cockpit', want.every((r) => listed.includes(r)) && !listed.includes('home') && !listed.includes('cockpit'), listed.join(' '))
 
   for (const it of items) {
     if ((await state()).view !== 'menu') {
@@ -90,11 +92,6 @@ try {
     await win.click(`[data-menu="${it.rail}"]`)
     await settle()
     s = await state()
-    // Home lives in the landscape now, as Today (docs/landscape/ADOPTION.md B1).
-    if (it.rail === 'home') {
-      check('Menu → Home opens Today in the landscape', s.view === 'today' && s.landscapeVisible, JSON.stringify(s))
-      continue
-    }
     const ok = s.view === 'stage' && !s.landscapeVisible && s.rail === it.label
     check(`Menu → ${it.label} opens it on the stage`, ok, JSON.stringify(s))
     // Settings is a modal on the stage; close it the way a user would.
@@ -185,18 +182,11 @@ try {
   await win.keyboard.press(`${mod}+j`)
   await win.waitForTimeout(300)
 
-  // ── ⌘B on the stage shows its rail ──
-  const railWidth = () =>
-    win.evaluate(() => {
-      const r = document.querySelector('nav[aria-label="Primary"]')?.getBoundingClientRect()
-      const op = document.querySelector('nav[aria-label="Primary"]')
-      return r && op ? Math.round(r.right) * (getComputedStyle(op).opacity === '0' ? 0 : 1) : 0
-    })
-  const before = await railWidth()
+  // ── the old left rail is gone, and ⌘B does not bring one back ──
   await win.keyboard.press(`${mod}+b`)
   await win.waitForTimeout(700)
-  const after = await railWidth()
-  check('⌘B shows the stage rail (hidden by default)', before <= 0 && after > 40, `before ${before}, after ${after}`)
+  const rails = await win.evaluate(() => document.querySelectorAll('nav[aria-label="Primary"]').length)
+  check('the stage has no left rail, even after ⌘B', rails === 0, `${rails} rail(s)`)
 } finally {
   await win.evaluate(() => {
     const K = 'workspace-os:settings'

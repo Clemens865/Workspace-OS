@@ -1036,7 +1036,7 @@ export interface WorkspaceApi {
   notify: {
     prefs: () => Promise<{ approvals: boolean; routines: boolean; cases: boolean; connectors: boolean; supported: boolean }>
     setPrefs: (next: { approvals?: boolean; routines?: boolean; cases?: boolean; connectors?: boolean }) => Promise<{ approvals: boolean; routines: boolean; cases: boolean; connectors: boolean }>
-    request: (event: { source: 'approvals' | 'routines' | 'cases' | 'connectors' | 'test'; key: string; title: string; body?: string; rail?: 'agents' | 'cockpit' | 'connectors' }) => Promise<{ result: 'show' | 'off' | 'throttled' | 'unsupported' }>
+    request: (event: { source: 'approvals' | 'routines' | 'cases' | 'connectors' | 'test'; key: string; title: string; body?: string; rail?: 'agents' | 'cases' | 'connectors' }) => Promise<{ result: 'show' | 'off' | 'throttled' | 'unsupported' }>
     recent: () => Promise<{ at: number; decision: string; event: { source: string; key: string; title: string; body: string; rail: string } }[]>
     onOpen: (callback: (target: { rail: string; key: string; source: string }) => void) => () => void
   }

@@ -1,28 +1,11 @@
 import { CodexRequests } from './components/AgentTerminal/CodexRequests'
 import { useEffect, useState } from 'react'
 import { LandscapeShell } from './components/Landscape/LandscapeShell'
-import { CalmCockpit } from './components/CalmCockpit/CalmCockpit'
 import { BugReporter } from './components/BugReport/BugReporter'
 import { Splash } from './components/Splash/Splash'
 import { useBackgroundRuns } from './components/Review/backgroundRuns'
 import { useBindWorkspaceScope } from './hooks/useWorkspaceScope'
 import { editCommandFor, resolveEditTarget, runOnTextEntry, runOnWebview, UNO_FOR } from './lib/editRouter'
-
-/**
- * Standalone preview escape hatch for the Calm Cockpit design prototype.
- * Gated + trivially removable — does NOT touch normal startup. Trigger with
- * `?cockpit=field` in the URL, or localStorage['wos:cockpit-preview'] === 'field'.
- * Evaluated BEFORE any hook so the prototype renders fullscreen and nothing else.
- */
-function cockpitPreviewEnabled(): boolean {
-  try {
-    const params = new URLSearchParams(window.location.search)
-    if (params.get('cockpit') === 'field') return true
-    return localStorage.getItem('wos:cockpit-preview') === 'field'
-  } catch {
-    return false
-  }
-}
 
 /**
  * The app: the Screen Landscape shell (docs/landscape/PLAN.md). It hosts the
@@ -31,16 +14,6 @@ function cockpitPreviewEnabled(): boolean {
  * `backup/shells-before-landscape`.
  */
 export function App(): JSX.Element {
-  // Design-prototype preview — checked before any hook, so it can't disturb
-  // normal startup. Remove this block and the two imports above to excise it.
-  if (cockpitPreviewEnabled()) {
-    return (
-      <div style={{ position: 'fixed', inset: 0, background: 'var(--wos-bg)' }}>
-        <CalmCockpit />
-      </div>
-    )
-  }
-
   const bugOpen = useBugReporterShortcut()
   useEditRouter()
   // Agent tabs and the review feed belong to the open workspace, as cases do.
@@ -49,11 +22,13 @@ export function App(): JSX.Element {
   // Background runs (main-owned) mirror into the review store from here, above
   // the shell switch, so they show in either UI whether or not a tab exists.
   useBackgroundRuns()
-  // A clicked notification lands on the rail the thing lives on.
+  // A clicked notification lands where the thing lives: a case in Cases,
+  // anything else on its stage surface.
   useEffect(
     () =>
       window.workspace.notify?.onOpen((t) => {
-        window.dispatchEvent(new CustomEvent('wos:open-rail', { detail: { rail: t.rail } }))
+        if (t.rail === 'cases') window.dispatchEvent(new CustomEvent('wos:open-case', { detail: { caseId: t.key } }))
+        else window.dispatchEvent(new CustomEvent('wos:open-rail', { detail: { rail: t.rail } }))
       }),
     [],
   )

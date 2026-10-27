@@ -1,86 +1,15 @@
 /* Redesigned shell — styled entirely from the design tokens (styles/tokens.css).
- * Structure mirrors docs/design/prototype.html: rail | Stage (tabs + body). */
+ * The Stage (tabs + body); the landscape's dock is the navigation. */
 
 .root {
   display: grid;
-  grid-template-columns: 76px 1fr;
+  grid-template-columns: 1fr;
   height: 100vh;
   width: 100vw;
   overflow: hidden;
   background: var(--wos-bg);
   color: var(--wos-ink);
   font-family: var(--wos-font);
-}
-
-/* ── Rail ── */
-.rail {
-  background: var(--wos-rail);
-  border-right: 0.5px solid var(--wos-hair);
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  padding: 12px 0;
-  gap: 4px;
-  overflow-y: auto;
-}
-
-.rlogo {
-  width: 32px;
-  height: 32px;
-  border-radius: 9px;
-  background: var(--wos-dark);
-  display: grid;
-  place-items: center;
-  color: var(--wl-on-ink);
-  margin-bottom: 10px;
-  font-weight: 700;
-  font-size: 15px;
-  flex-shrink: 0;
-}
-
-.ritem {
-  width: 56px;
-  padding: 8px 0 6px;
-  border-radius: 12px;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 4px;
-  color: var(--wos-ink-2);
-  cursor: pointer;
-  position: relative;
-  border: 0;
-  background: transparent;
-  font: inherit;
-  font-size: 10.5px;
-  flex-shrink: 0;
-}
-
-.ritem:hover {
-  color: var(--wos-ink);
-}
-
-.ritemOn {
-  background: var(--wos-card);
-  color: var(--wos-ink);
-  box-shadow: var(--wos-sh-raised);
-}
-
-.ritem svg {
-  width: 20px;
-  height: 20px;
-}
-
-.railSpacer {
-  flex: 1;
-}
-
-.railHair {
-  width: 32px;
-  height: 0.5px;
-  background: var(--wos-hair);
-  margin: 6px 0;
-  flex-shrink: 0;
 }
 
 /* ── Stage ── */
@@ -549,10 +478,10 @@
 .searchOverlayBody > * { flex: 1; min-width: 0; }
 
 /* ══ WOS-011 · Fill the window ══════════════════════════════════════════════
-   One surface takes the whole window: the rail slides out, the tab strip
-   collapses, the terminal dock unmounts.
+   One surface takes the whole window: the tab strip collapses, the terminal
+   dock unmounts.
 
-   The animation is on the GRID TRACK and the topbar height rather than on the
+   The animation is on the topbar height rather than on the
    surface itself. A transform on the surface would be cheaper, but the surface
    hosts the browser's <webview>, whose guest is a separate compositing process
    — transforming it produces a smeared, half-scaled page for the length of the
@@ -562,29 +491,6 @@
    `cubic-bezier(0.32, 0.72, 0, 1)` is a decelerating ease — fast to start,
    settling at the end. It is what makes this feel like the panel is getting out
    of the way rather than the layout jumping. */
-
-.root {
-  transition: grid-template-columns 320ms cubic-bezier(0.32, 0.72, 0, 1);
-}
-
-.root.railOut {
-  grid-template-columns: 0px 1fr;
-}
-
-/* The rail keeps its width while the TRACK closes over it, so its icons slide
-   out of view intact instead of being squashed on the way. */
-.root.railOut > :first-child {
-  transform: translateX(-76px);
-  opacity: 0;
-  pointer-events: none;
-}
-
-.root > :first-child {
-  transition:
-    transform 320ms cubic-bezier(0.32, 0.72, 0, 1),
-    opacity 200ms ease;
-  will-change: transform;
-}
 
 /* The tab strip folds upward. max-height rather than height so the topbar keeps
    sizing itself normally when open. */
@@ -606,8 +512,7 @@
   pointer-events: none;
 }
 
-/* The way out. Sits over the top-left corner — where the rail used to be, and
-   out of the way of a document's own content. Keeps the traffic-light inset so
+/* The way out. Sits over the top-left corner, out of the way of a document's own content. Keeps the traffic-light inset so
    it never lands under the window buttons.
 
    It fades to nearly transparent once the pointer leaves, rather than
@@ -667,8 +572,6 @@
 /* Someone who has asked the OS to stop animating things means it. Both states
    still work — they just arrive immediately. */
 @media (prefers-reduced-motion: reduce) {
-  .root,
-  .root > :first-child,
   .root .topbar,
   .expandExit {
     transition: none;
@@ -791,10 +694,9 @@
 .homeSolo .peekHost { flex: 1; position: relative; min-height: 0; overflow: hidden; }
 
 /* ── Hosted by the Screen Landscape shell (docs/landscape/PLAN.md §3) ──
-   While the landscape shows, the rail and the surfaces are hidden but keep their
+   While the landscape shows, the surfaces are hidden but keep their
    layout (xterm and LibreOffice re-fit on size, not on visibility). Modals and
    overlays are siblings of these two, so ⌘K, ⌘P and Settings still open. */
-.stageHidden > nav,
 .stageHidden > .stage {
   visibility: hidden;
 }
