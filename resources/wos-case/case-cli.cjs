@@ -149,7 +149,7 @@ function writeCase(c) {
 function relToWorkspace(p) {
   const abs = import_path.default.resolve(p);
   const root = import_path.default.resolve(workspaceRoot());
-  return abs === root || abs.startsWith(root + import_path.default.sep) ? import_path.default.relative(root, abs) : p;
+  return abs === root || abs.startsWith(root + import_path.default.sep) ? import_path.default.relative(root, abs).split(import_path.default.sep).join("/") : p;
 }
 function parseArgs(argv) {
   const positional = [];
