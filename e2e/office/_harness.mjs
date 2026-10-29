@@ -59,8 +59,11 @@ export async function killAll() {
 }
 
 /** Launches the dev build with the engine wired in. Returns { app, win }.
- * Retries once if the window never appears (single-instance quit / slow boot). */
-export async function launch() {
+ * Retries once if the window never appears (single-instance quit / slow boot).
+ * Starts without the previous script's stage session (the documents the app
+ * reopens on launch), unless `keepSession` — every script shares one profile,
+ * so they would pile up and load into the engine on every launch. */
+export async function launch({ keepSession = false } = {}) {
   await killAll()
   // Clear stale LibreOffice locks left by hard-killed hosts. The profile lock
   // makes the engine boot read-only; a per-document `.~lock.<file>#` makes a
@@ -94,6 +97,18 @@ export async function launch() {
       win.on('pageerror', (e) => console.log(`  [pageerror] ${e.message}`))
       await win.waitForSelector('#root', { timeout: 20000 })
       await win.waitForTimeout(600)
+      if (!keepSession) {
+        const cleared = await win.evaluate(() => {
+          const keys = Object.keys(localStorage).filter((k) => k.startsWith('workspace-os:stage-session'))
+          keys.forEach((k) => localStorage.removeItem(k))
+          return keys.length
+        })
+        if (cleared) {
+          await win.reload()
+          await win.waitForSelector('#root', { timeout: 20000 })
+          await win.waitForTimeout(600)
+        }
+      }
       await dismissSplash(win)
       return { app, win }
     } catch (e) {

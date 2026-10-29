@@ -39,7 +39,8 @@ import { useSettings } from '../../hooks/useSettings'
 import { useAgentActions } from '../../hooks/useAgentActions'
 import { setTheme } from '../../hooks/useTheme'
 import { actionManifest, ALL_ACTIONS, type SurfaceActionContext } from '../Terminal/surfaceActions'
-import { dirname } from '../../lib/paths'
+import { basename, dirname } from '../../lib/paths'
+import { existingOnly, readSession, writeSession } from './stageSession'
 import { keysIn, keyLabel } from '../../lib/platform'
 
 /**
@@ -167,6 +168,45 @@ export function WorkspaceShell({ stage }: { stage?: StageHost } = {}): JSX.Eleme
     },
     [library, filesTabs],
   )
+
+  // ── Stage session: reopen the documents this workspace had open (stageSession.ts).
+  // Saving waits until the restore for this root has run, or the empty start
+  // would overwrite what was saved.
+  const restoredRoot = useRef<string | null>(null)
+  /** Set while the restore changes the active tab, so it does not bring the stage forward. */
+  const sessionRestoring = useRef(false)
+  useEffect(() => {
+    if (!root || restoredRoot.current === root) return
+    let cancelled = false
+    const saved = readSession(localStorage, root)
+    if (!saved) { restoredRoot.current = root; return }
+    const exists = async (p: string): Promise<boolean> => {
+      try { return (await window.workspace.fs.readDir(dirname(p))).some((e) => e.name === basename(p) && !e.isDirectory) } catch { return false }
+    }
+    void existingOnly(saved, exists).then((s) => {
+      if (cancelled) return
+      if (s.files.length) {
+        stageTabs.restoreTabs(s.files, s.activeFile)
+        setTabs((cur) => s.files.reduce((acc, f) => openDocTab(acc, f).tabs, cur))
+        if (s.activeFile) {
+          sessionRestoring.current = true
+          setActiveTab(s.activeFile)
+        }
+      }
+      if (s.preview) filesTabs.openFile(s.preview)
+      restoredRoot.current = root
+    })
+    return () => { cancelled = true }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [root])
+  useEffect(() => {
+    if (!root || restoredRoot.current !== root) return
+    writeSession(localStorage, root, {
+      files: stageTabs.tabs.map((t) => t.filePath),
+      activeFile: isDocTab(tabs, activeTab) ? activeTab : null,
+      preview: filesTabs.activeFilePath,
+    })
+  }, [root, stageTabs.tabs, tabs, activeTab, filesTabs.activeFilePath])
 
   const closeStageTab = useCallback(
     (key: string) => {
@@ -450,6 +490,12 @@ export function WorkspaceShell({ stage }: { stage?: StageHost } = {}): JSX.Eleme
       mounted.current = true
       return
     }
+    // Reopening last session's tabs is not a request to see them: the app
+    // still opens where the person's start setting says.
+    if (sessionRestoring.current) {
+      sessionRestoring.current = false
+      return
+    }
     onSurface?.(rail)
   }, [rail, activeTab, onSurface])
 
@@ -625,6 +671,8 @@ export function WorkspaceShell({ stage }: { stage?: StageHost } = {}): JSX.Eleme
                 key={t.key}
                 className={`${styles.tab} ${activeTab === t.key ? styles.tabOn : ''}`}
                 onClick={() => selectTab(t.key)}
+                data-stage-tab={t.closable ? t.key : undefined}
+                aria-selected={activeTab === t.key}
               >
                 {t.label}
                 {t.closable && (
