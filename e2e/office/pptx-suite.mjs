@@ -527,7 +527,8 @@ r.ok(thumbFracs.length >= 2 && thumbFracs.filter((f) => f > 0.01).length >= 2,
     await clickFile(win, 'bg-deck.pptx')
     await waitRender(win, 'Design')
     const thumbBgFrac = () => win.evaluate(async ([rgb]) => {
-      const im = document.querySelector('img[class*=thumb]')
+      // The slide rail's first thumbnail; other surfaces (Files, Library, Today) have thumbnails too.
+      const im = [...document.querySelectorAll('img[alt="Slide 1"]')].find((i) => i.getClientRects().length > 0)
       if (!im) return 0
       await new Promise((res) => { if (im.complete) res(); else { im.onload = res; im.onerror = res } })
       const c = document.createElement('canvas')
