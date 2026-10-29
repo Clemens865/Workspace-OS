@@ -138,7 +138,7 @@ usable in a workspace only when both of these are set:
    Claude Code ignores the folder's `.claude\settings.json`. The answer is stored as
    `hasTrustDialogAccepted` under the folder (written `D:/OBS/vault`) in `%USERPROFILE%\.claude.json`.
 2. **The server's tools are allowed** in the folder's `.claude\settings.json`, for example
-   `"permissions": { "allow": ["mcp__skills", "mcp__claude_ai_BOB_skills"] }`. A claude.ai
+   `"permissions": { "allow": ["mcp__my-server", "mcp__claude_ai_My_connector"] }`. A claude.ai
    connector's prefix is `mcp__claude_ai_` plus its name with spaces turned into underscores.
 
 Without them the agent answers that it cannot use the server. A chat then has the server's tools but

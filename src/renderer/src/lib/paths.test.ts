@@ -16,19 +16,19 @@ describe('renderer paths: POSIX', () => {
 })
 
 describe('renderer paths: Windows', () => {
-  const root = 'D:\\OBS\\brncx-skills'
+  const root = 'D:\\Notes\\my-vault'
   it('never drops a character from a path without a slash', () => {
-    expect(dirname(root)).toBe('D:\\OBS')
-    expect(dirname('D:\\OBS')).toBe('D:\\')
+    expect(dirname(root)).toBe('D:\\Notes')
+    expect(dirname('D:\\Notes')).toBe('D:\\')
     expect(dirname(root + '\\Notes\\a.md')).toBe(root + '\\Notes')
     expect(basename(root + '\\Notes\\a.md')).toBe('a.md')
-    expect(basename(root + '\\')).toBe('brncx-skills')
+    expect(basename(root + '\\')).toBe('my-vault')
   })
   it('joins with backslashes and compares without case', () => {
     expect(sepOf(root)).toBe('\\')
     expect(joinPath(root, 'Notes/a.md')).toBe(root + '\\Notes\\a.md')
-    expect(isInside(root, 'd:\\obs\\brncx-skills\\Notes\\a.md')).toBe(true)
-    expect(isInside(root, 'D:\\OBS\\brncx-skill')).toBe(false)
+    expect(isInside(root, 'd:\\notes\\my-vault\\Notes\\a.md')).toBe(true)
+    expect(isInside(root, 'D:\\Notes\\my-vaul')).toBe(false)
     expect(relPath(root + '\\Notes\\a.md', root)).toBe('Notes/a.md')
     expect(segments('Notes\\sub/a.md')).toEqual(['Notes', 'sub', 'a.md'])
   })
