@@ -15,7 +15,7 @@
     "build": "electron-vite build && node scripts/build-metric-cli.mjs && node scripts/build-collection-cli.mjs && node scripts/build-case-cli.mjs && node scripts/build-mcp-token-cli.mjs",
     "preview": "electron-vite preview",
     "typecheck": "node scripts/typecheck.mjs",
-    "lint": "eslint src",
+    "lint": "node --stack-size=2000 node_modules/eslint/bin/eslint.js src",
     "check:macros": "node scripts/validate-macros.mjs",
     "pretest": "npm run check:macros",
     "test": "vitest run",
