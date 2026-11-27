@@ -21,7 +21,7 @@ function fakeFetch(body: unknown, ok = true): FetchFn & { count: () => number } 
   const fn = (async () => {
     n++
     return { ok, status: ok ? 200 : 400, json: async () => body }
-  }) as FetchFn & { count: () => number }
+  }) as unknown as FetchFn & { count: () => number }
   fn.count = () => n
   return fn
 }

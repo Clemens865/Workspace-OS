@@ -1,4 +1,4 @@
-import { describe, it, expect, vi } from 'vitest'
+import { describe, it, expect, vi, type Mock } from 'vitest'
 import { SmtpClient, toTransportOptions, type SmtpConnectConfig, type TransportLike } from './smtp-client'
 import type { OutgoingMessage } from './types'
 
@@ -23,13 +23,13 @@ const MSG: OutgoingMessage = {
   text: 'Body text',
 }
 
-function makeTransport(overrides: Partial<TransportLike> = {}): TransportLike & Record<string, ReturnType<typeof vi.fn>> {
+function makeTransport(overrides: Partial<TransportLike> = {}): TransportLike & Record<'verify' | 'sendMail' | 'close', Mock> {
   const base = {
     verify: vi.fn(async () => true as const),
-    sendMail: vi.fn(async () => ({ messageId: '<generated@smtp>', accepted: ['bob@example.com'], rejected: [] })),
+    sendMail: vi.fn(async (..._args: unknown[]) => ({ messageId: '<generated@smtp>', accepted: ['bob@example.com'], rejected: [] })),
     close: vi.fn(),
   }
-  return { ...base, ...overrides } as unknown as TransportLike & Record<string, ReturnType<typeof vi.fn>>
+  return { ...base, ...overrides } as unknown as TransportLike & Record<'verify' | 'sendMail' | 'close', Mock>
 }
 
 /**

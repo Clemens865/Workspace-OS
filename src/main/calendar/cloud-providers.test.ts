@@ -59,7 +59,7 @@ describe('mapGoogleEvent', () => {
   it('falls back to a placeholder title and carries the source id', () => {
     const ev = mapGoogleEvent({ id: 'g7', start: { dateTime: '2026-07-29T09:00:00Z' } }, 'src-1')
     expect(ev?.summary).toBe('(no title)')
-    expect((ev as { sourceId: string }).sourceId).toBe('src-1')
+    expect((ev as unknown as { sourceId: string }).sourceId).toBe('src-1')
   })
 })
 

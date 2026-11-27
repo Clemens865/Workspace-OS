@@ -87,17 +87,6 @@ function findMetricByName(name: string): { metric?: Metric; error?: string } {
   return { error: `no metric named "${name}"` }
 }
 
-function findRangeByName(name: string): { range?: LiveRange; error?: string } {
-  const all = ranges.list()
-  const exact = all.filter((r) => r.name === name)
-  if (exact.length === 1) return { range: exact[0] }
-  if (exact.length > 1) return { error: `range name "${name}" is ambiguous` }
-  const ci = all.filter((r) => r.name.toLowerCase() === name.toLowerCase())
-  if (ci.length === 1) return { range: ci[0] }
-  if (ci.length > 1) return { error: `range name "${name}" is ambiguous` }
-  return { error: `no range named "${name}"` }
-}
-
 function sourceLabel(m: Metric): string {
   return isSourced(m) ? `${m.source.filePath}!${m.source.sheet || '?'}!${m.source.cell}` : 'literal'
 }

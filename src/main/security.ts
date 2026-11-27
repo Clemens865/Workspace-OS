@@ -304,18 +304,6 @@ export function browserRequestHeaders(
   }
 }
 
-/**
- * The language list the browser advertises, resolved once.
- *
- * Shared so every place that sets the User-Agent sets the SAME languages with
- * it. `setUserAgent(ua)` without the second argument drops the accept-languages
- * that were paired with it at session level — which silently undid the language
- * fix in exactly the place real browsing happens, the <webview> guest.
- */
-export function browserLanguages(): string {
-  return acceptLanguageList(app.getPreferredSystemLanguages())
-}
-
 export function hardenWebContents(contents: WebContents): void {
   const appOrigins = ['http://localhost:5173', 'file://']
 
@@ -371,11 +359,9 @@ export function hardenWebContents(contents: WebContents): void {
   contents.on('did-attach-webview', (_e, guest) => {
     // Belt-and-suspenders: also pin the Chrome UA on the guest webContents (the
     // session-level UA is the primary fix; this covers any per-contents override).
-    // Pass the languages too. Without them this call resets the guest's
-    // accept-languages, so the header and navigator.languages disagree again —
-    // the same inconsistency that got sessions refused, reintroduced at the one
-    // layer the earlier verification did not cover.
-    guest.setUserAgent(browserUserAgent(), browserLanguages())
+    // The accept-languages set on the session survive this call
+    // (WebContents.setUserAgent takes the user agent only).
+    guest.setUserAgent(browserUserAgent())
 
     // Two very different things arrive here, and treating them identically is
     // what broke every popup-based sign-in (LinkedIn, Microsoft, Google).
@@ -469,7 +455,7 @@ export function hardenWebContents(contents: WebContents): void {
       // session's headers, but nothing stopped it navigating anywhere or
       // spawning further windows.
       hardenPopup(child)
-      child.webContents.setUserAgent(browserUserAgent(), browserLanguages())
+      child.webContents.setUserAgent(browserUserAgent())
       // A sign-in popup that spawns further popups is not a flow we support,
       // and it is a plausible way to escape this hardening.
       child.webContents.setWindowOpenHandler(({ url: childUrl }) => {

@@ -28,7 +28,7 @@ export class ExtractPool {
   private nextId = 1
   private stopped = false
 
-  constructor(private size: number) {
+  constructor(size: number) {
     for (let i = 0; i < size; i++) this.spawn()
   }
 

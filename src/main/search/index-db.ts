@@ -478,7 +478,9 @@ export class SearchIndex {
     // Which stub keys are actually referenced by a surviving note (prune orphans).
     const usedStubs = new Set<string>()
     const degree = new Map<string, number>()
-    const bump = (id: string): void => degree.set(id, (degree.get(id) ?? 0) + 1)
+    const bump = (id: string): void => {
+      degree.set(id, (degree.get(id) ?? 0) + 1)
+    }
 
     const edges: GraphEdge[] = []
     const pushEdge = (source: string, target: string, count: number): boolean => {

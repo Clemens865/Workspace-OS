@@ -581,7 +581,7 @@ contextBridge.exposeInMainWorld('workspace', {
     watchStop: (accountId: string) => ipcRenderer.invoke(IPC.MAIL_WATCH_STOP, accountId),
     /** Subscribe to new-mail events. Returns an unsubscribe function. */
     onNewMail: (cb: (e: { accountId: string; folder: string; count: number; latest: { subject: string; from: string } | null }) => void) => {
-      const handler = (_e: unknown, payload: never): void => cb(payload)
+      const handler = (_e: unknown, payload: Parameters<typeof cb>[0]): void => cb(payload)
       ipcRenderer.on(IPC.MAIL_NEW_MAIL, handler)
       return () => ipcRenderer.removeListener(IPC.MAIL_NEW_MAIL, handler)
     },

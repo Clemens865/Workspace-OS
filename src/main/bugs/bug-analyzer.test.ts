@@ -199,6 +199,7 @@ describe('idea reports are analysed differently from defects', () => {
       openFile: null, os: 'darwin', recentErrors: [],
     },
     existing: [],
+    repoRoot: null,
   }
 
   it('tells the model an idea is NOT a defect', () => {
@@ -244,16 +245,16 @@ describe('nextId keeps the two kinds on separate counters', () => {
     // numbers depending on filing order, and ids here are referenced elsewhere
     // and never renumbered.
     const existing = [
-      { id: 'WOS-001', title: 'a' },
-      { id: 'WOS-002', title: 'b' },
-      { id: 'IDEA-001', title: 'c' },
+      { id: 'WOS-001', title: 'a', seen: 1 },
+      { id: 'WOS-002', title: 'b', seen: 1 },
+      { id: 'IDEA-001', title: 'c', seen: 1 },
     ]
     expect(nextId(existing, 'WOS')).toBe('WOS-003')
     expect(nextId(existing, 'IDEA')).toBe('IDEA-002')
   })
 
   it('starts at 001 for a kind that has none yet', () => {
-    expect(nextId([{ id: 'WOS-009', title: 'x' }], 'IDEA')).toBe('IDEA-001')
+    expect(nextId([{ id: 'WOS-009', title: 'x', seen: 1 }], 'IDEA')).toBe('IDEA-001')
   })
 })
 

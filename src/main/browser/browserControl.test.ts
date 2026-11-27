@@ -64,7 +64,7 @@ describe('resolveScreenshotPath (path guard)', () => {
 
 describe('drive functions (mocked guest)', () => {
   it('extract runs the fixed script and returns {ok,mode,data}', async () => {
-    const wc = { executeJavaScript: vi.fn(async () => ({ title: 'T', text: 'hi' })) }
+    const wc = { executeJavaScript: vi.fn(async (..._args: unknown[]) => ({ title: 'T', text: 'hi' })) }
     const r = await extract(wc as never, 'text')
     expect(wc.executeJavaScript).toHaveBeenCalledWith(scriptForMode('text'), true)
     expect(r).toEqual({ ok: true, mode: 'text', data: { title: 'T', text: 'hi' } })
@@ -107,7 +107,7 @@ describe('drive functions (mocked guest)', () => {
 
 describe('interaction drive functions (mocked guest — bridge passthrough)', () => {
   it('dismissCookies runs the fixed script and normalises the result', async () => {
-    const wc = { executeJavaScript: vi.fn(async () => ({ clicked: true, label: 'Accept all' })) }
+    const wc = { executeJavaScript: vi.fn(async (..._args: unknown[]) => ({ clicked: true, label: 'Accept all' })) }
     const r = await dismissCookies(wc as never)
     const [script, userGesture] = wc.executeJavaScript.mock.calls[0]
     expect(userGesture).toBe(true)
@@ -116,12 +116,12 @@ describe('interaction drive functions (mocked guest — bridge passthrough)', ()
   })
 
   it('dismissCookies reports {clicked:false} (not an error) when none found', async () => {
-    const wc = { executeJavaScript: vi.fn(async () => ({ clicked: false })) }
+    const wc = { executeJavaScript: vi.fn(async (..._args: unknown[]) => ({ clicked: false })) }
     expect(await dismissCookies(wc as never)).toEqual({ ok: true, clicked: false, label: undefined })
   })
 
   it('click passes an escaped selector/text and returns the hit', async () => {
-    const wc = { executeJavaScript: vi.fn(async () => ({ clicked: true, tag: 'a', text: 'Products', href: 'https://x/p' })) }
+    const wc = { executeJavaScript: vi.fn(async (..._args: unknown[]) => ({ clicked: true, tag: 'a', text: 'Products', href: 'https://x/p' })) }
     const r = await click(wc as never, 'a.nav', 'Products')
     expect(String(wc.executeJavaScript.mock.calls[0][0])).toContain("'a.nav'")
     expect(r).toEqual({ ok: true, clicked: true, tag: 'a', text: 'Products', href: 'https://x/p' })
@@ -134,25 +134,25 @@ describe('interaction drive functions (mocked guest — bridge passthrough)', ()
   })
 
   it('scroll returns {scrollY,atBottom}', async () => {
-    const wc = { executeJavaScript: vi.fn(async () => ({ scrollY: 1200, atBottom: true })) }
+    const wc = { executeJavaScript: vi.fn(async (..._args: unknown[]) => ({ scrollY: 1200, atBottom: true })) }
     expect(await scroll(wc as never, 'bottom', undefined)).toEqual({ ok: true, scrollY: 1200, atBottom: true })
   })
 
   it('waitFor returns {found} and rejects with no target', async () => {
-    const wc = { executeJavaScript: vi.fn(async () => ({ found: true })) }
+    const wc = { executeJavaScript: vi.fn(async (..._args: unknown[]) => ({ found: true })) }
     expect(await waitFor(wc as never, '#ok', '', 1000)).toEqual({ ok: true, found: true })
     await expect(waitFor(wc as never, '', '', 1000)).rejects.toThrow(/selector or text/)
   })
 
   it('type rejects without a selector and returns {typed} otherwise', async () => {
-    const wc = { executeJavaScript: vi.fn(async () => ({ typed: true, tag: 'input' })) }
+    const wc = { executeJavaScript: vi.fn(async (..._args: unknown[]) => ({ typed: true, tag: 'input' })) }
     await expect(type(wc as never, '', 'hi')).rejects.toThrow(/selector/)
     expect(await type(wc as never, 'input#q', 'hi')).toEqual({ ok: true, typed: true, tag: 'input' })
   })
 
   it('map runs the fixed perception script and returns {ok,data}', async () => {
     const perceived = { title: 'Acme', url: 'https://acme.com', headings: [], links: [], interactives: [], consent: { present: false, hint: '' } }
-    const wc = { executeJavaScript: vi.fn(async () => perceived) }
+    const wc = { executeJavaScript: vi.fn(async (..._args: unknown[]) => perceived) }
     const r = await map(wc as never)
     expect(String(wc.executeJavaScript.mock.calls[0][0])).toContain('classify')
     expect(r).toEqual({ ok: true, data: perceived })
@@ -160,7 +160,7 @@ describe('interaction drive functions (mocked guest — bridge passthrough)', ()
 
   it('clearConsent runs the hardened script and settles on a clear', async () => {
     const wc = {
-      executeJavaScript: vi.fn(async () => ({ cleared: true, method: 'wall', wasWall: true })),
+      executeJavaScript: vi.fn(async (..._args: unknown[]) => ({ cleared: true, method: 'wall', wasWall: true })),
       once: (_ev: string, fn: () => void) => setTimeout(fn, 0),
       removeListener: () => {},
     }
@@ -171,7 +171,7 @@ describe('interaction drive functions (mocked guest — bridge passthrough)', ()
   })
 
   it('clearConsent reports {cleared:false, method:none} (not an error) when nothing found', async () => {
-    const wc = { executeJavaScript: vi.fn(async () => ({ cleared: false, method: 'none', wasWall: false })) }
+    const wc = { executeJavaScript: vi.fn(async (..._args: unknown[]) => ({ cleared: false, method: 'none', wasWall: false })) }
     expect(await clearConsent(wc as never)).toEqual({ ok: true, cleared: false, method: 'none', wasWall: false })
   })
 

@@ -173,7 +173,8 @@ function assertFeedUrl(value: unknown): string {
   return raw
 }
 
-function assertKind(value: unknown): CalendarSourceKind {
+/** Only the kinds a person types an address for; cloud kinds connect through OAuth. */
+function assertKind(value: unknown): Extract<CalendarSourceKind, 'caldav' | 'ics'> {
   if (value !== 'caldav' && value !== 'ics') throw new IpcValidationError('Unsupported calendar type')
   return value
 }
