@@ -114,18 +114,20 @@ The full manual with screenshots of every surface is at [docs/manual/workspace-o
 
 ## Status
 
-Version 0.1.125, September 2026. Shipped and green in automated tests: everything in the table above. Known gaps, in the manual's own words:
+Version 0.2.28. Shipped and covered by automated tests: everything in the table above. Known gaps:
 
-- **Chats** is a placeholder. Team chat is the last channel standing between the app and the three-day benchmark.
+- **Team chat** (Slack, Matrix, Teams) has no surface. The Chat in the dock talks to agents.
 - Gmail, Google Drive and Google Calendar write paths wait on a Google client id. Google and Microsoft calendars are read-only today.
-- The Cockpit CEO altitude is a preview on mock data. Workspace Apps are a blueprint.
-- Calendar has no agenda list or event search and cannot author new recurrence rules.
+- An existing repeat rule cannot be edited, and Google and Microsoft calendar reads stop at 250 events per calendar.
+- Mail has no conversation view.
+- Word comments do not appear in the Living Feed, and there is no mail-merge from a Collection.
+- Note tags are not built. Freeze panes, pivot tables and slide masters rely on the engine's own commands and dialogs.
 - Image generation is not built.
-- Memory retrieval is lexical, not semantic.
+- File and note search is lexical; only memory is also recalled by meaning.
 - Releases are macOS only. Linux (including WSL) and Windows are community-supported and build from source against an installed LibreOffice ([docs/LINUX-WSL.md](docs/LINUX-WSL.md), [docs/WINDOWS.md](docs/WINDOWS.md)); on Windows, spreadsheets render black on LibreOffice 25.8 and later.
 - Not signed with a Developer ID and not notarized.
 
-Planned next, per the roadmap: freeze panes and pivot tables, mail-merge from a Collection, Word comments in the Living Feed, slide master editing, mail threading and search, a messages surface, semantic memory search, and beta accounts with report collection.
+Planned next, per the roadmap: freeze panes and pivot tables, mail-merge from a Collection, Word comments in the Living Feed, slide master editing, a conversation view in mail, a messages surface, and beta accounts with report collection.
 
 Explicitly not building: real-time multiplayer, a from-scratch office engine, commodity features without liveness or agent leverage, or any mandatory cloud dependency.
 
@@ -139,7 +141,7 @@ Explicitly not building: real-time multiplayer, a from-scratch office engine, co
 - Secrets are stored only as ciphertext through the OS keychain, and the vault refuses to write if secure storage is unavailable. A decrypted secret reaches a child process only at spawn time, through the environment, and is dropped from memory right after.
 - Destructive file operations move the prior version to `.workspace-os/trash` first. A shadow git repository under `.workspace-os/checkpoints` snapshots the tree before every agent run.
 
-See [SECURITY.md](SECURITY.md) for the file-by-file map. Two passages there predate the LibreOffice engine and still describe an OnlyOffice path that no longer exists.
+See [SECURITY.md](SECURITY.md) for the file-by-file map.
 
 ## Development
 
@@ -158,14 +160,14 @@ hdiutil attach "/Volumes/Extreme SSD/LOBuild.sparseimage"
 ### Everyday commands
 
 ```sh
-npm install
+npm ci
 npm run rebuild:electron   # native modules for the Electron ABI, then ad-hoc re-sign
 npm run dev                # electron-vite dev server
 
 npm run rebuild:node       # native modules back to the Node ABI
-npm test                   # vitest, 238 files / 2893 tests, about 6 s
+npm test                   # vitest
 npm run typecheck          # regression-gated tsc over both tsconfigs
-npm run lint
+npm run lint               # eslint; errors fail, warnings are the backlog
 
 npm run dist:mac           # package dmg + zip into release/
 npm run ship               # typecheck, test, bump, build, install, launch, release
