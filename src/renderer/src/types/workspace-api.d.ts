@@ -1138,7 +1138,8 @@ export interface WorkspaceApi {
   agents: {
     list: () => Promise<{ name: string; description: string; scope: 'global' | 'project'; mode?: 'full' | 'safe'; capabilities?: string[]; surface?: string; model?: string }[]>
     read: (name: string, scope?: 'global' | 'project') => Promise<{ name: string; description: string; scope: 'global' | 'project'; mode?: 'full' | 'safe'; persona: string; skills: string[]; capabilities?: string[]; surface?: string; model?: string }>
-    write: (payload: { name: string; model?: string; description?: string; persona?: string; mode?: 'full' | 'safe'; skills?: string[]; capabilities?: string[]; surface?: string; scope?: 'global' | 'project' }) => Promise<{ name: string; path: string; scope: 'global' | 'project' }>
+    /** `createOnly` refuses to replace an existing file; `copyFrom` (with it) keeps that agent's foreign frontmatter. */
+    write: (payload: { name: string; model?: string; description?: string; persona?: string; mode?: 'full' | 'safe'; skills?: string[]; capabilities?: string[]; surface?: string; scope?: 'global' | 'project'; createOnly?: boolean; copyFrom?: { name: string; scope: 'global' | 'project' } }) => Promise<{ name: string; path: string; scope: 'global' | 'project' }>
     delete: (name: string, scope?: 'global' | 'project') => Promise<void>
     /** Agent Foundry: the capability palette a specialist can be given. */
     capabilities: () => Promise<{ id: string; label: string; description: string; surface: string; actions: string[]; toolMode: 'safe' | 'full' }[]>

@@ -7,6 +7,7 @@ import { mainWindow, sendToWindow } from './main-window'
 import { officeMenus, type OfficeMenuState, type MI } from './menu-office'
 import { paletteCommands } from './office-menu-table'
 import { browserMenus, type BrowserContext } from './menu-browser'
+import { agentMenuTemplate, type AgentMenuData } from './menu-agent'
 import { setWorkspaceRoot, clearWorkspaceRoot, getWorkspaceRoot } from './workspace-root'
 import {
   loadRecentWorkspaces,
@@ -32,13 +33,7 @@ interface MenuActionItem {
 let fileActionItems: MenuActionItem[] = []
 
 /** Dynamic contents of the top-level Agent menu, pushed from the renderer. */
-interface AgentMenuData {
-  agents: MenuActionItem[]
-  skills: MenuActionItem[]
-  mode: 'full' | 'safe'
-  activeAgent: string | null
-}
-let agentMenu: AgentMenuData = { agents: [], skills: [], mode: 'full', activeAgent: null }
+let agentMenu: AgentMenuData = { agents: [], mode: 'full' }
 
 /**
  * The browser surface's pushed state: the actions it is offering right now, and
@@ -322,43 +317,7 @@ function buildMenu(): void {
     // The surface's own menu, named after the surface. Mail and Files follow.
     ...(browser ? [browser.browser] : []),
     goMenu(),
-    {
-      label: 'Agent',
-      submenu: [
-        { label: 'Focus Agent', accelerator: 'CmdOrCtrl+Shift+A', click: () => sendToWindow('menu:run-action', 'agent.focus') },
-        { label: 'New Agent…', click: () => sendToWindow('menu:run-action', 'agent.new') },
-        { label: 'New Shell', click: () => sendToWindow('menu:run-action', 'shell.new') },
-        { type: 'separator' },
-        // Checkpoint timeline — every agent-run snapshot, with diff + restore.
-        { label: 'Checkpoints…', click: () => sendToWindow('menu:run-action', 'agent.checkpoints') },
-        { type: 'separator' },
-        {
-          label: 'Mode',
-          submenu: [
-            { label: 'Full (run any command)', type: 'radio', checked: agentMenu.mode === 'full', click: () => sendToWindow('menu:run-action', 'agent.mode:full') },
-            { label: 'Safe (read + generate only)', type: 'radio', checked: agentMenu.mode === 'safe', click: () => sendToWindow('menu:run-action', 'agent.mode:safe') },
-          ],
-        },
-        {
-          label: 'Agents',
-          submenu: [
-            { label: 'Default', type: 'radio', checked: !agentMenu.activeAgent, click: () => sendToWindow('menu:run-action', 'agent.select:') },
-            ...agentMenu.agents.map((a): MI => ({
-              label: a.label, type: 'radio', checked: agentMenu.activeAgent === a.label,
-              click: () => sendToWindow('menu:run-action', a.id),
-            })),
-          ],
-        },
-        ...(agentMenu.skills.length > 0
-          ? [{
-              label: 'Run Skill',
-              submenu: agentMenu.skills.map((s): MI => ({
-                label: s.label, click: () => sendToWindow('menu:run-action', s.id),
-              })),
-            } as MI]
-          : []),
-      ],
-    },
+    agentMenuTemplate(agentMenu, (id) => sendToWindow('menu:run-action', id)),
     { label: 'Window', submenu: [{ role: 'minimize' }, { role: 'zoom' }, { role: 'front' }] },
   ]
 
@@ -394,17 +353,15 @@ export function registerMenu(ipcMain: IpcMain, isDev: boolean): void {
     buildMenu()
   })
 
-  // The active agent session pushes its current agents/skills/mode so the
-  // top-level Agent menu mirrors it.
+  // The shell pushes the roster and the run mode so the top-level Agent menu
+  // mirrors them.
   ipcHandle(ipcMain, 'menu:set-agent-menu', (_event, data: unknown) => {
     const d = data as Partial<AgentMenuData>
     const items = (v: unknown): MenuActionItem[] =>
       Array.isArray(v) ? v.filter((i): i is MenuActionItem => typeof i?.id === 'string' && typeof i?.label === 'string') : []
     agentMenu = {
       agents: items(d?.agents),
-      skills: items(d?.skills),
       mode: d?.mode === 'safe' ? 'safe' : 'full',
-      activeAgent: typeof d?.activeAgent === 'string' ? d.activeAgent : null,
     }
     buildMenu()
   })

@@ -35,7 +35,11 @@ import { useWorkspaceRoot } from '../../hooks/useWorkspaceRoot'
 import { scopeKey } from '../../lib/workspaceScope'
 import { useWorkspaceLibrary } from '../../hooks/useWorkspaceLibrary'
 import { useKeyboardShortcuts } from '../../hooks/useKeyboardShortcuts'
-import { useSettings } from '../../hooks/useSettings'
+import { setSetting, useSettings } from '../../hooks/useSettings'
+import { useShellAgentMenu } from '../../hooks/useShellAgentMenu'
+import { runAgentMenuAction } from '../../lib/agentMenuModel'
+import { launchAgent } from '../Agents/launch'
+import { createAgent } from '../Landscape/agentActions'
 import { useAgentActions } from '../../hooks/useAgentActions'
 import { setTheme } from '../../hooks/useTheme'
 import { actionManifest, ALL_ACTIONS, type SurfaceActionContext } from '../Terminal/surfaceActions'
@@ -334,15 +338,22 @@ export function WorkspaceShell({ stage }: { stage?: StageHost } = {}): JSX.Eleme
   // to that specialist's persona. We stash the name; the dock (which may be
   // mounting for the first time here) picks it up and opens the agent tab.
   const [pendingAgent, setPendingAgent] = useState<string | null>(null)
+  const [pendingShell, setPendingShell] = useState(false)
+  // Brings the dock into view: open, not minimised, not hidden by an expanded surface.
+  const showTerminal = useCallback(() => {
+    setSetting('terminalOpen', true)
+    setSetting('terminalMinimized', false)
+    setExpanded(false)
+  }, [])
   useEffect(() => {
     const onLaunch = (e: Event): void => {
       const name = (e as CustomEvent<{ name?: string }>).detail?.name
-      settings.set('terminalOpen', true)
-      if (name) setPendingAgent(name)
+      showTerminal()
+      if (typeof name === 'string') setPendingAgent(name)
     }
     window.addEventListener('wos:launch-agent', onLaunch)
     return () => window.removeEventListener('wos:launch-agent', onLaunch)
-  }, [settings])
+  }, [showTerminal])
 
   // The document dock's "Show backlinks" action switches to the Knowledge rail;
   // the panel loads backlinks for the (already open) active file on becoming
@@ -559,6 +570,24 @@ export function WorkspaceShell({ stage }: { stage?: StageHost } = {}): JSX.Eleme
   useEffect(() => {
     if (dockOpen) setDockMounted(true)
   }, [dockOpen])
+  // The native Agent menu: focus, new agent, new shell, mode, new session.
+  useShellAgentMenu(root, settings.agentMode)
+  useEffect(() => {
+    return window.workspace.menu.onRunAction((id) => {
+      runAgentMenuAction(id, {
+        focusAgents: () => window.dispatchEvent(new CustomEvent('wos:focus-agent')),
+        newAgent: createAgent,
+        dockRunning: () => dockMounted,
+        showTerminal: () => {
+          showTerminal()
+          window.dispatchEvent(new CustomEvent('wos:new-shell'))
+        },
+        addShellTab: () => setPendingShell(true),
+        setMode: (mode) => setSetting('agentMode', mode),
+        startAgent: launchAgent,
+      })
+    })
+  }, [dockMounted, showTerminal])
   const [floatRect, setFloatRect] = useState<Rect>(() => parseRect(settings.terminalFloat, { w: window.innerWidth, h: window.innerHeight }))
   useLayoutEffect(() => {
     if (!dockMounted) return
@@ -591,6 +620,8 @@ export function WorkspaceShell({ stage }: { stage?: StageHost } = {}): JSX.Eleme
       resizeSignal={dockResizeSignal}
       launchAgent={pendingAgent}
       onAgentLaunched={() => setPendingAgent(null)}
+      newShell={pendingShell}
+      onShellOpened={() => setPendingShell(false)}
       onOpenFile={openInStage}
     />
   )

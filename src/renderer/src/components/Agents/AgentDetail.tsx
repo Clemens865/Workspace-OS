@@ -22,7 +22,7 @@ interface AgentDetailProps {
 /**
  * A right-hand drawer with the full persona. Reads the agent lazily via the
  * existing agents API; actions reuse the launch path (Run) and the delete API.
- * Edit/Duplicate are wired to the Foundry event for now (TODO below).
+ * Edit/Duplicate hand the agent to the Foundry and close the drawer.
  */
 export function AgentDetail({ name, scope, onClose, onRun, onDeleted }: AgentDetailProps): JSX.Element {
   const [data, setData] = useState<AgentDetailData | null>(null)
@@ -49,6 +49,11 @@ export function AgentDetail({ name, scope, onClose, onRun, onDeleted }: AgentDet
     window.addEventListener('keydown', onKey)
     return () => window.removeEventListener('keydown', onKey)
   }, [onClose])
+
+  const openInFoundry = (what: 'edit' | 'duplicate'): void => {
+    window.dispatchEvent(new CustomEvent('wos:new-agent', { detail: { [what]: name, scope } }))
+    onClose()
+  }
 
   const del = async (): Promise<void> => {
     setBusy(true)
@@ -113,17 +118,10 @@ export function AgentDetail({ name, scope, onClose, onRun, onDeleted }: AgentDet
           <button className={styles.run} onClick={() => onRun(name)} data-testid="agent-detail-run">
             Run
           </button>
-          {/* TODO(foundry): Edit + Duplicate open the agent Foundry editor. */}
-          <button
-            className={styles.quiet}
-            onClick={() => window.dispatchEvent(new CustomEvent('wos:new-agent', { detail: { edit: name, scope } }))}
-          >
+          <button className={styles.quiet} onClick={() => openInFoundry('edit')} data-testid="agent-detail-edit">
             Edit
           </button>
-          <button
-            className={styles.quiet}
-            onClick={() => window.dispatchEvent(new CustomEvent('wos:new-agent', { detail: { duplicate: name, scope } }))}
-          >
+          <button className={styles.quiet} onClick={() => openInFoundry('duplicate')} data-testid="agent-detail-duplicate">
             Duplicate
           </button>
           <span className={styles.spacer} />

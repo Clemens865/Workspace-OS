@@ -56,6 +56,8 @@ export interface ReviewRun {
   code: number | null
   costUsd: number
   provider?: string
+  /** The "<provider>:<model>" the run was started on, as main reported it. */
+  model?: string
   costKnown?: boolean
   inputTokens?: number
   outputTokens?: number

@@ -20,10 +20,13 @@ interface TerminalDockProps {
   context: DockContext
   /** Bumped by the shell when the dock's size changes so xterm re-fits. */
   resizeSignal: number
-  /** A specialist name to open as a fresh agent tab (from a roster "Run"). */
+  /** A specialist name to open as a fresh agent tab (from a roster "Run"); '' = the default assistant. */
   launchAgent?: string | null
   /** Called once the launchAgent tab has been opened, so the shell can clear it. */
   onAgentLaunched?: () => void
+  /** Open one more shell tab (Agent ▸ New Shell on a running dock). */
+  newShell?: boolean
+  onShellOpened?: () => void
   /** Opens a run deliverable in the editor (trace file chips). */
   onOpenFile?: (path: string) => void
 }
@@ -55,7 +58,7 @@ const baseName = (p: string | null): string | null => (p ? pathBase(p) ?? p : nu
  * and an always-visible context chip showing the live harness. Lives only in
  * the new WorkspaceShell; additive and flag-gated.
  */
-export function TerminalDock({ context, resizeSignal, launchAgent, onAgentLaunched, onOpenFile }: TerminalDockProps): JSX.Element {
+export function TerminalDock({ context, resizeSignal, launchAgent, onAgentLaunched, newShell, onShellOpened, onOpenFile }: TerminalDockProps): JSX.Element {
   const settings = useSettings()
   const [tabs, setTabs] = useState<DockTab[]>(() => [{ id: nextId('shell'), kind: 'shell' }])
   const [active, setActive] = useState<string>(() => tabs[0]?.id ?? '')
@@ -118,10 +121,16 @@ export function TerminalDock({ context, resizeSignal, launchAgent, onAgentLaunch
   // A roster "Run" asks the dock to open a fresh agent tab bound to that
   // specialist. Handled here (not the picker) so it works even on first mount.
   useEffect(() => {
-    if (!launchAgent) return
-    addAgent(launchAgent)
+    if (launchAgent == null) return
+    addAgent(launchAgent || undefined)
     onAgentLaunched?.()
   }, [launchAgent, addAgent, onAgentLaunched])
+
+  useEffect(() => {
+    if (!newShell) return
+    addShell()
+    onShellOpened?.()
+  }, [newShell, addShell, onShellOpened])
 
   // Freshen the persona list whenever the picker opens (so newly created ones show).
   const openAgentPicker = useCallback(() => {

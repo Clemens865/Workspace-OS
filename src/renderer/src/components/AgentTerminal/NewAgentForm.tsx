@@ -22,6 +22,7 @@ export function NewAgentForm({ onClose, onSaved }: NewAgentFormProps): JSX.Eleme
   const [skills, setSkills] = useState<string[]>([])
   const [available, setAvailable] = useState<{ name: string; description: string }[]>([])
   const [saving, setSaving] = useState(false)
+  const [error, setError] = useState('')
 
   useEffect(() => {
     window.workspace.skills.list(model).then(setAvailable).catch(() => {})
@@ -40,11 +41,13 @@ export function NewAgentForm({ onClose, onSaved }: NewAgentFormProps): JSX.Eleme
   const save = async (): Promise<void> => {
     if (!canSave) return
     setSaving(true)
+    setError('')
     try {
-      await window.workspace.agents.write({ name: name.trim(), description, persona, mode, skills, model: model || undefined })
+      await window.workspace.agents.write({ name: name.trim(), description, persona, mode, skills, model: model || undefined, createOnly: true })
       onSaved(name.trim())
       onClose()
-    } catch {
+    } catch (e) {
+      setError(e instanceof Error ? e.message : 'Could not create the agent')
       setSaving(false)
     }
   }
@@ -104,6 +107,8 @@ export function NewAgentForm({ onClose, onSaved }: NewAgentFormProps): JSX.Eleme
             </div>
           )}
         </div>
+
+        {error && <div className={styles.error} role="alert">{error}</div>}
 
         <div className={styles.footer}>
           <button className={styles.cancel} onClick={onClose}>Cancel</button>

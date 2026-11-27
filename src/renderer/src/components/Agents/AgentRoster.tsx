@@ -81,7 +81,8 @@ export function AgentRoster(): JSX.Element {
           }}
           onDeleted={() => {
             setSelected(null)
-            refresh()
+            // The roster and the native Agent menu both re-list.
+            window.dispatchEvent(new CustomEvent('wos:agents-changed'))
           }}
         />
       )}

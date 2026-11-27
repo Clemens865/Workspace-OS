@@ -3,7 +3,8 @@ import { FleetLaneCard } from './FleetLaneCard'
 import { useReviewStore } from './useReviewStore'
 import { groupByAgent, selectBatchApprovals } from './reviewModel'
 import { reviewStore } from './reviewStore'
-import { launchAgentIntoLane, useAgentRoster } from './useFleetLaunch'
+import { useAgentRoster } from './useFleetLaunch'
+import { launchAgent } from '../Agents/launch'
 import styles from './FleetView.module.css'
 
 interface FleetViewProps {
@@ -54,7 +55,7 @@ export function FleetView({ onOpenFile, onWorkspaceChanged }: FleetViewProps): J
                   key={a.name}
                   className={styles.launchItem}
                   role="menuitem"
-                  onClick={() => { launchAgentIntoLane(a.name); setLaunchOpen(false) }}
+                  onClick={() => { launchAgent(a.name); setLaunchOpen(false) }}
                   title={a.description}
                 >
                   {a.name}

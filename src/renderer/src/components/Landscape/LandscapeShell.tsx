@@ -214,6 +214,15 @@ export function LandscapeShell(): JSX.Element {
     placeWas.current = settings.terminalPlacement
   }, [settings.terminalPlacement, settings.terminalOpen, showStage])
 
+  // Agent ▸ New Shell: a docked terminal is on the stage; a floating one shows right here.
+  useEffect(() => {
+    const onShell = (): void => {
+      if (settings.terminalPlacement !== 'float') showStage()
+    }
+    window.addEventListener('wos:new-shell', onShell)
+    return () => window.removeEventListener('wos:new-shell', onShell)
+  }, [settings.terminalPlacement, showStage])
+
   // ⌘J opens the terminal dock, which lives on the stage.
   const termWasOpen = useRef(settings.terminalOpen)
   useEffect(() => {

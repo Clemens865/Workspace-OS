@@ -213,6 +213,13 @@ const harness: HarnessDeps = {
   send: (id, text, auto) => sessionStore.send(id, text, [], { auto }),
 }
 
+/** What a session's runs are launched as: the app builder, a chat, or work. */
+const profileOf = (s: Session): 'work' | 'chat' | 'app' => (s.app ? 'app' : s.kind === 'chat' ? 'chat' : 'work')
+/** Keeps the model a run was started on with it, so a resume goes back to the same one. */
+function noteModel(runId: string, res: { model?: string } | undefined): void {
+  if (res?.model) reviewStore.patchRun(runId, { model: res.model })
+}
+
 /** "Felix" for "Felix — Funding Scout": how an agent signs a note. */
 const signOf = (agentName: string | null): string => (agentName ?? 'Agent').split(' — ')[0]
 
@@ -334,12 +341,33 @@ export const sessionStore = {
     if (ctx.preamble) prompt = `${ctx.preamble}\n\n${prompt}`
     prompt += brief
     try {
-      await window.workspace.agent.run(runId, prompt, [...mentions, ...attached], ctx.openFile ?? null, loadSettings().agentMode, agentName, conversationOf(id), ctx.model ?? null, undefined, s.app ? 'app' : chat ? 'chat' : 'work', s.app)
+      noteModel(runId, await window.workspace.agent.run(runId, prompt, [...mentions, ...attached], ctx.openFile ?? null, loadSettings().agentMode, agentName, conversationOf(id), ctx.model ?? null, undefined, profileOf(s), s.app))
     } catch (err) {
       runs.delete(runId)
       pushMsg(id, { role: 'system', text: `[error] ${(err as Error).message}` })
       reviewStore.patchRun(runId, { status: 'error', code: null })
       setLive(id, { running: false })
+    }
+  },
+
+  /**
+   * Continues a paused turn in the same conversation, never a fresh one (main
+   * refuses when it is gone). The new run streams into the session like any other.
+   */
+  async resume(id: string, o: { runId: string; prompt: string; mode: 'full' | 'safe'; agentName: string | null; model?: string }): Promise<void> {
+    start()
+    const s = sessions.find((x) => x.id === id)
+    if (!s) throw new Error('That session is no longer here.')
+    // No ask of its own: the paused turn already noted it in the case.
+    runs.set(o.runId, { sessionId: id, ask: '', out: '' })
+    patch(id, { lastAt: Date.now(), lastRunId: o.runId })
+    setLive(id, { running: true, steps: [] })
+    try {
+      noteModel(o.runId, await window.workspace.agent.run(o.runId, o.prompt, [], null, o.mode, o.agentName, conversationOf(id), o.model ?? null, true, profileOf(s), s.app))
+    } catch (err) {
+      runs.delete(o.runId)
+      setLive(id, { running: false })
+      throw err
     }
   },
 

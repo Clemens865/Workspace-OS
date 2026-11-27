@@ -829,7 +829,7 @@ contextBridge.exposeInMainWorld('workspace', {
   agents: {
     list: () => ipcRenderer.invoke(IPC.AGENTS_LIST),
     read: (name: string, scope?: 'global' | 'project') => ipcRenderer.invoke(IPC.AGENTS_READ, name, scope),
-    write: (payload: { name: string; model?: string; description?: string; persona?: string; mode?: 'full' | 'safe'; skills?: string[]; capabilities?: string[]; surface?: string; scope?: 'global' | 'project' }) =>
+    write: (payload: { name: string; model?: string; description?: string; persona?: string; mode?: 'full' | 'safe'; skills?: string[]; capabilities?: string[]; surface?: string; scope?: 'global' | 'project'; createOnly?: boolean; copyFrom?: { name: string; scope: 'global' | 'project' } }) =>
       ipcRenderer.invoke(IPC.AGENTS_WRITE, payload),
     delete: (name: string, scope?: 'global' | 'project') => ipcRenderer.invoke(IPC.AGENTS_DELETE, name, scope),
     // Agent Foundry: the capability palette + the meta-agent that authors a spec.
