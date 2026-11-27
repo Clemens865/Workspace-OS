@@ -9,14 +9,17 @@
  * ticket.
  *
  * Deliberately NOT supported (and why):
- *   - VTIMEZONE offset tables. A floating local time is interpreted in the host's
- *     zone, which is right for the overwhelmingly common case (an event authored
- *     in the same zone the user reads it in) and wrong for cross-zone events with
- *     a TZID we have no rules for. `tzid` is preserved on the event so a caller
- *     can resolve it properly later — we never silently pretend it was UTC.
+ *   - VTIMEZONE offset tables. A TZID the runtime knows (IANA) is resolved with
+ *     the runtime's own rules; a floating time, or a TZID we have no rules for,
+ *     is interpreted in the host's zone — right for the overwhelmingly common
+ *     case (an event authored in the zone it is read in). `tzid` is preserved on
+ *     the event — we never silently pretend it was UTC.
  *   - VTODO / VJOURNAL / VALARM, attendee round-tripping, attachments.
- *   - RRULE beyond the common shapes (see expandRecurrence).
+ *   - RRULE parts BYYEARDAY, BYWEEKNO, BYHOUR, BYMINUTE, BYSECOND and sub-daily
+ *     frequencies: such an event shows once rather than on invented dates.
  */
+
+import { epochOf, knownZone, wallTimeOf, type WallTime } from './zoned-time'
 
 /** Someone on the event, with where their RSVP stands. */
 export interface EventAttendee {
@@ -39,6 +42,8 @@ export interface CalendarEvent {
   description?: string
   /** The DTSTART TZID when the feed named one and it is not UTC. */
   tzid?: string
+  /** DTSTART was written in UTC, so a recurrence steps in UTC too. */
+  utc?: boolean
   /** Raw RRULE, kept so a caller can re-expand or display "repeats weekly". */
   rrule?: string
   /** Set on instances produced by expanding an RRULE. */
@@ -121,9 +126,9 @@ export function unescapeText(value: string): string {
  * Three forms, and the difference matters:
  *   `20260729`                → DATE, all-day; local midnight
  *   `20260729T093000Z`        → UTC instant
- *   `20260729T093000`         → floating/TZID local time; host zone (see header)
+ *   `20260729T093000`         → floating, or wall-clock time in `tzid` (see header)
  */
-export function parseIcsDate(value: string, allDay: boolean): number | null {
+export function parseIcsDate(value: string, allDay: boolean, tzid?: string): number | null {
   const m = /^(\d{4})(\d{2})(\d{2})(?:T(\d{2})(\d{2})(\d{2})(Z)?)?$/.exec(value.trim())
   if (!m) return null
   const [, y, mo, d, hh, mm, ss, z] = m
@@ -132,10 +137,33 @@ export function parseIcsDate(value: string, allDay: boolean): number | null {
   const H = Number(hh), M = Number(mm), S = Number(ss)
   return z
     ? Date.UTC(year, month, day, H, M, S)
-    : new Date(year, month, day, H, M, S).getTime()
+    : epochOf({ y: year, mo: month, d: day, h: H, mi: M, s: S }, tzid)
 }
 
 const DAY_MS = 86_400_000
+
+/** The same wall-clock time `days` calendar days later (DST-safe). */
+function plusDays(ms: number, days: number, zone?: string): number {
+  const w = wallTimeOf(ms, zone)
+  return epochOf({ ...w, d: w.d + days }, zone)
+}
+
+/** `P1DT2H30M` applied to a start, or null when it is not a duration. */
+function endFromDuration(start: number, value: string, zone?: string): number | null {
+  const m = /^\+?P(?:(\d+)W)?(?:(\d+)D)?(?:T(?:(\d+)H)?(?:(\d+)M)?(?:(\d+)S)?)?$/.exec(value.trim())
+  if (!m) return null
+  const [w, d, h, mi, s] = m.slice(1).map((v) => Number(v ?? 0))
+  // Days and weeks are calendar days; the time part is elapsed time.
+  const days = w * 7 + d
+  return (days ? plusDays(start, days, zone) : start) + ((h * 60 + mi) * 60 + s) * 1000
+}
+
+type Parsing = Partial<CalendarEvent> & {
+  dtEndRaw?: string
+  dtEndAllDay?: boolean
+  dtEndTzid?: string
+  durationRaw?: string
+}
 
 /**
  * Parse every VEVENT in an iCalendar body.
@@ -147,7 +175,7 @@ const DAY_MS = 86_400_000
  */
 export function parseIcs(text: string): CalendarEvent[] {
   const events: CalendarEvent[] = []
-  let cur: Partial<CalendarEvent> & { dtEndRaw?: string; dtEndAllDay?: boolean } | null = null
+  let cur: Parsing | null = null
   let depth = 0 // nesting depth of non-VEVENT components (skip VALARM contents)
 
   for (const raw of unfoldLines(text)) {
@@ -179,18 +207,23 @@ export function parseIcs(text: string): CalendarEvent[] {
       case 'RRULE': cur.rrule = line.value.trim(); break
       case 'DTSTART': {
         const allDay = line.params.VALUE === 'DATE'
-        const t = parseIcsDate(line.value, allDay)
+        const t = parseIcsDate(line.value, allDay, line.params.TZID)
         if (t !== null) {
           cur.start = t
           cur.allDay = allDay
           const tz = line.params.TZID
           if (tz && tz.toUpperCase() !== 'UTC') cur.tzid = tz
+          else if (!allDay && (tz || line.value.trim().endsWith('Z'))) cur.utc = true
         }
         break
       }
       case 'DTEND':
         cur.dtEndRaw = line.value
         cur.dtEndAllDay = line.params.VALUE === 'DATE'
+        cur.dtEndTzid = line.params.TZID
+        break
+      case 'DURATION':
+        cur.durationRaw = line.value
         break
       case 'ATTENDEE': {
         const email = line.value.trim().replace(/^mailto:/i, '')
@@ -210,13 +243,13 @@ export function parseIcs(text: string): CalendarEvent[] {
       case 'EXDATE': {
         // Comma-separated, possibly across several EXDATE lines.
         for (const v of line.value.split(',')) {
-          const t = parseIcsDate(v, line.params.VALUE === 'DATE')
+          const t = parseIcsDate(v, line.params.VALUE === 'DATE', line.params.TZID)
           if (t !== null) (cur.exdates ??= []).push(t)
         }
         break
       }
       case 'RECURRENCE-ID': {
-        const t = parseIcsDate(line.value, line.params.VALUE === 'DATE')
+        const t = parseIcsDate(line.value, line.params.VALUE === 'DATE', line.params.TZID)
         if (t !== null) cur.recurrenceId = t
         break
       }
@@ -226,13 +259,15 @@ export function parseIcs(text: string): CalendarEvent[] {
   return events
 }
 
-function finishEvent(
-  cur: Partial<CalendarEvent> & { dtEndRaw?: string; dtEndAllDay?: boolean },
-): CalendarEvent | null {
+function finishEvent(cur: Parsing): CalendarEvent | null {
   if (!cur.uid || typeof cur.start !== 'number') return null
   const allDay = cur.allDay === true
-  let end: number | null = cur.dtEndRaw ? parseIcsDate(cur.dtEndRaw, cur.dtEndAllDay ?? allDay) : null
-  if (end === null) end = allDay ? cur.start + DAY_MS : cur.start
+  let end: number | null = cur.dtEndRaw
+    ? parseIcsDate(cur.dtEndRaw, cur.dtEndAllDay ?? allDay, cur.dtEndTzid)
+    : cur.durationRaw
+      ? endFromDuration(cur.start, cur.durationRaw, cur.utc ? 'UTC' : cur.tzid)
+      : null
+  if (end === null) end = allDay ? plusDays(cur.start, 1) : cur.start
   return {
     uid: cur.uid,
     summary: cur.summary ?? '(no title)',
@@ -242,6 +277,7 @@ function finishEvent(
     ...(cur.location ? { location: cur.location } : {}),
     ...(cur.description ? { description: cur.description } : {}),
     ...(cur.tzid ? { tzid: cur.tzid } : {}),
+    ...(cur.utc ? { utc: true } : {}),
     ...(cur.rrule ? { rrule: cur.rrule } : {}),
     ...(cur.attendees?.length ? { attendees: cur.attendees } : {}),
     ...(cur.organizer ? { organizer: cur.organizer } : {}),
@@ -260,11 +296,33 @@ export interface Rrule {
   interval: number
   count?: number
   until?: number
-  /** BYDAY weekday numbers (0=Sun), for WEEKLY. */
+  /** UNTIL was a bare DATE: the whole of that day is included. */
+  untilIsDate?: boolean
+  /** BYDAY weekday numbers (0=Sun), including those that carry an ordinal. */
   byDay?: number[]
+  /** The positional BYDAY entries — `2MO` is the 2nd Monday, `-1FR` the last Friday. */
+  byDayOrdinals?: { weekday: number; ordinal: number }[]
+  /** Days of the month; negative counts from the end. */
+  byMonthDay?: number[]
+  /** Months, 1–12. */
+  byMonth?: number[]
+  /** Which of a period's matches to keep; negative counts from the end. */
+  bySetPos?: number[]
+  /** First day of the week for WEEKLY; Monday unless the rule says otherwise. */
+  weekStart?: number
 }
 
-export function parseRrule(rrule: string): Rrule | null {
+const UNSUPPORTED = ['BYYEARDAY', 'BYWEEKNO', 'BYHOUR', 'BYMINUTE', 'BYSECOND']
+
+/** A comma list of non-zero integers within ±limit; junk entries are dropped. */
+function numberList(value: string | undefined, limit: number): number[] {
+  return (value ?? '')
+    .split(',')
+    .map((v) => Number(v.trim()))
+    .filter((n) => Number.isInteger(n) && n !== 0 && Math.abs(n) <= limit)
+}
+
+export function parseRrule(rrule: string, tzid?: string): Rrule | null {
   const parts: Record<string, string> = {}
   for (const kv of rrule.split(';')) {
     const eq = kv.indexOf('=')
@@ -272,26 +330,130 @@ export function parseRrule(rrule: string): Rrule | null {
   }
   const freq = (parts.FREQ ?? '').toUpperCase()
   if (freq !== 'DAILY' && freq !== 'WEEKLY' && freq !== 'MONTHLY' && freq !== 'YEARLY') return null
-  const interval = Math.max(1, Number(parts.INTERVAL ?? 1) || 1)
+  // A part we cannot honour would silently change WHICH days match.
+  if (UNSUPPORTED.some((k) => k in parts)) return null
+  const interval = Math.max(1, Math.floor(Number(parts.INTERVAL ?? 1)) || 1)
   const out: Rrule = { freq, interval }
   if (parts.COUNT) {
     const n = Number(parts.COUNT)
     if (Number.isFinite(n) && n > 0) out.count = n
   }
   if (parts.UNTIL) {
-    const t = parseIcsDate(parts.UNTIL, !parts.UNTIL.includes('T'))
-    if (t !== null) out.until = t
+    const isDate = !parts.UNTIL.includes('T')
+    const t = parseIcsDate(parts.UNTIL, isDate, tzid)
+    if (t !== null) {
+      out.until = t
+      if (isDate) out.untilIsDate = true
+    }
   }
   if (parts.BYDAY) {
-    // Strip any ordinal prefix ("2MO" → MO); positional BYDAY is not supported,
-    // so it degrades to "that weekday" rather than dropping the event entirely.
-    const days = parts.BYDAY.split(',')
-      .map((d) => WEEKDAY[d.trim().replace(/^[+-]?\d+/, '').toUpperCase()])
-      .filter((d): d is number => d !== undefined)
+    const days: number[] = []
+    const ordinals: { weekday: number; ordinal: number }[] = []
+    for (const entry of parts.BYDAY.split(',')) {
+      const m = /^([+-]?\d+)?([A-Z]{2})$/.exec(entry.trim().toUpperCase())
+      const weekday = m ? WEEKDAY[m[2]] : undefined
+      if (!m || weekday === undefined) continue
+      if (!days.includes(weekday)) days.push(weekday)
+      if (m[1] && Number(m[1]) !== 0) ordinals.push({ weekday, ordinal: Number(m[1]) })
+    }
     if (days.length) out.byDay = days
+    if (ordinals.length) out.byDayOrdinals = ordinals
+  }
+  const byMonthDay = numberList(parts.BYMONTHDAY, 31)
+  if (byMonthDay.length) out.byMonthDay = byMonthDay
+  const byMonth = numberList(parts.BYMONTH, 12).filter((m) => m > 0)
+  if (byMonth.length) out.byMonth = byMonth
+  const bySetPos = numberList(parts.BYSETPOS, 366)
+  if (bySetPos.length) out.bySetPos = bySetPos
+  const wkst = WEEKDAY[(parts.WKST ?? '').toUpperCase()]
+  if (wkst !== undefined) out.weekStart = wkst
+  return out
+}
+
+/*
+ * Dates below are "day stamps": UTC midnight of a calendar date, used purely as
+ * a calendar (no zone, no DST). Only a day that is actually shown is turned into
+ * an instant, in the series' own zone.
+ */
+const weekdayOf = (day: number): number => new Date(day).getUTCDay()
+const monthLength = (y: number, mo: number): number => new Date(Date.UTC(y, mo + 1, 0)).getUTCDate()
+
+/** The days of [first, first+length) that BYDAY picks, ordinals counted within that span. */
+function byDayWithin(rule: Rrule, first: number, length: number): number[] {
+  const ordinals = rule.byDayOrdinals ?? []
+  const plain = (rule.byDay ?? []).filter((wd) => !ordinals.some((o) => o.weekday === wd))
+  const out: number[] = []
+  for (let i = 0; i < length; i++) {
+    const day = first + i * DAY_MS
+    const wd = weekdayOf(day)
+    const nth = Math.floor(i / 7) + 1
+    const nthFromEnd = -(Math.floor((length - 1 - i) / 7) + 1)
+    const positional = ordinals.some((o) => o.weekday === wd && (o.ordinal === nth || o.ordinal === nthFromEnd))
+    if (positional || plain.includes(wd)) out.push(day)
   }
   return out
 }
+
+/** Does BYMONTHDAY (when present) allow this day? */
+function monthDayAllows(rule: Rrule, day: number): boolean {
+  if (!rule.byMonthDay) return true
+  const d = new Date(day)
+  const length = monthLength(d.getUTCFullYear(), d.getUTCMonth())
+  return rule.byMonthDay.some((n) => (n > 0 ? n : length + 1 + n) === d.getUTCDate())
+}
+
+/** The days of one month the rule picks. `fallbackDay` is DTSTART's day of month. */
+function daysInMonth(rule: Rrule, y: number, mo: number, fallbackDay: number): number[] {
+  const length = monthLength(y, mo)
+  const first = Date.UTC(y, mo, 1)
+  const all = (): number[] => Array.from({ length }, (_, i) => first + i * DAY_MS)
+  if (rule.byDay) return byDayWithin(rule, first, length).filter((d) => monthDayAllows(rule, d))
+  if (rule.byMonthDay) return all().filter((d) => monthDayAllows(rule, d))
+  // A month without that day is SKIPPED (RFC 5545 §3.3.10), never rolled over.
+  return fallbackDay <= length ? [Date.UTC(y, mo, fallbackDay)] : []
+}
+
+/** The i-th period of the rule: where it begins, and the days in it that match. */
+function periodDays(rule: Rrule, first: WallTime, i: number): { begins: number; days: number[] } {
+  const start = Date.UTC(first.y, first.mo, first.d)
+  const inMonths = (d: number): boolean => !rule.byMonth || rule.byMonth.includes(new Date(d).getUTCMonth() + 1)
+  let begins: number
+  let days: number[]
+  if (rule.freq === 'DAILY') {
+    begins = start + i * rule.interval * DAY_MS
+    const weekdayOk = !rule.byDay || rule.byDay.includes(weekdayOf(begins))
+    days = weekdayOk && monthDayAllows(rule, begins) && inMonths(begins) ? [begins] : []
+  } else if (rule.freq === 'WEEKLY') {
+    const wkst = rule.weekStart ?? 1
+    const offset = (wd: number): number => ((wd - wkst + 7) % 7) * DAY_MS
+    begins = start - offset(weekdayOf(start)) + i * rule.interval * 7 * DAY_MS
+    days = (rule.byDay ?? [weekdayOf(start)]).map((wd) => begins + offset(wd)).filter(inMonths)
+  } else if (rule.freq === 'MONTHLY') {
+    begins = Date.UTC(first.y, first.mo + i * rule.interval, 1)
+    const d = new Date(begins)
+    days = inMonths(begins) ? daysInMonth(rule, d.getUTCFullYear(), d.getUTCMonth(), first.d) : []
+  } else {
+    const y = first.y + i * rule.interval
+    begins = Date.UTC(y, 0, 1)
+    if (rule.byDay && !rule.byMonth && !rule.byMonthDay) {
+      // "The 20th Monday of the year": ordinals count across the whole year.
+      days = byDayWithin(rule, begins, (Date.UTC(y + 1, 0, 1) - begins) / DAY_MS)
+    } else {
+      const months = rule.byMonth?.map((m) => m - 1)
+        ?? (rule.byMonthDay ? Array.from({ length: 12 }, (_, m) => m) : [first.mo])
+      days = months.flatMap((mo) => daysInMonth(rule, y, mo, first.d))
+    }
+  }
+  days = [...new Set(days)].sort((a, b) => a - b)
+  if (rule.bySetPos) {
+    const picked = rule.bySetPos.map((p) => days[p > 0 ? p - 1 : days.length + p])
+    days = [...new Set(picked.filter((d): d is number => d !== undefined))].sort((a, b) => a - b)
+  }
+  return { begins, days }
+}
+
+/** Enough daily periods for a century; the cap is what stops an impossible rule. */
+const MAX_PERIODS = 40_000
 
 /**
  * Expand a recurring event into the instances overlapping [rangeStart, rangeEnd).
@@ -300,6 +462,9 @@ export function parseRrule(rrule: string): Rrule | null {
  * first occurrence of each is not usable. Expansion is bounded three ways — the
  * window, COUNT/UNTIL, and a hard iteration cap — so a malformed infinite rule
  * can never hang the surface.
+ *
+ * Instances keep the series' wall-clock time in the series' own zone, so a DST
+ * change does not move a 09:00 meeting.
  *
  * A non-recurring event is returned as-is when it overlaps the window.
  */
@@ -311,53 +476,47 @@ export function expandRecurrence(
 ): CalendarEvent[] {
   const overlaps = (s: number, e: number): boolean => s < rangeEnd && e > rangeStart
   if (!ev.rrule) return overlaps(ev.start, ev.end) ? [ev] : []
-  const rule = parseRrule(ev.rrule)
+  const zone = ev.allDay ? undefined : ev.utc ? 'UTC' : knownZone(ev.tzid)
+  const rule = parseRrule(ev.rrule, zone)
   if (!rule) return overlaps(ev.start, ev.end) ? [ev] : []
 
   const duration = Math.max(0, ev.end - ev.start)
+  // An all-day event lasts a number of DAYS; some of those are 23 or 25 hours.
+  const wholeDays = Math.round(duration / DAY_MS)
+  const first = wallTimeOf(ev.start, zone)
+  const firstDay = Date.UTC(first.y, first.mo, first.d)
+  const timeOfDay = ((first.h * 60 + first.mi) * 60 + first.s) * 1000
+  const untilWall = rule.untilIsDate && rule.until !== undefined ? wallTimeOf(rule.until) : null
+  const lastDay = untilWall ? Date.UTC(untilWall.y, untilWall.mo, untilWall.d) : null
+  // A day stamp is within this much of the real instant in any zone.
+  const slack = 2 * DAY_MS
   const out: CalendarEvent[] = []
-  const first = new Date(ev.start)
   let emitted = 0
 
-  // Step a cursor by the rule's period; for WEEKLY+BYDAY, each period yields one
-  // instance per named weekday.
-  for (let i = 0; i < maxInstances * 2 && out.length < maxInstances; i++) {
-    const cursor = new Date(first)
-    if (rule.freq === 'DAILY') cursor.setDate(first.getDate() + i * rule.interval)
-    else if (rule.freq === 'WEEKLY') cursor.setDate(first.getDate() + i * rule.interval * 7)
-    else if (rule.freq === 'MONTHLY') cursor.setMonth(first.getMonth() + i * rule.interval)
-    else cursor.setFullYear(first.getFullYear() + i * rule.interval)
-
-    const starts: number[] = []
-    if (rule.freq === 'WEEKLY' && rule.byDay?.length) {
-      // Walk to the Sunday of the cursor's week, then offset to each named day.
-      const weekStart = new Date(cursor)
-      weekStart.setDate(cursor.getDate() - cursor.getDay())
-      for (const wd of rule.byDay) {
-        const d = new Date(weekStart)
-        d.setDate(weekStart.getDate() + wd)
-        d.setHours(first.getHours(), first.getMinutes(), first.getSeconds(), 0)
-        if (d.getTime() >= ev.start) starts.push(d.getTime())
-      }
-      starts.sort((a, b) => a - b)
-    } else {
-      starts.push(cursor.getTime())
-    }
-
-    for (const s of starts) {
-      if (rule.until !== undefined && s > rule.until) return out
+  for (let i = 0; i < MAX_PERIODS && out.length < maxInstances; i++) {
+    const { begins, days } = periodDays(rule, first, i)
+    // Past the window → nothing later can qualify.
+    if (begins - slack >= rangeEnd) break
+    for (const day of days) {
+      if (day < firstDay) continue
+      if (lastDay !== null && day > lastDay) return out
       if (rule.count !== undefined && emitted >= rule.count) return out
+      // Long before the window: counts toward COUNT, needs no instant.
+      if (day + timeOfDay + duration + slack < rangeStart) { emitted++; continue }
+      const d = new Date(day)
+      const s = day === firstDay
+        ? ev.start
+        : epochOf({ ...first, y: d.getUTCFullYear(), mo: d.getUTCMonth(), d: d.getUTCDate() }, zone)
+      if (lastDay === null && rule.until !== undefined && s > rule.until) return out
       emitted++
       // EXDATE: the occurrence exists for COUNT purposes but is not shown —
       // that is what "delete this one occurrence" writes.
       if (ev.exdates?.some((x) => x === s || (ev.allDay && sameLocalDay(x, s)))) continue
-      const e = s + duration
-      if (overlaps(s, e)) {
+      const e = ev.allDay ? plusDays(s, wholeDays) : s + duration
+      if (overlaps(s, e) && out.length < maxInstances) {
         out.push({ ...ev, start: s, end: e, recurringUid: ev.uid, uid: `${ev.uid}-${s}` })
       }
     }
-    // Past the window and not bounded by COUNT → nothing later can qualify.
-    if (starts.length && starts[starts.length - 1] >= rangeEnd && rule.count === undefined) break
   }
   return out
 }

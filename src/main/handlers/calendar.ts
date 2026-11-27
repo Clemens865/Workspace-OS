@@ -21,8 +21,13 @@ import { refreshAccessToken as refreshGoogle, EMAIL_SCOPE } from '../mail/oauth/
 import { refreshAccessToken as refreshMicrosoft } from '../mail/oauth/microsoft-oauth'
 import { resolveGoogleClientId, resolveMicrosoftClientId } from '../mail/oauth/client-config'
 import { GOOGLE_CALENDAR_SCOPE, MS_CALENDAR_SCOPE } from '../calendar/cloud-providers'
+import type { SeriesEdit } from '../calendar/ics-write'
 import { listGoogleCalendars, listGraphCalendars } from '../calendar/cloud-providers'
-import { addLocal, readLocal, removeLocal, updateLocal } from '../calendar/local-calendar'
+import {
+  addLocal, readLocal, removeLocal, removeLocalOccurrence, updateLocal, updateLocalOccurrence, updateLocalSeries,
+} from '../calendar/local-calendar'
+import { eventsInRange } from '../calendar/ics'
+import { parseRecurrenceInput, type RecurrenceInput } from '../calendar/recurrence'
 import { getWorkspaceRoot } from '../workspace-root'
 
 /** Source id for events this app owns, so the UI can tell them apart. */
@@ -198,6 +203,16 @@ function assertRange(from: unknown, to: unknown): { from: number; to: number } {
   return { from, to }
 }
 
+/** Absent means a one-off event; anything else must be a complete, valid repeat. */
+function parseRepeat(value: unknown, start: number): RecurrenceInput | undefined {
+  if (value === undefined) return undefined
+  try {
+    return parseRecurrenceInput(value, start)
+  } catch (e) {
+    throw new IpcValidationError((e as Error).message)
+  }
+}
+
 export function registerCalendarHandlers(ipcMain: IpcMain): void {
   ipcHandle(ipcMain, 'calendar:sources', async () => getStore().list())
 
@@ -256,8 +271,7 @@ export function registerCalendarHandlers(ipcMain: IpcMain): void {
     // only ones anything here can create, so they must appear in the same week.
     const root = getWorkspaceRoot()
     if (!root) return view
-    const local = readLocal(root)
-      .filter((e) => e.end > range.from && e.start < range.to)
+    const local = eventsInRange(readLocal(root), range.from, range.to)
       .map((e) => ({ ...e, sourceId: LOCAL_SOURCE_ID }))
     if (local.length === 0) return view
     return { ...view, events: [...view.events, ...local].sort((a, b) => a.start - b.start) }
@@ -307,6 +321,8 @@ export function registerCalendarHandlers(ipcMain: IpcMain): void {
     const start = Number(o.start)
     if (!Number.isFinite(start)) throw new IpcValidationError('An event needs a start time.')
     const end = Number(o.end)
+    // Checked before anything is looked up, remembered or written.
+    const recurrence = parseRepeat(o.recurrence, start)
     const attendees = Array.isArray(o.attendees)
       ? o.attendees
           .filter((a): a is { email: string; name?: string } =>
@@ -334,6 +350,7 @@ export function registerCalendarHandlers(ipcMain: IpcMain): void {
       allDay: o.allDay === true,
       location: typeof o.location === 'string' ? o.location : undefined,
       description: typeof o.description === 'string' ? o.description : undefined,
+      ...(recurrence ? { recurrence } : {}),
     }
 
     if (choice.target.kind === 'caldav') {
@@ -413,12 +430,16 @@ export function registerCalendarHandlers(ipcMain: IpcMain): void {
   }
 
   /** Which slice of a recurring event an edit/delete means. */
-  const parseScope = (input: unknown): { kind: 'single' } | { kind: 'series' } | { kind: 'occurrence'; occurrence: number } => {
+  const parseScope = (input: unknown): { kind: 'single' } | { kind: 'series'; shownAt?: number } | { kind: 'occurrence'; occurrence: number } => {
     const o = (input && typeof input === 'object' ? input : {}) as Record<string, unknown>
-    if (o.scope === 'series') return { kind: 'series' }
+    if (o.scope === 'series') {
+      // Optional: the occurrence the edit form was opened on.
+      const shownAt = typeof o.occurrence === 'number' && Number.isFinite(o.occurrence) ? o.occurrence : undefined
+      return { kind: 'series', ...(shownAt !== undefined ? { shownAt } : {}) }
+    }
     if (o.scope === 'occurrence') {
       const occurrence = Number(o.occurrence)
-      if (!Number.isFinite(occurrence)) throw new IpcValidationError('Which occurrence?')
+      if (!Number.isFinite(new Date(occurrence).getTime())) throw new IpcValidationError('Which occurrence?')
       return { kind: 'occurrence', occurrence }
     }
     return { kind: 'single' }
@@ -433,31 +454,42 @@ export function registerCalendarHandlers(ipcMain: IpcMain): void {
     const where = parseEventRef(ref)
     const edit = parseEdit(changes)
     const scope = parseScope(ref)
-    if ('local' in where) {
-      if (scope.kind !== 'single') {
-        throw new IpcValidationError('Occurrence and series edits need a server calendar.')
+    // The series keeps its own days; the edit contributes wall-clock time of
+    // day + duration (from the occurrence the person was looking at).
+    const seriesEdit = (): SeriesEdit => {
+      const s = new Date(edit.start)
+      return {
+        summary: edit.summary,
+        ...(scope.kind === 'series' && scope.shownAt !== undefined ? { shownAt: scope.shownAt } : {}),
+        ...(edit.location ? { location: edit.location } : {}),
+        ...(edit.description ? { description: edit.description } : {}),
+        ...(edit.allDay ? {} : { time: { hour: s.getHours(), minute: s.getMinutes(), durationMs: edit.end - edit.start } }),
       }
+    }
+    if ('local' in where) {
       if (edit.attendees?.length) {
         throw new IpcValidationError('Invitations need a connected calendar account — a local event cannot send them.')
       }
       const root = getWorkspaceRoot()
       if (!root) throw new IpcValidationError('No workspace folder is open.')
-      const updated = updateLocal(root, where.local.uid, edit)
-      if (!updated) throw new IpcValidationError('That event is not in the local calendar any more.')
+      const updated = scope.kind === 'occurrence'
+        ? updateLocalOccurrence(root, where.local.uid, scope.occurrence, edit)
+        : scope.kind === 'series'
+          ? updateLocalSeries(root, where.local.uid, seriesEdit())
+          : updateLocal(root, where.local.uid, edit)
+      if (!updated) {
+        throw new IpcValidationError(
+          scope.kind === 'occurrence'
+            ? 'That occurrence is not in the local calendar any more.'
+            : 'That event is not in the local calendar any more.',
+        )
+      }
       return { ok: true as const }
     }
     if (scope.kind === 'occurrence') {
       await updateOccurrenceOnCalDav(getStore(), where.caldav, scope.occurrence, edit)
     } else if (scope.kind === 'series') {
-      // The series keeps its own days; the edit contributes wall-clock time
-      // of day + duration (from the occurrence the person was looking at).
-      const s = new Date(edit.start)
-      await updateSeriesOnCalDav(getStore(), where.caldav, {
-        summary: edit.summary,
-        ...(edit.location ? { location: edit.location } : {}),
-        ...(edit.description ? { description: edit.description } : {}),
-        ...(edit.allDay ? {} : { time: { hour: s.getHours(), minute: s.getMinutes(), durationMs: edit.end - edit.start } }),
-      })
+      await updateSeriesOnCalDav(getStore(), where.caldav, seriesEdit())
     } else {
       await updateOnCalDav(getStore(), where.caldav, edit)
     }
@@ -470,10 +502,13 @@ export function registerCalendarHandlers(ipcMain: IpcMain): void {
     const where = parseEventRef(typeof ref === 'string' ? { uid: ref } : ref)
     const scope = parseScope(ref)
     if ('local' in where) {
-      if (scope.kind === 'occurrence') throw new IpcValidationError('Occurrence deletes need a server calendar.')
       const root = getWorkspaceRoot()
       if (!root) throw new IpcValidationError('No workspace folder is open.')
-      return { ok: removeLocal(root, where.local.uid) }
+      if (scope.kind !== 'occurrence') return { ok: removeLocal(root, where.local.uid) }
+      if (!removeLocalOccurrence(root, where.local.uid, scope.occurrence)) {
+        throw new IpcValidationError('That occurrence is not in the local calendar any more.')
+      }
+      return { ok: true }
     }
     if (scope.kind === 'occurrence') {
       await deleteOccurrenceFromCalDav(getStore(), where.caldav, scope.occurrence)

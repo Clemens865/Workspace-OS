@@ -59,6 +59,14 @@ contextBridge.exposeInMainWorld('workspace', {
       target?: string
       /** People the SERVER should invite. */
       attendees?: { email: string; name?: string }[]
+      /** Present → the event repeats. Validated in main. */
+      recurrence?: {
+        freq: 'DAILY' | 'WEEKLY' | 'MONTHLY' | 'YEARLY'
+        interval: number
+        byWeekday?: number[]
+        count?: number
+        until?: string
+      }
     }) =>
       ipcRenderer.invoke('calendar:create-event', input),
     /** Edit an event where it lives — local file by uid, server event by its href.

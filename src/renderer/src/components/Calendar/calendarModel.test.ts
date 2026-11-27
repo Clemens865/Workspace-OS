@@ -5,6 +5,8 @@ import {
   formatEventTime, isToday, minutesIntoDay,
   parseAttendees, buildEventInput, defaultDraft, draftFromEvent, eventAbility, shiftEventToDay, LOCAL_SOURCE, type EventDraft,
   addMonths, monthGrid, layoutDayEvents, timeAtOffset, moveEventToTime, occurrenceOf,
+  agendaDays, searchEvents, searchResultDays, formatRangeLabel, formatTime, formatDayLabel,
+  defaultRecurrence, repeatNote, spansDays,
 } from './calendarModel'
 
 const at = (y: number, mo: number, d: number, h = 0, mi = 0): number =>
@@ -239,14 +241,17 @@ describe('eventAbility', () => {
     expect(override.write).toBe(true)
   })
 
-  it('says WHY when it refuses — feed, read-only account, missing address, local series', () => {
+  it('says WHY when it refuses — feed, read-only account, missing address', () => {
     expect(eventAbility({ ...base, sourceId: 'feed' }, kindOf).reason).toMatch(/subscribed feed/i)
     expect(eventAbility({ ...base, sourceId: 'goog' }, kindOf).reason).toMatch(/read-only/i)
     expect(eventAbility({ ...base, sourceId: 'icloud' }, kindOf).reason).toMatch(/where this event lives/i)
     // A recurring event in a feed stays refused — recurring never overrides source rules.
     expect(eventAbility({ ...base, sourceId: 'feed', rrule: 'FREQ=WEEKLY' }, kindOf).write).toBe(false)
-    // The local file has no series machinery.
-    expect(eventAbility({ ...base, sourceId: LOCAL_SOURCE, rrule: 'FREQ=WEEKLY' }, kindOf).reason).toMatch(/local calendar/i)
+  })
+
+  it('a local series slice is editable and flagged recurring, like a server one', () => {
+    const a = eventAbility({ ...base, sourceId: LOCAL_SOURCE, rrule: 'FREQ=WEEKLY', recurringUid: 'm' }, kindOf)
+    expect(a).toEqual({ write: true, editForm: true, recurring: true })
   })
 
   it('names which occurrence an instance is, wherever it was moved to', () => {
@@ -383,5 +388,196 @@ describe('timeAtOffset / moveEventToTime', () => {
     const m = moveEventToTime({ start: at(2026, 7, 29, 9), end: at(2026, 7, 29, 10, 30) }, at(2026, 7, 29, 14))
     expect(m.end - m.start).toBe(90 * 60_000)
     expect(m.start).toBe(at(2026, 7, 29, 14))
+  })
+})
+
+describe('agendaDays', () => {
+  const from = at(2026, 7, 29)
+  const to = at(2026, 8, 12)
+  const LONG_AGO = at(2026, 1, 1)
+  const named = (days: ReturnType<typeof agendaDays>): [number, string[]][] =>
+    days.map((d) => [d.day, d.entries.map((e) => e.event.summary)])
+
+  it('groups by day, in time order, all-day first, and leaves empty days out', () => {
+    const out = agendaDays([
+      ev({ summary: 'Later', start: at(2026, 8, 3, 15), end: at(2026, 8, 3, 16) }),
+      ev({ summary: 'Early', start: at(2026, 8, 3, 8), end: at(2026, 8, 3, 9) }),
+      ev({ summary: 'Holiday', start: at(2026, 8, 3), end: at(2026, 8, 4), allDay: true }),
+      ev({ summary: 'First', start: at(2026, 7, 30, 9), end: at(2026, 7, 30, 10) }),
+    ], from, to, LONG_AGO)
+    expect(named(out)).toEqual([
+      [at(2026, 7, 30), ['First']],
+      [at(2026, 8, 3), ['Holiday', 'Early', 'Later']],
+    ])
+  })
+
+  it('shows a multi-day timed event on each day it covers, saying which part', () => {
+    const start = at(2026, 8, 3, 14)
+    const end = at(2026, 8, 5, 11)
+    const out = agendaDays([ev({ start, end })], from, to, LONG_AGO)
+    expect(out.map((d) => [d.day, d.entries[0].when])).toEqual([
+      [at(2026, 8, 3), `From ${formatTime(start)} · day 1 of 3`],
+      [at(2026, 8, 4), 'All day · day 2 of 3'],
+      [at(2026, 8, 5), `Until ${formatTime(end)} · day 3 of 3`],
+    ])
+  })
+
+  it('treats an all-day end as exclusive', () => {
+    const out = agendaDays([ev({ start: at(2026, 8, 3), end: at(2026, 8, 5), allDay: true })], from, to, LONG_AGO)
+    expect(out.map((d) => [d.day, d.entries[0].when])).toEqual([
+      [at(2026, 8, 3), 'All day · day 1 of 2'],
+      [at(2026, 8, 4), 'All day · day 2 of 2'],
+    ])
+    const one = agendaDays([ev({ start: at(2026, 8, 3), end: at(2026, 8, 4), allDay: true })], from, to, LONG_AGO)
+    expect(one.map((d) => d.entries[0].when)).toEqual(['All day'])
+  })
+
+  it('does not bleed an event ending at midnight into the next day', () => {
+    const out = agendaDays([ev({ start: at(2026, 8, 3, 22), end: at(2026, 8, 4) })], from, to, LONG_AGO)
+    expect(out.map((d) => d.day)).toEqual([at(2026, 8, 3)])
+  })
+
+  it('clips to the window and keeps counting from the real first day', () => {
+    const out = agendaDays([ev({ start: at(2026, 7, 27), end: at(2026, 7, 31), allDay: true })], from, to, LONG_AGO)
+    expect(out[0]).toMatchObject({ day: from })
+    expect(out[0].entries[0].when).toBe('All day · day 3 of 4')
+    expect(out).toHaveLength(2)
+  })
+
+  it('leaves out what is already over when the list starts today', () => {
+    const now = at(2026, 7, 29, 12)
+    const out = agendaDays([
+      ev({ summary: 'Done', start: at(2026, 7, 29, 9), end: at(2026, 7, 29, 10) }),
+      ev({ summary: 'Running', start: at(2026, 7, 29, 11), end: at(2026, 7, 29, 13) }),
+      ev({ summary: 'Instant', start: at(2026, 7, 29, 15), end: at(2026, 7, 29, 15) }),
+      ev({ summary: 'Today', start: at(2026, 7, 29), end: at(2026, 7, 30), allDay: true }),
+    ], from, to, now)
+    expect(named(out)).toEqual([[from, ['Today', 'Running', 'Instant']]])
+  })
+
+  it('shows the past when the list was navigated there', () => {
+    const out = agendaDays([ev({})], from, to, at(2026, 9, 1))
+    expect(out).toHaveLength(1)
+  })
+})
+
+describe('searchEvents', () => {
+  const from = at(2026, 7, 1)
+  const to = at(2026, 9, 1)
+  const events: CalendarEvent[] = [
+    { ...ev({ summary: 'Budget review', start: at(2026, 8, 3, 9), end: at(2026, 8, 3, 10) }), uid: 'a' },
+    { ...ev({ summary: 'Lunch', start: at(2026, 7, 3, 12), end: at(2026, 7, 3, 13) }), uid: 'b', location: 'Café Zentral' },
+    { ...ev({ summary: 'Call', start: at(2026, 7, 9, 9), end: at(2026, 7, 9, 10) }), uid: 'c', description: 'Q3 budget numbers' },
+    { ...ev({ summary: 'Budget far away', start: at(2027, 1, 3, 9), end: at(2027, 1, 3, 10) }), uid: 'd' },
+  ]
+  const ids = (q: string): string[] => searchEvents(events, q, from, to).map((e) => e.uid)
+
+  it('matches title, location and notes, in time order', () => {
+    expect(ids('budget')).toEqual(['c', 'a'])
+    expect(ids('zentral')).toEqual(['b'])
+  })
+
+  it('ignores case and accents', () => {
+    expect(ids('CAFE')).toEqual(['b'])
+  })
+
+  it('needs every word, in any field', () => {
+    expect(ids('call q3')).toEqual(['c'])
+    expect(ids('call lunch')).toEqual([])
+  })
+
+  it('searches only the range it is given', () => {
+    expect(ids('far')).toEqual([])
+  })
+
+  it('an empty query matches nothing', () => {
+    expect(ids('   ')).toEqual([])
+  })
+
+  it('lists each match once, under its first day in the range', () => {
+    const trip = ev({ summary: 'Trip', start: at(2026, 6, 29), end: at(2026, 7, 4), allDay: true })
+    const out = searchResultDays([trip, ...events], 'trip', from, to)
+    expect(out).toHaveLength(1)
+    expect(out[0].day).toBe(from)
+    expect(out[0].entries).toHaveLength(1)
+    expect(out[0].entries[0].when).toContain(formatDayLabel(at(2026, 7, 3)))
+  })
+
+  it('names the searched range with its last day, not the exclusive end', () => {
+    const label = formatRangeLabel(at(2026, 7, 27), at(2026, 8, 5))
+    const day = (ms: number): string =>
+      new Date(ms).toLocaleDateString(undefined, { day: 'numeric', month: 'short', year: 'numeric' })
+    expect(label).toBe(`${day(at(2026, 7, 27))} – ${day(at(2026, 8, 4))}`)
+  })
+})
+
+describe('repeat form', () => {
+  const draft = (recurrence: EventDraft['recurrence'], o: Partial<EventDraft> = {}): EventDraft => ({
+    title: 'Standup', date: '2026-07-29', startTime: '09:00', endTime: '09:30', // a Wednesday
+    allDay: false, location: '', description: '', attendees: '', recurrence, ...o,
+  })
+  const weekly = defaultRecurrence('weekly')
+  const built = (d: EventDraft) => {
+    const r = buildEventInput(d)
+    return r.ok ? r.input.recurrence : r.error
+  }
+
+  it('a form without a repeat sends none', () => {
+    const r = buildEventInput(draft(undefined))
+    expect(r.ok && 'recurrence' in r.input).toBe(false)
+  })
+
+  it('starts weekly on the event day, every 1, never ending', () => {
+    expect(built(draft(weekly))).toEqual({ freq: 'WEEKLY', interval: 1, byWeekday: [3] })
+  })
+
+  it('always includes the start day among the weekdays', () => {
+    expect(built(draft({ ...weekly, weekdays: [5, 1], interval: '2' })))
+      .toEqual({ freq: 'WEEKLY', interval: 2, byWeekday: [1, 3, 5] })
+  })
+
+  it('sends only the ending that was chosen', () => {
+    const monthly = { ...defaultRecurrence('monthly'), count: '5', until: '2026-12-01' }
+    expect(built(draft(monthly))).toEqual({ freq: 'MONTHLY', interval: 1 })
+    expect(built(draft({ ...monthly, ends: 'count' }))).toEqual({ freq: 'MONTHLY', interval: 1, count: 5 })
+    expect(built(draft({ ...monthly, ends: 'until' }))).toEqual({ freq: 'MONTHLY', interval: 1, until: '2026-12-01' })
+  })
+
+  it.each([
+    [{ interval: '0' }, /every/i],
+    [{ interval: '1.5' }, /every/i],
+    [{ interval: '1000' }, /every/i],
+    [{ ends: 'count' as const, count: '' }, /times/i],
+    [{ ends: 'count' as const, count: '1001' }, /times/i],
+    [{ ends: 'until' as const, until: '' }, /end date/i],
+    [{ ends: 'until' as const, until: '2026-02-30' }, /end date/i],
+    [{ ends: 'until' as const, until: '2026-07-28' }, /before/i],
+  ])('says what is wrong with %o', (change, message) => {
+    expect(built(draft({ ...weekly, ...change }))).toMatch(message)
+  })
+
+  it('leaves no stale weekday behind when the date changes', () => {
+    expect(built(draft(weekly, { date: '2026-07-30' }))).toMatchObject({ byWeekday: [4] })
+  })
+
+  it('warns when a date will be skipped', () => {
+    expect(repeatNote('2026-01-31', 'monthly')).toMatch(/31/)
+    expect(repeatNote('2026-01-28', 'monthly')).toBeNull()
+    expect(repeatNote('2028-02-29', 'yearly')).toMatch(/leap/i)
+    expect(repeatNote('2026-01-31', 'daily')).toBeNull()
+  })
+})
+
+describe('spansDays', () => {
+  it('a one-day all-day event stays one day when that day is 25 hours long', () => {
+    const hostZone = Intl.DateTimeFormat().resolvedOptions().timeZone
+    process.env.TZ = 'America/Toronto' // clocks fall back on 1 November 2026
+    try {
+      const start = at(2026, 11, 1)
+      expect(at(2026, 11, 2) - start).toBe(25 * 3_600_000)
+      expect(spansDays({ start, end: at(2026, 11, 2), allDay: true })).toBe(false)
+    } finally {
+      process.env.TZ = hostZone
+    }
   })
 })

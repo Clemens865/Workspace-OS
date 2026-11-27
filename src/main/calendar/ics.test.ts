@@ -156,9 +156,9 @@ describe('parseRrule', () => {
     expect(parseRrule('nonsense')).toBeNull()
   })
 
-  it('reads BYDAY and degrades an ordinal prefix to the weekday', () => {
+  it('reads BYDAY, listing the weekday of an ordinal entry too', () => {
     expect(parseRrule('FREQ=WEEKLY;BYDAY=MO,WE')?.byDay).toEqual([1, 3])
-    // "2MO" (2nd Monday) isn't supported positionally — better Mondays than nothing.
+    // "2MO" still counts as a Monday here; the position is in byDayOrdinals.
     expect(parseRrule('FREQ=MONTHLY;BYDAY=2MO')?.byDay).toEqual([1])
   })
 })

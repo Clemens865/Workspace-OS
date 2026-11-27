@@ -137,6 +137,19 @@ export interface CalendarCollection {
   color?: string
 }
 
+/** How a new event repeats. Mirrors src/main/calendar/recurrence.ts. */
+export interface CalendarRecurrence {
+  freq: 'DAILY' | 'WEEKLY' | 'MONTHLY' | 'YEARLY'
+  /** Every N days/weeks/months/years. */
+  interval: number
+  /** Weekly only, 0=Sunday; includes the start's own day. */
+  byWeekday?: number[]
+  /** Ends after this many occurrences. Exclusive with `until`. */
+  count?: number
+  /** Last day it may occur, `YYYY-MM-DD`, inclusive. */
+  until?: string
+}
+
 /** One event instance in the viewed window. `end` is exclusive. */
 export interface CalendarEvent {
   uid: string
@@ -321,6 +334,8 @@ export interface WorkspaceApi {
       /** Which calendar; omitted means the remembered one. */
       target?: string
       attendees?: { email: string; name?: string }[]
+      /** Present → the event repeats. */
+      recurrence?: CalendarRecurrence
     }) => Promise<CalendarEvent & { calendar: string; invited: string[] }>
     /**
      * Edit an event where it lives — the local file by uid, a server event by
@@ -336,7 +351,8 @@ export interface WorkspaceApi {
       },
     ) => Promise<{ ok: true }>
     /** Delete an event where it lives. On a server this sends the cancellations.
-     * scope 'occurrence' deletes one occurrence of a series (EXDATE on the master). */
+     * scope 'occurrence' deletes one occurrence of a series (EXDATE on the master).
+     * Works for series in the local calendar too. */
     removeEvent: (
       ref: string | { uid: string; sourceId?: string; href?: string; scope?: 'occurrence'; occurrence?: number },
     ) => Promise<{ ok: boolean }>

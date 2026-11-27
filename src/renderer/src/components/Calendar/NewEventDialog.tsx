@@ -1,6 +1,9 @@
 import { useCallback, useEffect, useState } from 'react'
 import type { CalendarEvent, CalendarTargetChoice } from '../../types/workspace-api'
-import { buildEventInput, defaultDraft, draftFromEvent, occurrenceOf, type EventDraft } from './calendarModel'
+import {
+  buildEventInput, defaultDraft, defaultRecurrence, draftFromEvent, occurrenceOf, repeatNote, startWeekday,
+  type EventDraft, type RecurrenceDraft,
+} from './calendarModel'
 // Deliberately the SAME stylesheet as ConnectCalendarDialog: the two dialogs
 // should read as one family, and its classes (modal/field/input/actions) are
 // generic. If their looks ever need to diverge, split the module then.
@@ -35,6 +38,15 @@ interface Props {
   onUpdated?: () => void
 }
 
+const UNIT: Record<RecurrenceDraft['freq'], string> = {
+  daily: 'day(s)', weekly: 'week(s)', monthly: 'month(s)', yearly: 'year(s)',
+}
+/** Weekday toggles, Monday first like the rest of the calendar (0=Sunday). */
+const WEEKDAYS = [1, 2, 3, 4, 5, 6, 0]
+/** 2 August 2026 is a Sunday, so day n after it is weekday n. */
+const weekdayName = (d: number): string =>
+  new Date(2026, 7, 2 + d).toLocaleDateString(undefined, { weekday: 'short' })
+
 export function NewEventDialog({ weekStart, editing, recurring, initialDraft, onClose, onCreated, onUpdated }: Props): JSX.Element {
   const [draft, setDraft] = useState<EventDraft>(() =>
     editing ? draftFromEvent(editing) : { ...defaultDraft(weekStart), ...initialDraft })
@@ -63,6 +75,16 @@ export function NewEventDialog({ weekStart, editing, recurring, initialDraft, on
   const target = choice?.options.find((o) => o.id === targetId) ?? null
   const set = <K extends keyof EventDraft>(k: K, v: EventDraft[K]): void =>
     setDraft((d) => ({ ...d, [k]: v }))
+
+  const repeat = draft.recurrence
+  const setRepeat = (change: Partial<RecurrenceDraft>): void =>
+    setDraft((d) => (d.recurrence ? { ...d, recurrence: { ...d.recurrence, ...change } } : d))
+  const chooseRepeat = (value: string): void => {
+    const freq = value === 'none' ? null : (value as RecurrenceDraft['freq'])
+    set('recurrence', freq ? { ...(repeat ?? defaultRecurrence(freq)), freq } : undefined)
+  }
+  const startDay = startWeekday(draft.date)
+  const note = repeat ? repeatNote(draft.date, repeat.freq) : null
 
   const create = useCallback(async () => {
     const built = buildEventInput(draft)
@@ -97,7 +119,7 @@ export function NewEventDialog({ weekStart, editing, recurring, initialDraft, on
     } finally {
       setBusy(false)
     }
-  }, [draft, targetId, editing, onCreated, onUpdated])
+  }, [draft, targetId, editing, recurring, scope, serverEvent, editingSeries, onCreated, onUpdated])
 
   return (
     <div className={styles.backdrop} onClick={onClose}>
@@ -152,6 +174,100 @@ export function NewEventDialog({ weekStart, editing, recurring, initialDraft, on
           </>
         )}
 
+        {!editing && (
+          <label className={styles.field}>
+            <span>Repeats</span>
+            <select className={styles.input} value={repeat?.freq ?? 'none'} onChange={(e) => chooseRepeat(e.target.value)}>
+              <option value="none">Does not repeat</option>
+              <option value="daily">Daily</option>
+              <option value="weekly">Weekly</option>
+              <option value="monthly">Monthly</option>
+              <option value="yearly">Yearly</option>
+            </select>
+          </label>
+        )}
+
+        {!editing && repeat && (
+          <>
+            <label className={styles.field}>
+              <span>Every</span>
+              <input
+                className={styles.input}
+                type="number"
+                min={1}
+                max={999}
+                value={repeat.interval}
+                onChange={(e) => setRepeat({ interval: e.target.value })}
+              />
+              <small className={styles.hint}>{UNIT[repeat.freq]}</small>
+            </label>
+
+            {repeat.freq === 'weekly' && (
+              <div className={styles.kinds} role="group" aria-label="Repeat on these weekdays">
+                {WEEKDAYS.map((d) => {
+                  const isStart = d === startDay
+                  const on = isStart || repeat.weekdays.includes(d)
+                  return (
+                    <button
+                      key={d}
+                      type="button"
+                      className={on ? styles.kindOn : styles.kindOff}
+                      aria-pressed={on}
+                      disabled={isStart}
+                      title={isStart ? 'The day the event starts is always included' : undefined}
+                      onClick={() => setRepeat({
+                        weekdays: on ? repeat.weekdays.filter((w) => w !== d) : [...repeat.weekdays, d],
+                      })}
+                    >
+                      {weekdayName(d)}
+                    </button>
+                  )
+                })}
+              </div>
+            )}
+
+            <label className={styles.field}>
+              <span>Ends</span>
+              <select
+                className={styles.input}
+                value={repeat.ends}
+                onChange={(e) => setRepeat({ ends: e.target.value as RecurrenceDraft['ends'] })}
+              >
+                <option value="never">Never</option>
+                <option value="count">After a number of times</option>
+                <option value="until">On a date</option>
+              </select>
+              {note && <small className={styles.hint}>{note}</small>}
+            </label>
+
+            {repeat.ends === 'count' && (
+              <label className={styles.field}>
+                <span>Times</span>
+                <input
+                  className={styles.input}
+                  type="number"
+                  min={1}
+                  max={1000}
+                  value={repeat.count}
+                  onChange={(e) => setRepeat({ count: e.target.value })}
+                />
+              </label>
+            )}
+            {repeat.ends === 'until' && (
+              <label className={styles.field}>
+                <span>Last date</span>
+                <input
+                  className={styles.input}
+                  type="date"
+                  min={draft.date}
+                  value={repeat.until}
+                  onChange={(e) => setRepeat({ until: e.target.value })}
+                />
+              </label>
+            )}
+          </>
+        )}
+
         <label className={styles.field}>
           <span>Location</span>
           <input className={styles.input} value={draft.location} onChange={(e) => set('location', e.target.value)} />
@@ -163,7 +279,7 @@ export function NewEventDialog({ weekStart, editing, recurring, initialDraft, on
         </label>
 
         {editing ? (
-          editingSeries ? (
+          editingSeries && serverEvent ? (
             <p className={styles.hint}>
               Whoever is invited stays invited — the server tells them the series changed.
             </p>
