@@ -5,6 +5,7 @@ import type { SearchResult } from '../../types/workspace-api'
 import styles from './CommandBar.module.css'
 import { basename as pathBase } from '../../lib/paths'
 import { IS_MAC } from '../../lib/platform'
+import { matchCommands, type PaletteCommand } from '../../lib/noteCommands'
 
 interface CommandBarProps {
   onClose: () => void
@@ -24,7 +25,7 @@ export function CommandBar({ onClose, onOpenFile }: CommandBarProps): JSX.Elemen
   // The office menu bar's commands (empty when no document is active): the
   // palette runs them exactly like a menu click, so "double underline" or
   // "goal seek" is one keystroke away without hunting through menus.
-  const [commands, setCommands] = useState<{ id: string; label: string; path: string; accel?: string }[]>([])
+  const [commands, setCommands] = useState<PaletteCommand[]>([])
 
   useEffect(() => { inputRef.current?.focus() }, [])
   useEffect(() => {
@@ -32,12 +33,8 @@ export function CommandBar({ onClose, onOpenFile }: CommandBarProps): JSX.Elemen
     window.workspace.menu.officeCommands?.().then((c) => { if (alive) setCommands(c ?? []) }).catch(() => {})
     return () => { alive = false }
   }, [])
-  const q = query.trim().toLowerCase()
-  const hits = q
-    ? commands.filter((c) => c.label.toLowerCase().includes(q) || c.path.toLowerCase().includes(q))
-      .sort((x, y) => (x.label.toLowerCase().startsWith(q) ? 0 : 1) - (y.label.toLowerCase().startsWith(q) ? 0 : 1))
-      .slice(0, 8)
-    : []
+  // The app's own commands (today's note) are listed with them.
+  const hits = matchCommands(commands, query)
 
   // Debounced query — search runs 150ms after the user stops typing.
   useEffect(() => {

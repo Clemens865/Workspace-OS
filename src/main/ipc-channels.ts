@@ -194,6 +194,10 @@ export const IPC = {
   LINKS_GRAPH: 'links:graph',
   LINKS_RELATED: 'links:related',
 
+  // Notes the app creates on request; an existing note is never overwritten.
+  NOTES_DAILY: 'notes:daily',
+  NOTES_CREATE_FROM_LINK: 'notes:create-from-link',
+
   // Workspace memory (read-only Pulse cross-project insights)
   MEMORY_QUERY: 'memory:query',
   MEMORY_RECENT: 'memory:recent',

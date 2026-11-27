@@ -17,6 +17,8 @@ import { SettingsPanel } from '../Settings/SettingsPanel'
 import { ConnectorsView } from '../Connectors/ConnectorsView'
 import { CommandBar } from '../CommandBar/CommandBar'
 import { QuickOpen } from '../QuickOpen/QuickOpen'
+import { NOTE_DAILY_ACTION, openNote } from '../../lib/noteCommands'
+import { toast } from '../Landscape/toastStore'
 import { ChatSide } from '../Landscape/chat/ChatSide'
 import { chatSide, useChatSide } from '../Landscape/chat/chatSideStore'
 import { TerminalDock } from '../Terminal/TerminalDock'
@@ -436,8 +438,15 @@ export function WorkspaceShell({ stage }: { stage?: StageHost } = {}): JSX.Eleme
       else if (id === 'snapshot.save') setSnapshotDialogOpen(true)
       else if (id.startsWith('snapshot.restore:'))
         void restoreSnapshot(id.slice('snapshot.restore:'.length))
+      else if (id === NOTE_DAILY_ACTION)
+        void openNote(() => window.workspace.notes.daily(), (path) => {
+          openInStage(path)
+          refresh()
+          // Already the active tab: still bring the stage forward.
+          stage?.onSurface?.('files')
+        }, toast)
     })
-  }, [openSearchPanel, cycleTab, stageTabs, selectRail, settings, restoreSnapshot])
+  }, [openSearchPanel, cycleTab, stageTabs, selectRail, settings, restoreSnapshot, openInStage, refresh, stage])
 
   // The native Agent menu's "Focus Agent" dispatches this → show the Agents rail.
   useEffect(() => {

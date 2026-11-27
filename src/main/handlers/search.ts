@@ -133,9 +133,14 @@ export function registerSearchHandlers(ipcMain: IpcMain): void {
     }
     if (name.length > 500) throw new IpcValidationError('name too long (max 500 chars)')
     const root = getWorkspaceRoot()
-    const hit = root ? ensureIndex().resolveName(name, path.join(root, 'x')) : null
-    return hit && inRoot(hit, root) ? hit : null
+    return root ? resolveNote(name, path.join(root, 'x')) : null
   })
+}
+
+/** The workspace's note called `name`, as a note at `from` would resolve it. */
+export function resolveNote(name: string, from: string): string | null {
+  const hit = ensureIndex().resolveName(name, from)
+  return hit && inRoot(hit, getWorkspaceRoot()) ? hit : null
 }
 
 /** Index these files now (a writer's own files, so search and the graph see them before it says done). */

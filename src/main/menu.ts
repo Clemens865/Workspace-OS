@@ -183,6 +183,7 @@ function goMenu(): MI {
     submenu: [
       { label: 'Go to File…', id: 'go-quick-open', accelerator: 'CmdOrCtrl+P', click: () => send('go.quickopen') },
       { label: 'Search in Files…', id: 'go-search-panel', accelerator: 'Shift+CmdOrCtrl+F', click: () => send('go.searchpanel') },
+      { label: "Today's Note", id: 'go-daily-note', enabled: getWorkspaceRoot() !== null, click: () => send('notes.daily') },
       ...((officeDocType === 1 || officeDocType === 2) && partItems.length > 0
         ? [{ type: 'separator' as const }, { label: `Go to ${partNoun}`, submenu: partItems }]
         : []),

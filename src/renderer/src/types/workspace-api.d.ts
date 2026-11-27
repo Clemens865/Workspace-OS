@@ -438,6 +438,12 @@ export interface WorkspaceApi {
     prioritize: (filePath: string) => Promise<void>
   }
   /** Knowledge base — the [[wikilink]] backlinks graph over workspace notes. */
+  notes: {
+    /** Today's daily note, created when absent. An existing one is left as it is. */
+    daily: () => Promise<{ path: string; created: boolean }>
+    /** The note an unresolved [[name]] refers to, created beside `fromPath` when absent. */
+    createFromLink: (name: string, fromPath?: string | null) => Promise<{ path: string; created: boolean }>
+  }
   links: {
     /** Notes that link TO `filePath`, each with the linking line. */
     backlinks: (filePath: string) => Promise<Backlink[]>

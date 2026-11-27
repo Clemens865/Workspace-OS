@@ -69,8 +69,8 @@
   transition: background 0.15s var(--wl-ease-soft);
 }
 .card:hover { background: rgb(var(--wl-paper-rgb)); }
-.stub { cursor: default; background: rgba(var(--wl-ink-rgb), 0.03); box-shadow: none; border-color: transparent; }
-.stub:hover { background: rgba(var(--wl-ink-rgb), 0.03); }
+.stub { background: rgba(var(--wl-ink-rgb), 0.03); box-shadow: none; border-color: transparent; }
+.stub:hover { background: rgba(var(--wl-ink-rgb), 0.06); }
 
 .cardName {
   display: flex; align-items: center; gap: 5px;
@@ -94,7 +94,10 @@
   overflow: hidden; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical;
 }
 
-.stubRow { display: flex; align-items: center; gap: 8px; padding: 6px 6px; border-radius: 10px; }
+.stubRow {
+  display: flex; align-items: center; gap: 8px; padding: 6px 6px; border-radius: 10px;
+  width: 100%; border: 0; background: none; font: inherit; color: inherit; text-align: left; cursor: pointer;
+}
 .stubRow:hover { background: rgba(var(--wl-ink-rgb), 0.05); }
 .stubName { color: var(--wl-ink-2); font-size: 12.5px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .stubCount {

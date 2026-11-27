@@ -191,6 +191,13 @@ contextBridge.exposeInMainWorld('workspace', {
     prioritize: (filePath: string) => ipcRenderer.invoke('search:prioritize', filePath),
   },
 
+  // Today's note, and the note behind an unresolved [[link]]; never overwrites.
+  notes: {
+    daily: () => ipcRenderer.invoke(IPC.NOTES_DAILY),
+    createFromLink: (name: string, fromPath?: string | null) =>
+      ipcRenderer.invoke(IPC.NOTES_CREATE_FROM_LINK, name, fromPath),
+  },
+
   // Knowledge base — [[wikilink]] backlinks graph over the workspace notes.
   links: {
     backlinks: (filePath: string) => ipcRenderer.invoke(IPC.LINKS_BACKLINKS, filePath),
