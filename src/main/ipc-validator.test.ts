@@ -39,7 +39,7 @@ describe('validateFilePath', () => {
 
   it('rejects a symlink inside the root that points outside it', () => {
     const link = path.join(root, 'escape-link')
-    fs.symlinkSync(outside, link)
+    fs.symlinkSync(outside, link, 'junction') // the type only matters on Windows, where a junction needs no privilege
     expect(() => validateFilePath(path.join(link, 'secret.txt'), root)).toThrow(IpcValidationError)
   })
 

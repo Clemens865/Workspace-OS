@@ -65,7 +65,7 @@ describe('inRoot through a symlink', () => {
     const path = await import('path')
     const real = fs.realpathSync(fs.mkdtempSync(path.join(os.tmpdir(), 'scope-real-')))
     const link = `${real}-link`
-    fs.symlinkSync(real, link)
+    fs.symlinkSync(real, link, 'junction') // no privilege needed on Windows
     fs.writeFileSync(path.join(real, 'a.md'), 'x')
     try {
       expect(inRoot(path.join(real, 'a.md'), link)).toBe(true)
