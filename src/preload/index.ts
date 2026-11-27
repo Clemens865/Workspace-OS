@@ -579,6 +579,9 @@ contextBridge.exposeInMainWorld('workspace', {
     /** Open an attachment with the OS default app, from a temp copy. */
     openAttachment: (accountId: string, folder: string, uid: number, index: number) =>
       ipcRenderer.invoke(IPC.MAIL_ATTACHMENT_OPEN, accountId, folder, uid, index),
+    /** Read a workspace file as a draft attachment; main enforces the folder and size limits. */
+    attachWorkspaceFile: (filePath: string, usedBytes: number, count: number) =>
+      ipcRenderer.invoke(IPC.MAIL_ATTACH_WORKSPACE_FILE, filePath, usedBytes, count),
     /** Export a rendered message to PDF. */
     exportPdf: (html: string, subject: string) => ipcRenderer.invoke(IPC.MAIL_EXPORT_PDF, html, subject),
     /** Raw RFC822 source — "show original". */

@@ -866,6 +866,8 @@ export interface WorkspaceApi {
     openAttachment: (
       accountId: string, folder: string, uid: number, index: number,
     ) => Promise<MailResult<{ opened: boolean }>>
+    /** Read a workspace file as a draft attachment, within the message's size and count limits. */
+    attachWorkspaceFile: (filePath: string, usedBytes: number, count: number) => Promise<MailResult<MailDraftAttachment>>
     /** Export a rendered message to PDF. */
     exportPdf: (html: string, subject: string) => Promise<MailResult<{ saved: boolean; path?: string }>>
     /** Raw RFC822 source — "show original". */

@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback, useRef } from 'react'
-import { Mail, Plus, RefreshCw, Inbox, Send, FileText, Trash2, AlertCircle, ChevronLeft, Circle, PenSquare, Sparkles, Search, Archive, Star, Undo2, ChevronUp, ChevronDown, MailOpen, ChevronRight, FolderPlus, Coffee } from 'lucide-react'
+import { Mail, Plus, RefreshCw, Inbox, Send, FileText, Trash2, AlertCircle, ChevronLeft, Circle, PenSquare, Sparkles, Search, Archive, Star, Undo2, ChevronUp, ChevronDown, MailOpen, ChevronRight, FolderPlus, Coffee, ListFilter, Signature } from 'lucide-react'
 // NewsletterCompose retired: the advanced-email capability now lives inside the
 // normal MailCompose (a "Rich" mode toggle), not a standalone broadcast surface.
 import { mailReviewStore } from '../Review/mailReviewStore'
@@ -18,6 +18,8 @@ import type {
 import { MailAccountDialog } from './MailAccountDialog'
 import { MailReader } from './MailReader'
 import { MailCompose } from './MailCompose'
+import { MailRulesDialog } from './MailRulesDialog'
+import { SignatureDialog } from './SignatureDialog'
 import { buildFolderTree, flattenTree, sortFolders } from './folderTreeClient'
 import { SiftView } from './SiftView'
 import { mergeVerdicts, parseSiftCache, siftCacheKey, type SiftRow, type Zone } from './siftViewModel'
@@ -173,6 +175,8 @@ export function MailPanel({ active }: MailPanelProps): JSX.Element {
   const [messages, setMessages] = useState<MessageSummary[]>([])
   const [selected, setSelected] = useState<FullMessage | null>(null)
   const [dialogOpen, setDialogOpen] = useState(false)
+  const [rulesOpen, setRulesOpen] = useState(false)
+  const [signatureOpen, setSignatureOpen] = useState(false)
   const [compose, setCompose] = useState<{ draft: Partial<MailDraft>; context: MailComposeContext } | null>(null)
   const [loading, setLoading] = useState<'folders' | 'messages' | 'message' | 'more' | null>(null)
   const [error, setError] = useState<string | null>(null)
@@ -930,13 +934,20 @@ export function MailPanel({ active }: MailPanelProps): JSX.Element {
 
   return (
     <div className={styles.root}>
-      <PanelHeader onAdd={() => setDialogOpen(true)} onRefresh={() => accountId && void loadFolders(accountId)} loading={loading !== null} />
+      <PanelHeader onAdd={() => setDialogOpen(true)} onRefresh={() => accountId && void loadFolders(accountId)} loading={loading !== null} onRules={() => setRulesOpen(true)} />
+      {rulesOpen && <MailRulesDialog onClose={() => setRulesOpen(false)} />}
+      {signatureOpen && activeAccount && <SignatureDialog account={activeAccount} onClose={() => setSignatureOpen(false)} />}
 
       {accounts.length > 0 && (
         <div className={styles.accountBar}>
           <select className={styles.accountSelect} value={accountId ?? ''} onChange={(e) => setAccountId(e.target.value)}>
             {accounts.map((a) => <option key={a.id} value={a.id}>{a.displayName}</option>)}
           </select>
+          {activeAccount && (
+            <button className={styles.iconBtn} title="Signature" onClick={() => setSignatureOpen(true)}>
+              <Signature size={13} />
+            </button>
+          )}
           {accountId && (
             <button className={styles.removeAccount} title="Remove account" onClick={() => void removeAccount(accountId)}>
               <Trash2 size={13} />
@@ -1621,13 +1632,16 @@ export function MailPanel({ active }: MailPanelProps): JSX.Element {
   )
 }
 
-function PanelHeader({ onAdd, onRefresh, loading }: { onAdd: () => void; onRefresh: () => void; loading: boolean }): JSX.Element {
+function PanelHeader({ onAdd, onRefresh, loading, onRules }: { onAdd: () => void; onRefresh: () => void; loading: boolean; onRules?: () => void }): JSX.Element {
   return (
     <div className={styles.header}>
       <div className={styles.headerTitle}>
         <span className={styles.heading}>Mail</span>
       </div>
       <div className={styles.headerActions}>
+        {onRules && (
+          <button className={styles.iconBtn} onClick={onRules} title="Sorting rules"><ListFilter size={13} /></button>
+        )}
         <button className={styles.iconBtn} onClick={onRefresh} title="Refresh" disabled={loading}>
           <RefreshCw size={13} className={loading ? styles.spin : ''} />
         </button>

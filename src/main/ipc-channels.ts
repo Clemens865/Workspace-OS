@@ -241,6 +241,8 @@ export const IPC = {
   MAIL_FOLDER_DELETE: 'mail:folder-delete',
   MAIL_ATTACHMENT_SAVE: 'mail:attachment-save',
   MAIL_ATTACHMENT_OPEN: 'mail:attachment-open',
+  /** Read a workspace file as an attachment for a draft (reads only). */
+  MAIL_ATTACH_WORKSPACE_FILE: 'mail:attach-workspace-file',
   MAIL_EXPORT_PDF: 'mail:export-pdf',
   MAIL_RAW_SOURCE: 'mail:raw-source',
   MAIL_CACHED: 'mail:cached',

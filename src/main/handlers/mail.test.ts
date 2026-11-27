@@ -110,6 +110,18 @@ describe('MAIL_SEND boundary coercion', () => {
     expect(Buffer.from(opts.attachments[0].content).toString()).toBe('hello world')
   })
 
+  it('refuses to send when attachments exceed the limit, rather than dropping them', async () => {
+    const id = await seedAccount()
+    const big = Buffer.alloc(13 * 1024 * 1024).toString('base64')
+    await expect(call(IPC.MAIL_SEND, id, {
+      to: [{ address: 'good@x.com' }],
+      subject: 'Two files',
+      text: 'see attached',
+      attachments: [{ filename: 'a.bin', content: big }, { filename: 'b.bin', content: big }],
+    })).rejects.toThrow(/25 MB/)
+    expect(sendMail).not.toHaveBeenCalled()
+  })
+
   it('applies reply context (Re: + In-Reply-To) via the coerced source', async () => {
     const id = await seedAccount()
     const source = {
