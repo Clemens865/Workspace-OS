@@ -1081,6 +1081,9 @@ contextBridge.exposeInMainWorld('workspace', {
     file: (text: string, analysis: unknown, context: unknown, kind?: 'bug' | 'idea') =>
       ipcRenderer.invoke('bug:file', text, analysis, context, kind),
     list: () => ipcRenderer.invoke('bug:list'),
+    /** Save the report as a Markdown file the person picks; sends nothing. */
+    exportMarkdown: (text: string, surface: string | null, openFile: string | null, kind?: 'bug' | 'idea') =>
+      ipcRenderer.invoke('bug:export', text, surface, openFile, kind),
   },
 
   updater: {

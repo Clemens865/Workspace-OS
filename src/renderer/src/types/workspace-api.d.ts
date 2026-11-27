@@ -1389,6 +1389,13 @@ export interface WorkspaceApi {
       kind?: 'bug' | 'idea',
     ) => Promise<{ ok: boolean; id: string; duplicate: boolean; logPath: string }>
     list: () => Promise<{ id: string; title: string; seen: number }[]>
+    /** Save the report as a Markdown file chosen in a dialog; null path when dismissed. */
+    exportMarkdown: (
+      text: string,
+      surface: string | null,
+      openFile: string | null,
+      kind?: 'bug' | 'idea',
+    ) => Promise<{ path: string | null }>
   }
 
   updater: {
