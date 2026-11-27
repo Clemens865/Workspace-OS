@@ -106,7 +106,7 @@ export async function launchCodexSession(o: CodexSessionOptions): Promise<ChildP
   let resolvedModel = o.model
   let finished = false
   let baseline: Record<string, number> | undefined
-  let usage = { inputTokens: 0, outputTokens: 0, cachedInputTokens: 0 }
+  const usage = { inputTokens: 0, outputTokens: 0, cachedInputTokens: 0 }
   let control: Control
   const delivered = new Set<string>()
   /** Release everything without reporting a completion (a failed start is reported by the caller). */

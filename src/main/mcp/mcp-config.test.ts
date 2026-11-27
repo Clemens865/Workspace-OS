@@ -2,13 +2,16 @@ import { describe, it, expect } from 'vitest'
 import { buildMcpConfigObject } from './mcp-config'
 import { CONNECTORS, isRemoteOAuth, toolPrefix } from './connectors'
 
+/** Narrows an entry to the stdio shape these assertions are about. */
+const stdio = (entry: unknown) => entry as { args: string[]; env?: Record<string, string> }
+
 /** The new Wave connectors added on top of github/filesystem/postgres. */
 const NEW_CONNECTORS = ['brave', 'slack', 'notion', 'tavily'] as const
 
 describe('buildMcpConfigObject', () => {
   it('emits ${VAR} refs in env, never the literal secret value', () => {
     const { config, allowTools } = buildMcpConfigObject(['github'], '/ws')
-    const gh = config.mcpServers['github']
+    const gh = stdio(config.mcpServers['github'])
     expect(gh.env).toEqual({ GITHUB_PERSONAL_ACCESS_TOKEN: '${GITHUB_PERSONAL_ACCESS_TOKEN}' })
     // The whole serialized config must not contain anything resembling a value —
     // only the placeholder reference and the package name.
@@ -20,7 +23,7 @@ describe('buildMcpConfigObject', () => {
 
   it('substitutes ${WORKSPACE_ROOT} for the filesystem connector; no env/secret', () => {
     const { config, allowTools } = buildMcpConfigObject(['filesystem'], '/Users/me/ws')
-    const fsc = config.mcpServers['filesystem']
+    const fsc = stdio(config.mcpServers['filesystem'])
     expect(fsc.args).toContain('/Users/me/ws')
     expect(fsc.args).not.toContain('${WORKSPACE_ROOT}')
     expect(fsc.env).toBeUndefined() // no secret → no env block at all
@@ -29,7 +32,7 @@ describe('buildMcpConfigObject', () => {
 
   it('postgres passes the connection string via ${VAR} env, not argv', () => {
     const { config } = buildMcpConfigObject(['postgres'], '/ws')
-    const pg = config.mcpServers['postgres']
+    const pg = stdio(config.mcpServers['postgres'])
     expect(pg.env).toEqual({ DATABASE_URL: '${DATABASE_URL}' })
     // The connection string must never be a positional arg.
     expect(pg.args.join(' ')).not.toMatch(/postgres(ql)?:\/\//)
@@ -46,7 +49,7 @@ describe('buildMcpConfigObject', () => {
     const json = JSON.stringify(config)
     // A ${VAR} ref always starts with ${ — assert there is no bare env value by
     // proving every env entry equals its own ${NAME} placeholder.
-    for (const server of Object.values(config.mcpServers)) {
+    for (const server of Object.values(config.mcpServers).map(stdio)) {
       for (const [k, v] of Object.entries(server.env ?? {})) {
         expect(v).toBe('${' + k + '}')
       }
@@ -89,7 +92,7 @@ describe('buildMcpConfigObject', () => {
     'new connector %s: package in args, secrets as ${VAR} env only, right allowlist',
     (id, pkg, envVars) => {
       const { config, allowTools } = buildMcpConfigObject([id], '/ws')
-      const server = config.mcpServers[id]
+      const server = stdio(config.mcpServers[id])
       // Package name is a literal arg (public, non-secret).
       expect(server.args).toContain(pkg)
       // Each required secret is an env ${VAR} placeholder — never a literal.
@@ -108,7 +111,7 @@ describe('buildMcpConfigObject', () => {
   it('no literal secret value ever appears for the new connectors', () => {
     const { config } = buildMcpConfigObject([...NEW_CONNECTORS], '/ws')
     for (const id of NEW_CONNECTORS) {
-      const server = config.mcpServers[id]
+      const server = stdio(config.mcpServers[id])
       for (const [k, v] of Object.entries(server.env ?? {})) {
         expect(v).toBe('${' + k + '}') // pure placeholder, no value
       }

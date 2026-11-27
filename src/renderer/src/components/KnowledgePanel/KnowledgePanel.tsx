@@ -2,6 +2,8 @@ import { useState, useEffect, useCallback, lazy, Suspense } from 'react'
 import { Link2, ArrowUpRight, FileQuestion, RefreshCw, CornerDownRight, CircleDashed, List, Share2, Sparkles } from 'lucide-react'
 import type { Backlink, OutgoingLink, Stub, RelatedNote } from '../../types/workspace-api'
 import styles from './KnowledgePanel.module.css'
+import { openNote } from '../../lib/noteCommands'
+import { toast } from '../Landscape/toastStore'
 
 // Lazy — the graph pulls in the canvas + force-layout code, code-split out of
 // the panel's (and first-paint's) bundle until the user opens the Graph tab.
@@ -35,8 +37,8 @@ function relatedReason(r: RelatedNote['reasons']): string {
  * Sidebar Knowledge view — the [[wikilink]] backlinks graph for the workspace.
  * For the ACTIVE file it surfaces its Backlinks (who links here) and Outgoing
  * links (resolved → clickable, stub → "unresolved"), plus a global Stubs list
- * ("notes people reference that don't exist yet"). Read-only navigation; note
- * creation is deferred (see the DEFER list). Mirrors the Memory/Search panels.
+ * ("notes people reference that don't exist yet"). Clicking an unresolved name
+ * creates that note and opens it. Mirrors the Memory/Search panels.
  */
 export function KnowledgePanel({ active, activeFile, onFileOpen }: KnowledgePanelProps): JSX.Element {
   const [mode, setMode] = useState<KnowledgeMode>('list')
@@ -76,6 +78,11 @@ export function KnowledgePanel({ active, activeFile, onFileOpen }: KnowledgePane
 
   const openResolved = (link: OutgoingLink): void => {
     if (link.resolvedPath) onFileOpen(link.resolvedPath)
+  }
+
+  /** Writes the missing note (beside `from`, when given) and opens it. */
+  const createStub = (name: string, from?: string): void => {
+    void openNote(() => window.workspace.notes.createFromLink(name, from), onFileOpen, toast)
   }
 
   return (
@@ -180,7 +187,12 @@ export function KnowledgePanel({ active, activeFile, onFileOpen }: KnowledgePane
                     <div className={styles.cardSnippet}>{o.snippet}</div>
                   </button>
                 ) : (
-                  <div key={`${o.targetName}:${i}`} className={`${styles.card} ${styles.stub}`}>
+                  <button
+                    key={`${o.targetName}:${i}`}
+                    className={`${styles.card} ${styles.stub}`}
+                    onClick={() => createStub(o.targetName, activeFile)}
+                    title={`Create "${o.targetName}"`}
+                  >
                     <div className={styles.cardName}>
                       <CircleDashed size={11} strokeWidth={2} className={styles.linkIcon} />
                       {o.targetName}
@@ -188,7 +200,7 @@ export function KnowledgePanel({ active, activeFile, onFileOpen }: KnowledgePane
                       <span className={styles.badgeUnresolved}>unresolved</span>
                     </div>
                     <div className={styles.cardSnippet}>{o.snippet}</div>
-                  </div>
+                  </button>
                 )
               )
             )}
@@ -228,12 +240,17 @@ export function KnowledgePanel({ active, activeFile, onFileOpen }: KnowledgePane
           <div className={styles.sectionEmpty}>No dangling references.</div>
         ) : (
           stubs.map((s) => (
-            <div key={s.targetName} className={styles.stubRow}>
+            <button
+              key={s.targetName}
+              className={styles.stubRow}
+              onClick={() => createStub(s.targetName)}
+              title={`Create "${s.targetName}"`}
+            >
               <span className={styles.stubName}>{s.targetName}</span>
               <span className={styles.stubCount} title={`${s.refCount} note(s) reference this`}>
                 {s.refCount}
               </span>
-            </div>
+            </button>
           ))
         )}
       </div>

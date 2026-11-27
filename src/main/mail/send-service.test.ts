@@ -168,7 +168,7 @@ describe('SendService.send', () => {
     const { store, dir } = tempStore()
     try {
       const account = await store.add(ACCOUNT_INPUT, 'app-pw-1234')
-      const sendMail = vi.fn(async () => ({ messageId: '<ok@x>', accepted: ['bob@example.com'], rejected: [] }))
+      const sendMail = vi.fn(async (..._args: unknown[]) => ({ messageId: '<ok@x>', accepted: ['bob@example.com'], rejected: [] }))
       const smtp = new SmtpClient(() => ({ verify: vi.fn(), sendMail, close: vi.fn() } as never))
       const svc = new SendService(store, smtp)
       const res = await svc.send(account.id, DRAFT, { kind: 'new' })

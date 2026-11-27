@@ -4,17 +4,19 @@ import { ConnectCalendarDialog } from './ConnectCalendarDialog'
 import { NewEventDialog } from './NewEventDialog'
 import { EventDetailsDialog } from './EventDetailsDialog'
 import { DayView } from './DayView'
+import { AgendaView } from './AgendaView'
 import { PromptBar } from '../PromptBar/PromptBar'
 import { MonthView } from './MonthView'
 import {
-  addDays, addMonths, buildCalendarAsk, draftForSlot, eventAbility, formatDayLabel, formatEventTime,
-  formatFullDayLabel, formatMonthLabel, formatWeekLabel, groupByDay, isToday, LOCAL_SOURCE, monthGrid,
-  moveEventToTime, occurrenceOf, overlapsDay, shiftEventToDay, startOfDay, startOfWeek, weekDays, type EventDraft,
+  addDays, addMonths, agendaDays, AGENDA_DAYS, buildCalendarAsk, draftForSlot, eventAbility, formatDayLabel,
+  formatEventTime, formatFullDayLabel, formatMonthLabel, formatRangeLabel, formatWeekLabel, groupByDay, isToday,
+  LOCAL_SOURCE, monthGrid, moveEventToTime, occurrenceOf, overlapsDay, searchResultDays, shiftEventToDay,
+  startOfDay, startOfWeek, weekDays, type EventDraft,
 } from './calendarModel'
 import styles from './CalendarPanel.module.css'
 
 /**
- * The Calendar surface — a week of the user's real calendars, read from CalDAV
+ * The Calendar surface — the user's real calendars, read from CalDAV
  * accounts and .ics subscriptions, and a New-event button that writes through
  * the same `calendar.createEvent` path the agent and the cockpit use, so every
  * route to "put this in the calendar" lands in the same place.
@@ -23,7 +25,7 @@ import styles from './CalendarPanel.module.css'
  * gone or a shared feed 404s, that source is called out by name while everything
  * else still shows — the honest read, and the one you can act on.
  */
-type ViewKind = 'day' | 'week' | 'month'
+type ViewKind = 'day' | 'week' | 'month' | 'agenda'
 
 export function CalendarPanel(): JSX.Element {
   const [view, setView] = useState<ViewKind>('week')
@@ -48,6 +50,12 @@ export function CalendarPanel(): JSX.Element {
   const [askBusy, setAskBusy] = useState(false)
   // Prefills New-event when a time slot was double-clicked in the day grid.
   const [slotDraft, setSlotDraft] = useState<Partial<EventDraft> | null>(null)
+  // Search narrows what is LOADED; `loaded` is the range `events` really came
+  // from (null when the last read failed), so the results can say what they cover.
+  const [query, setQuery] = useState('')
+  const [loaded, setLoaded] = useState<{ from: number; to: number } | null>(null)
+  // A slow read for a range already left must not overwrite the current one.
+  const latestLoad = useRef(0)
 
   const weekStart = useMemo(() => startOfWeek(anchor), [anchor])
   const days = useMemo(() => weekDays(weekStart), [weekStart])
@@ -56,24 +64,30 @@ export function CalendarPanel(): JSX.Element {
   const range = useMemo(() => {
     if (view === 'day') return { from: addDays(anchor, -1), to: addDays(anchor, 2) }
     if (view === 'week') return { from: addDays(weekStart, -1), to: addDays(weekStart, 8) }
+    if (view === 'agenda') return { from: addDays(anchor, -1), to: addDays(anchor, AGENDA_DAYS + 1) }
     const g = monthGrid(anchor)
     return { from: addDays(g.weeks[0][0], -1), to: addDays(g.weeks.at(-1)![6], 2) }
   }, [view, anchor, weekStart])
 
   const load = useCallback(async () => {
+    const mine = ++latestLoad.current
     setLoading(true)
     try {
       const [srcs, v] = await Promise.all([
         window.workspace.calendar.sources(),
         window.workspace.calendar.events(range.from, range.to),
       ])
+      if (mine !== latestLoad.current) return
       setSources(srcs)
       setEvents(v.events)
       setStatus(v.sources)
+      setLoaded(range)
     } catch {
+      if (mine !== latestLoad.current) return
       setEvents([])
+      setLoaded(null)
     } finally {
-      setLoading(false)
+      if (mine === latestLoad.current) setLoading(false)
     }
   }, [range])
 
@@ -92,10 +106,20 @@ export function CalendarPanel(): JSX.Element {
 
   /** One step of the view's own unit — what ‹ › mean here. */
   const step = useCallback((delta: number) => {
-    setAnchor((a) => (view === 'day' ? addDays(a, delta) : view === 'week' ? addDays(a, 7 * delta) : addMonths(a, delta)))
+    setAnchor((a) => {
+      if (view === 'month') return addMonths(a, delta)
+      return addDays(a, delta * (view === 'day' ? 1 : view === 'week' ? 7 : AGENDA_DAYS))
+    })
   }, [view])
 
-  const title = view === 'day' ? formatFullDayLabel(anchor) : view === 'week' ? formatWeekLabel(weekStart) : formatMonthLabel(anchor)
+  const title = view === 'day'
+    ? formatFullDayLabel(anchor)
+    : view === 'week'
+      ? formatWeekLabel(weekStart)
+      : view === 'month'
+        ? formatMonthLabel(anchor)
+        : formatRangeLabel(anchor, addDays(anchor, AGENDA_DAYS))
+  const stepName = view === 'agenda' ? `${AGENDA_DAYS} days` : view
 
   const runAsk = useCallback(async (instruction: string, mentions: string[]) => {
     if (!instruction.trim() && mentions.length === 0) return
@@ -120,6 +144,12 @@ export function CalendarPanel(): JSX.Element {
 
   const grouped = useMemo(() => groupByDay(events, days), [events, days])
   const failing = status.filter((s) => s.error)
+  const searching = query.trim() !== ''
+  const results = useMemo(
+    () => (loaded ? searchResultDays(events, query, loaded.from, loaded.to) : []),
+    [events, query, loaded],
+  )
+  const matches = results.reduce((n, d) => n + d.entries.length, 0)
 
   const disconnect = useCallback(async (id: string) => {
     await window.workspace.calendar.remove(id)
@@ -189,13 +219,13 @@ export function CalendarPanel(): JSX.Element {
     <div className={styles.root}>
       <header className={styles.bar}>
         <div className={styles.nav}>
-          <button className={styles.navBtn} onClick={() => step(-1)} title={`Previous ${view}`}>‹</button>
+          <button className={styles.navBtn} onClick={() => step(-1)} title={`Previous ${stepName}`}>‹</button>
           <button className={styles.today} onClick={() => setAnchor(startOfDay(Date.now()))}>Today</button>
-          <button className={styles.navBtn} onClick={() => step(1)} title={`Next ${view}`}>›</button>
+          <button className={styles.navBtn} onClick={() => step(1)} title={`Next ${stepName}`}>›</button>
         </div>
         <h1 className={styles.heading}>{title}</h1>
         <div className={styles.viewSwitch} role="tablist">
-          {(['day', 'week', 'month'] as const).map((v) => (
+          {(['day', 'week', 'month', 'agenda'] as const).map((v) => (
             <button
               key={v}
               role="tab"
@@ -208,6 +238,15 @@ export function CalendarPanel(): JSX.Element {
           ))}
         </div>
         <div className={styles.spacer} />
+        <input
+          type="search"
+          className={styles.search}
+          value={query}
+          onChange={(e) => setQuery(e.target.value)}
+          onKeyDown={(e) => { if (e.key === 'Escape') setQuery('') }}
+          placeholder="Search shown dates"
+          aria-label="Search title, location and notes in the loaded dates"
+        />
         <div className={styles.askWrap}>
           <PromptBar
             compact
@@ -233,7 +272,18 @@ export function CalendarPanel(): JSX.Element {
         </div>
       )}
 
-      {sources.length === 0 && !loading ? (
+      {searching && (
+        <p className={styles.notice} role="status">
+          {loaded
+            ? `${matches} ${matches === 1 ? 'match' : 'matches'} for “${query.trim()}” — searched title, location and notes ` +
+              `of events from ${formatRangeLabel(loaded.from, loaded.to)} only. Use Month, Agenda or ‹ › to search other dates.` +
+              (failing.length > 0 ? ' Calendars with a warning are not included.' : '')
+            : loading ? 'Loading events to search…' : 'The calendar could not be read, so nothing was searched.'}
+          {loaded && loading && ' Syncing the new dates…'}
+        </p>
+      )}
+
+      {sources.length === 0 && events.length === 0 && !loading ? (
         <div className={styles.empty}>
           <div>
             <h2>No calendars yet</h2>
@@ -245,6 +295,20 @@ export function CalendarPanel(): JSX.Element {
             <button className={styles.connectBig} onClick={() => setConnectOpen(true)}>Add a calendar</button>
           </div>
         </div>
+      ) : searching ? (
+        <AgendaView
+          days={results}
+          emptyText="Nothing in these dates matches."
+          calendarOf={sourceNameOf}
+          onOpen={(e) => { setNotice(null); setDetails(e) }}
+        />
+      ) : view === 'agenda' ? (
+        <AgendaView
+          days={agendaDays(events, anchor, addDays(anchor, AGENDA_DAYS))}
+          emptyText={loading ? 'Loading…' : 'Nothing coming up in these dates.'}
+          calendarOf={sourceNameOf}
+          onOpen={(e) => { setNotice(null); setDetails(e) }}
+        />
       ) : view === 'day' ? (
         <DayView
           day={anchor}

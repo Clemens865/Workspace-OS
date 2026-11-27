@@ -1,4 +1,4 @@
-import type { CalendarEvent } from '../../types/workspace-api'
+import type { CalendarEvent, CalendarRecurrence } from '../../types/workspace-api'
 
 /**
  * Pure view model for the Calendar surface.
@@ -260,6 +260,20 @@ export interface EventDraft {
   description: string
   /** Free text: emails separated by commas, semicolons or whitespace. */
   attendees: string
+  /** Absent = does not repeat. Only the New-event form sets it. */
+  recurrence?: RecurrenceDraft
+}
+
+/** The repeat fields, exactly as typed. */
+export interface RecurrenceDraft {
+  freq: 'daily' | 'weekly' | 'monthly' | 'yearly'
+  interval: string
+  /** Weekly only: EXTRA days, 0=Sunday. The start date's own day is always included. */
+  weekdays: number[]
+  ends: 'never' | 'count' | 'until'
+  count: string
+  /** `YYYY-MM-DD` from an <input type=date>. */
+  until: string
 }
 
 /** The date+times the form starts from: today when it is in the viewed week,
@@ -305,7 +319,7 @@ export function occurrenceOf(ev: Pick<CalendarEvent, 'start' | 'recurrenceId'>):
 
 /** True when the event covers more than one local calendar day. */
 export function spansDays(ev: Pick<CalendarEvent, 'start' | 'end' | 'allDay'>): boolean {
-  if (ev.allDay) return ev.end - ev.start > DAY_MS
+  // By calendar day, not by length: an all-day event on a DST day is 23 or 25 hours.
   // End is exclusive: ending exactly at midnight still belongs to the start day.
   return startOfDay(ev.start) !== startOfDay(Math.max(ev.start, ev.end - 1))
 }
@@ -330,10 +344,6 @@ export function eventAbility(
     if (kind === 'google' || kind === 'microsoft') return no('This account is connected read-only.')
     if (kind !== 'caldav') return no('This calendar is read-only.')
     if (!ev.href) return no('The server did not say where this event lives, so it cannot be changed from here.')
-  } else if (recurring) {
-    // Occurrence surgery (EXDATE, overrides) is built for server calendars;
-    // the local file has no path that creates a series in the first place.
-    return no('A repeating event in the local calendar can only be changed where it was created.')
   }
 
   if (spansDays(ev)) {
@@ -415,8 +425,78 @@ function toEpoch(date: string, time: string): number | null {
 }
 
 export type DraftResult =
-  | { ok: true; input: { summary: string; start: number; end: number; allDay: boolean; location?: string; description?: string; attendees: { email: string }[] } }
+  | { ok: true; input: { summary: string; start: number; end: number; allDay: boolean; location?: string; description?: string; attendees: { email: string }[]; recurrence?: CalendarRecurrence } }
   | { ok: false; error: string }
+
+// ── Repeat fields ───────────────────────────────────────────────────────────
+// Mirrors the limits main enforces (calendar/recurrence.ts), so the form can say
+// what is wrong before anything is sent.
+
+const MAX_INTERVAL = 999
+const MAX_COUNT = 1000
+
+/** `YYYY-MM-DD` as a local day, or null when it is not a real date. */
+function dateOf(date: string): Date | null {
+  const ms = toEpoch(date, '00:00')
+  if (ms === null) return null
+  const d = new Date(ms)
+  // Date rolls 30 February into March; a real date survives the round trip.
+  return d.getDate() === Number(date.slice(8)) ? d : null
+}
+
+/** The weekday (0=Sunday) of the form's date, or null while it is incomplete. */
+export function startWeekday(date: string): number | null {
+  return dateOf(date)?.getDay() ?? null
+}
+
+/**
+ * What choosing a repeat starts from: every 1, never ending. No weekdays are
+ * stored for the start's own day — it is implied, so changing the date does not
+ * leave the old day behind.
+ */
+export function defaultRecurrence(freq: RecurrenceDraft['freq']): RecurrenceDraft {
+  return { freq, interval: '1', weekdays: [], ends: 'never', count: '10', until: '' }
+}
+
+/** A heads-up for a date that some months or years do not have. */
+export function repeatNote(date: string, freq: RecurrenceDraft['freq']): string | null {
+  const d = dateOf(date)
+  if (!d) return null
+  if (freq === 'monthly' && d.getDate() > 28) return `Months without a day ${d.getDate()} are skipped.`
+  if (freq === 'yearly' && d.getMonth() === 1 && d.getDate() === 29) return 'Only happens in leap years.'
+  return null
+}
+
+function wholeNumber(text: string, max: number): number | null {
+  const n = /^\d+$/.test(text.trim()) ? Number(text) : 0
+  return n >= 1 && n <= max ? n : null
+}
+
+function buildRecurrence(
+  r: RecurrenceDraft,
+  date: string,
+): { ok: true; value: CalendarRecurrence } | { ok: false; error: string } {
+  const startDay = dateOf(date)
+  if (!startDay) return { ok: false, error: 'The event needs a date and a time.' }
+  const interval = wholeNumber(r.interval, MAX_INTERVAL)
+  if (interval === null) return { ok: false, error: `Repeat every 1 to ${MAX_INTERVAL}.` }
+  const value: CalendarRecurrence = { freq: r.freq.toUpperCase() as CalendarRecurrence['freq'], interval }
+  if (r.freq === 'weekly') {
+    value.byWeekday = [...new Set([...r.weekdays, startDay.getDay()])].sort((a, b) => a - b)
+  }
+  if (r.ends === 'count') {
+    const count = wholeNumber(r.count, MAX_COUNT)
+    if (count === null) return { ok: false, error: `Say how many times it happens, 1 to ${MAX_COUNT}.` }
+    value.count = count
+  }
+  if (r.ends === 'until') {
+    const until = dateOf(r.until)
+    if (!until) return { ok: false, error: 'The repeat needs an end date.' }
+    if (until < startDay) return { ok: false, error: 'The repeat ends before the event starts.' }
+    value.until = r.until
+  }
+  return { ok: true, value }
+}
 
 /** Turn the form into a createEvent payload, or say precisely what is wrong. */
 export function buildEventInput(draft: EventDraft): DraftResult {
@@ -441,6 +521,9 @@ export function buildEventInput(draft: EventDraft): DraftResult {
   if (start == null || end == null) return { ok: false, error: 'The event needs a date and a time.' }
   if (!draft.allDay && end <= start) return { ok: false, error: 'The event ends before it starts.' }
 
+  const repeat = draft.recurrence ? buildRecurrence(draft.recurrence, draft.date) : null
+  if (repeat && !repeat.ok) return repeat
+
   return {
     ok: true,
     input: {
@@ -448,6 +531,133 @@ export function buildEventInput(draft: EventDraft): DraftResult {
       ...(draft.location.trim() ? { location: draft.location.trim() } : {}),
       ...(draft.description.trim() ? { description: draft.description.trim() } : {}),
       attendees: emails,
+      ...(repeat?.ok ? { recurrence: repeat.value } : {}),
     },
   }
+}
+
+// ── Agenda and search ───────────────────────────────────────────────────────
+
+/** How far ahead the Agenda view reads. */
+export const AGENDA_DAYS = 60
+
+/** One row of a day list: the event and how its time reads ON that day. */
+export interface AgendaEntry {
+  event: CalendarEvent
+  when: string
+}
+
+export interface AgendaDay {
+  day: number
+  entries: AgendaEntry[]
+}
+
+/** The local day an event last touches. `end` is exclusive. */
+function lastDayOf(ev: Pick<CalendarEvent, 'start' | 'end'>): number {
+  return startOfDay(Math.max(ev.start, ev.end - 1))
+}
+
+/** Overlaps [from, to) — an instant (zero length) still counts where it is. */
+function overlapsRange(ev: Pick<CalendarEvent, 'start' | 'end'>, from: number, to: number): boolean {
+  return ev.start < to && Math.max(ev.end, ev.start + 1) > from
+}
+
+/** The label for one day of an event, which may be the middle of a longer one. */
+function whenOnDay(ev: CalendarEvent, day: number): string {
+  const first = startOfDay(ev.start)
+  const last = lastDayOf(ev)
+  if (first === last) return formatEventTime(ev)
+  // Rounded, not floored: a DST change makes one of these days 23 or 25 hours.
+  const nth = Math.round((day - first) / DAY_MS) + 1
+  const total = Math.round((last - first) / DAY_MS) + 1
+  const part = `day ${nth} of ${total}`
+  if (!ev.allDay && day === first && ev.start > first) return `From ${formatTime(ev.start)} · ${part}`
+  if (!ev.allDay && day === last && ev.end < addDays(day, 1)) return `Until ${formatTime(ev.end)} · ${part}`
+  return `All day · ${part}`
+}
+
+/**
+ * What is coming up in [from, to), day by day. A multi-day event is listed on
+ * every day it covers; days with nothing on them are left out. When the list
+ * starts today, what has already ended is not "upcoming" and is dropped.
+ */
+export function agendaDays(
+  events: readonly CalendarEvent[],
+  from: number,
+  to: number,
+  now = Date.now(),
+): AgendaDay[] {
+  const startsToday = from === startOfDay(now)
+  const coming = events.filter(
+    (e) => overlapsRange(e, from, to) && (!startsToday || Math.max(e.end, e.start + 1) > now),
+  )
+  const out: AgendaDay[] = []
+  for (let day = from; day < to; day = addDays(day, 1)) {
+    const next = addDays(day, 1)
+    const entries = coming
+      .filter((e) => overlapsRange(e, day, next))
+      .sort((a, b) => Number(b.allDay) - Number(a.allDay) || a.start - b.start || a.summary.localeCompare(b.summary))
+      .map((event) => ({ event, when: whenOnDay(event, day) }))
+    if (entries.length > 0) out.push({ day, entries })
+  }
+  return out
+}
+
+/** Case and accents folded away, so "cafe" finds "Café". */
+function searchable(text: string): string {
+  return text.normalize('NFD').replace(/\p{Diacritic}/gu, '').toLocaleLowerCase()
+}
+
+/**
+ * Events in [from, to) whose title, location or notes contain every word of the
+ * query, in time order. It searches only what it is given — the caller says
+ * which range that is.
+ */
+export function searchEvents(
+  events: readonly CalendarEvent[],
+  query: string,
+  from: number,
+  to: number,
+): CalendarEvent[] {
+  const words = searchable(query).split(/\s+/).filter(Boolean)
+  if (words.length === 0) return []
+  return events
+    .filter((e) => {
+      if (!overlapsRange(e, from, to)) return false
+      const text = searchable([e.summary, e.location ?? '', e.description ?? ''].join('\n'))
+      return words.every((w) => text.includes(w))
+    })
+    .sort((a, b) => a.start - b.start || a.summary.localeCompare(b.summary))
+}
+
+/** An event's whole span in one line, for a list that shows it only once. */
+function wholeSpan(ev: CalendarEvent): string {
+  const last = lastDayOf(ev)
+  if (startOfDay(ev.start) === last) return formatEventTime(ev)
+  if (ev.allDay) return `All day · ${formatDayLabel(ev.start)} – ${formatDayLabel(last)}`
+  return `${formatDayLabel(ev.start)} ${formatTime(ev.start)} – ${formatDayLabel(last)} ${formatTime(ev.end)}`
+}
+
+/** Search matches grouped by day, each listed once: on its first day in range. */
+export function searchResultDays(
+  events: readonly CalendarEvent[],
+  query: string,
+  from: number,
+  to: number,
+): AgendaDay[] {
+  const days = new Map<number, AgendaEntry[]>()
+  for (const event of searchEvents(events, query, from, to)) {
+    const day = startOfDay(Math.max(event.start, from))
+    const entries = days.get(day) ?? []
+    entries.push({ event, when: wholeSpan(event) })
+    days.set(day, entries)
+  }
+  return [...days].sort(([a], [b]) => a - b).map(([day, entries]) => ({ day, entries }))
+}
+
+/** `27 Jul 2026 – 4 Aug 2026` for [from, to): the last day shown, not the exclusive end. */
+export function formatRangeLabel(from: number, to: number): string {
+  const day = (ms: number): string =>
+    new Date(ms).toLocaleDateString(undefined, { day: 'numeric', month: 'short', year: 'numeric' })
+  return `${day(from)} – ${day(Math.max(from, to - 1))}`
 }

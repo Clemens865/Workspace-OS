@@ -4,6 +4,7 @@ import { getMonacoLanguage } from './routeFile'
 import { useTheme } from '../../../hooks/useTheme'
 import { useFilePrint } from '../../../hooks/useFilePrint'
 import { printTextDocument } from '../../../lib/printDocument'
+import { acquireWikilinkCompletion, noteSuggestions, type CompletionMonaco } from '../../../lib/wikilinkComplete'
 import styles from './MonacoRenderer.module.css'
 
 export type CodeEditor = Parameters<OnMount>[0]
@@ -63,6 +64,12 @@ const defineLandscapeTheme: BeforeMount = (monaco) => {
   })
 }
 
+/** The note names `[[` completes to, from the open workspace's index. */
+async function loadNoteSuggestions(): Promise<ReturnType<typeof noteSuggestions>> {
+  const [root, graph] = await Promise.all([window.workspace.fs.getWorkspaceRoot(), window.workspace.links.graph()])
+  return noteSuggestions(graph.nodes, root ?? '')
+}
+
 interface MonacoRendererProps {
   filePath: string
   onDirty: (dirty: boolean) => void
@@ -77,14 +84,22 @@ export function MonacoRenderer({ filePath, onDirty, onEditorMount, onSaveRegiste
   const [savedContent, setSavedContent] = useState('')
   const [error, setError] = useState<string | null>(null)
   const editorRef = useRef<CodeEditor | null>(null)
+  const [monacoApi, setMonacoApi] = useState<CompletionMonaco | null>(null)
+
+  // [[wikilink]] autocomplete: one shared provider, held while an editor is up.
+  useEffect(
+    () => (monacoApi ? acquireWikilinkCompletion(monacoApi, loadNoteSuggestions) : undefined),
+    [monacoApi],
+  )
 
   useFilePrint(filePath, async () => {
     if (content === null || error) throw new Error(error || 'The document is still loading')
     await printTextDocument(filePath, editorRef.current?.getValue() ?? content)
   })
 
-  const handleMount = useCallback<OnMount>((editor) => {
+  const handleMount = useCallback<OnMount>((editor, monaco) => {
     editorRef.current = editor
+    setMonacoApi(monaco as unknown as CompletionMonaco)
     onEditorMount?.(editor)
   }, [onEditorMount])
 

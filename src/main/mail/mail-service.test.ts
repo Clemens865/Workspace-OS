@@ -34,7 +34,7 @@ function tempStore(secrets = makeMockSecrets()): { store: MailAccountStore; dir:
   return { store: new MailAccountStore(dir, secrets), dir }
 }
 
-function fakeImap(list = vi.fn(async () => [])): ImapClient {
+function fakeImap(list = vi.fn(async (): Promise<unknown[]> => [])): ImapClient {
   const mock = {
     connect: vi.fn(async () => {}),
     logout: vi.fn(async () => {}),

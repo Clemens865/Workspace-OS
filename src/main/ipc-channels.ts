@@ -194,6 +194,10 @@ export const IPC = {
   LINKS_GRAPH: 'links:graph',
   LINKS_RELATED: 'links:related',
 
+  // Notes the app creates on request; an existing note is never overwritten.
+  NOTES_DAILY: 'notes:daily',
+  NOTES_CREATE_FROM_LINK: 'notes:create-from-link',
+
   // Workspace memory (read-only Pulse cross-project insights)
   MEMORY_QUERY: 'memory:query',
   MEMORY_RECENT: 'memory:recent',
@@ -237,6 +241,8 @@ export const IPC = {
   MAIL_FOLDER_DELETE: 'mail:folder-delete',
   MAIL_ATTACHMENT_SAVE: 'mail:attachment-save',
   MAIL_ATTACHMENT_OPEN: 'mail:attachment-open',
+  /** Read a workspace file as an attachment for a draft (reads only). */
+  MAIL_ATTACH_WORKSPACE_FILE: 'mail:attach-workspace-file',
   MAIL_EXPORT_PDF: 'mail:export-pdf',
   MAIL_RAW_SOURCE: 'mail:raw-source',
   MAIL_CACHED: 'mail:cached',

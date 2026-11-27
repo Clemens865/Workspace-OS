@@ -137,6 +137,19 @@ export interface CalendarCollection {
   color?: string
 }
 
+/** How a new event repeats. Mirrors src/main/calendar/recurrence.ts. */
+export interface CalendarRecurrence {
+  freq: 'DAILY' | 'WEEKLY' | 'MONTHLY' | 'YEARLY'
+  /** Every N days/weeks/months/years. */
+  interval: number
+  /** Weekly only, 0=Sunday; includes the start's own day. */
+  byWeekday?: number[]
+  /** Ends after this many occurrences. Exclusive with `until`. */
+  count?: number
+  /** Last day it may occur, `YYYY-MM-DD`, inclusive. */
+  until?: string
+}
+
 /** One event instance in the viewed window. `end` is exclusive. */
 export interface CalendarEvent {
   uid: string
@@ -321,6 +334,8 @@ export interface WorkspaceApi {
       /** Which calendar; omitted means the remembered one. */
       target?: string
       attendees?: { email: string; name?: string }[]
+      /** Present → the event repeats. */
+      recurrence?: CalendarRecurrence
     }) => Promise<CalendarEvent & { calendar: string; invited: string[] }>
     /**
      * Edit an event where it lives — the local file by uid, a server event by
@@ -336,7 +351,8 @@ export interface WorkspaceApi {
       },
     ) => Promise<{ ok: true }>
     /** Delete an event where it lives. On a server this sends the cancellations.
-     * scope 'occurrence' deletes one occurrence of a series (EXDATE on the master). */
+     * scope 'occurrence' deletes one occurrence of a series (EXDATE on the master).
+     * Works for series in the local calendar too. */
     removeEvent: (
       ref: string | { uid: string; sourceId?: string; href?: string; scope?: 'occurrence'; occurrence?: number },
     ) => Promise<{ ok: boolean }>
@@ -422,6 +438,12 @@ export interface WorkspaceApi {
     prioritize: (filePath: string) => Promise<void>
   }
   /** Knowledge base — the [[wikilink]] backlinks graph over workspace notes. */
+  notes: {
+    /** Today's daily note, created when absent. An existing one is left as it is. */
+    daily: () => Promise<{ path: string; created: boolean }>
+    /** The note an unresolved [[name]] refers to, created beside `fromPath` when absent. */
+    createFromLink: (name: string, fromPath?: string | null) => Promise<{ path: string; created: boolean }>
+  }
   links: {
     /** Notes that link TO `filePath`, each with the linking line. */
     backlinks: (filePath: string) => Promise<Backlink[]>
@@ -844,6 +866,8 @@ export interface WorkspaceApi {
     openAttachment: (
       accountId: string, folder: string, uid: number, index: number,
     ) => Promise<MailResult<{ opened: boolean }>>
+    /** Read a workspace file as a draft attachment, within the message's size and count limits. */
+    attachWorkspaceFile: (filePath: string, usedBytes: number, count: number) => Promise<MailResult<MailDraftAttachment>>
     /** Export a rendered message to PDF. */
     exportPdf: (html: string, subject: string) => Promise<MailResult<{ saved: boolean; path?: string }>>
     /** Raw RFC822 source — "show original". */
@@ -1138,7 +1162,8 @@ export interface WorkspaceApi {
   agents: {
     list: () => Promise<{ name: string; description: string; scope: 'global' | 'project'; mode?: 'full' | 'safe'; capabilities?: string[]; surface?: string; model?: string }[]>
     read: (name: string, scope?: 'global' | 'project') => Promise<{ name: string; description: string; scope: 'global' | 'project'; mode?: 'full' | 'safe'; persona: string; skills: string[]; capabilities?: string[]; surface?: string; model?: string }>
-    write: (payload: { name: string; model?: string; description?: string; persona?: string; mode?: 'full' | 'safe'; skills?: string[]; capabilities?: string[]; surface?: string; scope?: 'global' | 'project' }) => Promise<{ name: string; path: string; scope: 'global' | 'project' }>
+    /** `createOnly` refuses to replace an existing file; `copyFrom` (with it) keeps that agent's foreign frontmatter. */
+    write: (payload: { name: string; model?: string; description?: string; persona?: string; mode?: 'full' | 'safe'; skills?: string[]; capabilities?: string[]; surface?: string; scope?: 'global' | 'project'; createOnly?: boolean; copyFrom?: { name: string; scope: 'global' | 'project' } }) => Promise<{ name: string; path: string; scope: 'global' | 'project' }>
     delete: (name: string, scope?: 'global' | 'project') => Promise<void>
     /** Agent Foundry: the capability palette a specialist can be given. */
     capabilities: () => Promise<{ id: string; label: string; description: string; surface: string; actions: string[]; toolMode: 'safe' | 'full' }[]>
@@ -1364,6 +1389,13 @@ export interface WorkspaceApi {
       kind?: 'bug' | 'idea',
     ) => Promise<{ ok: boolean; id: string; duplicate: boolean; logPath: string }>
     list: () => Promise<{ id: string; title: string; seen: number }[]>
+    /** Save the report as a Markdown file chosen in a dialog; null path when dismissed. */
+    exportMarkdown: (
+      text: string,
+      surface: string | null,
+      openFile: string | null,
+      kind?: 'bug' | 'idea',
+    ) => Promise<{ path: string | null }>
   }
 
   updater: {

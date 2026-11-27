@@ -60,7 +60,9 @@ export function EventDetailsDialog({ event, sourceName, ability, onClose, onEdit
   const confirmText: Record<DeleteScope, string> = {
     single: event.href ? 'Gone from every device — and anyone invited is told it is cancelled.' : 'This removes the event.',
     occurrence: 'Only this occurrence disappears. The series continues.',
-    series: 'The WHOLE series goes, every occurrence — and anyone invited is told it is cancelled.',
+    series: event.href
+      ? 'The WHOLE series goes, every occurrence — and anyone invited is told it is cancelled.'
+      : 'The WHOLE series goes, every occurrence.',
   }
 
   return (

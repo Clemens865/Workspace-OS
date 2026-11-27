@@ -114,6 +114,7 @@ describe('xlsx range reader/writer + sync-all composition', () => {
     expect(plan.openSkipped).toHaveLength(1)
     expect(plan.toWrite).toHaveLength(1)
     for (const link of plan.toWrite) {
+      if (link.target.kind !== 'xlsx-block') throw new Error('expected a spreadsheet block')
       const res = await setRangeValues(link.filePath, link.target.sheet, link.target.cell, r.values)
       expect(res.ok).toBe(true)
       links.add({ rangeId: link.rangeId, filePath: link.filePath, target: link.target, lastValues: r.values })

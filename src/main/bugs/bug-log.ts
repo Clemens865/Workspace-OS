@@ -88,8 +88,6 @@ Entries are append-only. Do not renumber IDs — they are referenced elsewhere.
 ---
 `
 
-const ID_PREFIX = 'WOS-'
-
 /**
  * `## WOS-007 · Title here` — or `## IDEA-007 · …` in IDEAS.md.
  *

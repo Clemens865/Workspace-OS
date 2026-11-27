@@ -18,18 +18,38 @@
  */
 import { execFileSync } from 'node:child_process'
 import { readFileSync, writeFileSync, existsSync } from 'node:fs'
+import { createRequire } from 'node:module'
 
 const PROJECTS = ['tsconfig.node.json', 'src/renderer/tsconfig.json']
 const BASELINE = 'scripts/typecheck-baseline.json'
 
+/**
+ * The compiler runs through this Node binary, not `npx`: on Windows `npx` is a
+ * .cmd file that execFileSync cannot start, and a compiler that never ran must
+ * fail the gate rather than count as zero errors.
+ */
+function compilerPath() {
+  try {
+    return createRequire(import.meta.url).resolve('typescript/bin/tsc')
+  } catch {
+    console.error('Typecheck FAILED — TypeScript is not installed. Run `npm ci` first.')
+    process.exit(1)
+  }
+}
+const TSC = compilerPath()
+
 /** Every error line for one project, as `file: code` — line numbers shift too easily. */
 function errorsIn(project) {
   try {
-    execFileSync('npx', ['tsc', '--noEmit', '-p', project], { encoding: 'utf-8', stdio: 'pipe' })
+    execFileSync(process.execPath, [TSC, '--noEmit', '-p', project], {
+      encoding: 'utf-8',
+      stdio: 'pipe',
+      maxBuffer: 64 * 1024 * 1024,
+    })
     return []
   } catch (e) {
     const out = `${e.stdout ?? ''}${e.stderr ?? ''}`
-    return out
+    const errors = out
       .split('\n')
       .filter((l) => l.includes('error TS'))
       .map((l) => {
@@ -37,6 +57,9 @@ function errorsIn(project) {
         const code = l.match(/error (TS\d+)/)?.[1] ?? 'TS?'
         return `${file}: ${code}`
       })
+    if (errors.length > 0) return errors
+    console.error(`Typecheck FAILED — the compiler did not complete for ${project}:\n${out || e.message}`)
+    process.exit(1)
   }
 }
 

@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest'
 import { buildDraftMime, findDraftsFolder } from './draft-mime'
-import { simpleParser } from 'mailparser'
+import { simpleParser, type AddressObject } from 'mailparser'
 
 /**
  * A draft that renders differently from the mail eventually sent is worse than
@@ -21,7 +21,7 @@ describe('buildDraftMime', () => {
     const parsed = await simpleParser(raw)
     expect(parsed.subject).toBe('Q3 Budget')
     expect(parsed.from?.value[0].address).toBe('me@x.com')
-    expect(parsed.to?.value[0].address).toBe('ana@acme.com')
+    expect((parsed.to as AddressObject).value[0].address).toBe('ana@acme.com')
     expect(parsed.text?.trim()).toBe('Here are the numbers.')
   })
 
@@ -44,7 +44,7 @@ describe('buildDraftMime', () => {
     const parsed = await simpleParser(
       await buildDraftMime({ ...base, cc: [{ address: 'c@x.com' }], bcc: [{ address: 'b@x.com' }] }),
     )
-    expect(parsed.cc?.value[0].address).toBe('c@x.com')
+    expect((parsed.cc as AddressObject).value[0].address).toBe('c@x.com')
   })
 
   it('keeps the threading headers, so a saved reply stays in its thread', async () => {

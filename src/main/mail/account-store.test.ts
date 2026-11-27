@@ -58,8 +58,8 @@ describe('MailAccountStore', () => {
     expect(acct.imap.host).toBe('imap.example.com')
     // The record itself must not carry any secret field.
     expect(JSON.stringify(acct)).not.toContain(PASSWORD)
-    expect((acct as Record<string, unknown>).password).toBeUndefined()
-    expect((acct as Record<string, unknown>).secret).toBeUndefined()
+    expect((acct as unknown as Record<string, unknown>).password).toBeUndefined()
+    expect((acct as unknown as Record<string, unknown>).secret).toBeUndefined()
   })
 
   it('NEVER writes the plaintext password into the accounts JSON', async () => {

@@ -13,6 +13,7 @@ import {
   addExdateIcs, rewriteEventIcs, rewriteOccurrenceIcs, rewriteSeriesIcs,
   type EventEdit, type SeriesEdit,
 } from './ics-write'
+import { repeatFields, type RecurrenceInput } from './recurrence'
 import { chooseWriteTarget, targetsForSource, LOCAL_TARGET, type TargetChoice, type WriteTarget } from './write-target'
 import { newUid } from './local-calendar'
 import type { EventDraft } from './ics-write'
@@ -240,6 +241,8 @@ export interface EventInput {
   allDay?: boolean
   location?: string
   description?: string
+  /** Present → the event repeats. Already checked at the IPC boundary. */
+  recurrence?: RecurrenceInput
   /** People to invite. The SERVER sends the invitations — see writeToCalDav. */
   attendees?: { email: string; name?: string }[]
 }
@@ -296,6 +299,7 @@ export async function writeToCalDav(
     start: input.start,
     end: input.end,
     ...(input.allDay ? { allDay: true } : {}),
+    ...(input.recurrence ? repeatFields(input.recurrence, Boolean(input.allDay)) : {}),
     ...(input.location ? { location: input.location } : {}),
     ...(input.description ? { description: input.description } : {}),
     ...(organizer ? { organizer } : {}),

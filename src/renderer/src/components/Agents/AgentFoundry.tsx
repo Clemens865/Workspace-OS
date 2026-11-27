@@ -1,6 +1,7 @@
-import { useCallback, useEffect, useMemo, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { AgentCard, type AgentCardData } from './AgentCard'
 import { useAgentModels } from '../../lib/agentModels'
+import { foundryRequest, loadDraft, saveDraft, type AgentDraft as Draft, type DraftOrigin } from './agentDraftModel'
 import styles from './AgentFoundry.module.css'
 
 /** The capability palette entry, as returned by `agents.capabilities()`. */
@@ -23,18 +24,13 @@ interface AgentSpec {
   mode: 'safe' | 'full'
 }
 
-/** Local, editable draft bound to the preview + fields in step 2. */
-interface Draft {
-  model?: string
-  name: string
-  description: string
-  persona: string
-  capabilities: string[]
-  surface: string
-  mode: 'safe' | 'full'
-}
+type Phase = 'describe' | 'building' | 'loading' | 'preview'
 
-type Phase = 'describe' | 'building' | 'preview'
+const PREVIEW_COPY: Record<DraftOrigin['kind'], { title: string; sub: string; save: string }> = {
+  new: { title: 'Preview your specialist', sub: 'This is how the agent will appear. Fine-tune anything, then save.', save: 'Approve & Save' },
+  edit: { title: 'Edit specialist', sub: 'Changes are saved to this agent. It keeps its name.', save: 'Save changes' },
+  duplicate: { title: 'Duplicate specialist', sub: 'A copy of the agent. Name it, adjust anything, then save.', save: 'Save copy' },
+}
 
 const EXAMPLES = [
   { label: 'Prospect Researcher', text: 'researches prospect companies and builds a spreadsheet' },
@@ -51,8 +47,9 @@ const FALLBACK_SURFACES = ['Documents', 'Mail', 'Files', 'Research', 'Knowledge'
  * Step 1 (describe): a textarea + example chips + a blue Build button that calls
  * `agents.build(description)` (Claude authors a spec; can take up to a minute).
  * Step 2 (preview): a live <AgentCard> preview beside editable fields bound to a
- * local draft; Approve calls `agents.write({...draft, scope:'global'})` and then
- * dispatches `wos:agents-changed` so the roster re-lists and the new card appears.
+ * local draft; Approve saves it (./agentDraftModel.ts) and then dispatches
+ * `wos:agents-changed` so the roster re-lists and the new card appears.
+ * The event's `edit` / `duplicate` detail opens step 2 on an existing agent.
  */
 export function AgentFoundry(): JSX.Element | null {
   const [open, setOpen] = useState(false)
@@ -62,16 +59,33 @@ export function AgentFoundry(): JSX.Element | null {
   const [saving, setSaving] = useState(false)
   const [capabilities, setCapabilities] = useState<Capability[]>([])
   const [draft, setDraft] = useState<Draft | null>(null)
+  const [origin, setOrigin] = useState<DraftOrigin>({ kind: 'new' })
+  /** Counts openings, so a slow read never lands in a later one. */
+  const opening = useRef(0)
 
-  // Open on the roster/detail event; reset to a clean describe step each time.
+  // Open on the roster/detail event; start clean each time.
   useEffect(() => {
-    const onNew = (): void => {
-      setPhase('describe')
+    const onNew = (e: Event): void => {
+      const request = foundryRequest((e as CustomEvent).detail)
+      const mine = ++opening.current
+      setPhase(request.kind === 'new' ? 'describe' : 'loading')
       setDescription('')
       setError(null)
       setDraft(null)
+      setOrigin({ kind: 'new' })
       setSaving(false)
       setOpen(true)
+      if (request.kind === 'new') return
+      loadDraft(request, window.workspace.agents)
+        .then((loaded) => {
+          if (opening.current !== mine) return
+          setDraft(loaded.draft)
+          setOrigin(loaded.origin)
+          setPhase('preview')
+        })
+        .catch((err: Error) => {
+          if (opening.current === mine) setError(`Couldn’t open ${request.name}: ${err.message}`)
+        })
     }
     window.addEventListener('wos:new-agent', onNew)
     return () => window.removeEventListener('wos:new-agent', onNew)
@@ -103,6 +117,8 @@ export function AgentFoundry(): JSX.Element | null {
       name: spec.name || 'New specialist',
       description: spec.description || '',
       persona: spec.persona || '',
+      model: '',
+      skills: [],
       capabilities: caps,
       surface: spec.surface || '',
       mode: spec.mode === 'full' ? 'full' : 'safe'
@@ -156,34 +172,26 @@ export function AgentFoundry(): JSX.Element | null {
     return {
       name: draft.name || 'New specialist',
       description: draft.description,
-      scope: 'global',
+      scope: origin.kind === 'new' ? 'global' : origin.scope,
       mode: draft.mode,
       skills: chips
     }
-  }, [draft, capabilities])
+  }, [draft, capabilities, origin])
 
   const approve = useCallback(async () => {
     if (!draft) return
     setSaving(true)
     setError(null)
     try {
-      await window.workspace.agents.write({
-        name: draft.name,
-        description: draft.description,
-        persona: draft.persona,
-        capabilities: draft.capabilities,
-        surface: draft.surface || undefined,
-        mode: draft.mode,
-        model: draft.model || undefined,
-        scope: 'global'
-      })
+      await saveDraft(draft, origin, window.workspace.agents)
       window.dispatchEvent(new CustomEvent('wos:agents-changed'))
       close()
-    } catch {
-      setError('Couldn’t save the agent. Please try again.')
+    } catch (e) {
+      const why = (e as Error).message.replace(/^Error invoking remote method '[^']+': (\w*Error: )?/, '')
+      setError(`Couldn’t save the agent. ${why}`)
       setSaving(false)
     }
-  }, [draft, close])
+  }, [draft, origin, close])
 
   if (!open) return null
 
@@ -197,7 +205,16 @@ export function AgentFoundry(): JSX.Element | null {
         aria-label="Agent Foundry"
         data-testid="foundry-modal"
       >
-        {phase !== 'preview' ? (
+        {phase === 'loading' ? (
+          <div className={styles.describe}>
+            {error ? <div className={styles.error}>{error}</div> : <p className={styles.sub}>Reading the agent…</p>}
+            <div className={styles.footer}>
+              <button type="button" className={styles.quiet} onClick={close}>
+                Close
+              </button>
+            </div>
+          </div>
+        ) : phase !== 'preview' ? (
           <DescribeStep
             description={description}
             setDescription={setDescription}
@@ -211,6 +228,7 @@ export function AgentFoundry(): JSX.Element | null {
           previewAgent && (
             <PreviewStep
               draft={draft}
+              kind={origin.kind}
               previewAgent={previewAgent}
               capabilities={capabilities}
               surfaces={surfaces}
@@ -309,6 +327,7 @@ function DescribeStep({
 /* ── Step 2 — Preview & approve ── */
 function PreviewStep({
   draft,
+  kind,
   previewAgent,
   capabilities,
   surfaces,
@@ -321,6 +340,7 @@ function PreviewStep({
   onApprove
 }: {
   draft: Draft
+  kind: DraftOrigin['kind']
   previewAgent: AgentCardData
   capabilities: Capability[]
   surfaces: string[]
@@ -333,10 +353,13 @@ function PreviewStep({
   onApprove: () => void
 }): JSX.Element {
   const models = useAgentModels()
+  const copy = PREVIEW_COPY[kind]
+  // A model the file names that this install does not list still shows (and stays) as it is.
+  const unlisted = draft.model && !models.some((m) => m.id === draft.model)
   return (
     <div className={styles.preview}>
-      <div className={`${styles.title} ${styles.heading}`}>Preview your specialist</div>
-      <p className={styles.sub}>This is how the agent will appear. Fine-tune anything, then save.</p>
+      <div className={`${styles.title} ${styles.heading}`}>{copy.title}</div>
+      <p className={styles.sub}>{copy.sub}</p>
 
       <div className={styles.columns}>
         {/* LEFT — live card preview (non-interactive) */}
@@ -353,6 +376,8 @@ function PreviewStep({
             <input
               className={styles.input}
               value={draft.name}
+              readOnly={kind === 'edit'}
+              title={kind === 'edit' ? 'To save it under another name, use Duplicate.' : undefined}
               onChange={(e) => patch({ name: e.target.value })}
               placeholder="e.g. Prospect Researcher"
             />
@@ -372,6 +397,7 @@ function PreviewStep({
             <span className={styles.label}>Model</span>
             <select className={styles.input} value={draft.model ?? ''} onChange={(e) => patch({ model: e.target.value })}>
               <option value="">Use Settings default</option>
+              {unlisted && <option value={draft.model}>{draft.model}</option>}
               {models.filter((m) => m.id).map((m) => <option key={m.id} value={m.id}>{m.label}</option>)}
             </select>
           </label>
@@ -452,9 +478,11 @@ function PreviewStep({
       {error && <div className={styles.error}>{error}</div>}
 
       <div className={styles.footer}>
-        <button type="button" className={styles.quiet} onClick={onRegenerate} disabled={saving}>
-          Regenerate
-        </button>
+        {kind === 'new' && (
+          <button type="button" className={styles.quiet} onClick={onRegenerate} disabled={saving}>
+            Regenerate
+          </button>
+        )}
         <span className={styles.spacer} />
         <button type="button" className={styles.quiet} onClick={onCancel} disabled={saving}>
           Cancel
@@ -466,7 +494,7 @@ function PreviewStep({
           disabled={saving || !draft.name.trim()}
           data-testid="foundry-approve"
         >
-          {saving ? 'Saving…' : 'Approve & Save'}
+          {saving ? 'Saving…' : copy.save}
         </button>
       </div>
     </div>

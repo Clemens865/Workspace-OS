@@ -9,6 +9,7 @@ import { getWorkspaceRoot } from '../workspace-root'
 import { CAPABILITY_CATALOG } from '../agent/capabilityCatalog'
 import { buildAgentSpec } from '../agent/foundry'
 import { foreignFrontmatter, parseAgentMd, serializeAgentMd } from '../agent/agentFormat'
+import { agentSlug } from '../../shared/agentRun'
 
 /**
  * User-defined agents ("personas") for the IWE agent. Stored as native
@@ -45,7 +46,7 @@ const projectDir = (): string | null => {
 
 /** A safe, file-system-friendly slug for an agent name. */
 function slug(name: string): string {
-  const s = name.trim().toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '')
+  const s = agentSlug(name)
   if (!s) throw new IpcValidationError('Invalid agent name')
   return s
 }
@@ -100,20 +101,33 @@ export function registerAgentsHandlers(ipcMain: IpcMain): void {
   })
 
   ipcHandle(ipcMain, IPC.AGENTS_WRITE, (_e, payload: unknown) => {
-    const a = payload as Partial<AgentFile> & { scope?: 'global' | 'project' }
+    const a = payload as Partial<AgentFile> & { scope?: 'global' | 'project'; createOnly?: unknown; copyFrom?: { name?: unknown; scope?: unknown } }
     if (!a || typeof a.name !== 'string' || !a.name.trim()) throw new IpcValidationError('Agent name is required')
     const scope: 'global' | 'project' = a.scope === 'project' ? 'project' : 'global'
     const p = agentPath(a.name, scope)
+    const createOnly = a.createOnly === true
     // Keep what another editor (Claude Code itself) put in the frontmatter.
     let extra: string[] = []
-    try {
-      extra = foreignFrontmatter(fs.readFileSync(p, 'utf-8'))
-    } catch {
-      /* a new agent */
+    if (createOnly && typeof a.copyFrom?.name === 'string') {
+      // A copy takes the original's lines (its tool limits among them): unreadable means no copy.
+      const from = agentPath(a.copyFrom.name, a.copyFrom.scope === 'project' ? 'project' : 'global')
+      extra = foreignFrontmatter(fs.readFileSync(from, 'utf-8'))
+    } else {
+      try {
+        extra = foreignFrontmatter(fs.readFileSync(p, 'utf-8'))
+      } catch {
+        /* a new agent */
+      }
     }
     const md = serializeAgentMd({ ...a, name: a.name, extra })
     fs.mkdirSync(path.dirname(p), { recursive: true })
-    fs.writeFileSync(p, md, 'utf-8')
+    try {
+      // 'wx' fails on an existing file: a save meant to create never replaces one.
+      fs.writeFileSync(p, md, { encoding: 'utf-8', flag: createOnly ? 'wx' : 'w' })
+    } catch (e) {
+      if ((e as NodeJS.ErrnoException).code !== 'EEXIST') throw e
+      throw new IpcValidationError(`An agent file named ${path.basename(p)} already exists`)
+    }
     return { name: a.name, path: p, scope }
   })
 

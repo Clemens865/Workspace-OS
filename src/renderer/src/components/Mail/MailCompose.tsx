@@ -1,6 +1,6 @@
 import { useState, useCallback, useEffect, useMemo } from 'react'
 import { createPortal } from 'react-dom'
-import { X, Send, Loader2, Check, AlertCircle, Paperclip, Trash2, Type, Wand2, Save, Maximize2, Minimize2 } from 'lucide-react'
+import { X, Send, Loader2, Check, AlertCircle, Paperclip, Trash2, Type, Wand2, Save, Maximize2, Minimize2, FolderOpen } from 'lucide-react'
 import { applySignature } from './signatureClient'
 import type {
   MailAccount,
@@ -13,6 +13,9 @@ import type {
   EmailUnresolvedToken,
 } from '../../types/workspace-api'
 import { MailComposeRich, RichPreview } from './MailComposeRich'
+import { WorkspaceFilePicker } from './WorkspaceFilePicker'
+import { attachFromWorkspace } from './workspaceAttachModel'
+import { ipcReason } from '../../lib/ipcError'
 import {
   initialRichState,
   assembleBlocks,
@@ -262,6 +265,22 @@ export function MailCompose({ account, initial, onClose, onSent, onQueued }: Mai
     setAttachments((prev) => [...prev, ...next])
   }, [])
 
+  // Attach from workspace: main reads the file and holds it to the same limits
+  // a send does, counting the inline images the rich message will carry.
+  const [picking, setPicking] = useState(false)
+  const [attaching, setAttaching] = useState(false)
+  const [attachError, setAttachError] = useState<string | null>(null)
+  const pickWorkspaceFile = useCallback(async (path: string) => {
+    setAttaching(true)
+    setAttachError(null)
+    const held = rich ? [...attachments, ...inlineImageAttachments(richState.extras)] : attachments
+    const out = await attachFromWorkspace(window.workspace.mail.attachWorkspaceFile, path, held)
+    setAttaching(false)
+    if ('error' in out) { setAttachError(out.error); return }
+    setAttachments((prev) => [...prev, out.attachment])
+    setPicking(false)
+  }, [attachments, rich, richState.extras])
+
   const canSend = to.trim().includes('@') && state.kind !== 'sending'
 
   const handleSend = useCallback(async () => {
@@ -311,8 +330,8 @@ export function MailCompose({ account, initial, onClose, onSent, onQueued }: Mai
       } else {
         setState({ kind: 'error', message: res.error.message })
       }
-    } catch {
-      setState({ kind: 'error', message: 'Sending failed unexpectedly.' })
+    } catch (e) {
+      setState({ kind: 'error', message: `Sending failed: ${ipcReason(e)}` })
     }
   }, [canSend, to, cc, bcc, subject, body, attachments, account.id, initial.context, onSent, onQueued, rich, richState])
 
@@ -446,12 +465,29 @@ export function MailCompose({ account, initial, onClose, onSent, onQueued }: Mai
           )}
         </div>
 
+        {picking && (
+          <WorkspaceFilePicker disabled={attaching} onPick={(p) => void pickWorkspaceFile(p)} onClose={() => setPicking(false)} />
+        )}
+        {attachError && (
+          <div className={styles.attachError}><div className={styles.errorMsg}><AlertCircle size={14} /> {attachError}</div></div>
+        )}
         {draftNote && <div className={styles.draftNote}>{draftNote}</div>}
         <div className={styles.footer}>
-          <label className={styles.attachBtn} title="Attach files">
-            <Paperclip size={14} />
-            <input type="file" multiple hidden onChange={(e) => void pickFiles(e.target.files)} />
-          </label>
+          <div className={styles.attachTools}>
+            <label className={styles.attachBtn} title="Attach files">
+              <Paperclip size={14} />
+              <input type="file" multiple hidden onChange={(e) => void pickFiles(e.target.files)} />
+            </label>
+            <button
+              type="button"
+              className={styles.attachBtn}
+              onClick={() => { setPicking((v) => !v); setAttachError(null) }}
+              title="Attach a file from the workspace"
+              aria-expanded={picking}
+            >
+              <FolderOpen size={14} />
+            </button>
+          </div>
           <div className={styles.footerRight}>
             <button
               className={styles.ghost}

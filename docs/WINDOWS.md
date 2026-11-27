@@ -168,7 +168,7 @@ Needs Visual Studio 2022 Build Tools (C++ workload), Node.js 22, Git for Windows
 From a "x64 Native Tools Command Prompt for VS 2022":
 
 ```bat
-npm ci --legacy-peer-deps
+npm ci
 "%ProgramFiles%\Git\bin\bash.exe" -c "LOK_HEADER_REF=libreoffice-24.2.7.2 bash scripts/lok/fetch-headers.sh"
 scripts\lok\build-host.cmd
 npx electron-rebuild -f -w better-sqlite3,node-pty

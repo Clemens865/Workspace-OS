@@ -10,13 +10,20 @@
  */
 import { reviewStore } from '../Review/reviewStore'
 import { activityStore } from '../Review/activityStore'
-import { sessionStore } from '../AgentTerminal/sessionStore'
+import { sessionStore as dockTabs } from '../AgentTerminal/sessionStore'
+import { conversationOf, sessionStore } from '../../lib/sessions/sessionStore'
 import { pausedResumePrompt } from '../../../../shared/agentRun'
 import { outputStore } from './previewStore'
 
-/** The conversation a dock run belongs to: the fleet session's own id, or the dock pane's. */
+/**
+ * The conversation a run belongs to. A session run is filed under its
+ * conversation key (`session-<id>`); runs of the old dock tabs, still in the
+ * feed, keep the tab's own id or the dock pane's.
+ */
 export function conversationFor(sessionId: string): string {
-  return sessionStore.get(sessionId)?.conversationId ?? `dock-convo-${sessionId}`
+  const tab = dockTabs.get(sessionId)?.conversationId
+  if (tab) return tab
+  return sessionId.startsWith('session-') ? sessionId : `dock-convo-${sessionId}`
 }
 
 async function isJob(runId: string): Promise<boolean> {
@@ -78,6 +85,8 @@ export async function resumeRun(runId: string | null): Promise<string | null> {
   }
   const run = reviewStore.getSnapshot().runs.find((r) => r.runId === runId)
   if (!run) throw new Error('That run is no longer in the feed.')
+  const session = sessionStore.list().find((s) => conversationOf(s.id) === run.sessionId)
+  if (session && sessionStore.live(session.id).running) throw new Error('This session is already working. Resume once it has finished.')
   const next = `resume-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 7)}`
   reviewStore.openRun({
     runId: next,
@@ -88,9 +97,15 @@ export async function resumeRun(runId: string | null): Promise<string | null> {
     prompt: `Continue: ${run.prompt}`,
     mode: run.mode,
   })
-  track(next)
+  const prompt = pausedResumePrompt(outputStore.get(run.runId)?.text)
   try {
-    await window.workspace.agent.run(next, pausedResumePrompt(outputStore.get(run.runId)?.text), [], null, run.mode, run.agentName, conversationFor(run.sessionId), undefined, true)
+    if (session) {
+      // The session follows its own run: the reply, the steps, the files and how it lands.
+      await sessionStore.resume(session.id, { runId: next, prompt, mode: run.mode, agentName: run.agentName, model: run.model })
+    } else {
+      track(next)
+      await window.workspace.agent.run(next, prompt, [], null, run.mode, run.agentName, conversationFor(run.sessionId), run.model, true)
+    }
   } catch (e) {
     reviewStore.patchRun(next, { status: 'error', code: null, resolvedAt: Date.now() })
     throw e

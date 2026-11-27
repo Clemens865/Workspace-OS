@@ -1,4 +1,4 @@
-import { IpcMain, app } from 'electron'
+import { IpcMain, app, dialog } from 'electron'
 import fs from 'fs'
 import os from 'os'
 import path from 'path'
@@ -13,6 +13,7 @@ import {
   writeBugLog,
   bugLogPath,
   idPrefix,
+  renderBug,
   type ReportKind,
   type BugContext,
   type ExistingBug,
@@ -31,6 +32,9 @@ import { analyzeBug, toReport, unanalyzedReport, type Analysis } from '../bugs/b
  */
 
 const REPO_CONFIG = (): string => path.join(app.getPath('userData'), 'bug-reporter.json')
+
+/** The longest report an export accepts. */
+const MAX_EXPORT_CHARS = 100_000
 
 /** A candidate repo is only accepted if it really is this project. */
 export function isWorkspaceOsRepo(dir: string): boolean {
@@ -236,6 +240,35 @@ export function registerBugHandlers(ipcMain: IpcMain): void {
       duplicate: filedAs !== id,
       logPath: bugLogPath(repoRoot, k),
     }
+  })
+
+  /**
+   * The way out without a repository: the report as a Markdown file the person
+   * saves where they like. Written as typed (no analysis) and sent nowhere. The
+   * destination comes from the save dialog only, never from the renderer.
+   */
+  ipcHandle(ipcMain, 'bug:export', async (_e, text: unknown, surface: unknown, openFile: unknown, kind: unknown) => {
+    const body = str(text, 'report')
+    if (body.length > MAX_EXPORT_CHARS) {
+      throw new IpcValidationError(`A report is limited to ${MAX_EXPORT_CHARS} characters`)
+    }
+    const k: ReportKind = kind === 'idea' ? 'idea' : 'bug'
+    const context = gatherContext(
+      typeof surface === 'string' ? surface : null,
+      typeof openFile === 'string' ? openFile : null,
+    )
+    const now = new Date().toISOString()
+    const res = await dialog.showSaveDialog({
+      title: 'Export report',
+      defaultPath: path.join(app.getPath('documents'), `${k}-report-${now.slice(0, 10)}.md`),
+      filters: [{ name: 'Markdown', extensions: ['md'] }],
+    })
+    if (res.canceled || !res.filePath) return { path: null }
+    // No log, so no number: the heading names the kind where an id would be.
+    const report = unanalyzedReport(k === 'idea' ? 'Idea' : 'Bug', body, context, now)
+    fs.writeFileSync(res.filePath, `${renderBug(report, k)}
+`, 'utf8')
+    return { path: res.filePath }
   })
 
   /** The current log, for an in-app list of what's outstanding. */

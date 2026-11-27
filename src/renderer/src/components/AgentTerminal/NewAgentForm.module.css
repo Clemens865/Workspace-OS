@@ -102,3 +102,5 @@
   padding: 7px 16px;
 }
 .save:disabled { opacity: 0.5; cursor: default; }
+
+.error { padding: 8px 16px; color: #c0392b; font-size: 12px; }

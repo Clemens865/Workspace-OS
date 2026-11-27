@@ -9,8 +9,10 @@ import {
   toEpoch,
   parseReferences,
   toEnvelopeRow,
+  toIndexedMessage,
   type SyncDeps,
 } from './mail-sync'
+import { parseMessage } from './message-parser'
 import { ok, err, type MessageSummary, type FullMessage } from './types'
 
 let dir: string
@@ -287,7 +289,7 @@ describe('deepenBatch — batched connection path', () => {
 
   it('leaves a uid the server omitted shallow rather than recording a blank', async () => {
     const deps = fakeDeps({
-      async fetchMessages(_a, folder, uids) {
+      async fetchMessages(_a, _folder, uids) {
         // Server returns only the first uid of each batch.
         return ok([full({ uid: uids[0], messageId: `<${uids[0]}@x>` })])
       },
@@ -397,5 +399,25 @@ describe('syncEnvelopes — incremental', () => {
     })
     await syncEnvelopes(idx, deps, 'a', 'INBOX')
     expect(full).toBe(true)
+  })
+})
+
+describe('threading headers', () => {
+  it('survive parsing, so a reply is indexed with the messages it answers', async () => {
+    const raw = [
+      'From: Ana <ana@x.com>',
+      'To: me@x.com',
+      'Subject: Re: Budget',
+      'Message-ID: <c@x.com>',
+      'In-Reply-To: <b@x.com>',
+      'References: <a@x.com>',
+      ' <b@x.com>',
+      '',
+      'Agreed.',
+    ].join('\r\n')
+    const parsed = await parseMessage(raw)
+    const row = toIndexedMessage('acc', 'INBOX', full({ uid: 1, headers: parsed.headers }))
+    expect(row.inReplyTo).toBe('<b@x.com>')
+    expect(row.references).toEqual(['<a@x.com>', '<b@x.com>'])
   })
 })

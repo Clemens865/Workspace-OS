@@ -14,6 +14,7 @@ import { registerAgentPtyHandlers } from './handlers/agent-pty'
 import { registerCheckpointHandlers } from './handlers/checkpoint'
 import { registerSnapshotHandlers } from './handlers/snapshots'
 import { registerSearchHandlers, shutdownSearch } from './handlers/search'
+import { registerNotesHandlers } from './handlers/notes'
 import { registerMemoryHandlers } from './handlers/memory'
 import { registerWikiHandlers } from './handlers/wiki'
 import { registerChatHandlers } from './handlers/chat'
@@ -234,6 +235,7 @@ app.whenReady().then(() => {
   registerDriveHandlers(ipcMain)
   registerPdfHandlers(ipcMain)
   registerSearchHandlers(ipcMain)
+  registerNotesHandlers(ipcMain)
   registerMemoryHandlers(ipcMain)
   registerWikiHandlers(ipcMain)
   registerChatHandlers(ipcMain)

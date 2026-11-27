@@ -104,7 +104,7 @@ describe('ImapClient.listMessages — page window', () => {
   const gen = () => (async function* () { /* empty page */ })()
 
   it('requests only the newest page, not the whole folder', async () => {
-    const fetch = vi.fn(() => gen())
+    const fetch = vi.fn((..._args: unknown[]) => gen())
     const mock = makeMock({
       getMailboxLock: vi.fn(async () => ({ release: vi.fn() })),
       mailboxOpen: vi.fn(async () => ({ exists: 400 })),
@@ -116,7 +116,7 @@ describe('ImapClient.listMessages — page window', () => {
   })
 
   it('pages backwards by offset', async () => {
-    const fetch = vi.fn(() => gen())
+    const fetch = vi.fn((..._args: unknown[]) => gen())
     const mock = makeMock({
       getMailboxLock: vi.fn(async () => ({ release: vi.fn() })),
       mailboxOpen: vi.fn(async () => ({ exists: 400 })),
@@ -127,7 +127,7 @@ describe('ImapClient.listMessages — page window', () => {
   })
 
   it('clamps the window at the start of a short folder', async () => {
-    const fetch = vi.fn(() => gen())
+    const fetch = vi.fn((..._args: unknown[]) => gen())
     const mock = makeMock({
       getMailboxLock: vi.fn(async () => ({ release: vi.fn() })),
       mailboxOpen: vi.fn(async () => ({ exists: 5 })),
@@ -138,7 +138,7 @@ describe('ImapClient.listMessages — page window', () => {
   })
 
   it('returns nothing for an empty folder without fetching', async () => {
-    const fetch = vi.fn(() => gen())
+    const fetch = vi.fn((..._args: unknown[]) => gen())
     const mock = makeMock({
       getMailboxLock: vi.fn(async () => ({ release: vi.fn() })),
       mailboxOpen: vi.fn(async () => ({ exists: 0 })),
@@ -150,7 +150,7 @@ describe('ImapClient.listMessages — page window', () => {
   })
 
   it('returns nothing when paged past the start', async () => {
-    const fetch = vi.fn(() => gen())
+    const fetch = vi.fn((..._args: unknown[]) => gen())
     const mock = makeMock({
       getMailboxLock: vi.fn(async () => ({ release: vi.fn() })),
       mailboxOpen: vi.fn(async () => ({ exists: 10 })),
@@ -223,7 +223,7 @@ describe('ImapClient.fetchMessage', () => {
   })
 
   it('returns a not-found error when the message is missing', async () => {
-    const mock = makeMock({ fetchOne: vi.fn(async () => false) })
+    const mock = makeMock({ fetchOne: vi.fn(async () => false as const) })
     const res = await new ImapClient(() => mock).fetchMessage(CFG, 'INBOX', 99)
     expect(res.ok).toBe(false)
     if (!res.ok) expect(res.error.code).toBe('not-found')

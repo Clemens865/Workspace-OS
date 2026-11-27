@@ -1,7 +1,7 @@
 import { IpcMain, dialog, shell, app, BrowserWindow } from 'electron'
 import { IPC } from '../ipc-channels'
 import { ipcHandle } from '../ipc-registry'
-import { IpcValidationError } from '../ipc-validator'
+import { IpcValidationError, validateFilePath } from '../ipc-validator'
 import { MailRuleStore } from '../mail/rule-store'
 import { classify, classifyFrom } from '../mail/classify'
 import { siftItems, type SiftItem } from '../mail/sift'
@@ -20,7 +20,7 @@ import { extractSheets } from '../mail/rich-email/sheet-extract'
 import { buildFromFilePrompt, parseBlocksReply, INTENTS, type FromFileIntent } from '../mail/rich-email/from-file-prompt'
 import { runEmailPrompt } from '../mail/rich-email/email-agent-drafter'
 import { toBlock } from '../mail/rich-email/coerce-blocks'
-import { resolveSavePath, uniqueName, safeFilename } from '../mail/attachments'
+import { resolveSavePath, uniqueName, safeFilename, readWorkspaceAttachment, MAX_ATTACH_BYTES, MAX_ATTACH_COUNT } from '../mail/attachments'
 import { readSignatures, saveSignature } from '../mail/signature'
 import { log } from '../crash-reporter'
 import { buildDraftMime, findDraftsFolder } from '../mail/draft-mime'
@@ -331,15 +331,15 @@ function toAddressList(raw: unknown, max = 100): OutAddress[] {
   return out
 }
 
-/** Max total attachment bytes accepted across IPC (guards main-process memory). */
-const MAX_ATTACH_BYTES = 25 * 1024 * 1024
-
 /** Coerce attachments; content arrives base64 and is decoded to a bounded Buffer. */
 function toAttachments(raw: unknown): OutAttachment[] {
   if (!Array.isArray(raw)) return []
+  // Refuse rather than truncate: a message that leaves without a file it showed
+  // as attached cannot be taken back.
+  if (raw.length > MAX_ATTACH_COUNT) throw new IpcValidationError(`A message can carry at most ${MAX_ATTACH_COUNT} attachments`)
   const out: OutAttachment[] = []
   let total = 0
-  for (const item of raw.slice(0, 50)) {
+  for (const item of raw) {
     const o = (item && typeof item === 'object' ? item : {}) as Record<string, unknown>
     const filename = asString(o.filename, 255).trim() || 'attachment'
     const b64 = typeof o.content === 'string' ? o.content : ''
@@ -350,7 +350,9 @@ function toAttachments(raw: unknown): OutAttachment[] {
       continue
     }
     total += content.length
-    if (total > MAX_ATTACH_BYTES) break
+    if (total > MAX_ATTACH_BYTES) {
+      throw new IpcValidationError(`Attachments exceed ${Math.round(MAX_ATTACH_BYTES / 1024 / 1024)} MB in total`)
+    }
     const contentType = asString(o.contentType, 255).trim() || undefined
     // Inline images ride as CID attachments; the id is bounded to what can
     // legally appear inside the html's `cid:` reference.
@@ -557,6 +559,16 @@ export function registerMailHandlers(ipcMain: IpcMain): void {
     const problem = await shell.openPath(target)
     if (problem) return { ok: false as const, error: { code: 'unknown' as const, message: problem } }
     return { ok: true as const, value: { opened: true as const } }
+  })
+
+  /**
+   * "Attach from workspace" in compose: reads one file into the draft. It only
+   * reads: the message still leaves through the send the person presses.
+   */
+  ipcHandle(ipcMain, IPC.MAIL_ATTACH_WORKSPACE_FILE, (_e, filePath: unknown, usedBytes: unknown, count: unknown) => {
+    const root = getWorkspaceRoot()
+    if (!root) throw new IpcValidationError('No workspace is open')
+    return readWorkspaceAttachment(validateFilePath(filePath, root), Number(usedBytes) || 0, Number(count) || 0)
   })
 
   /**

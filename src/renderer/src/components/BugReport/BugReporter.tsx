@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useState } from 'react'
 import type { BugAnalysis, BugContext } from '../../types/workspace-api'
+import { exportOutcome } from './exportReportModel'
 import styles from './BugReporter.module.css'
 
 /**
@@ -17,7 +18,8 @@ import styles from './BugReporter.module.css'
  * either way.
  *
  * Reports go to `docs/BUGS.md` in the development repo. Nothing is fixed here —
- * this surface exists to make sure a bug survives to the next session.
+ * this surface exists to make sure a bug survives to the next session. Without a
+ * repo, a report can still be exported as a Markdown file; that sends nothing.
  */
 
 type Phase = 'writing' | 'analyzing' | 'review' | 'filed'
@@ -35,6 +37,7 @@ export function BugReporter({ onClose, surface, openFile }: {
   const [status, setStatus] = useState<{ repoRoot: string | null; count: number } | null>(null)
   const [error, setError] = useState<string | null>(null)
   const [filed, setFiled] = useState<{ id: string; duplicate: boolean } | null>(null)
+  const [exported, setExported] = useState<string | null>(null)
 
   useEffect(() => {
     void window.workspace.bugs.status().then((s) => setStatus({ repoRoot: s.repoRoot, count: s.count }))
@@ -65,8 +68,16 @@ export function BugReporter({ onClose, surface, openFile }: {
     }
   }, [])
 
+  const exportFile = useCallback(async () => {
+    setError(null); setExported(null)
+    const out = await exportOutcome(() => window.workspace.bugs.exportMarkdown(text, surface, openFile, kind))
+    setExported(out.saved)
+    setError(out.error)
+  }, [text, surface, openFile, kind])
+
   const analyze = useCallback(async () => {
-    if (!text.trim()) return
+    // Without a repo there is nowhere to file to (⌘↵ reaches here too).
+    if (!text.trim() || !status?.repoRoot) return
     setPhase('analyzing'); setError(null)
     try {
       const res = await window.workspace.bugs.analyze(text, surface, openFile, kind)
@@ -83,7 +94,7 @@ export function BugReporter({ onClose, surface, openFile }: {
       setError((e as Error).message)
       setPhase('review')
     }
-  }, [text, surface, openFile])
+  }, [text, surface, openFile, kind, status?.repoRoot])
 
   const file = useCallback(async (withAnalysis: boolean) => {
     if (!context) return
@@ -95,7 +106,7 @@ export function BugReporter({ onClose, surface, openFile }: {
     } catch (e) {
       setError((e as Error).message)
     }
-  }, [text, analysis, context])
+  }, [text, analysis, context, kind])
 
   const edit = <K extends keyof BugAnalysis>(k: K, v: BugAnalysis[K]): void =>
     setAnalysis((a) => (a ? { ...a, [k]: v } : a))
@@ -131,7 +142,8 @@ export function BugReporter({ onClose, surface, openFile }: {
             <p>
               Bugs are written to <code>docs/BUGS.md</code> in the Workspace&nbsp;OS
               repository, so the next development session picks them up. Point the
-              reporter at that folder once.
+              reporter at that folder once, or write your report below and export
+              it as a file.
             </p>
             <button className={styles.primary} onClick={() => void pickRepo()}>Choose the repository folder…</button>
           </div>
@@ -157,7 +169,14 @@ export function BugReporter({ onClose, surface, openFile }: {
               </p>
             )}
             <footer className={styles.foot}>
-              <span className={styles.hint}>Claude reads the source read-only to guess the cause. It never edits anything.</span>
+              <span className={styles.hint}>
+                {status && !status.repoRoot
+                  ? exported ?? 'Exporting saves a file on this computer. Nothing is sent.'
+                  : 'Claude reads the source read-only to guess the cause. It never edits anything.'}
+              </span>
+              {status && !status.repoRoot && (
+                <button className={styles.ghost} onClick={() => void exportFile()} disabled={!text.trim()}>Export as Markdown…</button>
+              )}
               <button className={styles.ghost} onClick={() => void file(false)} disabled={!text.trim() || !status?.repoRoot}>File as written</button>
               <button className={styles.primary} onClick={() => void analyze()} disabled={!text.trim() || !status?.repoRoot}>Analyze &amp; file</button>
             </footer>

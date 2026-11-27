@@ -59,6 +59,14 @@ contextBridge.exposeInMainWorld('workspace', {
       target?: string
       /** People the SERVER should invite. */
       attendees?: { email: string; name?: string }[]
+      /** Present → the event repeats. Validated in main. */
+      recurrence?: {
+        freq: 'DAILY' | 'WEEKLY' | 'MONTHLY' | 'YEARLY'
+        interval: number
+        byWeekday?: number[]
+        count?: number
+        until?: string
+      }
     }) =>
       ipcRenderer.invoke('calendar:create-event', input),
     /** Edit an event where it lives — local file by uid, server event by its href.
@@ -181,6 +189,13 @@ contextBridge.exposeInMainWorld('workspace', {
     indexStatus: () => ipcRenderer.invoke(IPC.SEARCH_INDEX_STATUS),
     start: () => ipcRenderer.invoke('search:start'),
     prioritize: (filePath: string) => ipcRenderer.invoke('search:prioritize', filePath),
+  },
+
+  // Today's note, and the note behind an unresolved [[link]]; never overwrites.
+  notes: {
+    daily: () => ipcRenderer.invoke(IPC.NOTES_DAILY),
+    createFromLink: (name: string, fromPath?: string | null) =>
+      ipcRenderer.invoke(IPC.NOTES_CREATE_FROM_LINK, name, fromPath),
   },
 
   // Knowledge base — [[wikilink]] backlinks graph over the workspace notes.
@@ -564,6 +579,9 @@ contextBridge.exposeInMainWorld('workspace', {
     /** Open an attachment with the OS default app, from a temp copy. */
     openAttachment: (accountId: string, folder: string, uid: number, index: number) =>
       ipcRenderer.invoke(IPC.MAIL_ATTACHMENT_OPEN, accountId, folder, uid, index),
+    /** Read a workspace file as a draft attachment; main enforces the folder and size limits. */
+    attachWorkspaceFile: (filePath: string, usedBytes: number, count: number) =>
+      ipcRenderer.invoke(IPC.MAIL_ATTACH_WORKSPACE_FILE, filePath, usedBytes, count),
     /** Export a rendered message to PDF. */
     exportPdf: (html: string, subject: string) => ipcRenderer.invoke(IPC.MAIL_EXPORT_PDF, html, subject),
     /** Raw RFC822 source — "show original". */
@@ -581,7 +599,7 @@ contextBridge.exposeInMainWorld('workspace', {
     watchStop: (accountId: string) => ipcRenderer.invoke(IPC.MAIL_WATCH_STOP, accountId),
     /** Subscribe to new-mail events. Returns an unsubscribe function. */
     onNewMail: (cb: (e: { accountId: string; folder: string; count: number; latest: { subject: string; from: string } | null }) => void) => {
-      const handler = (_e: unknown, payload: never): void => cb(payload)
+      const handler = (_e: unknown, payload: Parameters<typeof cb>[0]): void => cb(payload)
       ipcRenderer.on(IPC.MAIL_NEW_MAIL, handler)
       return () => ipcRenderer.removeListener(IPC.MAIL_NEW_MAIL, handler)
     },
@@ -829,7 +847,7 @@ contextBridge.exposeInMainWorld('workspace', {
   agents: {
     list: () => ipcRenderer.invoke(IPC.AGENTS_LIST),
     read: (name: string, scope?: 'global' | 'project') => ipcRenderer.invoke(IPC.AGENTS_READ, name, scope),
-    write: (payload: { name: string; model?: string; description?: string; persona?: string; mode?: 'full' | 'safe'; skills?: string[]; capabilities?: string[]; surface?: string; scope?: 'global' | 'project' }) =>
+    write: (payload: { name: string; model?: string; description?: string; persona?: string; mode?: 'full' | 'safe'; skills?: string[]; capabilities?: string[]; surface?: string; scope?: 'global' | 'project'; createOnly?: boolean; copyFrom?: { name: string; scope: 'global' | 'project' } }) =>
       ipcRenderer.invoke(IPC.AGENTS_WRITE, payload),
     delete: (name: string, scope?: 'global' | 'project') => ipcRenderer.invoke(IPC.AGENTS_DELETE, name, scope),
     // Agent Foundry: the capability palette + the meta-agent that authors a spec.
@@ -1063,6 +1081,9 @@ contextBridge.exposeInMainWorld('workspace', {
     file: (text: string, analysis: unknown, context: unknown, kind?: 'bug' | 'idea') =>
       ipcRenderer.invoke('bug:file', text, analysis, context, kind),
     list: () => ipcRenderer.invoke('bug:list'),
+    /** Save the report as a Markdown file the person picks; sends nothing. */
+    exportMarkdown: (text: string, surface: string | null, openFile: string | null, kind?: 'bug' | 'idea') =>
+      ipcRenderer.invoke('bug:export', text, surface, openFile, kind),
   },
 
   updater: {

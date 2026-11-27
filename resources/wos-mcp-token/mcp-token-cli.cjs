@@ -48,6 +48,8 @@ var Vault = class {
     this.storeDir = storeDir;
     this.secrets = secrets;
   }
+  storeDir;
+  secrets;
   secretsPath() {
     return import_path.default.join(this.storeDir, SECRETS_FILE);
   }

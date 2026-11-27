@@ -39,3 +39,11 @@ export const continueUnfinishedWorkPrompt = [
   'Finish only what remains. Do not repeat completed external actions, create duplicate files or case attachments, or restart the original task from scratch.',
   documentOutputGuidance,
 ].join('\n')
+
+/**
+ * The file name (without `.md`) an agent's name is saved under, so two names
+ * that share it are the same file. '' when nothing usable is left.
+ */
+export function agentSlug(name: string): string {
+  return name.trim().toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '')
+}

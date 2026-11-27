@@ -154,7 +154,7 @@ export class ImapClient {
 
   /** Connect + immediately log out — the settings "Test connection" probe. */
   async testConnection(config: ImapConnectConfig): Promise<MailResult<true>> {
-    return this.withClient(config, async () => true)
+    return this.withClient(config, async () => true as const)
   }
 
   async listFolders(config: ImapConnectConfig): Promise<MailResult<MailFolder[]>> {

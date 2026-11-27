@@ -6,7 +6,7 @@ import { PDFDocument, PDFName, rgb } from 'pdf-lib'
 function annotValue(doc: PDFDocument, page: number, index: number, key: string): string {
   const annots = doc.getPages()[page - 1].node.Annots()
   if (!annots) return ''
-  const dict = annots.lookup(index) as { get(k: PDFName): unknown }
+  const dict = annots.lookup(index) as unknown as { get(k: PDFName): unknown }
   return String(dict.get(PDFName.of(key)) ?? '')
 }
 
