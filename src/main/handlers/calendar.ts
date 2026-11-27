@@ -118,8 +118,8 @@ const accessTokenFor: AccessTokenFor = async (source, refreshToken) => {
     : resolveMicrosoftClientId(app.getPath('userData'))
   if (!clientId) throw new Error('This build has no OAuth client id configured for that provider.')
   const res = source.kind === 'google'
-    ? await refreshGoogle(clientId, refreshToken, nodeFetch)
-    : await refreshMicrosoft(clientId, refreshToken, nodeFetch)
+    ? await refreshGoogle({ clientId, refreshToken }, nodeFetch)
+    : await refreshMicrosoft({ clientId, refreshToken }, nodeFetch)
   if (!res.ok) throw new Error('Could not refresh the sign-in — reconnect this calendar.')
   tokenCache.set(source.id, { token: res.value.accessToken, expiresAt: res.value.expiresAt })
   return res.value.accessToken
