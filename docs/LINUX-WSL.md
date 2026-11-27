@@ -9,7 +9,7 @@ Windows the app behaves as before.
 
 ```sh
 sudo apt install libreoffice            # the engine; LibreOfficeKit ships with every stock build
-npm ci --legacy-peer-deps               # @vitejs/plugin-react 4 has a vite 8 peer conflict
+npm ci
 LOK_HEADER_REF=libreoffice-$(soffice --version | awk '{print $2}') bash scripts/lok/fetch-headers.sh
 bash scripts/lok/build-host.sh          # g++ build of wos-lok-host against those headers
 npm run dist:linux                      # release/linux-unpacked/ and an AppImage

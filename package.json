@@ -87,10 +87,11 @@
     "@types/react": "^18.3.0",
     "@types/react-dom": "^18.3.0",
     "@types/three": "^0.170.0",
-    "@vitejs/plugin-react": "^4.3.0",
+    "@vitejs/plugin-react": "^5.2.0",
     "electron": "^42.4.1",
     "electron-builder": "^25.0.0",
     "electron-vite": "^5.0.0",
+    "esbuild": "^0.28.1",
     "path-browserify": "^1.0.1",
     "playwright": "^1.61.0",
     "react": "^18.3.0",
@@ -120,6 +121,7 @@
     "fflate": "^0.8.3",
     "imagetracerjs": "^1.2.6",
     "imapflow": "^1.4.7",
+    "jszip": "^3.10.1",
     "lucide-react": "^1.21.0",
     "mailparser": "^3.9.14",
     "mammoth": "^1.12.0",
@@ -368,6 +370,11 @@
     "nsis": {
       "oneClick": true,
       "perMachine": false
+    }
+  },
+  "overrides": {
+    "electron-vite": {
+      "vite": "$vite"
     }
   }
 }
