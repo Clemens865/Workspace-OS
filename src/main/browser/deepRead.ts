@@ -189,7 +189,7 @@ export function harvestEmails(text: string): string[] {
 }
 
 /** DD.MM.YYYY / DD-MM-YY etc. — a date, not a phone (the #1 false positive). */
-const DATE_RE = /^\s*\d{1,2}[.\/-]\d{1,2}[.\/-]\d{2,4}\s*$/
+const DATE_RE = /^\s*\d{1,2}[./-]\d{1,2}[./-]\d{2,4}\s*$/
 
 /** Phone-like strings: plausible length, not a date, with a real phone signal. */
 export function harvestPhones(text: string): string[] {

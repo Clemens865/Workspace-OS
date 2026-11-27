@@ -95,7 +95,7 @@ function makeSecretStore(): SecretStore | null {
     decryptString?: (b: Buffer) => string
   } | undefined
   try {
-    // eslint-disable-next-line @typescript-eslint/no-var-requires
+    // eslint-disable-next-line @typescript-eslint/no-require-imports
     const electron = require('electron')
     safeStorage = electron && typeof electron === 'object' ? electron.safeStorage : undefined
   } catch {

@@ -143,7 +143,7 @@ export async function setShapeText(
   if (!stat.isFile()) return skip('not-a-file')
 
   let zip: JSZip
-  let slides: { name: string; xml: string }[] = []
+  const slides: { name: string; xml: string }[] = []
   try {
     const buf = fs.readFileSync(filePath)
     zip = await JSZip.loadAsync(buf)

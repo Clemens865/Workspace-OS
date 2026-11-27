@@ -47,7 +47,7 @@ export function toBlock(raw: unknown): EmailBlock | null {
         const r = (b && typeof b === 'object' ? b : {}) as Record<string, unknown>
         // A model will happily send "1,240" or "€1.2M"; keep the human form for
         // display and parse a number for the bar, rather than dropping the bar.
-        const value = typeof r.value === 'number' ? r.value : Number(String(r.value ?? '').replace(/[^0-9.\-]/g, ''))
+        const value = typeof r.value === 'number' ? r.value : Number(String(r.value ?? '').replace(/[^0-9.-]/g, ''))
         return {
           label: asString(r.label, 120),
           value: Number.isFinite(value) ? value : 0,
